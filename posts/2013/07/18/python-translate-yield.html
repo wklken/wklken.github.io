@@ -137,10 +137,9 @@
 
 
 <p>这和使用列表解析地唯一区别在于使用()替代了原来的[]</p>
-<p>但你不能执行for i in mygenerator第二次，因为每个生成器只能被使用一次</p>
-<p>生成器计算0，并不保留结果和状态，接着计算1，然后计算4，逐一生成</p>
+<p>注意，你不能执行for i in mygenerator第二次，因为每个生成器只能被使用一次: 计算0，并不保留结果和状态，接着计算1，然后计算4，逐一生成</p>
 <h2>yield</h2>
-<p>yield是一个关键词，类似return, 不同之处在于，yield返回一个生成器</p>
+<p>yield是一个关键词，类似return, 不同之处在于，yield返回的是一个生成器</p>
 <div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">def</span> <span class="n">createGenerator</span><span class="p">()</span><span class="o">:</span>
 <span class="p">...</span>    <span class="n">mylist</span> <span class="o">=</span> <span class="n">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
 <span class="p">...</span>    <span class="k">for</span> <span class="n">i</span> <span class="n">in</span> <span class="n">mylist</span><span class="o">:</span>
@@ -157,17 +156,14 @@
 </pre></div>
 
 
-<p>这个例子并没有什么实际作用,仅说明当你知道你的函数将产生大量仅被读取一次的数据时使用生成器是十分有效的做法</p>
-<p>要掌握yield,你必须明白</p>
-<p>当你调用这个函数，函数中你书写的代码并没有执行。</p>
-<p>这个函数仅仅返回一个生成器对象</p>
+<p>这个例子并没有什么实际作用,仅说明当你知道你的函数将产生大量仅被读取一次的数据时,使用生成器将是十分有效的做法</p>
+<p>要掌握yield,你必须明白 - 当你调用这个函数，函数中你书写的代码并没有执行。这个函数仅仅返回一个生成器对象</p>
 <p>这有些狡猾 :-)</p>
-<p>然后，在每次使用生成器的时候,都会执行你的代码</p>
+<p>然后，在每次for循环使用生成器时,都会执行你的代码</p>
 <p>然后，是比较困难的部分：</p>
-<p>第一次函数将会从头运行，直到遇到yield，然后将返回循环的首个值.</p>
-<p>然后，每次调用，都会执行函数中的循环一次，返回下一个值，直到没有值可以返回</p>
+<p>第一次函数将会从头运行，直到遇到yield，然后将返回循环的首个值. 然后，每次调用，都会执行函数中的循环一次，返回下一个值，直到没有值可以返回</p>
 <p>当循环结束，或者不满足"if/else"条件，导致函数运行但不命中yield关键字，此时生成器被认为是空的</p>
-<h3>你代码的解释</h3>
+<h3>问题代码的解释</h3>
 <p>生成器:</p>
 <div class="highlight"><pre><span class="cp"># 这你你创建了node的能返回生成器的函数</span>
 <span class="n">def</span> <span class="n">node</span><span class="p">.</span><span class="n">_get_child_candidates</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">distance</span><span class="p">,</span> <span class="n">min_dist</span><span class="p">,</span> <span class="n">max_dist</span><span class="p">)</span><span class="o">:</span>
@@ -212,10 +208,10 @@
 
 
 <p>这段代码包含几个灵活的部分:</p>
-<p>这个循环遍读取历候选列表,但过程中，候选列表不断扩展:-)</p>
+<p>1.这个循环遍读取历候选列表,但过程中，候选列表不断扩展:-) </p>
 <p>这是一种遍历嵌套数据的简明方法，虽然有些危险，你或许会陷入死循环中</p>
 <p>在这个例子中， candidates.extend(node._get_child_candidates(distance, min_dist, max_dist)) 读取了生成器产生的所有值, 同时while循环产生新的生成器对象加入到列表，因为每个对象作用在不同节点上，所以每个生成器都将生成不同的值</p>
-<p>列表方法extend() 接收一个生成器，生成器的所有值被添加到列表中</p>
+<p>2.列表方法extend() 接收一个生成器，生成器的所有值被添加到列表中</p>
 <p>通常，我们传一个列表作为参数:</p>
 <div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">a</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">b</span> <span class="o">=</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>
@@ -227,13 +223,13 @@
 
 <p>但是，在代码中，这个函数接受到一个生成器</p>
 <p>这样的做法好处是:</p>
-<p>你不需要重复读这些值</p>
-<p>你可能有海量的子节点，但是不希望将所有节点放入内存</p>
+<p>1.你不需要重复读这些值</p>
+<p>2.你可能有海量的子节点，但是不希望将所有节点放入内存</p>
 <p>并且，可以这么传递生成器作为参数的原因是，Python不关心参数是一个方法还是一个列表</p>
 <p>Python接收可迭代对象，对于字符串，列表，元组还有生成器，都适用!</p>
 <p>这就是所谓的“鸭子类型”(duck typing), 这也是Python如此酷的原因之一, 但这是另一个问题了，对于这个问题......</p>
 <p>你可以在这里完成阅读，或者读一点点生成器的进阶用法:</p>
-<p>控制一个生成器的消耗</p>
+<h4>控制一个生成器的消耗</h4>
 <div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">class</span> <span class="n">Bank</span><span class="p">()</span><span class="o">:</span> <span class="err">#</span> <span class="n">let</span><span class="err">&#39;</span><span class="n">s</span> <span class="n">create</span> <span class="n">a</span> <span class="n">bank</span><span class="p">,</span> <span class="n">building</span> <span class="n">ATMs</span>
 <span class="p">...</span>    <span class="n">crisis</span> <span class="o">=</span> <span class="n">False</span>
 <span class="p">...</span>    <span class="n">def</span> <span class="n">create_atm</span><span class="p">(</span><span class="n">self</span><span class="p">)</span><span class="o">:</span>
@@ -278,8 +274,7 @@
 <p>itertools模块包含很多处理可迭代对象的具体方法. 例如</p>
 <p>复制一个生成器？连接两个生成器？一行将嵌套列表中值分组？不使用另一个列表进行Map/Zip?
 (Ever wish to duplicate a generator? Chain two generators? Group values in a nested list with a one liner? Map / Zip without creating another list?)</p>
-<p>只需要使用itertools模块
-Then just import itertools.</p>
+<p>只需要使用itertools模块</p>
 <p>一个例子，4匹马赛跑的可能抵达顺序</p>
 <div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">horses</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">races</span> <span class="o">=</span> <span class="n">itertools</span><span class="p">.</span><span class="n">permutations</span><span class="p">(</span><span class="n">horses</span><span class="p">)</span>

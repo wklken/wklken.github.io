@@ -71,10 +71,9 @@
 
 
 &lt;p&gt;这和使用列表解析地唯一区别在于使用()替代了原来的[]&lt;/p&gt;
-&lt;p&gt;但你不能执行for i in mygenerator第二次，因为每个生成器只能被使用一次&lt;/p&gt;
-&lt;p&gt;生成器计算0，并不保留结果和状态，接着计算1，然后计算4，逐一生成&lt;/p&gt;
+&lt;p&gt;注意，你不能执行for i in mygenerator第二次，因为每个生成器只能被使用一次: 计算0，并不保留结果和状态，接着计算1，然后计算4，逐一生成&lt;/p&gt;
 &lt;h2&gt;yield&lt;/h2&gt;
-&lt;p&gt;yield是一个关键词，类似return, 不同之处在于，yield返回一个生成器&lt;/p&gt;
+&lt;p&gt;yield是一个关键词，类似return, 不同之处在于，yield返回的是一个生成器&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;def&lt;/span&gt; &lt;span class="n"&gt;createGenerator&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
 &lt;span class="p"&gt;...&lt;/span&gt;    &lt;span class="n"&gt;mylist&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
 &lt;span class="p"&gt;...&lt;/span&gt;    &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="n"&gt;in&lt;/span&gt; &lt;span class="n"&gt;mylist&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
@@ -91,17 +90,14 @@
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;这个例子并没有什么实际作用,仅说明当你知道你的函数将产生大量仅被读取一次的数据时使用生成器是十分有效的做法&lt;/p&gt;
-&lt;p&gt;要掌握yield,你必须明白&lt;/p&gt;
-&lt;p&gt;当你调用这个函数，函数中你书写的代码并没有执行。&lt;/p&gt;
-&lt;p&gt;这个函数仅仅返回一个生成器对象&lt;/p&gt;
+&lt;p&gt;这个例子并没有什么实际作用,仅说明当你知道你的函数将产生大量仅被读取一次的数据时,使用生成器将是十分有效的做法&lt;/p&gt;
+&lt;p&gt;要掌握yield,你必须明白 - 当你调用这个函数，函数中你书写的代码并没有执行。这个函数仅仅返回一个生成器对象&lt;/p&gt;
 &lt;p&gt;这有些狡猾 :-)&lt;/p&gt;
-&lt;p&gt;然后，在每次使用生成器的时候,都会执行你的代码&lt;/p&gt;
+&lt;p&gt;然后，在每次for循环使用生成器时,都会执行你的代码&lt;/p&gt;
 &lt;p&gt;然后，是比较困难的部分：&lt;/p&gt;
-&lt;p&gt;第一次函数将会从头运行，直到遇到yield，然后将返回循环的首个值.&lt;/p&gt;
-&lt;p&gt;然后，每次调用，都会执行函数中的循环一次，返回下一个值，直到没有值可以返回&lt;/p&gt;
+&lt;p&gt;第一次函数将会从头运行，直到遇到yield，然后将返回循环的首个值. 然后，每次调用，都会执行函数中的循环一次，返回下一个值，直到没有值可以返回&lt;/p&gt;
 &lt;p&gt;当循环结束，或者不满足"if/else"条件，导致函数运行但不命中yield关键字，此时生成器被认为是空的&lt;/p&gt;
-&lt;h3&gt;你代码的解释&lt;/h3&gt;
+&lt;h3&gt;问题代码的解释&lt;/h3&gt;
 &lt;p&gt;生成器:&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="cp"&gt;# 这你你创建了node的能返回生成器的函数&lt;/span&gt;
 &lt;span class="n"&gt;def&lt;/span&gt; &lt;span class="n"&gt;node&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;_get_child_candidates&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;self&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;distance&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;min_dist&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;max_dist&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
@@ -146,10 +142,10 @@
 
 
 &lt;p&gt;这段代码包含几个灵活的部分:&lt;/p&gt;
-&lt;p&gt;这个循环遍读取历候选列表,但过程中，候选列表不断扩展:-)&lt;/p&gt;
+&lt;p&gt;1.这个循环遍读取历候选列表,但过程中，候选列表不断扩展:-) &lt;/p&gt;
 &lt;p&gt;这是一种遍历嵌套数据的简明方法，虽然有些危险，你或许会陷入死循环中&lt;/p&gt;
 &lt;p&gt;在这个例子中， candidates.extend(node._get_child_candidates(distance, min_dist, max_dist)) 读取了生成器产生的所有值, 同时while循环产生新的生成器对象加入到列表，因为每个对象作用在不同节点上，所以每个生成器都将生成不同的值&lt;/p&gt;
-&lt;p&gt;列表方法extend() 接收一个生成器，生成器的所有值被添加到列表中&lt;/p&gt;
+&lt;p&gt;2.列表方法extend() 接收一个生成器，生成器的所有值被添加到列表中&lt;/p&gt;
 &lt;p&gt;通常，我们传一个列表作为参数:&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;a&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
 &lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;b&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;4&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
@@ -161,13 +157,13 @@
 
 &lt;p&gt;但是，在代码中，这个函数接受到一个生成器&lt;/p&gt;
 &lt;p&gt;这样的做法好处是:&lt;/p&gt;
-&lt;p&gt;你不需要重复读这些值&lt;/p&gt;
-&lt;p&gt;你可能有海量的子节点，但是不希望将所有节点放入内存&lt;/p&gt;
+&lt;p&gt;1.你不需要重复读这些值&lt;/p&gt;
+&lt;p&gt;2.你可能有海量的子节点，但是不希望将所有节点放入内存&lt;/p&gt;
 &lt;p&gt;并且，可以这么传递生成器作为参数的原因是，Python不关心参数是一个方法还是一个列表&lt;/p&gt;
 &lt;p&gt;Python接收可迭代对象，对于字符串，列表，元组还有生成器，都适用!&lt;/p&gt;
 &lt;p&gt;这就是所谓的“鸭子类型”(duck typing), 这也是Python如此酷的原因之一, 但这是另一个问题了，对于这个问题......&lt;/p&gt;
 &lt;p&gt;你可以在这里完成阅读，或者读一点点生成器的进阶用法:&lt;/p&gt;
-&lt;p&gt;控制一个生成器的消耗&lt;/p&gt;
+&lt;h4&gt;控制一个生成器的消耗&lt;/h4&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;class&lt;/span&gt; &lt;span class="n"&gt;Bank&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="err"&gt;#&lt;/span&gt; &lt;span class="n"&gt;let&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;s&lt;/span&gt; &lt;span class="n"&gt;create&lt;/span&gt; &lt;span class="n"&gt;a&lt;/span&gt; &lt;span class="n"&gt;bank&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;building&lt;/span&gt; &lt;span class="n"&gt;ATMs&lt;/span&gt;
 &lt;span class="p"&gt;...&lt;/span&gt;    &lt;span class="n"&gt;crisis&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;False&lt;/span&gt;
 &lt;span class="p"&gt;...&lt;/span&gt;    &lt;span class="n"&gt;def&lt;/span&gt; &lt;span class="n"&gt;create_atm&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;self&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
@@ -212,8 +208,7 @@
 &lt;p&gt;itertools模块包含很多处理可迭代对象的具体方法. 例如&lt;/p&gt;
 &lt;p&gt;复制一个生成器？连接两个生成器？一行将嵌套列表中值分组？不使用另一个列表进行Map/Zip?
 (Ever wish to duplicate a generator? Chain two generators? Group values in a nested list with a one liner? Map / Zip without creating another list?)&lt;/p&gt;
-&lt;p&gt;只需要使用itertools模块
-Then just import itertools.&lt;/p&gt;
+&lt;p&gt;只需要使用itertools模块&lt;/p&gt;
 &lt;p&gt;一个例子，4匹马赛跑的可能抵达顺序&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;horses&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;4&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
 &lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;races&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;itertools&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;permutations&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;horses&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
