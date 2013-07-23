@@ -13,6 +13,11 @@
         <link rel="stylesheet" href="http://wklken.github.io/theme/css/mobile.css" media="all" />
         <link href="http://fonts.googleapis.com/css?family=Open+Sans:400italic,700italic,300italic,600italic,400,600,700,800' rel='stylesheet' type='text/css">
 
+        <link rel="stylesheet" href="http://wklken.github.io/theme/css/font-awesome.min.css">
+        <!--[if IE 7]>
+            <link rel="stylesheet" href="http://wklken.github.io/theme/css/font-awesome-ie7.min.css">
+        <![endif]-->
+
         <link href="http://wklken.github.io/" type="application/atom+xml" rel="alternate" title="wklken's blog ATOM Feed" />
                 <link href="http://wklken.github.io/feed.xml" type="application/atom+xml" rel="alternate" title="wklken's blog RSS Feed" />
         
@@ -38,11 +43,16 @@
 <body id="index" class="home">
   <header id="header">
      <div class="constraint">
-       <div class="o"> 
 
+       <div class="o"> 
    <a href="/"><h1>Wklken <span class="red"> Python</span></h1></a>
-   <!--                       <li><a href="http://wklken.github.io/feed.xml"><i class="icon-rss"></i>  </a></li>
-                           -->
+
+    <div class="social">
+                                      <a href="https://github.com/wklken" target='_blank'><i class="icon-github-sign icon-2x"></i></a>
+                                                  <a href="http://weibo.com/wklken" target='_blank'><i class="icon-weibo icon-2x"></i></a>
+                                                  <a href="mailto:wklken@yeah.net"><i class="icon-envelope icon-2x"></i></a>
+                                                  <a href="/feed.xml" target='_blank'><i class="icon-rss-sign icon-2x"></i></a>
+                          </div>
 
 		<div class="nav">
                                     <a href="/">首页</a>
@@ -51,8 +61,7 @@
                                     <a href="/pages/projects.html">项目</a>
                                     <a href="/pages/tools.html">工具</a>
                                     <a href="/pages/aboutme.html">关于</a>
-                                        <a id='rss' href="http://wklken.github.io/feed.xml"><img src="http://wklken.github.io/theme/images/icons/rss.png"></img></a>
-
+                                
            </div>
          </div>
          </div>
@@ -169,6 +178,93 @@
 
 <p>sum</p>
 <div class="highlight"><pre><span class="n">sum</span><span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="p">[])</span>
+</pre></div>
+
+
+<h3>如何获取一个列表的长度</h3>
+<p>问题 <a href="http://stackoverflow.com/questions/518021/getting-the-length-of-an-array-in-python">链接</a></p>
+<p>python中是不是只有这种方法可以获取长度？语法很奇怪</p>
+<div class="highlight"><pre><span class="n">arr</span><span class="p">.</span><span class="n">__len__</span><span class="p">()</span>
+</pre></div>
+
+
+<p>应该使用这种方式</p>
+<div class="highlight"><pre><span class="n">mylist</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">]</span>
+<span class="n">len</span><span class="p">(</span><span class="n">mylist</span><span class="p">)</span>
+</pre></div>
+
+
+<p>这样做法，不需要对每个容器都定义一个.length()方法，你可以使用len()检查所有实现了__len__()方法的对象</p>
+<h3>Python中如何复制一个列表</h3>
+<p>问题 <a href="http://stackoverflow.com/questions/2612802/how-to-clone-a-list-in-python">链接</a></p>
+<p>可以用切片的方法</p>
+<div class="highlight"><pre><span class="n">new_list</span> <span class="o">=</span> <span class="n">old_list</span><span class="p">[</span><span class="o">:</span><span class="p">]</span>
+</pre></div>
+
+
+<p>可以使用list()函数</p>
+<div class="highlight"><pre><span class="n">new_list</span> <span class="o">=</span> <span class="n">list</span><span class="p">(</span><span class="n">old_list</span><span class="p">)</span>
+</pre></div>
+
+
+<p>可以使用copy.copy(),比list()稍慢，因为它首先去查询old_list的数据类型</p>
+<div class="highlight"><pre><span class="n">import</span> <span class="n">copy</span>
+<span class="n">new_list</span> <span class="o">=</span> <span class="n">copy</span><span class="p">.</span><span class="n">copy</span><span class="p">(</span><span class="n">old_list</span><span class="p">)</span>
+</pre></div>
+
+
+<p>如果列表中包含对象，可以使用copy.deepcopy(), 所有方法中最慢，但有时候无法避免</p>
+<div class="highlight"><pre><span class="n">import</span> <span class="n">copy</span>
+<span class="n">new_list</span> <span class="o">=</span> <span class="n">copy</span><span class="p">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">old_list</span><span class="p">)</span>
+</pre></div>
+
+
+<p>例子：</p>
+<div class="highlight"><pre><span class="n">import</span> <span class="n">copy</span>
+
+<span class="n">class</span> <span class="n">Foo</span><span class="p">(</span><span class="n">object</span><span class="p">)</span><span class="o">:</span>
+    <span class="n">def</span> <span class="n">__init__</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span><span class="o">:</span>
+         <span class="n">self</span><span class="p">.</span><span class="n">val</span> <span class="o">=</span> <span class="n">val</span>
+
+    <span class="n">def</span> <span class="n">__repr__</span><span class="p">(</span><span class="n">self</span><span class="p">)</span><span class="o">:</span>
+        <span class="k">return</span> <span class="n">str</span><span class="p">(</span><span class="n">self</span><span class="p">.</span><span class="n">val</span><span class="p">)</span>
+
+<span class="n">foo</span> <span class="o">=</span> <span class="n">Foo</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="p">[</span><span class="err">&#39;</span><span class="n">foo</span><span class="err">&#39;</span><span class="p">,</span> <span class="n">foo</span><span class="p">]</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="o">:</span><span class="p">]</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">list</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">d</span> <span class="o">=</span> <span class="n">copy</span><span class="p">.</span><span class="n">copy</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">e</span> <span class="o">=</span> <span class="n">copy</span><span class="p">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+
+<span class="cp"># edit orignal list and instance</span>
+<span class="n">a</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="err">&#39;</span><span class="n">baz</span><span class="err">&#39;</span><span class="p">)</span>
+<span class="n">foo</span><span class="p">.</span><span class="n">val</span> <span class="o">=</span> <span class="mi">5</span>
+
+<span class="n">print</span> <span class="s">&quot;original: %r</span><span class="se">\n</span><span class="s"> slice: %r</span><span class="se">\n</span><span class="s"> list(): %r</span><span class="se">\n</span><span class="s"> copy: %r</span><span class="se">\n</span><span class="s"> deepcopy: %r&quot;</span> \
+       <span class="o">%</span> <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+</pre></div>
+
+
+<p>结果:</p>
+<div class="highlight"><pre><span class="nl">original:</span> <span class="p">[</span><span class="err">&#39;</span><span class="n">foo</span><span class="err">&#39;</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="err">&#39;</span><span class="n">baz</span><span class="err">&#39;</span><span class="p">]</span>
+<span class="nl">slice:</span> <span class="p">[</span><span class="err">&#39;</span><span class="n">foo</span><span class="err">&#39;</span><span class="p">,</span> <span class="mi">5</span><span class="p">]</span>
+<span class="n">list</span><span class="p">()</span><span class="o">:</span> <span class="p">[</span><span class="err">&#39;</span><span class="n">foo</span><span class="err">&#39;</span><span class="p">,</span> <span class="mi">5</span><span class="p">]</span>
+<span class="nl">copy:</span> <span class="p">[</span><span class="err">&#39;</span><span class="n">foo</span><span class="err">&#39;</span><span class="p">,</span> <span class="mi">5</span><span class="p">]</span>
+<span class="nl">deepcopy:</span> <span class="p">[</span><span class="err">&#39;</span><span class="n">foo</span><span class="err">&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+</pre></div>
+
+
+<p>效率简单比较</p>
+<div class="highlight"><pre><span class="mf">10.59</span> <span class="o">-</span> <span class="n">copy</span><span class="p">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">old_list</span><span class="p">)</span>
+<span class="mf">10.16</span> <span class="o">-</span> <span class="n">pure</span> <span class="n">python</span> <span class="n">Copy</span><span class="p">()</span> <span class="n">method</span> <span class="n">copying</span> <span class="n">classes</span> <span class="n">with</span> <span class="n">deepcopy</span>
+<span class="mf">1.488</span> <span class="o">-</span> <span class="n">pure</span> <span class="n">python</span> <span class="n">Copy</span><span class="p">()</span> <span class="n">method</span> <span class="n">not</span> <span class="n">copying</span> <span class="n">classes</span> <span class="p">(</span><span class="n">only</span> <span class="n">dicts</span><span class="o">/</span><span class="n">lists</span><span class="o">/</span><span class="n">tuples</span><span class="p">)</span>
+<span class="mf">0.325</span> <span class="o">-</span> <span class="k">for</span> <span class="n">item</span> <span class="n">in</span> <span class="n">old_list</span><span class="o">:</span> <span class="n">new_list</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+<span class="mf">0.217</span> <span class="o">-</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="n">in</span> <span class="n">old_list</span><span class="p">]</span> <span class="p">(</span><span class="n">a</span> <span class="n">list</span> <span class="n">comprehension</span><span class="p">)</span>
+<span class="mf">0.186</span> <span class="o">-</span> <span class="n">copy</span><span class="p">.</span><span class="n">copy</span><span class="p">(</span><span class="n">old_list</span><span class="p">)</span>
+<span class="mf">0.075</span> <span class="o">-</span> <span class="n">list</span><span class="p">(</span><span class="n">old_list</span><span class="p">)</span>
+<span class="mf">0.053</span> <span class="o">-</span> <span class="n">new_list</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">new_list</span><span class="p">.</span><span class="n">extend</span><span class="p">(</span><span class="n">old_list</span><span class="p">)</span>
+<span class="mf">0.039</span> <span class="o">-</span> <span class="n">old_list</span><span class="p">[</span><span class="o">:</span><span class="p">]</span> <span class="p">(</span><span class="n">list</span> <span class="n">slicing</span><span class="p">)</span>
 </pre></div>
 
 
@@ -393,6 +489,13 @@
 
 
 <h2>字符串，文件</h2>
+<h3>字符如何转为小写</h3>
+<p>问题 <a href="http://stackoverflow.com/questions/6797984/how-to-convert-string-to-lowercase-in-python">链接</a></p>
+<div class="highlight"><pre><span class="n">s</span> <span class="o">=</span> <span class="s">&quot;Kilometer&quot;</span>
+<span class="n">print</span><span class="p">(</span><span class="n">s</span><span class="p">.</span><span class="n">lower</span><span class="p">())</span>
+</pre></div>
+
+
 <h3>如何创建不存在的目录结构</h3>
 <p>问题 <a href="http://stackoverflow.com/questions/273192/python-best-way-to-create-directory-if-it-doesnt-exist-for-file-write">链接</a></p>
 <div class="highlight"><pre><span class="k">if</span> <span class="n">not</span> <span class="n">os</span><span class="p">.</span><span class="n">path</span><span class="p">.</span><span class="n">exists</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span><span class="o">:</span>
@@ -891,6 +994,33 @@
 <a href="http://docs.python.org/2/reference/simple_stmts.html#the-print-statement">http://docs.python.org/reference/simple_stmts.html#the-print-statement</a>
 <a href="http://docs.python.org/2/library/sys.html">http://docs.python.org/library/sys.html</a>
 <a href="http://docs.python.org/2/library/stdtypes.html#file-objects">http://docs.python.org/library/stdtypes.html#file-objects</a></p>
+<h3>如何获取一个函数的函数名字符串</h3>
+<p>问题 <a href="http://stackoverflow.com/questions/251464/how-to-get-the-function-name-as-string-in-python">链接</a></p>
+<div class="highlight"><pre><span class="nx">my_function</span><span class="p">.</span><span class="nx">__name__</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="kr">import</span> <span class="nx">time</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="nx">time</span><span class="p">.</span><span class="nx">time</span><span class="p">.</span><span class="nx">__name__</span>
+<span class="s1">&#39;time&#39;</span>
+</pre></div>
+
+
+<h3>应该在学习Python3之前学习Python2，还是直接学习Python3</h3>
+<p>问题 <a href="http://stackoverflow.com/questions/170921/should-i-learn-python-2-before-3-or-start-directly-from-python-3">链接</a></p>
+<p>你可以从python2开始，2和3主要的语法格式和风格相同</p>
+<p>3要替代2不是短时间内能完成的，将会是一个很长的过程，所以学习Python2并没有什么坏处</p>
+<p>我建议你关注下2和3的不同之处  <a href="http://stackoverflow.com/questions/170921/should-i-learn-python-2-before-3-or-start-directly-from-python-3">This slides gives you a quick introduction of the changes in Python 2 and 3</a></p>
+<h3>python中用==比较字符串，is有时候会返回错误判断</h3>
+<p>问题 <a href="http://stackoverflow.com/questions/1504717/python-vs-is-comparing-strings-is-fails-sometimes-why">链接</a></p>
+<p>is是身份测试，==是相等测试</p>
+<div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">a</span> <span class="o">=</span> <span class="err">&#39;</span><span class="n">pub</span><span class="err">&#39;</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">b</span> <span class="o">=</span> <span class="err">&#39;&#39;</span><span class="p">.</span><span class="n">join</span><span class="p">([</span><span class="sc">&#39;p&#39;</span><span class="p">,</span> <span class="sc">&#39;u&#39;</span><span class="p">,</span> <span class="sc">&#39;b&#39;</span><span class="p">])</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">a</span> <span class="o">==</span> <span class="n">b</span>
+<span class="n">True</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">a</span> <span class="n">is</span> <span class="n">b</span>
+<span class="n">False</span><span class="err">&#39;</span>
+</pre></div>
+
+
+<p>is 等价于 id(a) == id(b)</p>
         </div><!-- /.entry-content -->
                 <div class="comments">
             版权声明：自由转载-非商用-非衍生-保持署名 | <a href="http://creativecommons.org/licenses/by-nc-nd/3.0/deed.zh" target="_blank" >Creative Commons BY-NC-ND 3.0</a>
@@ -941,14 +1071,14 @@ var jiathis_config={
 
 
         <section id="extras" class="body">
-                        </section><!-- /#extras -->
+                </section><!-- /#extras -->
 
 		<footer id="footer">
 		<p class="copyright">
                 <address id="about" class="vcard body">
-                    Powered by <a href="http://alexis.notmyidea.org/pelican/">pelican</a>. Theme by <a href="https://github.com/daker">Adnane Belmadiaf</a> and modify by <a href="https://github.com/wklken">wklken</a>.
+                    Powered by <a href="http://alexis.notmyidea.org/pelican/">pelican</a>. Theme by <a href="https://github.com/daker">Adnane Belmadiaf</a> and modify by <a href="https://github.com/wklken">wklken</a> Social Icons by <a href="http://fortawesome.github.io/Font-Awesome/">Font-Awesome</a>.
 
-                    <span xmlns:dct="http://purl.org/dc/terms/" href="http://purl.org/dc/dcmitype/Text" property="dct:title" rel="dct:type">License <a rel="license" href="http://creativecommons.org/licenses/by-nc-nd/3.0/">CC BY-NC-ND</a>.
+                    <span xmlns:dct="http://purl.org/dc/terms/" href="http://purl.org/dc/dcmitype/Text" property="dct:title" rel="dct:type">Theme licensed under <a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a>.
              </address><!-- /#about -->
 
 			 </p>
