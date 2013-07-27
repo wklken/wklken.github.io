@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <title>Python修改xml任意内容[xml.etree.ElementTree]</title>
+        <meta charset="utf-8" />
+     <meta name="description" content="">
+    <meta name="keywords" content="" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+        <link rel="shortcut icon" href="/favicon.ico"/>
+        <link rel="stylesheet" href="http://wklken.me/theme/css/style.css" media="all" />
+        <link rel="stylesheet" href="http://wklken.me/theme/css/mobile.css" media="all" />
+        <link href="http://fonts.googleapis.com/css?family=Open+Sans:400italic,700italic,300italic,600italic,400,600,700,800' rel='stylesheet' type='text/css">
+
+        <link rel="stylesheet" href="http://wklken.me/theme/css/font-awesome.min.css">
+        <!--[if IE 7]>
+            <link rel="stylesheet" href="http://wklken.me/theme/css/font-awesome-ie7.min.css">
+        <![endif]-->
+
+        <link href="http://wklken.me/" type="application/atom+xml" rel="alternate" title="wklken's blog ATOM Feed" />
+                <link href="http://wklken.me/feed.xml" type="application/atom+xml" rel="alternate" title="wklken's blog RSS Feed" />
+        
+        <!--[if IE]>
+                <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+        <!--[if lte IE 7]>
+                <link rel="stylesheet" type="text/css" media="all" href="http://wklken.me/css/ie.css"/>
+                <script src="http://wklken.me/js/IE8.js" type="text/javascript"></script><![endif]-->
+
+        <!--[if lt IE 7]>
+                <link rel="stylesheet" type="text/css" media="all" href="http://wklken.me/css/ie6.css"/><![endif]-->
+        <script src="http://upcdn.b0.upaiyun.com/libs/jquery/jquery-1.9.1.min.js"></script>
+        <script src="http://wklken.me/theme/js/jquery.scrollToTop.js"></script>
+                <script type="text/javascript">
+            $(function() {
+                $("#toTop").scrollToTop(1000);
+            });
+        </script>
+
+</head>
+
+<body id="index" class="home">
+  <header id="header">
+     <div class="constraint">
+
+       <div class="o"> 
+   <a href="/"><h1>Wklken <span class="red"> Python</span></h1></a>
+
+    <div class="social">
+                                      <a href="https://github.com/wklken" target='_blank'><i class="icon-github-sign icon-2x"></i></a>
+                                                  <a href="http://weibo.com/wklken" target='_blank'><i class="icon-weibo icon-2x"></i></a>
+                                                  <a href="mailto:wklken@yeah.net"><i class="icon-envelope icon-2x"></i></a>
+                                                  <a href="/feed.xml" target='_blank'><i class="icon-rss-sign icon-2x"></i></a>
+                          </div>
+
+		<div class="nav">
+                                    <a href="/">首页</a>
+                                    <a href="/categories.html">分类</a>
+                                    <a href="/archives.html">归档</a>
+                                    <a href="/pages/projects.html">项目</a>
+                                    <a href="/pages/tools.html">工具</a>
+                                    <a href="/pages/aboutme.html">关于</a>
+                                
+           </div>
+         </div>
+         </div>
+         </header><!-- /#banner -->
+
+        <section class="content blog">
+<div class="constraint">
+<div class="posts">
+<article>
+        <aside class="sidebar">
+<h3 class="published" title="2012-05-25T00:00:00">
+               2012年05月25日
+</h3>
+
+<p>
+<div class="tag">
+    分类: <a href="/category/python-practice.html">python-practice</a>
+
+    </div>
+
+
+<div class="tag">
+    标签: <a href="http://wklken.me/tag/python.html">python</a><a href="http://wklken.me/tag/xml.html">xml</a>
+   </div>
+
+
+</p>
+
+</aside><!-- /.post-info -->        <header> <h1 class="blog-title"><a href=""
+        rel="bookmark" title="Permalink to Python修改xml任意内容[xml.etree.ElementTree]">Python修改xml任意内容[xml.etree.ElementTree]</a></h1> 
+                </header>
+
+
+        <div class="entry-content">
+        <p>使用库 <a href="http://docs.python.org/library/xml.etree.elementtree.html">xml.etree.ElementTree</a></p>
+<h3>需求</h3>
+<p>在实际应用中，需要对xml配置文件进行实时修改，</p>
+<p>1.增加、删除 某些节点</p>
+<p>2.增加，删除，修改某个节点下的某些属性</p>
+<p>3.增加，删除，修改某些节点的文本</p>
+<h3>使用xml文档</h3>
+<div class="highlight"><pre><span class="cp">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span>
+<span class="nt">&lt;framework&gt;</span>
+    <span class="nt">&lt;processers&gt;</span>
+        <span class="nt">&lt;processer</span> <span class="na">name=</span><span class="s">&quot;AProcesser&quot;</span> <span class="na">file=</span><span class="s">&quot;lib64/A.so&quot;</span>
+            <span class="na">path=</span><span class="s">&quot;/tmp&quot;</span><span class="nt">&gt;</span>
+        <span class="nt">&lt;/processer&gt;</span>
+        <span class="nt">&lt;processer</span> <span class="na">name=</span><span class="s">&quot;BProcesser&quot;</span> <span class="na">file=</span><span class="s">&quot;lib64/B.so&quot;</span> <span class="na">value=</span><span class="s">&quot;fordelete&quot;</span><span class="nt">&gt;</span>
+        <span class="nt">&lt;/processer&gt;</span>
+        <span class="nt">&lt;processer</span> <span class="na">name=</span><span class="s">&quot;BProcesser&quot;</span> <span class="na">file=</span><span class="s">&quot;lib64/B.so2222222&quot;</span><span class="nt">/&gt;</span>
+
+        <span class="nt">&lt;services&gt;</span>
+            <span class="nt">&lt;service</span> <span class="na">name=</span><span class="s">&quot;search&quot;</span> <span class="na">prefix=</span><span class="s">&quot;/bin/search?&quot;</span>
+                <span class="na">output_formatter=</span><span class="s">&quot;OutPutFormatter:service_inc&quot;</span><span class="nt">&gt;</span>
+
+                <span class="nt">&lt;chain</span> <span class="na">sequency=</span><span class="s">&quot;chain1&quot;</span><span class="nt">/&gt;</span>
+                <span class="nt">&lt;chain</span> <span class="na">sequency=</span><span class="s">&quot;chain2&quot;</span><span class="nt">&gt;&lt;/chain&gt;</span>
+            <span class="nt">&lt;/service&gt;</span>
+            <span class="nt">&lt;service</span> <span class="na">name=</span><span class="s">&quot;update&quot;</span> <span class="na">prefix=</span><span class="s">&quot;/bin/update?&quot;</span><span class="nt">&gt;</span>
+                <span class="nt">&lt;chain</span> <span class="na">sequency=</span><span class="s">&quot;chain3&quot;</span> <span class="na">value=</span><span class="s">&quot;fordelete&quot;</span><span class="nt">/&gt;</span>
+            <span class="nt">&lt;/service&gt;</span>
+        <span class="nt">&lt;/services&gt;</span>
+    <span class="nt">&lt;/processers&gt;</span>
+<span class="nt">&lt;/framework&gt;</span>
+</pre></div>
+
+
+<h3>实现思想</h3>
+<p>使用ElementTree，先将文件读入，解析成树，之后，根据路径，可以定位到树的每个节点，再对节点进行修改，最后直接将其输出</p>
+<h3>实现代码</h3>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>  1
+  2
+  3
+  4
+  5
+  6
+  7
+  8
+  9
+ 10
+ 11
+ 12
+ 13
+ 14
+ 15
+ 16
+ 17
+ 18
+ 19
+ 20
+ 21
+ 22
+ 23
+ 24
+ 25
+ 26
+ 27
+ 28
+ 29
+ 30
+ 31
+ 32
+ 33
+ 34
+ 35
+ 36
+ 37
+ 38
+ 39
+ 40
+ 41
+ 42
+ 43
+ 44
+ 45
+ 46
+ 47
+ 48
+ 49
+ 50
+ 51
+ 52
+ 53
+ 54
+ 55
+ 56
+ 57
+ 58
+ 59
+ 60
+ 61
+ 62
+ 63
+ 64
+ 65
+ 66
+ 67
+ 68
+ 69
+ 70
+ 71
+ 72
+ 73
+ 74
+ 75
+ 76
+ 77
+ 78
+ 79
+ 80
+ 81
+ 82
+ 83
+ 84
+ 85
+ 86
+ 87
+ 88
+ 89
+ 90
+ 91
+ 92
+ 93
+ 94
+ 95
+ 96
+ 97
+ 98
+ 99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134</pre></div></td><td class="code"><div class="highlight"><pre><span class="c">#!/usr/bin/python</span>
+<span class="c"># -*- coding=utf-8 -*-</span>
+<span class="c"># author : wklken@yeah.net</span>
+<span class="c"># date: 2012-05-25</span>
+<span class="c"># version: 0.1</span>
+
+<span class="kn">from</span> <span class="nn">xml.etree.ElementTree</span> <span class="kn">import</span> <span class="n">ElementTree</span><span class="p">,</span><span class="n">Element</span>
+
+<span class="k">def</span> <span class="nf">read_xml</span><span class="p">(</span><span class="n">in_path</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;读取并解析xml文件</span>
+<span class="sd">       in_path: xml路径</span>
+<span class="sd">       return: ElementTree&#39;&#39;&#39;</span>
+    <span class="n">tree</span> <span class="o">=</span> <span class="n">ElementTree</span><span class="p">()</span>
+    <span class="n">tree</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">in_path</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">tree</span>
+
+<span class="k">def</span> <span class="nf">write_xml</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="n">out_path</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;将xml文件写出</span>
+<span class="sd">       tree: xml树</span>
+<span class="sd">       out_path: 写出路径&#39;&#39;&#39;</span>
+    <span class="n">tree</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">out_path</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s">&quot;utf-8&quot;</span><span class="p">,</span><span class="n">xml_declaration</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">if_match</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">kv_map</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;判断某个节点是否包含所有传入参数属性</span>
+<span class="sd">       node: 节点</span>
+<span class="sd">       kv_map: 属性及属性值组成的map&#39;&#39;&#39;</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">kv_map</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="o">!=</span> <span class="n">kv_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">False</span>
+    <span class="k">return</span> <span class="bp">True</span>
+
+<span class="c">#---------------search -----</span>
+<span class="k">def</span> <span class="nf">find_nodes</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;查找某个路径匹配的所有节点</span>
+<span class="sd">       tree: xml树</span>
+<span class="sd">       path: 节点路径&#39;&#39;&#39;</span>
+    <span class="k">return</span> <span class="n">tree</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">get_node_by_keyvalue</span><span class="p">(</span><span class="n">nodelist</span><span class="p">,</span> <span class="n">kv_map</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;根据属性及属性值定位符合的节点，返回节点</span>
+<span class="sd">       nodelist: 节点列表</span>
+<span class="sd">       kv_map: 匹配属性及属性值map&#39;&#39;&#39;</span>
+    <span class="n">result_nodes</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">nodelist</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">if_match</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">kv_map</span><span class="p">):</span>
+            <span class="n">result_nodes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">result_nodes</span>
+
+<span class="c">#---------------change -----</span>
+<span class="k">def</span> <span class="nf">change_node_properties</span><span class="p">(</span><span class="n">nodelist</span><span class="p">,</span> <span class="n">kv_map</span><span class="p">,</span> <span class="n">is_delete</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;修改/增加 /删除 节点的属性及属性值</span>
+<span class="sd">       nodelist: 节点列表</span>
+<span class="sd">       kv_map:属性及属性值map&#39;&#39;&#39;</span>
+    <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">nodelist</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">kv_map</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">is_delete</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">attrib</span><span class="p">:</span>
+                    <span class="k">del</span> <span class="n">node</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">node</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">kv_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
+
+<span class="k">def</span> <span class="nf">change_node_text</span><span class="p">(</span><span class="n">nodelist</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">is_add</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">is_delete</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;改变/增加/删除一个节点的文本</span>
+<span class="sd">       nodelist:节点列表</span>
+<span class="sd">       text : 更新后的文本&#39;&#39;&#39;</span>
+    <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">nodelist</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">is_add</span><span class="p">:</span>
+            <span class="n">node</span><span class="o">.</span><span class="n">text</span> <span class="o">+=</span> <span class="n">text</span>
+        <span class="k">elif</span> <span class="n">is_delete</span><span class="p">:</span>
+            <span class="n">node</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">node</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">text</span>
+
+<span class="k">def</span> <span class="nf">create_node</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="n">property_map</span><span class="p">,</span> <span class="n">content</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;新造一个节点</span>
+<span class="sd">       tag:节点标签</span>
+<span class="sd">       property_map:属性及属性值map</span>
+<span class="sd">       content: 节点闭合标签里的文本内容</span>
+<span class="sd">       return 新节点&#39;&#39;&#39;</span>
+    <span class="n">element</span> <span class="o">=</span> <span class="n">Element</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="n">property_map</span><span class="p">)</span>
+    <span class="n">element</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">content</span>
+    <span class="k">return</span> <span class="n">element</span>
+
+<span class="k">def</span> <span class="nf">add_child_node</span><span class="p">(</span><span class="n">nodelist</span><span class="p">,</span> <span class="n">element</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;给一个节点添加子节点</span>
+<span class="sd">       nodelist: 节点列表</span>
+<span class="sd">       element: 子节点&#39;&#39;&#39;</span>
+    <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">nodelist</span><span class="p">:</span>
+        <span class="n">node</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">del_node_by_tagkeyvalue</span><span class="p">(</span><span class="n">nodelist</span><span class="p">,</span> <span class="n">tag</span><span class="p">,</span> <span class="n">kv_map</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;同过属性及属性值定位一个节点，并删除之</span>
+<span class="sd">       nodelist: 父节点列表</span>
+<span class="sd">       tag:子节点标签</span>
+<span class="sd">       kv_map: 属性及属性值列表&#39;&#39;&#39;</span>
+    <span class="k">for</span> <span class="n">parent_node</span> <span class="ow">in</span> <span class="n">nodelist</span><span class="p">:</span>
+        <span class="n">children</span> <span class="o">=</span> <span class="n">parent_node</span><span class="o">.</span><span class="n">getchildren</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">children</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">child</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="n">tag</span> <span class="ow">and</span> <span class="n">if_match</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="n">kv_map</span><span class="p">):</span>
+                <span class="n">parent_node</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">child</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="c">#1. 读取xml文件</span>
+    <span class="n">tree</span> <span class="o">=</span> <span class="n">read_xml</span><span class="p">(</span><span class="s">&quot;./test.xml&quot;</span><span class="p">)</span>
+
+    <span class="c">#2. 属性修改</span>
+      <span class="c">#A. 找到父节点</span>
+    <span class="n">nodes</span> <span class="o">=</span> <span class="n">find_nodes</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="s">&quot;processers/processer&quot;</span><span class="p">)</span>
+      <span class="c">#B. 通过属性准确定位子节点</span>
+    <span class="n">result_nodes</span> <span class="o">=</span> <span class="n">get_node_by_keyvalue</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="p">{</span><span class="s">&quot;name&quot;</span><span class="p">:</span><span class="s">&quot;BProcesser&quot;</span><span class="p">})</span>
+      <span class="c">#C. 修改节点属性</span>
+    <span class="n">change_node_properties</span><span class="p">(</span><span class="n">result_nodes</span><span class="p">,</span> <span class="p">{</span><span class="s">&quot;age&quot;</span><span class="p">:</span> <span class="s">&quot;1&quot;</span><span class="p">})</span>
+      <span class="c">#D. 删除节点属性</span>
+    <span class="n">change_node_properties</span><span class="p">(</span><span class="n">result_nodes</span><span class="p">,</span> <span class="p">{</span><span class="s">&quot;value&quot;</span><span class="p">:</span><span class="s">&quot;&quot;</span><span class="p">},</span> <span class="bp">True</span><span class="p">)</span>
+
+    <span class="c">#3. 节点修改</span>
+      <span class="c">#A.新建节点</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">create_node</span><span class="p">(</span><span class="s">&quot;person&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s">&quot;age&quot;</span><span class="p">:</span><span class="s">&quot;15&quot;</span><span class="p">,</span><span class="s">&quot;money&quot;</span><span class="p">:</span><span class="s">&quot;200000&quot;</span><span class="p">},</span> <span class="s">&quot;this is the firest content&quot;</span><span class="p">)</span>
+      <span class="c">#B.插入到父节点之下</span>
+    <span class="n">add_child_node</span><span class="p">(</span><span class="n">result_nodes</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span>
+
+    <span class="c">#4. 删除节点</span>
+       <span class="c">#定位父节点</span>
+    <span class="n">del_parent_nodes</span> <span class="o">=</span> <span class="n">find_nodes</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="s">&quot;processers/services/service&quot;</span><span class="p">)</span>
+       <span class="c">#准确定位子节点并删除之</span>
+    <span class="n">target_del_node</span> <span class="o">=</span> <span class="n">del_node_by_tagkeyvalue</span><span class="p">(</span><span class="n">del_parent_nodes</span><span class="p">,</span> <span class="s">&quot;chain&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s">&quot;sequency&quot;</span> <span class="p">:</span> <span class="s">&quot;chain1&quot;</span><span class="p">})</span>
+
+    <span class="c">#5. 修改节点文本</span>
+       <span class="c">#定位节点</span>
+    <span class="n">text_nodes</span> <span class="o">=</span> <span class="n">get_node_by_keyvalue</span><span class="p">(</span><span class="n">find_nodes</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="s">&quot;processers/services/service/chain&quot;</span><span class="p">),</span> <span class="p">{</span><span class="s">&quot;sequency&quot;</span><span class="p">:</span><span class="s">&quot;chain3&quot;</span><span class="p">})</span>
+    <span class="n">change_node_text</span><span class="p">(</span><span class="n">text_nodes</span><span class="p">,</span> <span class="s">&quot;new text&quot;</span><span class="p">)</span>
+
+    <span class="c">#6. 输出到结果文件</span>
+    <span class="n">write_xml</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="s">&quot;./out.xml&quot;</span><span class="p">)</span>
+</pre></div>
+</td></tr></table>
+
+<h3>修改后的结果</h3>
+<div class="highlight"><pre><span class="cp">&lt;?xml version=&#39;1.0&#39; encoding=&#39;utf-8&#39;?&gt;</span>
+<span class="nt">&lt;framework&gt;</span>
+    <span class="nt">&lt;processers&gt;</span>
+        <span class="nt">&lt;processer</span> <span class="na">file=</span><span class="s">&quot;lib64/A.so&quot;</span> <span class="na">name=</span><span class="s">&quot;AProcesser&quot;</span> <span class="na">path=</span><span class="s">&quot;/tmp&quot;</span><span class="nt">&gt;</span>
+        <span class="nt">&lt;/processer&gt;</span>
+        <span class="nt">&lt;processer</span> <span class="na">age=</span><span class="s">&quot;1&quot;</span> <span class="na">file=</span><span class="s">&quot;lib64/B.so&quot;</span> <span class="na">name=</span><span class="s">&quot;BProcesser&quot;</span><span class="nt">&gt;</span>
+            <span class="nt">&lt;person</span> <span class="na">age=</span><span class="s">&quot;15&quot;</span> <span class="na">money=</span><span class="s">&quot;200000&quot;</span><span class="nt">&gt;</span>this is the firest content<span class="nt">&lt;/person&gt;</span>
+        <span class="nt">&lt;/processer&gt;</span>
+        <span class="nt">&lt;processer</span> <span class="na">age=</span><span class="s">&quot;1&quot;</span> <span class="na">file=</span><span class="s">&quot;lib64/B.so2222222&quot;</span> <span class="na">name=</span><span class="s">&quot;BProcesser&quot;</span><span class="nt">&gt;</span>
+            <span class="nt">&lt;person</span> <span class="na">age=</span><span class="s">&quot;15&quot;</span> <span class="na">money=</span><span class="s">&quot;200000&quot;</span><span class="nt">&gt;</span>this is the firest content<span class="nt">&lt;/person&gt;</span>
+        <span class="nt">&lt;/processer&gt;</span>
+
+        <span class="nt">&lt;services&gt;</span>
+            <span class="nt">&lt;service</span> <span class="na">name=</span><span class="s">&quot;search&quot;</span> <span class="na">output_formatter=</span><span class="s">&quot;OutPutFormatter:service_inc&quot;</span>
+                <span class="na">prefix=</span><span class="s">&quot;/bin/search?&quot;</span><span class="nt">&gt;</span>
+
+                <span class="nt">&lt;chain</span> <span class="na">sequency=</span><span class="s">&quot;chain2&quot;</span> <span class="nt">/&gt;</span>
+            <span class="nt">&lt;/service&gt;</span>
+            <span class="nt">&lt;service</span> <span class="na">name=</span><span class="s">&quot;update&quot;</span> <span class="na">prefix=</span><span class="s">&quot;/bin/update?&quot;</span><span class="nt">&gt;</span>
+                <span class="nt">&lt;chain</span> <span class="na">sequency=</span><span class="s">&quot;chain3&quot;</span> <span class="na">value=</span><span class="s">&quot;fordelete&quot;</span><span class="nt">&gt;</span>new text<span class="nt">&lt;/chain&gt;</span>
+            <span class="nt">&lt;/service&gt;</span>
+        <span class="nt">&lt;/services&gt;</span>
+    <span class="nt">&lt;/processers&gt;</span>
+<span class="nt">&lt;/framework&gt;</span>
+</pre></div>
+
+
+<p>The end!</p>
+<p>wklken</p>
+<p>2012-05-25</p>
+        </div><!-- /.entry-content -->
+                <div class="comments">
+            版权声明：自由转载-非商用-非衍生-保持署名 | <a href="http://creativecommons.org/licenses/by-nc-nd/3.0/deed.zh" target="_blank" >Creative Commons BY-NC-ND 3.0</a>
+        <h2>Comments !</h2>
+            <div id="disqus_thread"></div>
+            <script type="text/javascript">
+               var disqus_identifier = "posts/2012/05/25/python-xml-etree.html";
+               (function() {
+               var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+               dsq.src = 'http://wklken.disqus.com/embed.js';
+               (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+              })();
+            </script>
+        </div>
+        
+        </article>
+</div>
+
+
+</div>
+</section>
+<script type="text/javascript">
+    var disqus_shortname = 'wklken';
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = 'http://' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+
+
+<!-- JiaThis Button BEGIN -->
+<script type="text/javascript" >
+var jiathis_config={
+    siteNum:15,
+    sm:"fav,copy,ishare,tsina,googleplus,fb,twitter,evernote,ydnote,sdonote,xianguo,digg,qingbiji,weixin",
+    summary:"",
+    boldNum:3,
+    showClose:false,
+    hideMore:true
+}
+</script>
+<script type="text/javascript" src="http://v3.jiathis.com/code_mini/jiathis_r.js?btn=r2.gif&move=0" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+<a href="#top" id="toTop" style="display: inline;"></a>
+
+
+
+        <section id="extras" class="body">
+                </section><!-- /#extras -->
+
+		<footer id="footer">
+		<p class="copyright">
+                <address id="about" class="vcard body">
+                    Powered by <a href="http://alexis.notmyidea.org/pelican/">pelican</a>. Theme by <a href="https://github.com/daker">Adnane Belmadiaf</a> and modify by <a href="https://github.com/wklken">wklken</a> Social Icons by <a href="http://fortawesome.github.io/Font-Awesome/">Font-Awesome</a>.
+
+                    <span xmlns:dct="http://purl.org/dc/terms/" href="http://purl.org/dc/dcmitype/Text" property="dct:title" rel="dct:type">Theme licensed under <a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a>.
+             </address><!-- /#about -->
+
+			 </p>
+        </footer><!-- /#contentinfo -->
+
+    <script type="text/javascript">
+    var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+    document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+    </script>
+    <script type="text/javascript">
+    try {
+        var pageTracker = _gat._getTracker("UA-42275748-1");
+    pageTracker._trackPageview();
+    } catch(err) {}</script>
+
+
+</body>
+</html>
