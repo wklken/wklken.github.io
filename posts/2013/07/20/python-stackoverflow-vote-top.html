@@ -1158,6 +1158,174 @@
 <span class="o">&gt;&gt;&gt;</span> <span class="n">unichr</span><span class="p">(</span><span class="mi">1234</span><span class="p">)</span>
 <span class="n">u</span><span class="err">&#39;\</span><span class="n">u04d2</span><span class="err">&#39;</span>
 </pre></div>
+
+
+<h3>排序一个列表中的所有dict，根据dict内值</h3>
+<p>问题 <a href="http://stackoverflow.com/questions/72899/in-python-how-do-i-sort-a-list-of-dictionaries-by-values-of-the-dictionary">链接</a></p>
+<p>如何排序如下列表，根据name或age</p>
+<div class="highlight"><pre><span class="p">[{</span><span class="err">&#39;</span><span class="n">name</span><span class="sc">&#39;:&#39;</span><span class="n">Homer</span><span class="err">&#39;</span><span class="p">,</span> <span class="err">&#39;</span><span class="n">age</span><span class="err">&#39;</span><span class="o">:</span><span class="mi">39</span><span class="p">},</span> <span class="p">{</span><span class="err">&#39;</span><span class="n">name</span><span class="sc">&#39;:&#39;</span><span class="n">Bart</span><span class="err">&#39;</span><span class="p">,</span> <span class="err">&#39;</span><span class="n">age</span><span class="err">&#39;</span><span class="o">:</span><span class="mi">10</span><span class="p">}]</span>
+</pre></div>
+
+
+<p>简单的做法；</p>
+<div class="highlight"><pre><span class="n">newlist</span> <span class="o">=</span> <span class="n">sorted</span><span class="p">(</span><span class="n">list_to_be_sorted</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">lambda</span> <span class="n">k</span><span class="o">:</span> <span class="n">k</span><span class="p">[</span><span class="err">&#39;</span><span class="n">name</span><span class="err">&#39;</span><span class="p">])</span>
+</pre></div>
+
+
+<p>高效的做法</p>
+<div class="highlight"><pre><span class="n">from</span> <span class="n">operator</span> <span class="n">import</span> <span class="n">itemgetter</span>
+<span class="n">newlist</span> <span class="o">=</span> <span class="n">sorted</span><span class="p">(</span><span class="n">list_to_be_sorted</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">itemgetter</span><span class="p">(</span><span class="err">&#39;</span><span class="n">name</span><span class="err">&#39;</span><span class="p">))</span>
+</pre></div>
+
+
+<h3>读文件到列表中</h3>
+<p>问题 <a href="http://stackoverflow.com/questions/3277503/python-read-file-line-by-line-into-array">链接</a></p>
+<div class="highlight"><pre><span class="n">f</span> <span class="o">=</span> <span class="n">open</span><span class="p">(</span><span class="err">&#39;</span><span class="n">filename</span><span class="err">&#39;</span><span class="p">)</span>
+<span class="n">lines</span> <span class="o">=</span> <span class="n">f</span><span class="p">.</span><span class="n">readlines</span><span class="p">()</span>
+<span class="n">f</span><span class="p">.</span><span class="n">close</span><span class="p">()</span>
+<span class="err">等价</span>
+<span class="n">with</span> <span class="n">open</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span> <span class="n">as</span> <span class="n">f</span><span class="o">:</span>
+    <span class="n">content</span> <span class="o">=</span> <span class="n">f</span><span class="p">.</span><span class="n">readlines</span><span class="p">()</span>
+</pre></div>
+
+
+<p><a href="http://docs.python.org/2/tutorial/inputoutput.html#reading-and-writing-files">文档</a></p>
+<h3>如何用http下载一个文件</h3>
+<p>问题 <a href="http://stackoverflow.com/questions/22676/how-do-i-download-a-file-over-http-using-python">链接</a></p>
+<p>直接使用urllib</p>
+<div class="highlight"><pre><span class="n">import</span> <span class="n">urllib</span>
+<span class="n">urllib</span><span class="p">.</span><span class="n">urlretrieve</span> <span class="p">(</span><span class="s">&quot;http://www.example.com/songs/mp3.mp3&quot;</span><span class="p">,</span> <span class="s">&quot;mp3.mp3&quot;</span><span class="p">)</span>
+</pre></div>
+
+
+<p>使用urllib2,并提供一个进度条</p>
+<div class="highlight"><pre><span class="n">import</span> <span class="n">urllib2</span>
+
+<span class="n">url</span> <span class="o">=</span> <span class="s">&quot;http://download.thinkbroadband.com/10MB.zip&quot;</span>
+
+<span class="n">file_name</span> <span class="o">=</span> <span class="n">url</span><span class="p">.</span><span class="n">split</span><span class="p">(</span><span class="sc">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+<span class="n">u</span> <span class="o">=</span> <span class="n">urllib2</span><span class="p">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">open</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="err">&#39;</span><span class="n">wb</span><span class="err">&#39;</span><span class="p">)</span>
+<span class="n">meta</span> <span class="o">=</span> <span class="n">u</span><span class="p">.</span><span class="n">info</span><span class="p">()</span>
+<span class="n">file_size</span> <span class="o">=</span> <span class="kt">int</span><span class="p">(</span><span class="n">meta</span><span class="p">.</span><span class="n">getheaders</span><span class="p">(</span><span class="s">&quot;Content-Length&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+<span class="n">print</span> <span class="s">&quot;Downloading: %s Bytes: %s&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="n">file_size</span><span class="p">)</span>
+
+<span class="n">file_size_dl</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">block_sz</span> <span class="o">=</span> <span class="mi">8192</span>
+<span class="k">while</span> <span class="n">True</span><span class="o">:</span>
+    <span class="n">buffer</span> <span class="o">=</span> <span class="n">u</span><span class="p">.</span><span class="n">read</span><span class="p">(</span><span class="n">block_sz</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">not</span> <span class="n">buffer</span><span class="o">:</span>
+        <span class="k">break</span>
+
+    <span class="n">file_size_dl</span> <span class="o">+=</span> <span class="n">len</span><span class="p">(</span><span class="n">buffer</span><span class="p">)</span>
+    <span class="n">f</span><span class="p">.</span><span class="n">write</span><span class="p">(</span><span class="n">buffer</span><span class="p">)</span>
+    <span class="n">status</span> <span class="o">=</span> <span class="n">r</span><span class="s">&quot;%10d  [%3.2f%%]&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">file_size_dl</span><span class="p">,</span> <span class="n">file_size_dl</span> <span class="o">*</span> <span class="mf">100.</span> <span class="o">/</span> <span class="n">file_size</span><span class="p">)</span>
+    <span class="n">status</span> <span class="o">=</span> <span class="n">status</span> <span class="o">+</span> <span class="n">chr</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">len</span><span class="p">(</span><span class="n">status</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">print</span> <span class="n">status</span><span class="p">,</span>
+
+<span class="n">f</span><span class="p">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+
+
+<p>使用第三方<a href="http://docs.python-requests.org/en/latest/index.html">requests</a>包</p>
+<div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">import</span> <span class="n">requests</span>
+<span class="o">&gt;&gt;&gt;</span> 
+<span class="o">&gt;&gt;&gt;</span> <span class="n">url</span> <span class="o">=</span> <span class="s">&quot;http://download.thinkbroadband.com/10MB.zip&quot;</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">print</span> <span class="n">len</span><span class="p">(</span><span class="n">r</span><span class="p">.</span><span class="n">content</span><span class="p">)</span>
+<span class="mi">10485760</span>
+</pre></div>
+
+
+<h3>在virtualenv中如何使用不同的python版本</h3>
+<p>问题 <a href="http://stackoverflow.com/questions/1534210/use-different-python-version-with-virtualenv">链接</a></p>
+<p>在创建virtualenv实例时，使用-p选项</p>
+<div class="highlight"><pre><span class="n">virtualenv</span> <span class="o">-</span><span class="n">p</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">bin</span><span class="o">/</span><span class="n">python2</span><span class="mf">.6</span> <span class="o">&lt;</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">new</span><span class="o">/</span><span class="n">virtualenv</span><span class="o">/&gt;</span>
+</pre></div>
+
+
+<h3>python中如何将一行长代码切成多行</h3>
+<p>问题 <a href="http://stackoverflow.com/questions/53162/how-can-i-do-a-line-break-line-continuation-in-python">链接</a></p>
+<p>例如：</p>
+<div class="highlight"><pre><span class="n">e</span> <span class="o">=</span> <span class="sc">&#39;a&#39;</span> <span class="o">+</span> <span class="sc">&#39;b&#39;</span> <span class="o">+</span> <span class="sc">&#39;c&#39;</span> <span class="o">+</span> <span class="sc">&#39;d&#39;</span>
+<span class="err">变成</span>
+<span class="n">e</span> <span class="o">=</span> <span class="sc">&#39;a&#39;</span> <span class="o">+</span> <span class="sc">&#39;b&#39;</span> <span class="o">+</span>
+    <span class="sc">&#39;c&#39;</span> <span class="o">+</span> <span class="sc">&#39;d&#39;</span>
+</pre></div>
+
+
+<p>括号中，可以直接换行</p>
+<div class="highlight"><pre><span class="n">a</span> <span class="o">=</span> <span class="n">dostuff</span><span class="p">(</span><span class="n">blahblah1</span><span class="p">,</span> <span class="n">blahblah2</span><span class="p">,</span> <span class="n">blahblah3</span><span class="p">,</span> <span class="n">blahblah4</span><span class="p">,</span> <span class="n">blahblah5</span><span class="p">,</span> 
+            <span class="n">blahblah6</span><span class="p">,</span> <span class="n">blahblah7</span><span class="p">)</span>
+</pre></div>
+
+
+<p>非括号你可以这么做</p>
+<div class="highlight"><pre><span class="n">a</span> <span class="o">=</span> <span class="sc">&#39;1&#39;</span> <span class="o">+</span> <span class="sc">&#39;2&#39;</span> <span class="o">+</span> <span class="sc">&#39;3&#39;</span> <span class="o">+</span> \
+    <span class="sc">&#39;4&#39;</span> <span class="o">+</span> <span class="sc">&#39;5&#39;</span>
+<span class="err">或者</span>
+<span class="n">a</span> <span class="o">=</span> <span class="p">(</span><span class="sc">&#39;1&#39;</span> <span class="o">+</span> <span class="sc">&#39;2&#39;</span> <span class="o">+</span> <span class="sc">&#39;3&#39;</span> <span class="o">+</span>
+    <span class="sc">&#39;4&#39;</span> <span class="o">+</span> <span class="sc">&#39;5&#39;</span><span class="p">)</span>
+</pre></div>
+
+
+<p>可以查看下代码风格： <a href="http://www.python.org/dev/peps/pep-0008/">style guide</a>
+推荐是后一种，但某些个别情况下，加入括号会导致错误</p>
+<h3>如何找到一个目录下所有.txt文件</h3>
+<p>问题 <a href="http://stackoverflow.com/questions/3964681/find-all-files-in-directory-with-extension-txt-with-python">链接</a></p>
+<p>使用<a href="http://docs.python.org/2/library/glob.html">glob</a></p>
+<div class="highlight"><pre><span class="n">import</span> <span class="n">glob</span>
+<span class="n">import</span> <span class="n">os</span>
+<span class="n">os</span><span class="p">.</span><span class="n">chdir</span><span class="p">(</span><span class="s">&quot;/mydir&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">files</span> <span class="n">in</span> <span class="n">glob</span><span class="p">.</span><span class="n">glob</span><span class="p">(</span><span class="s">&quot;*.txt&quot;</span><span class="p">)</span><span class="o">:</span>
+    <span class="n">print</span> <span class="n">files</span>
+</pre></div>
+
+
+<p>使用os.listdir</p>
+<div class="highlight"><pre><span class="n">import</span> <span class="n">os</span>
+<span class="n">os</span><span class="p">.</span><span class="n">chdir</span><span class="p">(</span><span class="s">&quot;/mydir&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">files</span> <span class="n">in</span> <span class="n">os</span><span class="p">.</span><span class="n">listdir</span><span class="p">(</span><span class="s">&quot;.&quot;</span><span class="p">)</span><span class="o">:</span>
+    <span class="k">if</span> <span class="n">files</span><span class="p">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&quot;.txt&quot;</span><span class="p">)</span><span class="o">:</span>
+        <span class="n">print</span> <span class="n">files</span>
+</pre></div>
+
+
+<p>或者遍历目录</p>
+<div class="highlight"><pre><span class="n">import</span> <span class="n">os</span>
+<span class="k">for</span> <span class="n">r</span><span class="p">,</span><span class="n">d</span><span class="p">,</span><span class="n">f</span> <span class="n">in</span> <span class="n">os</span><span class="p">.</span><span class="n">walk</span><span class="p">(</span><span class="s">&quot;/mydir&quot;</span><span class="p">)</span><span class="o">:</span>
+    <span class="k">for</span> <span class="n">files</span> <span class="n">in</span> <span class="n">f</span><span class="o">:</span>
+        <span class="k">if</span> <span class="n">files</span><span class="p">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&quot;.txt&quot;</span><span class="p">)</span><span class="o">:</span>
+            <span class="n">print</span> <span class="n">os</span><span class="p">.</span><span class="n">path</span><span class="p">.</span><span class="n">join</span><span class="p">(</span><span class="n">r</span><span class="p">,</span><span class="n">files</span><span class="p">)</span>
+</pre></div>
+
+
+<h3>如何使用绝对路径import一个模块</h3>
+<p>问题 <a href="http://stackoverflow.com/questions/67631/how-to-import-a-module-given-the-full-path">链接</a></p>
+<div class="highlight"><pre><span class="n">import</span> <span class="n">imp</span>
+
+<span class="n">foo</span> <span class="o">=</span> <span class="n">imp</span><span class="p">.</span><span class="n">load_source</span><span class="p">(</span><span class="err">&#39;</span><span class="n">module</span><span class="p">.</span><span class="n">name</span><span class="err">&#39;</span><span class="p">,</span> <span class="err">&#39;</span><span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">file</span><span class="p">.</span><span class="n">py</span><span class="err">&#39;</span><span class="p">)</span>
+<span class="n">foo</span><span class="p">.</span><span class="n">MyClass</span><span class="p">()</span>
+</pre></div>
+
+
+<h3>如何在遍历一个list时删除某些玄素</h3>
+<p>问题 <a href="http://stackoverflow.com/questions/1207406/remove-items-from-a-list-while-iterating-in-python">链接</a></p>
+<p>使用列表解析</p>
+<div class="highlight"><pre><span class="n">somelist</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="n">in</span> <span class="n">somelist</span> <span class="k">if</span> <span class="n">determine</span><span class="p">(</span><span class="n">x</span><span class="p">)]</span>
+</pre></div>
+
+
+<p>上面那个操作将产生一个全新的somelist对象，而失去了对原有somelist对象的引用</p>
+<div class="highlight"><pre><span class="cp">#在原有对象上进行修改</span>
+<span class="n">somelist</span><span class="p">[</span><span class="o">:</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="n">in</span> <span class="n">somelist</span> <span class="k">if</span> <span class="n">determine</span><span class="p">(</span><span class="n">x</span><span class="p">)]</span>
+</pre></div>
+
+
+<p>使用itertools</p>
+<div class="highlight"><pre><span class="n">from</span> <span class="n">itertools</span> <span class="n">import</span> <span class="n">ifilterfalse</span>
+<span class="n">somelist</span><span class="p">[</span><span class="o">:</span><span class="p">]</span> <span class="o">=</span> <span class="n">list</span><span class="p">(</span><span class="n">ifilterfalse</span><span class="p">(</span><span class="n">determine</span><span class="p">,</span> <span class="n">somelist</span><span class="p">))</span>
+</pre></div>
         </div><!-- /.entry-content -->
                 <div class="comments">
             版权声明：自由转载-非商用-非衍生-保持署名 | <a href="http://creativecommons.org/licenses/by-nc-nd/3.0/deed.zh" target="_blank" >Creative Commons BY-NC-ND 3.0</a>
