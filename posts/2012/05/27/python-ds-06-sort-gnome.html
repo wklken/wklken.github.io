@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <title>数据结构&算法实践—【排序|交换排序】地精排序及改进</title>
+        <meta charset="utf-8" />
+     <meta name="description" content="">
+    <meta name="keywords" content="" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+        <link rel="shortcut icon" href="/favicon.ico"/>
+        <link rel="stylesheet" href="http://wklken.me/theme/css/style.css" media="all" />
+        <link rel="stylesheet" href="http://wklken.me/theme/css/mobile.css" media="all" />
+        <link href="http://fonts.googleapis.com/css?family=Open+Sans:400italic,700italic,300italic,600italic,400,600,700,800' rel='stylesheet' type='text/css">
+
+        <link rel="stylesheet" href="http://wklken.me/theme/css/font-awesome.min.css">
+        <!--[if IE 7]>
+            <link rel="stylesheet" href="http://wklken.me/theme/css/font-awesome-ie7.min.css">
+        <![endif]-->
+
+        <link href="http://wklken.me/" type="application/atom+xml" rel="alternate" title="wklken's blog ATOM Feed" />
+                <link href="http://wklken.me/feed.xml" type="application/atom+xml" rel="alternate" title="wklken's blog RSS Feed" />
+        
+        <!--[if IE]>
+                <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+        <!--[if lte IE 7]>
+                <link rel="stylesheet" type="text/css" media="all" href="http://wklken.me/css/ie.css"/>
+                <script src="http://wklken.me/js/IE8.js" type="text/javascript"></script><![endif]-->
+
+        <!--[if lt IE 7]>
+                <link rel="stylesheet" type="text/css" media="all" href="http://wklken.me/css/ie6.css"/><![endif]-->
+        <script src="http://upcdn.b0.upaiyun.com/libs/jquery/jquery-1.9.1.min.js"></script>
+        <script src="http://wklken.me/theme/js/jquery.scrollToTop.js"></script>
+                <script type="text/javascript">
+            $(function() {
+                $("#toTop").scrollToTop(1000);
+            });
+        </script>
+
+</head>
+
+<body id="index" class="home">
+  <header id="header">
+     <div class="constraint">
+
+       <div class="o"> 
+   <a href="/"><h1>Wklken <span class="red"> Python</span></h1></a>
+
+    <div class="social">
+                                      <a href="https://github.com/wklken" target='_blank'><i class="icon-github-sign icon-2x"></i></a>
+                                                  <a href="http://weibo.com/wklken" target='_blank'><i class="icon-weibo icon-2x"></i></a>
+                                                  <a href="mailto:wklken@yeah.net"><i class="icon-envelope icon-2x"></i></a>
+                                                  <a href="/feed.xml" target='_blank'><i class="icon-rss-sign icon-2x"></i></a>
+                          </div>
+
+		<div class="nav">
+                                    <a href="/">首页</a>
+                                    <a href="/categories.html">分类</a>
+                                    <a href="/archives.html">归档</a>
+                                    <a href="/pages/projects.html">项目</a>
+                                    <a href="/pages/tools.html">工具</a>
+                                    <a href="/pages/aboutme.html">关于</a>
+                                
+           </div>
+         </div>
+         </div>
+         </header><!-- /#banner -->
+
+        <section class="content blog">
+<div class="constraint">
+<div class="posts">
+<article>
+        <aside class="sidebar">
+<h3 class="published" title="2012-05-27T00:00:00">
+               2012年05月27日
+</h3>
+
+<p>
+<div class="tag">
+    分类: <a href="/category/python-ds-algorithm.html">python-ds-algorithm</a>
+
+    </div>
+
+
+<div class="tag">
+    标签: <a href="http://wklken.me/tag/python-ds-algorithm.html">python-ds-algorithm</a>
+   </div>
+
+
+</p>
+
+</aside><!-- /.post-info -->        <header> <h1 class="blog-title"><a href=""
+        rel="bookmark" title="Permalink to 数据结构&算法实践—【排序|交换排序】地精排序及改进">数据结构&算法实践—【排序|交换排序】地精排序及改进</a></h1> 
+                </header>
+
+
+        <div class="entry-content">
+        <blockquote>
+<p>排序&gt;&gt;交换排序&gt;&gt;地精排序</p>
+</blockquote>
+<p>List:</p>
+<div class="highlight"><pre><span class="mf">0.</span><span class="err">概念</span><span class="o">+</span><span class="err">伪代码</span><span class="o">+</span><span class="err">示例分析</span>
+<span class="mf">1.</span><span class="err">地精排序实现</span>
+<span class="mf">2.</span><span class="err">改进</span>
+<span class="mf">3.</span><span class="n">Question</span>
+</pre></div>
+
+
+<ol>
+<li>start</li>
+</ol>
+<p>基本概念:</p>
+<p>维基百科:http://en.wikipedia.org/wiki/Gnome_sort(目前只有英文版的)</p>
+<p>地精排序又称侏儒排序，类似于插入排序，但是将一个数放入其正确位置的交换同冒泡排序（一系列交换）</p>
+<p>简单，只有一层循环，</p>
+<p>时间复杂度O(n^2)，最优复杂度O(n),平均时间复杂度O(n^2)</p>
+<p>其实思想很简单,往前冒泡，一旦发生数据交换，就往回冒泡，直到把被交换数字放入正确位置，之后，继续前进</p>
+<p>伪代码(来自于维基百科)</p>
+<div class="highlight"><pre><span class="n">procedure</span> <span class="n">gnomeSort</span><span class="p">(</span><span class="n">a</span><span class="p">[])</span>
+    <span class="n">pos</span> <span class="o">:=</span> <span class="mi">1</span>
+    <span class="k">while</span> <span class="n">pos</span> <span class="o">&lt;</span> <span class="n">length</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">a</span><span class="p">[</span><span class="n">pos</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">pos</span> <span class="o">:=</span> <span class="n">pos</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="k">else</span>
+            <span class="n">swap</span> <span class="n">a</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span> <span class="n">and</span> <span class="n">a</span><span class="p">[</span><span class="n">pos</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">pos</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="n">pos</span> <span class="o">:=</span> <span class="n">pos</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="k">else</span>
+                <span class="n">pos</span> <span class="o">:=</span> <span class="n">pos</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="n">end</span> <span class="k">if</span>
+        <span class="n">end</span> <span class="k">if</span>
+    <span class="n">end</span> <span class="k">while</span>
+<span class="n">end</span> <span class="n">procedure</span>
+</pre></div>
+
+
+<p>例子：</p>
+<div class="highlight"><pre><span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>               <span class="err">#输入数组</span>
+
+<span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">i</span><span class="o">=</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="o">=</span><span class="mi">1</span>    <span class="err">#初始，</span><span class="n">i</span><span class="o">=</span><span class="mi">0</span> <span class="err">，直接</span><span class="n">i</span><span class="o">+=</span><span class="mi">1</span>
+
+<span class="n">cmp</span> <span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span> <span class="mi">5</span>  <span class="n">l</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span> <span class="mi">3</span>
+<span class="n">change</span> <span class="o">-&gt;</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>
+<span class="n">swap</span><span class="p">,</span> <span class="n">i</span><span class="o">=</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="o">=</span><span class="mi">0</span>   <span class="err">#发生交换，</span><span class="n">i</span><span class="o">=</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span>
+
+<span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">i</span><span class="o">=</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="o">=</span><span class="mi">1</span>   <span class="err">#</span><span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">i</span><span class="o">+=</span><span class="mi">1</span>
+
+<span class="n">cmp</span> <span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span> <span class="mi">3</span>  <span class="n">l</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span> <span class="mi">5</span>
+<span class="n">no</span> <span class="n">swap</span><span class="p">,</span> <span class="n">i</span><span class="o">=</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="o">=</span><span class="mi">1</span>   <span class="err">#无交换，</span><span class="n">i</span><span class="o">+=</span><span class="mi">1</span>
+
+<span class="n">cmp</span> <span class="n">l</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span> <span class="mi">5</span>  <span class="n">l</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">=</span> <span class="mi">2</span>
+<span class="n">change</span> <span class="o">-&gt;</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>  <span class="err">#交换</span>
+<span class="n">swap</span><span class="p">,</span> <span class="n">i</span><span class="o">=</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="o">=</span><span class="mi">1</span>    <span class="err">#</span><span class="n">i</span><span class="o">=</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="err">，反向冒泡开始</span>
+
+<span class="n">cmp</span> <span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span> <span class="mi">3</span>  <span class="n">l</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span> <span class="mi">2</span>
+<span class="n">change</span> <span class="o">-&gt;</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>
+<span class="n">swap</span><span class="p">,</span> <span class="n">i</span><span class="o">=</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="o">=</span><span class="mi">0</span>  <span class="err">#</span> <span class="err">交换</span>
+
+<span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">i</span><span class="o">=</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="o">=</span><span class="mi">1</span>
+<span class="n">cmp</span> <span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span> <span class="mi">2</span>  <span class="n">l</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span> <span class="mi">3</span>
+<span class="n">no</span> <span class="n">swap</span><span class="p">,</span> <span class="n">i</span><span class="o">=</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="o">=</span><span class="mi">1</span> <span class="err">#无交换，</span><span class="n">i</span><span class="o">+=</span><span class="mi">1</span>
+
+<span class="n">cmp</span> <span class="n">l</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span> <span class="mi">3</span>  <span class="n">l</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">=</span> <span class="mi">5</span>
+<span class="n">no</span> <span class="n">swap</span><span class="p">,</span> <span class="n">i</span><span class="o">=</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="o">=</span><span class="mi">2</span> <span class="err">#无交换，</span><span class="n">i</span><span class="o">+=</span><span class="mi">1</span>
+
+<span class="n">cmp</span> <span class="n">l</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">=</span> <span class="mi">5</span>  <span class="n">l</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">=</span> <span class="mi">4</span>
+<span class="n">change</span> <span class="o">-&gt;</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">]</span>
+<span class="n">swap</span><span class="p">,</span> <span class="n">i</span><span class="o">=</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="o">=</span><span class="mi">2</span>  <span class="err">#交换</span><span class="p">,</span><span class="n">i</span><span class="o">-=</span><span class="mi">1</span>
+
+<span class="n">cmp</span> <span class="n">l</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span> <span class="mi">3</span>  <span class="n">l</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">=</span> <span class="mi">4</span>
+<span class="n">no</span> <span class="n">swap</span><span class="p">,</span> <span class="n">i</span><span class="o">=</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="o">=</span><span class="mi">2</span>
+
+<span class="n">cmp</span> <span class="n">l</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">=</span> <span class="mi">4</span>  <span class="n">l</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">=</span> <span class="mi">5</span>
+<span class="n">no</span> <span class="n">swap</span><span class="p">,</span> <span class="n">i</span><span class="o">=</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="o">=</span><span class="mi">3</span> <span class="err">#结束排序</span>
+</pre></div>
+
+
+<p>1 start</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13</pre></div></td><td class="code"><div class="highlight"><pre><span class="c">#!/usr/bin/python</span>
+<span class="c"># -*- coding:utf-8 -*-</span>
+<span class="c"># 地精排序</span>
+<span class="c">#@author: wklken@yeah.net</span>
+
+<span class="k">def</span> <span class="nf">gnome_sort</span><span class="p">(</span><span class="n">l</span><span class="p">):</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">while</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">l</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">l</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">l</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span> <span class="c">#i=0或者正序不需交换，i+1</span>
+            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>  <span class="c">#否则，交换两数，i回退</span>
+            <span class="n">l</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">],</span> <span class="n">l</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">l</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">l</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="n">i</span> <span class="o">-=</span> <span class="mi">1</span>
+</pre></div>
+</td></tr></table>
+
+<ol>
+<li>start</li>
+</ol>
+<p>观察上面例子，是不是发现有些别扭.......</p>
+<div class="highlight"><pre><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>  <span class="err">#比较</span> <span class="mi">5</span><span class="p">,</span><span class="mi">2</span>
+<span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>  <span class="err">#交换</span>
+<span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>  <span class="err">#比较</span> <span class="mi">3</span><span class="p">,</span><span class="mi">2</span>
+<span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>  <span class="err">#交换</span>
+<span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>    <span class="err">#比较</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span>
+<span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>    <span class="err">#比较</span><span class="mi">3</span><span class="p">,</span><span class="mi">5</span>
+</pre></div>
+
+
+<p>没错，若是到了b存在交换，反向冒泡，直至把被交换数冒泡放到其有序位置a,然后再从a-&gt;b进行比较冒泡</p>
+<p>其实，a-&gt;b这一段序列已经是有序的，不需要浪费比较次数在这上面</p>
+<p>所以我们进行jump</p>
+<p>即，记录b的位置，当发现反序冒泡没有交换时（冒泡结束），jump到b位置，继续正序冒泡</p>
+<p>代码:</p>
+<div class="highlight"><pre><span class="n">def</span> <span class="n">gnome_sort2</span><span class="p">(</span><span class="n">l</span><span class="p">)</span><span class="o">:</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">current_index</span> <span class="o">=</span> <span class="mi">0</span>  <span class="err">#保存反向冒泡前位置</span>
+    <span class="n">back_noswap</span> <span class="o">=</span> <span class="n">True</span>  <span class="err">#标识反向冒泡是否完成</span>
+    <span class="k">while</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">len</span><span class="p">(</span><span class="n">l</span><span class="p">)</span><span class="o">:</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span> <span class="n">or</span> <span class="n">l</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">l</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">:</span> <span class="err">#</span><span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="err">或者正序不需交换，</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span>
+            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">back_noswap</span> <span class="o">=</span> <span class="n">True</span>
+        <span class="nl">else:</span>  <span class="err">#否则，交换两数，</span><span class="n">i</span><span class="err">回退</span>
+            <span class="n">l</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">],</span> <span class="n">l</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">l</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">l</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="n">current_index</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>  <span class="err">#开始反序，记录位置</span><span class="p">,</span><span class="err">跳转回来后比较就是</span> <span class="n">i</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="err">两个数的比较，之前数已有序</span>
+            <span class="n">back_noswap</span> <span class="o">=</span> <span class="n">False</span>
+            <span class="n">i</span> <span class="o">-=</span> <span class="mi">1</span>
+            <span class="n">print</span> <span class="s">&quot;change -&gt;&quot;</span><span class="p">,</span> <span class="n">l</span>
+        <span class="k">if</span> <span class="n">current_index</span> <span class="n">and</span> <span class="n">back_noswap</span><span class="o">:</span>  <span class="err">#满足</span> <span class="err">当前是反序冒泡，且未发数据交换，代表已结束，可以跳回</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="n">current_index</span>
+            <span class="n">current_index</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">print</span> <span class="s">&quot;jump&quot;</span><span class="p">,</span><span class="n">i</span>
+</pre></div>
+
+
+<p>实际过程：</p>
+<div class="highlight"><pre><span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>
+</pre></div>
+
+
+<p>cmp  5 3</p>
+<div class="highlight"><pre><span class="n">change</span> <span class="o">-&gt;</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>
+<span class="n">jump</span> <span class="mi">2</span>   <span class="err">#这里</span><span class="n">jump</span><span class="err">的位置是</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span>
+</pre></div>
+
+
+<p>cmp  5 2</p>
+<div class="highlight"><pre><span class="n">change</span> <span class="o">-&gt;</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>
+</pre></div>
+
+
+<p>cmp  3 2</p>
+<div class="highlight"><pre><span class="n">change</span> <span class="o">-&gt;</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>
+</pre></div>
+
+
+<p>jump 2
+cmp  3 5
+cmp  5 4</p>
+<div class="highlight"><pre><span class="n">change</span> <span class="o">-&gt;</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">]</span>
+</pre></div>
+
+
+<p>cmp  3 4
+jump 4</p>
+<p>相同例子的序列，改进前比较次数12，改进后只需要9次</p>
+<ol>
+<li>start</li>
+</ol>
+<p>A.地精排序概念，过程描述？</p>
+<p>B.时间复杂度？空间复杂度？是否是稳定排序？</p>
+<p>C.适用场景，何种情况下表现最优</p>
+        </div><!-- /.entry-content -->
+                <div class="comments">
+            版权声明：自由转载-非商用-非衍生-保持署名 | <a href="http://creativecommons.org/licenses/by-nc-nd/3.0/deed.zh" target="_blank" >Creative Commons BY-NC-ND 3.0</a>
+        <h2>Comments !</h2>
+            <div id="disqus_thread"></div>
+            <script type="text/javascript">
+               var disqus_identifier = "posts/2012/05/27/python-ds-06-sort-gnome.html";
+               (function() {
+               var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+               dsq.src = 'http://wklken.disqus.com/embed.js';
+               (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+              })();
+            </script>
+        </div>
+        
+        </article>
+</div>
+
+
+</div>
+</section>
+<script type="text/javascript">
+    var disqus_shortname = 'wklken';
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = 'http://' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+
+
+<!-- JiaThis Button BEGIN -->
+<script type="text/javascript" >
+var jiathis_config={
+    siteNum:15,
+    sm:"fav,copy,ishare,tsina,googleplus,fb,twitter,evernote,ydnote,sdonote,xianguo,digg,qingbiji,weixin",
+    summary:"",
+    boldNum:3,
+    showClose:false,
+    hideMore:true
+}
+</script>
+<script type="text/javascript" src="http://v3.jiathis.com/code_mini/jiathis_r.js?btn=r2.gif&move=0" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+<a href="#top" id="toTop" style="display: inline;"></a>
+
+
+
+        <section id="extras" class="body">
+                </section><!-- /#extras -->
+
+		<footer id="footer">
+		<p class="copyright">
+                <address id="about" class="vcard body">
+                    Powered by <a href="http://alexis.notmyidea.org/pelican/">pelican</a>. Theme by <a href="https://github.com/daker">Adnane Belmadiaf</a> and modify by <a href="https://github.com/wklken">wklken</a> Social Icons by <a href="http://fortawesome.github.io/Font-Awesome/">Font-Awesome</a>.
+
+                    <span xmlns:dct="http://purl.org/dc/terms/" href="http://purl.org/dc/dcmitype/Text" property="dct:title" rel="dct:type">Theme licensed under <a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a>.
+             </address><!-- /#about -->
+
+			 </p>
+        </footer><!-- /#contentinfo -->
+
+    <script type="text/javascript">
+    var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+    document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+    </script>
+    <script type="text/javascript">
+    try {
+        var pageTracker = _gat._getTracker("UA-42275748-1");
+    pageTracker._trackPageview();
+    } catch(err) {}</script>
+
+
+</body>
+</html>
