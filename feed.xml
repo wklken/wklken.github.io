@@ -1,5 +1,256 @@
 <?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>wklken's blog</title><link>http://wklken.me/</link><description></description><atom:link href="/feed.xml" rel="self"></atom:link><lastBuildDate>Tue, 27 Aug 2013 00:00:00 +0800</lastBuildDate><item><title>Python资源入口汇总</title><link>http://wklken.me/posts/2013/08/27/python-sources.html</link><description>&lt;h3&gt;官网&lt;/h3&gt;
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>wklken's blog</title><link>http://wklken.me/</link><description></description><atom:link href="/feed.xml" rel="self"></atom:link><lastBuildDate>Sat, 31 Aug 2013 00:00:00 +0800</lastBuildDate><item><title>Python编码处理小结</title><link>http://wklken.me/posts/2013/08/31/python-extra-coding-intro.html</link><description>&lt;p&gt;整理下python编码相关的内容&lt;/p&gt;
+&lt;p&gt;注意: 以下讨论为Python2.x版本, Py3k的待尝试&lt;/p&gt;
+&lt;hr /&gt;
+&lt;h3&gt;开始&lt;/h3&gt;
+&lt;p&gt;用python处理中文时，读取文件或消息，http参数等等&lt;/p&gt;
+&lt;p&gt;一运行，发现乱码(字符串处理，读写文件，print)&lt;/p&gt;
+&lt;p&gt;然后，大多数人的做法是，调用encode/decode进行调试，并没有明确思考为何出现乱码&lt;/p&gt;
+&lt;p&gt;所以调试时最常出现的错误&lt;/p&gt;
+&lt;p&gt;错误1&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nx"&gt;Traceback&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;most&lt;/span&gt; &lt;span class="nx"&gt;recent&lt;/span&gt; &lt;span class="nb"&gt;call&lt;/span&gt; &lt;span class="nb"&gt;last&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+&lt;span class="nb"&gt;File&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;&amp;lt;stdin&amp;gt;&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nb"&gt;line&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;in&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="nx"&gt;module&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;
+&lt;span class="nx"&gt;UnicodeDecodeError&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;ascii&amp;#39;&lt;/span&gt; &lt;span class="nx"&gt;codec&lt;/span&gt; &lt;span class="nx"&gt;can&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;t decode byte 0xe6 in position 0: ordinal not in range(128)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;错误2&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nx"&gt;Traceback&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;most&lt;/span&gt; &lt;span class="nx"&gt;recent&lt;/span&gt; &lt;span class="nb"&gt;call&lt;/span&gt; &lt;span class="nb"&gt;last&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+&lt;span class="nb"&gt;File&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;&amp;lt;stdin&amp;gt;&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nb"&gt;line&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;in&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="nx"&gt;module&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;
+&lt;span class="nb"&gt;File&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/encodings/utf_8.py&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nb"&gt;line&lt;/span&gt; &lt;span class="mi"&gt;16&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;in&lt;/span&gt; &lt;span class="nx"&gt;decode&lt;/span&gt;
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="nx"&gt;codecs.utf_8_decode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;input&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nb"&gt;errors&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="kc"&gt;True&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="nx"&gt;UnicodeEncodeError&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;ascii&amp;#39;&lt;/span&gt; &lt;span class="nx"&gt;codec&lt;/span&gt; &lt;span class="nx"&gt;can&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;t encode characters in position 0-1: ordinal not in range(128)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;首先&lt;/h3&gt;
+&lt;p&gt;必须有大体概念，了解下字符集，&lt;a href="http://zh.wikipedia.org/wiki/%E5%AD%97%E7%AC%A6%E7%BC%96%E7%A0%81"&gt;字符编码&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://zh.wikipedia.org/zh/ASCII"&gt;ASCII&lt;/a&gt; | &lt;a href="http://zh.wikipedia.org/zh/Unicode"&gt;Unicode&lt;/a&gt; | &lt;a href="http://zh.wikipedia.org/zh/UTF-8"&gt;UTF-8&lt;/a&gt; | 等等&lt;/p&gt;
+&lt;h3&gt;str 和 unicode&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;str和unicode都是basestring的子类&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;所以有判断是否是字符串的方法&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;def&lt;/span&gt; &lt;span class="n"&gt;is_str&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;s&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;isinstance&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;s&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;basestring&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;blockquote&gt;
+&lt;p&gt;str和unicode 关系&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;decode &lt;a href="http://www.tutorialspoint.com/python/string_decode.htm"&gt;文档&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;encode &lt;a href="http://www.tutorialspoint.com/python/string_encode.htm"&gt;文档&lt;/a&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;str&lt;/span&gt;  &lt;span class="o"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;decode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;the_coding_of_str&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;unicode&lt;/span&gt;
+&lt;span class="n"&gt;unicode&lt;/span&gt; &lt;span class="o"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;encode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;the_coding_you_want&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;str&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;blockquote&gt;
+&lt;p&gt;区别&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;str是字节串，由unicode经过编码(encode)后的字节组成的&lt;/p&gt;
+&lt;p&gt;声明方式&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;s&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="err"&gt;&amp;#39;中文&amp;#39;&lt;/span&gt; &lt;span class="err"&gt;#默认为&lt;/span&gt;&lt;span class="n"&gt;TODO&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="err"&gt;编码&lt;/span&gt;
+&lt;span class="n"&gt;s&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;u&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;中文&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;encode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;utf&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;type&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;中文&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;type&lt;/span&gt; &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;str&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;求长度(返回字节数)&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;u&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;中文&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;encode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;utf&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="err"&gt;&amp;#39;\&lt;/span&gt;&lt;span class="n"&gt;xe4&lt;/span&gt;&lt;span class="err"&gt;\&lt;/span&gt;&lt;span class="n"&gt;xb8&lt;/span&gt;&lt;span class="err"&gt;\&lt;/span&gt;&lt;span class="n"&gt;xad&lt;/span&gt;&lt;span class="err"&gt;\&lt;/span&gt;&lt;span class="n"&gt;xe6&lt;/span&gt;&lt;span class="err"&gt;\&lt;/span&gt;&lt;span class="n"&gt;x96&lt;/span&gt;&lt;span class="err"&gt;\&lt;/span&gt;&lt;span class="n"&gt;x87&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;u&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;中文&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;encode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;utf&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+&lt;span class="mi"&gt;6&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;unicode才是真正意义上的字符串，由字符组成&lt;/p&gt;
+&lt;p&gt;声明方式&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;s&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;u&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;中文&amp;#39;&lt;/span&gt;
+&lt;span class="n"&gt;s&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="err"&gt;&amp;#39;中文&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;decode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;utf&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="err"&gt;#注意这里，必须为默认编码，否则&lt;/span&gt;&lt;span class="n"&gt;decode&lt;/span&gt;&lt;span class="err"&gt;报错&lt;/span&gt;
+&lt;span class="n"&gt;s&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;unicode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;中文&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;utf&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;type&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;u&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;中文&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;type&lt;/span&gt; &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;unicode&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;求长度(返回字符数),在逻辑中真正想要用的&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;u&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;中文&amp;#39;&lt;/span&gt;
+&lt;span class="n"&gt;u&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;\&lt;/span&gt;&lt;span class="n"&gt;u4e2d&lt;/span&gt;&lt;span class="err"&gt;\&lt;/span&gt;&lt;span class="n"&gt;u6587&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;u&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;中文&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="mi"&gt;2&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;blockquote&gt;
+&lt;p&gt;结论&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;搞明白要处理的是str还是unicode,&lt;/p&gt;
+&lt;p&gt;下面是判断是否为unicode/str的方法&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;isinstance&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;u&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;中文&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;unicode&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;True&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;isinstance&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;中文&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;unicode&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;False&lt;/span&gt;
+
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;isinstance&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;中文&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;str&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;True&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;isinstance&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;u&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;中文&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;str&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;False&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;简单原则：不要对str使用encode，不要对unicode使用decode (事实上可以对str进行encode的，具体见最后，为了保证简单，不建议)&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;中文&amp;#39;&lt;/span&gt;&lt;span class="bp"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;encode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;utf-8&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="nx"&gt;Traceback&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;most&lt;/span&gt; &lt;span class="nx"&gt;recent&lt;/span&gt; &lt;span class="nb"&gt;call&lt;/span&gt; &lt;span class="nb"&gt;last&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+&lt;span class="nb"&gt;File&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;&amp;lt;stdin&amp;gt;&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nb"&gt;line&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;in&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="nx"&gt;module&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;
+&lt;span class="nx"&gt;UnicodeDecodeError&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;ascii&amp;#39;&lt;/span&gt; &lt;span class="nx"&gt;codec&lt;/span&gt; &lt;span class="nx"&gt;can&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;t decode byte 0xe4 in position 0: ordinal not in range(128)&lt;/span&gt;
+&lt;span class="s1"&gt;&amp;gt;&amp;gt;&amp;gt; u&amp;#39;&lt;/span&gt;&lt;span class="err"&gt;中文&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;.decode(&amp;#39;&lt;/span&gt;&lt;span class="nx"&gt;utf&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;)&lt;/span&gt;
+&lt;span class="s1"&gt;Traceback (most recent call last):&lt;/span&gt;
+&lt;span class="s1"&gt;File &amp;quot;&amp;lt;stdin&amp;gt;&amp;quot;, line 1, in &amp;lt;module&amp;gt;&lt;/span&gt;
+&lt;span class="s1"&gt;File &amp;quot;/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/encodings/utf_8.py&amp;quot;, line 16, in decode&lt;/span&gt;
+&lt;span class="s1"&gt;    return codecs.utf_8_decode(input, errors, True)&lt;/span&gt;
+&lt;span class="s1"&gt;UnicodeEncodeError: &amp;#39;&lt;/span&gt;&lt;span class="nx"&gt;ascii&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39; codec can&amp;#39;&lt;/span&gt;&lt;span class="nb"&gt;t&lt;/span&gt; &lt;span class="nx"&gt;encode&lt;/span&gt; &lt;span class="n"&gt;characters&lt;/span&gt; &lt;span class="k"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;position&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="nx"&gt;ordinal&lt;/span&gt; &lt;span class="n"&gt;not&lt;/span&gt; &lt;span class="k"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;128&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;不同编码转换,使用unicode作为中间编码&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="cp"&gt;#s是code_A的str&lt;/span&gt;
+&lt;span class="n"&gt;s&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;decode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;code_A&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="n"&gt;encode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;code_B&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;文件处理,IDE和控制台&lt;/h3&gt;
+&lt;p&gt;处理流程，可以这么使用，把python看做一个水池，一个入口，一个出口&lt;/p&gt;
+&lt;p&gt;入口处，全部转成unicode, 池里全部使用unicode处理，出口处，再转成目标编码(当然，有例外，处理逻辑中要用到具体编码的情况)&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="err"&gt;读文件&lt;/span&gt;
+
+&lt;span class="err"&gt;外部输入编码，&lt;/span&gt;&lt;span class="n"&gt;decode&lt;/span&gt;&lt;span class="err"&gt;转成&lt;/span&gt;&lt;span class="n"&gt;unicode&lt;/span&gt;
+
+&lt;span class="err"&gt;处理&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;内部编码，统一&lt;/span&gt;&lt;span class="n"&gt;unicode&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="n"&gt;encode&lt;/span&gt;&lt;span class="err"&gt;转成需要的目标编码&lt;/span&gt;
+
+&lt;span class="err"&gt;写到目标输出&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;文件或控制台&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;IDE和控制台报错，原因是print时，编码和IDE自身编码不一致导致&lt;/p&gt;
+&lt;p&gt;输出时将编码转换成一致的就可以正常输出&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;print&lt;/span&gt; &lt;span class="n"&gt;u&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;中文&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;encode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;gbk&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="err"&gt;����&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;print&lt;/span&gt; &lt;span class="n"&gt;u&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;中文&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;encode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;utf&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="err"&gt;中文&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;建议&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;规范编码&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;统一编码，防止由于某个环节产生的乱码&lt;/p&gt;
+&lt;p&gt;环境编码，IDE/文本编辑器, 文件编码，数据库数据表编码&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;保证代码源文件编码&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;py文件默认编码是ASCII, 在源代码文件中，如果用到非ASCII字符，需要在文件头部进行编码声明 &lt;a href="http://www.python.org/dev/peps/pep-0263/"&gt;文档&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;不声明的话，输入非ASCII会遇到的错误,必须放在文件第一行或第二行&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;File&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;XXX.py&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;line&lt;/span&gt; &lt;span class="mi"&gt;3&lt;/span&gt;
+&lt;span class="nl"&gt;SyntaxError:&lt;/span&gt; &lt;span class="n"&gt;Non&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;ASCII&lt;/span&gt; &lt;span class="n"&gt;character&lt;/span&gt; &lt;span class="sc"&gt;&amp;#39;\xd6&amp;#39;&lt;/span&gt; &lt;span class="n"&gt;in&lt;/span&gt; &lt;span class="n"&gt;file&lt;/span&gt; &lt;span class="n"&gt;c&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;py&lt;/span&gt; &lt;span class="n"&gt;on&lt;/span&gt; &lt;span class="n"&gt;line&lt;/span&gt; &lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;but&lt;/span&gt; &lt;span class="n"&gt;no&lt;/span&gt; &lt;span class="n"&gt;encoding&lt;/span&gt; &lt;span class="n"&gt;declared&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="n"&gt;see&lt;/span&gt; &lt;span class="n"&gt;http&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="c1"&gt;//www.python.org/peps/pep-0263.html for details&lt;/span&gt;
+
+
+&lt;span class="cp"&gt;# -*- coding: utf-8 -*-&lt;/span&gt;
+&lt;span class="err"&gt;或者&lt;/span&gt;
+&lt;span class="cp"&gt;#coding=utf-8&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;若头部声明coding=utf-8, a = '中文' 其编码为utf-8&lt;/p&gt;
+&lt;p&gt;若头部声明coding=gb2312, a = '中文' 其编码为gbk&lt;/p&gt;
+&lt;p&gt;so, 同一项目中所有源文件头部统一一个编码,并且声明的编码要和源文件保存的编码一致(编辑器相关)&lt;/p&gt;
+&lt;p&gt;这个很重要&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;在源代码用作处理的硬编码字符串，统一用unicode&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;将其类型和源文件本身的编码隔离开&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;s&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="n"&gt;u&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;中文&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;  &lt;span class="err"&gt;#而不是&lt;/span&gt; &lt;span class="n"&gt;s&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="err"&gt;&amp;#39;中文&amp;#39;&lt;/span&gt;
+    &lt;span class="n"&gt;pass&lt;/span&gt;
+&lt;span class="cp"&gt;#注意这里 s到这里时，确保转为unicode&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;以上几步搞定后，你只需要关注两个 unicode和 你设定的编码(一般使用utf-8)&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;处理顺序&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="mf"&gt;1.&lt;/span&gt; &lt;span class="n"&gt;Decode&lt;/span&gt; &lt;span class="n"&gt;early&lt;/span&gt;
+&lt;span class="mf"&gt;2.&lt;/span&gt; &lt;span class="n"&gt;Unicode&lt;/span&gt; &lt;span class="n"&gt;everywhere&lt;/span&gt;
+&lt;span class="mf"&gt;3.&lt;/span&gt; &lt;span class="n"&gt;Encode&lt;/span&gt; &lt;span class="n"&gt;later&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;相关模块及一些方法&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;获得和设置系统默认编码&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;import&lt;/span&gt; &lt;span class="n"&gt;sys&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;sys&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getdefaultencoding&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;ascii&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;
+
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;reload&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;sys&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;module&lt;/span&gt; &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;sys&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;built&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;in&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;sys&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;setdefaultencoding&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;utf&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;sys&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getdefaultencoding&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;utf&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;blockquote&gt;
+&lt;p&gt;str.encode('other_coding')&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;在python中，直接将某种编码的str进行encode成另一种编码str&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="cp"&gt;#str_A为utf-8&lt;/span&gt;
+&lt;span class="n"&gt;str_A&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;encode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;gbk&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="err"&gt;执行的操作是&lt;/span&gt;
+&lt;span class="n"&gt;str_A&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;decode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;sys_codec&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="n"&gt;encode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;gbk&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="err"&gt;这里&lt;/span&gt;&lt;span class="n"&gt;sys_codec&lt;/span&gt;&lt;span class="err"&gt;即为上一步&lt;/span&gt; &lt;span class="n"&gt;sys&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getdefaultencoding&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="err"&gt;的编码&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;'获得和设置系统默认编码'和这里的str.encode是相关的，但我一般很少这么用，主要是觉得复杂不可控,还是输入明确decode，输出明确encode来得简单些(个人观点)&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;chardet&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;文件编码检测，&lt;a href="https://pypi.python.org/pypi/chardet"&gt;下载&lt;/a&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;import&lt;/span&gt; &lt;span class="n"&gt;chardet&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;f&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;open&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;test&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;txt&lt;/span&gt;&lt;span class="sc"&gt;&amp;#39;,&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;r&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;result&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;chardet&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;detect&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;read&lt;/span&gt;&lt;span class="p"&gt;())&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;result&lt;/span&gt;
+&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;confidence&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="mf"&gt;0.99&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;encoding&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;utf&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;blockquote&gt;
+&lt;p&gt;\u字符串转对应unicode字符串&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;u&lt;/span&gt;&lt;span class="sc"&gt;&amp;#39;中&amp;#39;&lt;/span&gt;
+&lt;span class="n"&gt;u&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;\&lt;/span&gt;&lt;span class="n"&gt;u4e2d&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;
+
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;s&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="err"&gt;&amp;#39;\&lt;/span&gt;&lt;span class="n"&gt;u4e2d&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;print&lt;/span&gt; &lt;span class="n"&gt;s&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;decode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;unicode_escape&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="err"&gt;中&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;hr /&gt;
+&lt;p&gt;好了，暂时就这么多，希望讲清楚了&lt;/p&gt;
+&lt;p&gt;thx&lt;/p&gt;
+&lt;p&gt;wklken&lt;/p&gt;
+&lt;p&gt;2013-08-31 于深圳&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sat, 31 Aug 2013 00:00:00 +0800</pubDate><guid>tag:wklken.me,2013-08-31:posts/2013/08/31/python-extra-coding-intro.html</guid><category>python</category></item><item><title>Python资源入口汇总</title><link>http://wklken.me/posts/2013/08/27/python-sources.html</link><description>&lt;h3&gt;官网&lt;/h3&gt;
 &lt;p&gt;&lt;a href="http://www.python.org/"&gt;入口&lt;/a&gt;&lt;/p&gt;
 &lt;h3&gt;官方文档&lt;/h3&gt;
 &lt;blockquote&gt;
@@ -74,6 +325,7 @@
 &lt;p&gt;dabeaz &lt;a href="http://www.dabeaz.com/talks.html"&gt;入口&lt;/a&gt;&lt;/p&gt;
 &lt;h3&gt;社区&lt;/h3&gt;
 &lt;h3&gt;其他&lt;/h3&gt;
+&lt;p&gt;一个python正则在线工具 &lt;a href="http://www.pyregex.com/"&gt;入口&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;动态语言设计模式 &lt;a href="http://norvig.com/design-patterns/ppframe.htm"&gt;入口&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;Python challenge &lt;a href="http://www.pythonchallenge.com/"&gt;入口&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;Python 初学者 &lt;a href="https://github.com/Yixiaohan/codeparkshare"&gt;PythonShare&lt;/a&gt;&lt;/p&gt;
@@ -81,6 +333,7 @@
 &lt;p&gt;国内pypi镜像 &lt;a href="http://pypi.sdutlinux.org/"&gt;pypi&lt;/a&gt;&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Tue, 27 Aug 2013 00:00:00 +0800</pubDate><guid>tag:wklken.me,2013-08-27:posts/2013/08/27/python-sources.html</guid><category>sources</category></item><item><title>Python-进阶-functools模块小结</title><link>http://wklken.me/posts/2013/08/18/python-extra-functools.html</link><description>&lt;p&gt;文档 &lt;a href="http://docs.python.org/2/library/functools.html"&gt;地址&lt;/a&gt;&lt;/p&gt;
 &lt;h3&gt;functools.partial&lt;/h3&gt;
 &lt;p&gt;作用:&lt;/p&gt;
+&lt;p&gt;functools.partial 通过包装手法，允许我们 "重新定义" 函数签名&lt;/p&gt;
 &lt;p&gt;用一些默认参数包装一个可调用对象,返回结果是可调用对象，并且可以像原始对象一样对待&lt;/p&gt;
 &lt;p&gt;冻结部分函数位置函数或关键字参数，简化函数,更少更灵活的函数参数调用&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="cp"&gt;#args/keywords 调用partial时参数&lt;/span&gt;
