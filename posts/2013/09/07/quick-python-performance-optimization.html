@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-        <title>wklken's blog - python</title>
+        <title>[翻译]快速Python性能优化要点</title>
         <meta charset="utf-8" />
      <meta name="description" content="">
     <meta name="keywords" content="" />
@@ -34,7 +34,7 @@
         <script src="http://wklken.me/theme/js/jquery.scrollToTop.js"></script>
                 <script type="text/javascript">
             $(function() {
-                $("#toTop").scrollToTop(800);
+                $("#toTop").scrollToTop(1000);
             });
         </script>
 
@@ -67,15 +67,11 @@
          </div>
          </header><!-- /#banner -->
 
-        
-<section class="content blog">
+        <section class="content blog">
 <div class="constraint">
 <div class="posts">
-
-    
-        		
-            <article>
-            <aside class="sidebar">
+<article>
+        <aside class="sidebar">
 <h3 class="published" title="2013-09-07T00:00:00">
                2013年09月07日
 </h3>
@@ -94,8 +90,13 @@
 
 </p>
 
-</aside><!-- /.post-info -->                    <h1 class="blog-title"><a href="http://wklken.me/posts/2013/09/07/quick-python-performance-optimization.html">[翻译]快速Python性能优化要点</a></h1>
-                        <p>翻译，两篇博文 Quick Python Performance Optimization<a href="http://infiniteloop.in/blog/quick-python-performance-optimization-part-i/">一</a>  <a href="http://infiniteloop.in/blog/quick-python-performance-optimization-part-ii/">二</a>, 很短</p>
+</aside><!-- /.post-info -->        <header> <h1 class="blog-title"><a href=""
+        rel="bookmark" title="Permalink to [翻译]快速Python性能优化要点">[翻译]快速Python性能优化要点</a></h1> 
+                </header>
+
+
+        <div class="entry-content">
+        <p>翻译，两篇博文 Quick Python Performance Optimization<a href="http://infiniteloop.in/blog/quick-python-performance-optimization-part-i/">一</a>  <a href="http://infiniteloop.in/blog/quick-python-performance-optimization-part-ii/">二</a>, 很短</p>
 <p>这是python性能优化博客系列两篇中的第一篇</p>
 <p>仅是解释,如何用正确并且高效的方式完成在日常Python编码中简单的事情</p>
 <ol>
@@ -115,29 +116,115 @@
 <p>xrange是range的C语言实现--更高效的内存使用.</p>
 <ol>
 <li>
-<p>对于大数据 ...</p></li></ol>
-
-<p><a href="http://wklken.me/posts/2013/09/07/quick-python-performance-optimization.html#disqus_thread">评论</a></p>
-                </article>
-                                            <section id="content" class="body">
-                    <h1>其他文章</h1>
-                    <hr />
-                        <ol id="posts-list" class="hfeed">
-                                    
-        		            			<li align="left">
-                        <h1 class="blog-title"><a href="http://wklken.me/posts/2013/08/18/python-extra-functools.html" rel="bookmark" title="Permalink to Python-进阶-functools模块小结">Python-进阶-functools模块小结</a></h1>
-		    </li>
-                            <p class="paginator">
-        Page 1 / 1
-    </p>
-                </ol><!-- /#posts-list -->
-    </section><!-- /#content -->
-	</div>
+<p>对于大数据,使用numpy, 性能优于标准数据结构</p>
+</li>
+<li>
+<p>使用"".join(string) 代替字符串 + 或 +=</p>
+</li>
+<li>
+<p>while 1 比 while True 快</p>
+</li>
+<li>
+<p>性能: 列表解析 &gt; for 循环 &gt; while 循环</p>
+</li>
+</ol>
+<p>遍历list时，列表解析性能最优，while循环最差(需要一个外部计数器)</p>
+<ol>
+<li>使用 cProfile, cStringIO 和 cPickle</li>
+</ol>
+<p>总是使用模块可用的C版本</p>
+<ol>
+<li>使用局部变量</li>
+</ol>
+<p>局部变量性能优于全局变量，内建变量及属性查找</p>
+<ol>
+<li>存在序列和对待器版本- 迭代对象内存更优. 使用 itertools</li>
+</ol>
+<p>尽可能的创建生成器和使用yield.相对于常规序列实现方式，性能更优</p>
+<p><a href="http://wklken.me/posts/2013/07/18/python-translate-yield.html">http://www.diveinto.org/python3/iterators.html</a></p>
+<p><a href="http://stackoverflow.com/questions/231767/the-python-yield-keyword-explained">http://stackoverflow.com/questions/231767/the-python-yield-keyword-explained</a>  <a href="http://wklken.me/posts/2013/07/18/python-translate-yield.html">中文翻译</a></p>
+<hr />
+<p>第二篇</p>
+<ol>
+<li>
+<p>在适用的场景中尽可能地使用map,reduce,filter替代for循环</p>
+</li>
+<li>
+<p>检查元素归属 'a in b', dict或set 优于list/tuple.</p>
+</li>
+<li>
+<p>处理大数据时，尽可能使用不可变数据类型，更快 - tuples &gt; list</p>
+</li>
+<li>
+<p>插入list的复杂度是O(n)</p>
+</li>
+<li>
+<p>如果你需要操作序列的开始和结束，使用deque</p>
+</li>
+<li>
+<p>del - 使用后删除无用对象</p>
+<p>Python自身可以执行，通过gc模块，或者
+在对象的魔术方法中写入__del__方法，或者
+最简单的方式，使用后del删除</p>
+</li>
+<li>
+<p>使用time.clock()</p>
+</li>
+<li>
+<p>GIL(http://wiki.python.org/moin/GlobalInterpreterLock) - GIL is a demon. </p>
+</li>
+</ol>
+<p>GIL允许每个进程中运行一个python本地线程,防止CPU级别的并行.  尝试使用ctypes和原生c库来解决这个问题.  当你无法用Python进一步进行优化的时候.记住，你还有一种选择，使用原生C实现性能糟糕的函数，并且通过Python c绑定调用.  其他库，例如gevent,同样可以解决这个问题，并且某些扩展非常成功</p>
+<p>TL,DR: 在写代码时，考虑一圈：数据结构，构造迭代，内建函数和必要情况下使用GIL构造C扩展</p>
+        </div><!-- /.entry-content -->
+                <div class="comments">
+            版权声明：自由转载-非商用-非衍生-保持署名 | <a href="http://creativecommons.org/licenses/by-nc-nd/3.0/deed.zh" target="_blank" >Creative Commons BY-NC-ND 3.0</a>
+        <h2>Comments !</h2>
+            <div id="disqus_thread"></div>
+            <script type="text/javascript">
+               var disqus_identifier = "posts/2013/09/07/quick-python-performance-optimization.html";
+               (function() {
+               var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+               dsq.src = 'http://wklken.disqus.com/embed.js';
+               (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+              })();
+            </script>
+        </div>
+        
+        </article>
+</div>
 
 
 </div>
 </section>
-        <a href="#top" id="toTop" style="display: inline;"></a>
+<script type="text/javascript">
+    var disqus_shortname = 'wklken';
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = 'http://' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+
+
+<!-- JiaThis Button BEGIN -->
+<script type="text/javascript" >
+var jiathis_config={
+    siteNum:15,
+    sm:"fav,copy,ishare,tsina,googleplus,fb,twitter,evernote,ydnote,sdonote,xianguo,digg,qingbiji,weixin",
+    summary:"",
+    boldNum:3,
+    showClose:false,
+    hideMore:true
+}
+</script>
+<script type="text/javascript" src="http://v3.jiathis.com/code_mini/jiathis_r.js?btn=r2.gif&move=0" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+<a href="#top" id="toTop" style="display: inline;"></a>
+
+
+
         <section id="extras" class="body">
                 </section><!-- /#extras -->
 
