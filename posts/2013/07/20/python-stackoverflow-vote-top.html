@@ -97,7 +97,10 @@
 
 
         <div class="entry-content">
-        <p>进度40%，最近有点犯懒</p>
+        <p>更新到github了，地址：https://github.com/wklken/stackoverflow-py-top-qa </p>
+<p>后续这里不更新了哈</p>
+<hr />
+<p>进度40%，最近有点犯懒</p>
 <p>刚刚注册，好东西</p>
 <p>查看了下前面(vote前15页,挑了下,vote都是100+的样子,大概120个)的问题，<a href="http://stackoverflow.com/questions/tagged/python?page=1&amp;sort=votes&amp;pagesize=15">链接</a>, 大体梳理了下,本来想放一页搞定，奈何排版太乱，按类型分了下</p>
 <p>第一页的前几个比较长，目测都有中文翻译版本，大家可以网上搜下</p>
@@ -1902,8 +1905,332 @@ ValueError: malformed string
 <p>相反的,__init__不返回任何东西，只是负责在实例创建后进行初始化</p>
 <p>通常情况下，你不必重写__new__除非你写一个子类继承不可变类型，例如str,int,unicode或tuple</p>
 <p>你必须了解到，你尝试去做的用<a href="http://en.wikipedia.org/wiki/Factory_object">Factory</a>可以很好地解决，并且是最好的解决方式.使用__new__不是一个简洁的处理方式,一个<a href="http://code.activestate.com/recipes/86900/">factory例子</a></p>
+<h3>Python 'self' 解释</h3>
+<p>问题 <a href="http://stackoverflow.com/questions/2709821/python-self-explained">链接</a></p>
+<p>self关键字的作用是什么？
+我理解他用户在创建class时具体化实例，但我无法理解为何需要给每个方法加入self作为参数.</p>
+<p>举例，在ruby中，我这么做:</p>
+<div class="highlight"><pre><span class="n">class</span> <span class="n">myClass</span>
+    <span class="n">def</span> <span class="n">myFunc</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="err">@</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+    <span class="n">end</span>
+<span class="n">end</span>
+</pre></div>
+
+
+<p>我可以很好地理解，非常简单.但是在Python中，我需要去加入self:</p>
+<div class="highlight"><pre><span class="n">class</span> <span class="n">myClass</span><span class="o">:</span>
+    <span class="n">def</span> <span class="n">myFunc</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span><span class="o">:</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+</pre></div>
+
+
+<p>有谁能解释下么？</p>
+<p>使用self关键字的原因是，Python没有@语法用于引用实例属性.Python决定用一种方式声明方法:实例对象自动传递给属于它的方法,但不是接收自动化：方法的第一个参数是调用这个方法的实例对象本身.这使得方法整个同函数一致,并且由你自己决定真实的名（虽然self是约定，但当你使用其他名的时候，通常人们并不乐意接受）.self对于代码不是特殊的，只是另一个对象.</p>
+<p>Python本来可以做一些用来区分真实的名字和属性的区别 —— 像Ruby有的特殊语法，或者像C++/Java的命令声明,或者其他可能的的语法 —— 但是Python没有这么做.Python致力于使事情变得明确简单，让事情是其本身，虽然并不是全部地方都这么做，但是实例属性石这么做的！这就是为什么给一个实例属性赋值时需要知道是给哪个实例赋值,并且，这就是为什么需要self</p>
+<p>举例</p>
+<div class="highlight"><pre><span class="n">class</span> <span class="n">Vector</span><span class="p">(</span><span class="n">object</span><span class="p">)</span><span class="o">:</span>
+    <span class="n">def</span> <span class="n">__init__</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span><span class="o">:</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">x</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">y</span>
+    <span class="n">def</span> <span class="n">length</span><span class="p">(</span><span class="n">self</span><span class="p">)</span><span class="o">:</span>
+        <span class="k">return</span> <span class="n">math</span><span class="p">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">self</span><span class="p">.</span><span class="n">x</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">self</span><span class="p">.</span><span class="n">y</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+</pre></div>
+
+
+<p>等价于</p>
+<div class="highlight"><pre><span class="n">def</span> <span class="n">length_global</span><span class="p">(</span><span class="n">vector</span><span class="p">)</span><span class="o">:</span>
+    <span class="k">return</span> <span class="n">math</span><span class="p">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">vector</span><span class="p">.</span><span class="n">x</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">vector</span><span class="p">.</span><span class="n">y</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+</pre></div>
+
+
+<p>另外</p>
+<div class="highlight"><pre><span class="n">v_instance</span><span class="p">.</span><span class="n">length</span><span class="p">()</span>
+<span class="err">转为</span>
+<span class="n">Vector</span><span class="p">.</span><span class="n">length</span><span class="p">(</span><span class="n">v_instance</span><span class="p">)</span>
+</pre></div>
+
+
+<h3>为什么Python的'private'方法并不是真正的私有方法</h3>
+<p>问题 <a href="http://stackoverflow.com/questions/70528/why-are-pythons-private-methods-not-actually-private">链接</a></p>
+<p>Python允许我们创建'private' 函数：变量以两个下划线开头，像这样： <em>__myPrivateMethod()</em>.
+但是，如何解释：</p>
+<div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">class</span> <span class="n">MyClass</span><span class="o">:</span>
+<span class="p">...</span>     <span class="n">def</span> <span class="n">myPublicMethod</span><span class="p">(</span><span class="n">self</span><span class="p">)</span><span class="o">:</span>
+<span class="p">...</span>             <span class="n">print</span> <span class="err">&#39;</span><span class="n">public</span> <span class="n">method</span><span class="err">&#39;</span>
+<span class="p">...</span>     <span class="n">def</span> <span class="n">__myPrivateMethod</span><span class="p">(</span><span class="n">self</span><span class="p">)</span><span class="o">:</span>
+<span class="p">...</span>             <span class="n">print</span> <span class="err">&#39;</span><span class="n">this</span> <span class="n">is</span> <span class="n">private</span><span class="o">!!</span><span class="err">&#39;</span>
+<span class="p">...</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span> <span class="o">=</span> <span class="n">MyClass</span><span class="p">()</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="p">.</span><span class="n">myPublicMethod</span><span class="p">()</span>
+<span class="n">public</span> <span class="n">method</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="p">.</span><span class="n">__myPrivateMethod</span><span class="p">()</span>
+<span class="n">Traceback</span> <span class="p">(</span><span class="n">most</span> <span class="n">recent</span> <span class="n">call</span> <span class="n">last</span><span class="p">)</span><span class="o">:</span>
+<span class="n">File</span> <span class="s">&quot;&quot;</span><span class="p">,</span> <span class="n">line</span> <span class="mi">1</span><span class="p">,</span> <span class="n">in</span>
+<span class="nl">AttributeError:</span> <span class="n">MyClass</span> <span class="n">instance</span> <span class="n">has</span> <span class="n">no</span> <span class="n">attribute</span> <span class="err">&#39;</span><span class="n">__myPrivateMethod</span><span class="err">&#39;</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">dir</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+<span class="p">[</span><span class="err">&#39;</span><span class="n">_MyClass__myPrivateMethod</span><span class="err">&#39;</span><span class="p">,</span> <span class="err">&#39;</span><span class="n">__doc__</span><span class="err">&#39;</span><span class="p">,</span> <span class="err">&#39;</span><span class="n">__module__</span><span class="err">&#39;</span><span class="p">,</span> <span class="err">&#39;</span><span class="n">myPublicMethod</span><span class="err">&#39;</span><span class="p">]</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">obj</span><span class="p">.</span><span class="n">_MyClass__myPrivateMethod</span><span class="p">()</span>
+<span class="n">this</span> <span class="n">is</span> <span class="n">private</span><span class="o">!!</span>
+</pre></div>
+
+
+<p>dir(obj) 和 obj._MyClass__myPrivateMethod()</p>
+<p>回答</p>
+<p>‘private'只是用作，确保子类不会意外覆写父类的私有方法和属性.不是为了保护外部意外访问而设计的！</p>
+<p>例如:</p>
+<div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">class</span> <span class="n">Foo</span><span class="p">(</span><span class="n">object</span><span class="p">)</span><span class="o">:</span>
+<span class="p">...</span>     <span class="n">def</span> <span class="n">__init__</span><span class="p">(</span><span class="n">self</span><span class="p">)</span><span class="o">:</span>
+<span class="p">...</span>         <span class="n">self</span><span class="p">.</span><span class="n">__baz</span> <span class="o">=</span> <span class="mi">42</span>
+<span class="p">...</span>     <span class="n">def</span> <span class="n">foo</span><span class="p">(</span><span class="n">self</span><span class="p">)</span><span class="o">:</span>
+<span class="p">...</span>         <span class="n">print</span> <span class="n">self</span><span class="p">.</span><span class="n">__baz</span>
+<span class="p">...</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">class</span> <span class="n">Bar</span><span class="p">(</span><span class="n">Foo</span><span class="p">)</span><span class="o">:</span>
+<span class="p">...</span>     <span class="n">def</span> <span class="n">__init__</span><span class="p">(</span><span class="n">self</span><span class="p">)</span><span class="o">:</span>
+<span class="p">...</span>         <span class="n">super</span><span class="p">(</span><span class="n">Bar</span><span class="p">,</span> <span class="n">self</span><span class="p">).</span><span class="n">__init__</span><span class="p">()</span>
+<span class="p">...</span>         <span class="n">self</span><span class="p">.</span><span class="n">__baz</span> <span class="o">=</span> <span class="mi">21</span>
+<span class="p">...</span>     <span class="n">def</span> <span class="n">bar</span><span class="p">(</span><span class="n">self</span><span class="p">)</span><span class="o">:</span>
+<span class="p">...</span>         <span class="n">print</span> <span class="n">self</span><span class="p">.</span><span class="n">__baz</span>
+<span class="p">...</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">x</span> <span class="o">=</span> <span class="n">Bar</span><span class="p">()</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">x</span><span class="p">.</span><span class="n">foo</span><span class="p">()</span>
+<span class="mi">42</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">x</span><span class="p">.</span><span class="n">bar</span><span class="p">()</span>
+<span class="mi">21</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">print</span> <span class="n">x</span><span class="p">.</span><span class="n">__dict__</span>
+<span class="p">{</span><span class="err">&#39;</span><span class="n">_Bar__baz</span><span class="err">&#39;</span><span class="o">:</span> <span class="mi">21</span><span class="p">,</span> <span class="err">&#39;</span><span class="n">_Foo__baz</span><span class="err">&#39;</span><span class="o">:</span> <span class="mi">42</span><span class="p">}</span>
+</pre></div>
+
+
+<p>当然，这对于两个同名的类没有作用</p>
+<p>另外，可以查看diveintopython的解释 <a href="http://www.faqs.org/docs/diveintopython/fileinfo_private.html#d0e11521">入口</a></p>
+<h3>Python中类方法的作用是什么</h3>
+<p>问题 <a href="http://stackoverflow.com/questions/38238/what-are-class-methods-in-python-for">链接</a></p>
+<p>我现在意识到，我不需要像我在使用java的static方法那样使用类方法，但是我不确定什么时候使用</p>
+<p>谁能通过一个好的例子解释下Python中的类方法，至少有人能告诉我什么时候确实需要使用类方法</p>
+<p>类方法用在：当你需要使用不属于任何明确实例的方法,但同时必须涉及类.有趣的是，你可以在子类中覆写，这在Java的static方法和Python的模块级别函数中是不可能做到的</p>
+<p>如果你有一个MyClass, 并且一个模块级别函数操作MyClass(工厂，依赖注入桩等等), 声明一个类方法.然后这个类方法可以在子类中调用</p>
+<h3>如何删除一个list中重复的值同时保证原有顺序</h3>
+<p>问题 <a href="http://stackoverflow.com/questions/480214/how-do-you-remove-duplicates-from-a-list-in-python-whilst-preserving-order">链接</a></p>
+<p>我是这么做的额</p>
+<div class="highlight"><pre><span class="n">def</span> <span class="n">uniq</span><span class="p">(</span><span class="n">input</span><span class="p">)</span><span class="o">:</span>
+<span class="n">output</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">x</span> <span class="n">in</span> <span class="n">input</span><span class="o">:</span>
+    <span class="k">if</span> <span class="n">x</span> <span class="n">not</span> <span class="n">in</span> <span class="n">output</span><span class="o">:</span>
+    <span class="n">output</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="k">return</span> <span class="n">output</span>
+</pre></div>
+
+
+<p>有什么更好的方法？</p>
+<p>你可以在这里找到一些可用的方法 <a href="http://www.peterbe.com/plog/uniqifiers-benchmark">入口</a></p>
+<p>最快的一个</p>
+<div class="highlight"><pre><span class="n">def</span> <span class="n">f7</span><span class="p">(</span><span class="n">seq</span><span class="p">)</span><span class="o">:</span>
+    <span class="n">seen</span> <span class="o">=</span> <span class="n">set</span><span class="p">()</span>
+    <span class="n">seen_add</span> <span class="o">=</span> <span class="n">seen</span><span class="p">.</span><span class="n">add</span>
+    <span class="k">return</span> <span class="p">[</span> <span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="n">in</span> <span class="n">seq</span> <span class="k">if</span> <span class="n">x</span> <span class="n">not</span> <span class="n">in</span> <span class="n">seen</span> <span class="n">and</span> <span class="n">not</span> <span class="n">seen_add</span><span class="p">(</span><span class="n">x</span><span class="p">)]</span>
+</pre></div>
+
+
+<p>如果你需要在同一个数据集中多次是哦那个这个方法，或许你可以使用ordered set处理 http://code.activestate.com/recipes/528878/</p>
+<p>插入，删除和归属判断复杂度都是O(1)</p>
+<h3>有什么方法可以获取系统当前用户名么?</h3>
+<p>问题 <a href="http://stackoverflow.com/questions/842059/is-there-a-portable-way-to-get-the-current-username-in-python">链接</a></p>
+<p>至少在Linux和Windows下都可用.就像 os.getuid</p>
+<div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">os</span><span class="p">.</span><span class="n">getuid</span><span class="p">()</span>
+<span class="mi">42</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">os</span><span class="p">.</span><span class="n">getusername</span><span class="p">()</span>
+<span class="err">&#39;</span><span class="n">slartibartfast</span><span class="err">&#39;</span>
+</pre></div>
+
+
+<p>可以看看 <a href="http://docs.python.org/2/library/getpass.html">getpass</a> 模块</p>
+<div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">import</span> <span class="n">getpass</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">getpass</span><span class="p">.</span><span class="n">getuser</span><span class="p">()</span>
+<span class="err">&#39;</span><span class="n">kostya</span><span class="err">&#39;</span>
+</pre></div>
+
+
+<p>可用: Unix, Windows</p>
+<h3>Python assert最佳实践</h3>
+<p>问题 <a href="http://stackoverflow.com/questions/944592/best-practice-for-python-assert">链接</a></p>
+<p>有没有代码实例使用assert作为独立代码，而不是仅用来debug</p>
+<div class="highlight"><pre><span class="n">assert</span> <span class="n">x</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="err">&#39;</span><span class="n">x</span> <span class="n">is</span> <span class="n">less</span> <span class="n">than</span> <span class="n">zero</span><span class="err">&#39;</span>
+
+<span class="err">类似</span>
+<span class="k">if</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="o">:</span>
+    <span class="n">raise</span> <span class="n">Exception</span><span class="p">,</span> <span class="err">&#39;</span><span class="n">x</span> <span class="n">is</span> <span class="n">less</span> <span class="n">than</span> <span class="n">zero</span><span class="err">&#39;</span>
+
+<span class="err">有什么方法，可以设定一个规则就像</span> <span class="k">if</span> <span class="n">x</span> <span class="err">\</span><span class="o">&lt;</span> <span class="mi">0</span> <span class="err">抛出错误但是不是通过</span><span class="n">try</span><span class="o">/</span><span class="n">except</span><span class="o">/</span><span class="n">finally</span><span class="err">检查的</span>
+</pre></div>
+
+
+<p>搞晕了：</p>
+<div class="highlight"><pre><span class="err">原文</span> <span class="nx">Also</span><span class="p">,</span> <span class="nx">is</span> <span class="nx">there</span> <span class="nx">any</span> <span class="nx">way</span> <span class="nx">to</span> <span class="nx">set</span> <span class="nx">a</span> <span class="nx">business</span> <span class="nx">rule</span> <span class="nx">like</span> <span class="k">if</span> <span class="nx">x</span> <span class="err">\</span><span class="o">&lt;</span> <span class="mi">0</span> <span class="nx">raise</span> <span class="nx">error</span> <span class="nx">that</span> <span class="nx">is</span> <span class="nx">always</span> <span class="nx">checked</span> <span class="nx">without</span> <span class="nx">the</span> <span class="k">try</span><span class="err">/except/finally so, if at anytime throughout the code x is less than 0 an error is raised, like if you set assert x &lt; 0 at the start of a function, anywhere within the function where x becomes less then 0 an exception is raised?</span>
+</pre></div>
+
+
+<p>回答</p>
+<p>Assert仅用在，测试那些从不发生的情况！目的是让程序尽早失败</p>
+<p>Exception用在，那些可以明确知道会发生的错误，并且建议总是创建自己的异常类</p>
+<p>例如，你写一个函数从配置文件中读取配置放入字典，文件格式不正确抛出一个ConfigurationSyntaxError,同时你可以assert返回值非None</p>
+<p>在你的例子中，如果x是通过用户接口或外部传递设置的，最好使用exception</p>
+<p>如果x仅是同一个程序的内部代码，使用assert</p>
+<h3>在非创建全局变量的地方使用全局变量</h3>
+<p>问题 <a href="http://stackoverflow.com/questions/423379/using-global-variables-in-a-function-other-than-the-one-that-created-them">链接</a></p>
+<p>如果我在一个函数中创建了全局变量，如何在另一个函数中使用？</p>
+<p>回答：</p>
+<p>你可以在给全局变量赋值的函数中声明 global</p>
+<div class="highlight"><pre><span class="n">globvar</span> <span class="o">=</span> <span class="mi">0</span>
+
+<span class="n">def</span> <span class="n">set_globvar_to_one</span><span class="p">()</span><span class="o">:</span>
+    <span class="n">global</span> <span class="n">globvar</span>    <span class="err">#</span> <span class="n">Needed</span> <span class="n">to</span> <span class="n">modify</span> <span class="n">global</span> <span class="n">copy</span> <span class="n">of</span> <span class="n">globvar</span>
+    <span class="n">globvar</span> <span class="o">=</span> <span class="mi">1</span>
+
+<span class="n">def</span> <span class="n">print_globvar</span><span class="p">()</span><span class="o">:</span>
+    <span class="n">print</span> <span class="n">globvar</span>     <span class="err">#</span> <span class="n">No</span> <span class="n">need</span> <span class="k">for</span> <span class="n">global</span> <span class="n">declaration</span> <span class="n">to</span> <span class="n">read</span> <span class="n">value</span> <span class="n">of</span> <span class="n">globvar</span>
+
+<span class="n">set_globvar_to_one</span><span class="p">()</span>
+<span class="n">print_globvar</span><span class="p">()</span>       <span class="err">#</span> <span class="n">Prints</span> <span class="mi">1</span>
+</pre></div>
+
+
+<p>我猜想这么做的原因是，全局变量很危险，Python想要确保你真的知道你要对一个全局的变量进行操作</p>
+<p>如果你想知道如何在模块间使用全局变量，查看其他回答</p>
+<h3>如何在单一表达式中合并两个Python字典</h3>
+<p>问题 <a href="http://stackoverflow.com/questions/38987/how-can-i-merge-union-two-python-dictionaries-in-a-single-expression">链接</a></p>
+<div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">x</span> <span class="o">=</span> <span class="p">{</span><span class="sc">&#39;a&#39;</span><span class="o">:</span><span class="mi">1</span><span class="p">,</span> <span class="sc">&#39;b&#39;</span><span class="o">:</span> <span class="mi">2</span><span class="p">}</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">y</span> <span class="o">=</span> <span class="p">{</span><span class="sc">&#39;b&#39;</span><span class="o">:</span><span class="mi">10</span><span class="p">,</span> <span class="sc">&#39;c&#39;</span><span class="o">:</span> <span class="mi">11</span><span class="p">}</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">z</span> <span class="o">=</span> <span class="n">x</span><span class="p">.</span><span class="n">update</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">print</span> <span class="n">z</span>
+<span class="n">None</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">x</span>
+<span class="p">{</span><span class="sc">&#39;a&#39;</span><span class="o">:</span> <span class="mi">1</span><span class="p">,</span> <span class="sc">&#39;b&#39;</span><span class="o">:</span> <span class="mi">10</span><span class="p">,</span> <span class="sc">&#39;c&#39;</span><span class="o">:</span> <span class="mi">11</span><span class="p">}</span>
+</pre></div>
+
+
+<p>我想要最终合并结果在z中，不是x，我要怎么做？</p>
+<p>回答</p>
+<p>这种情况下，可以使用</p>
+<div class="highlight"><pre><span class="n">z</span> <span class="o">=</span> <span class="n">dict</span><span class="p">(</span><span class="n">x</span><span class="p">.</span><span class="n">items</span><span class="p">()</span> <span class="o">+</span> <span class="n">y</span><span class="p">.</span><span class="n">items</span><span class="p">())</span>
+</pre></div>
+
+
+<p>这个表达式将会实现你想要的，最终结果z，并且相同key的值，将会是y中key对应的值</p>
+<div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">x</span> <span class="o">=</span> <span class="p">{</span><span class="sc">&#39;a&#39;</span><span class="o">:</span><span class="mi">1</span><span class="p">,</span> <span class="sc">&#39;b&#39;</span><span class="o">:</span> <span class="mi">2</span><span class="p">}</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">y</span> <span class="o">=</span> <span class="p">{</span><span class="sc">&#39;b&#39;</span><span class="o">:</span><span class="mi">10</span><span class="p">,</span> <span class="sc">&#39;c&#39;</span><span class="o">:</span> <span class="mi">11</span><span class="p">}</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">z</span> <span class="o">=</span> <span class="n">dict</span><span class="p">(</span><span class="n">x</span><span class="p">.</span><span class="n">items</span><span class="p">()</span> <span class="o">+</span> <span class="n">y</span><span class="p">.</span><span class="n">items</span><span class="p">())</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">z</span>
+<span class="p">{</span><span class="sc">&#39;a&#39;</span><span class="o">:</span> <span class="mi">1</span><span class="p">,</span> <span class="sc">&#39;c&#39;</span><span class="o">:</span> <span class="mi">11</span><span class="p">,</span> <span class="sc">&#39;b&#39;</span><span class="o">:</span> <span class="mi">10</span><span class="p">}</span>
+</pre></div>
+
+
+<p>如果在Python3中,会变得有些复杂</p>
+<div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">z</span> <span class="o">=</span> <span class="n">dict</span><span class="p">(</span><span class="n">list</span><span class="p">(</span><span class="n">x</span><span class="p">.</span><span class="n">items</span><span class="p">())</span> <span class="o">+</span> <span class="n">list</span><span class="p">(</span><span class="n">y</span><span class="p">.</span><span class="n">items</span><span class="p">()))</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">z</span>
+<span class="p">{</span><span class="sc">&#39;a&#39;</span><span class="o">:</span> <span class="mi">1</span><span class="p">,</span> <span class="sc">&#39;c&#39;</span><span class="o">:</span> <span class="mi">11</span><span class="p">,</span> <span class="sc">&#39;b&#39;</span><span class="o">:</span> <span class="mi">10</span><span class="p">}</span>
+</pre></div>
+
+
+<h3>如何使用 pip 更新所有包</h3>
+<p>问题 <a href="http://stackoverflow.com/questions/2720014/upgrading-all-packages-with-pip">链接</a></p>
+<p>如何使用pip更新python的所有包</p>
+<p>没有内置的标志可以实现</p>
+<p>但是你可以这么做</p>
+<div class="highlight"><pre><span class="n">pip</span> <span class="n">freeze</span> <span class="o">--</span><span class="n">local</span> <span class="o">|</span> <span class="n">grep</span> <span class="o">-</span><span class="n">v</span> <span class="err">&#39;</span><span class="o">^</span><span class="err">\</span><span class="o">-</span><span class="n">e</span><span class="err">&#39;</span> <span class="o">|</span> <span class="n">cut</span> <span class="o">-</span><span class="n">d</span> <span class="o">=</span> <span class="o">-</span><span class="n">f</span> <span class="mi">1</span>  <span class="o">|</span> <span class="n">xargs</span> <span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">U</span>
+</pre></div>
+
+
+<h3>Python中声明exception的方法</h3>
+<p>问题 <a href="http://stackoverflow.com/questions/1319615/proper-way-to-declare-custom-exceptions-in-modern-python">链接</a></p>
+<p>在python2.6中定义异常得到警告</p>
+<div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">class</span> <span class="n">MyError</span><span class="p">(</span><span class="n">Exception</span><span class="p">)</span><span class="o">:</span>
+<span class="p">...</span>     <span class="n">def</span> <span class="n">__init__</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span><span class="o">:</span>
+<span class="p">...</span>         <span class="n">self</span><span class="p">.</span><span class="n">message</span> <span class="o">=</span> <span class="n">message</span>
+<span class="p">...</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">MyError</span><span class="p">(</span><span class="s">&quot;foo&quot;</span><span class="p">)</span>
+<span class="n">_sandbox</span><span class="p">.</span><span class="n">py</span><span class="o">:</span><span class="mi">3</span><span class="o">:</span> <span class="n">DeprecationWarning</span><span class="o">:</span> <span class="n">BaseException</span><span class="p">.</span><span class="n">message</span> <span class="n">has</span> <span class="n">been</span> <span class="n">deprecated</span> <span class="n">as</span> <span class="n">of</span> <span class="n">Python</span> <span class="mf">2.6</span>
+</pre></div>
+
+
+<p>问题很长，大意如标题</p>
+<p>回答</p>
+<p>或许我理解错了，但是为什么不这样做</p>
+<div class="highlight"><pre><span class="n">class</span> <span class="n">MyException</span><span class="p">(</span><span class="n">Exception</span><span class="p">)</span><span class="o">:</span>
+    <span class="n">pass</span>
+</pre></div>
+
+
+<p>如果要重写什么，例如传递额外参数，可以这么做</p>
+<div class="highlight"><pre><span class="n">class</span> <span class="n">ValidationError</span><span class="p">(</span><span class="n">Exception</span><span class="p">)</span><span class="o">:</span>
+    <span class="n">def</span> <span class="n">__init__</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">Errors</span><span class="p">)</span><span class="o">:</span>
+
+        <span class="err">#</span> <span class="n">Call</span> <span class="n">the</span> <span class="n">base</span> <span class="n">class</span> <span class="n">constructor</span> <span class="n">with</span> <span class="n">the</span> <span class="n">parameters</span> <span class="n">it</span> <span class="n">needs</span>
+        <span class="n">Exception</span><span class="p">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span>
+
+        <span class="err">#</span> <span class="n">Now</span> <span class="k">for</span> <span class="n">your</span> <span class="n">custom</span> <span class="n">code</span><span class="p">...</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">Errors</span> <span class="o">=</span> <span class="n">Errors</span>
+</pre></div>
+
+
+<p>你可以通过第二个参数传递error 字典, 之后通过e.Errors获取</p>
+<h3>在Python中使用Counter错误</h3>
+<p>问题 <a href="http://stackoverflow.com/questions/13311094/counter-in-collections-module-python">链接</a></p>
+<p>当使用Counter时，出现异常</p>
+<div class="highlight"><pre><span class="nl">AttributeError:</span> <span class="err">&#39;</span><span class="n">module</span><span class="err">&#39;</span> <span class="n">object</span> <span class="n">has</span> <span class="n">no</span> <span class="n">attribute</span> <span class="err">&#39;</span><span class="n">Counter</span><span class="err">&#39;</span>
+
+<span class="n">from</span> <span class="n">collections</span> <span class="n">import</span> <span class="n">Counter</span>
+<span class="nl">ImportError:</span> <span class="n">cannot</span> <span class="n">import</span> <span class="n">name</span> <span class="n">Counter</span>
+</pre></div>
+
+
+<p>原因：</p>
+<p>版本问题，Counter在 python2.7中才被加入到这个模块，你可能使用了Python2.6或更老的版本</p>
+<p>可以看下 <a href="http://docs.python.org/2/library/collections.html#collections.Counter">文档</a></p>
+<p>如果要在 Python2.6或2.5版本使用，可以看 <a href="http://code.activestate.com/recipes/576611-counter-class/">这里</a></p>
+<h3>如何删除Python easy_install安装的包</h3>
+<p>问题 <a href="http://stackoverflow.com/questions/1231688/how-do-i-remove-packages-installed-with-pythons-easy-install">链接</a></p>
+<p><a href="https://pypi.python.org/pypi/pip/">pip</a>, setuptools/easy_install的另一种选择，提供uninstall命令</p>
+<p>首先，移除依赖</p>
+<div class="highlight"><pre><span class="err">$</span> <span class="n">easy_install</span> <span class="o">-</span><span class="n">m</span> <span class="p">[</span><span class="n">PACKAGE</span><span class="p">]</span>
+</pre></div>
+
+
+<p>然后，手动删除egg文件</p>
+<div class="highlight"><pre><span class="err">$</span> <span class="n">rm</span> <span class="o">-</span><span class="n">rf</span> <span class="p">...</span><span class="o">/</span><span class="n">python2</span><span class="p">.</span><span class="n">X</span><span class="o">/</span><span class="n">site</span><span class="o">-</span><span class="n">packages</span><span class="o">/</span><span class="p">[</span><span class="n">PACKAGE</span><span class="p">].</span><span class="n">egg</span>
+</pre></div>
+
+
+<h3>在Python中如何解析xml</h3>
+<p>问题 <a href="http://stackoverflow.com/questions/1912434/how-do-i-parse-xml-in-python">链接</a></p>
+<div class="highlight"><pre><span class="nt">&lt;foo&gt;</span>
+<span class="nt">&lt;bar&gt;</span>
+    <span class="nt">&lt;type</span> <span class="na">foobar=</span><span class="s">&quot;1&quot;</span><span class="nt">/&gt;</span>
+    <span class="nt">&lt;type</span> <span class="na">foobar=</span><span class="s">&quot;2&quot;</span><span class="nt">/&gt;</span>
+<span class="nt">&lt;/bar&gt;</span>
+<span class="nt">&lt;/foo&gt;</span>
+</pre></div>
+
+
+<p>如何解析获取xml文件中内容</p>
+<p>我建议使用 <a href="http://docs.python.org/2/library/xml.etree.elementtree.html">ElementTree</a> (有其他可用的实现，例如 <a href="http://lxml.de/">lxml</a>，他们只是更快, ElementTree提供更简单的编程api)</p>
+<p>在使用XML建立Element实例之后，例如使用 <a href="http://docs.python.org/2/library/xml.etree.elementtree.html#xml.etree.ElementTree.XML">XML</a> 函数</p>
+<div class="highlight"><pre><span class="k">for</span> <span class="n">atype</span> <span class="n">in</span> <span class="n">e</span><span class="p">.</span><span class="n">findall</span><span class="p">(</span><span class="err">&#39;</span><span class="n">type</span><span class="err">&#39;</span><span class="p">)</span>
+    <span class="n">print</span><span class="p">(</span><span class="n">atype</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="err">&#39;</span><span class="n">foobar</span><span class="err">&#39;</span><span class="p">))</span>
+</pre></div>
+
+
+<h3>如何将一个Python time.struct_time对象转换为一个datetime对象</h3>
+<p>问题 <a href="http://stackoverflow.com/questions/1697815/how-do-you-convert-a-python-time-struct-time-object-into-a-datetime-object">链接</a></p>
+<p>使用 <a href="">time.mktime()</a> 将time元组(本地时间)转成秒， 然后使用 datetime.fromtimestamp() 转成datetime对象</p>
+<div class="highlight"><pre><span class="n">from</span> <span class="n">time</span> <span class="n">import</span> <span class="n">mktime</span>
+<span class="n">from</span> <span class="n">datetime</span> <span class="n">import</span> <span class="n">datetime</span>
+
+<span class="n">dt</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="n">mktime</span><span class="p">(</span><span class="k">struct</span><span class="p">))</span>
+</pre></div>
         </div><!-- /.entry-content -->
                 <div class="comments">
+            如果文章对你有帮助，欢迎对wklken进行无负担小额赞助 [支付宝](https://me.alipay.com/wklken) <br>
             版权声明：自由转载-非商用-非衍生-保持署名 | <a href="http://creativecommons.org/licenses/by-nc-nd/3.0/deed.zh" target="_blank" >Creative Commons BY-NC-ND 3.0</a>
         <h2>Comments !</h2>
             <div id="disqus_thread"></div>
