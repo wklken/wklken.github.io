@@ -1,5 +1,606 @@
 <?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>wklken's blog</title><link>http://wklken.me/</link><description></description><atom:link href="/tag/python/feed" rel="self"></atom:link><lastBuildDate>Sun, 13 Oct 2013 00:00:00 +0800</lastBuildDate><item><title>搜索下拉提示框实现(python/golang)</title><link>http://wklken.me/posts/2013/10/13/search-suggestion.html</link><description>&lt;p&gt;在百度，google，taobao.com的搜索框，输入某个关键字时，会存在下拉提示，提示关键字列表&lt;/p&gt;
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>wklken's blog</title><link>http://wklken.me/</link><description></description><atom:link href="/tag/python/feed" rel="self"></atom:link><lastBuildDate>Sat, 19 Oct 2013 00:00:00 +0800</lastBuildDate><item><title>Redis基础笔记</title><link>http://wklken.me/posts/2013/10/19/redis-base.html</link><description>&lt;h3&gt;资源链接&lt;/h3&gt;
+&lt;p&gt;推荐书籍:《Redis入门指南》&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;资源列表:&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;redis源码&lt;a href="https://github.com/antirez/redis"&gt;github&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;下载地址&lt;a href="http://redis.io/download"&gt;redis.io&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;redis命令速查&lt;a href="http://redis.io/commands"&gt;command&lt;/a&gt; |
+             &lt;a href="http://redis.cn/commands.html"&gt;CMD索引-中文&lt;/a&gt; |
+             &lt;a href="http://redis.readthedocs.org/en/latest/"&gt;CMD树-中文&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;redis资料概要 @江南白衣 &lt;a href="https://github.com/springside/springside4/wiki/redis"&gt;gist&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;redis资料汇总专题 &lt;a href="http://blog.nosqlfan.com/html/3537.html"&gt;nosqlfan&lt;/a&gt; (这个站有很多文章)&lt;/p&gt;
+&lt;p&gt;redis的设计与实现 &lt;a href="http://www.redisbook.com/en/latest/"&gt;文档&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;redis2.6带注释源码 &lt;a href="https://github.com/huangz1990/annotated_redis_source"&gt;github&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;redis 各种语言clients&lt;a href="http://redis.io/clients"&gt;clients&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;python redis cli &lt;a href="https://github.com/andymccurdy/redis-py"&gt;redis-py&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;网络文章汇总 &lt;a href="http://www.redis.cn/article.html"&gt;入口&lt;/a&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;文章列表：&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;十五分钟介绍Redis数据结构  &lt;a href="http://blog.nosqlfan.com/html/3202.html?ref=rediszt"&gt;入口&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;redis的订阅与发布 &lt;a href="http://www.redisbook.com/en/latest/feature/pubsub.html"&gt;入口&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;redis之七种武器 &lt;a href="http://blog.nosqlfan.com/html/2942.html?ref=rediszt"&gt;入口&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;使用Redis的五个注意事项 &lt;a href="http://blog.nosqlfan.com/html/3705.html"&gt;入口&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;redis源码分析系列文章 &lt;a href="http://blog.nosqlfan.com/html/2949.html?ref=rediszt"&gt;入口&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Largest Redis Clusters Ever &lt;a href="http://www.xdata.me/?p=301"&gt;入口&lt;/a&gt; (使用场景)&lt;/p&gt;
+&lt;p&gt;成人网站YouPorn使用Redis之经验谈 &lt;a href="http://blog.jobbole.com/44629/"&gt;入口&lt;/a&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;相关项目&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Redis监控web工具 &lt;a href="https://github.com/steelThread/redmon"&gt;redmon&lt;/a&gt;&lt;/p&gt;
+&lt;h3&gt;简介&lt;/h3&gt;
+&lt;p&gt;Redis(REmote DIctionary Server),远程字典服务器，以字典结构存储数据，允许通过TCP协议读取字典中内容&lt;/p&gt;
+&lt;p&gt;作用：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="mf"&gt;1.&lt;/span&gt;&lt;span class="err"&gt;缓存系统：&lt;/span&gt; &lt;span class="err"&gt;可以为每个键设置&lt;/span&gt;&lt;span class="n"&gt;TTL&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;Time&lt;/span&gt; &lt;span class="n"&gt;To&lt;/span&gt; &lt;span class="n"&gt;Live&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;&lt;span class="err"&gt;生存时间到期后键会自动被删除&lt;/span&gt;
+            &lt;span class="err"&gt;可限定数据占用最大内存空间，数据大道空间限制后自动按照一定规则淘汰不需要键&lt;/span&gt;
+&lt;span class="mf"&gt;2.&lt;/span&gt;&lt;span class="err"&gt;任务队列：&lt;/span&gt; &lt;span class="err"&gt;支持阻塞式读取，很容易用作高性能队列，还支持“发布&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="err"&gt;订阅“消息的模式&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;安装&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="mf"&gt;1.&lt;/span&gt;&lt;span class="n"&gt;wget&lt;/span&gt; &lt;span class="n"&gt;http&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="c1"&gt;//download.redis.io/releases/redis-2.6.16.tar.gz&lt;/span&gt;
+&lt;span class="mf"&gt;2.&lt;/span&gt;&lt;span class="n"&gt;tar&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;xzvf&lt;/span&gt; &lt;span class="n"&gt;redis&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mf"&gt;2.6.16&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;tar&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;gz&lt;/span&gt;
+&lt;span class="mf"&gt;3.&lt;/span&gt;&lt;span class="n"&gt;cd&lt;/span&gt; &lt;span class="n"&gt;redis&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mf"&gt;2.6.16&lt;/span&gt;
+&lt;span class="mf"&gt;4.&lt;/span&gt;&lt;span class="n"&gt;make&lt;/span&gt;
+&lt;span class="mf"&gt;5.&lt;/span&gt;&lt;span class="n"&gt;make&lt;/span&gt; &lt;span class="n"&gt;install&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;安装后，在/usr/local/bin下面有&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;redis&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;server&lt;/span&gt;   &lt;span class="err"&gt;服务器&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;重点&lt;/span&gt;
+&lt;span class="n"&gt;redis&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;cli&lt;/span&gt;      &lt;span class="err"&gt;命令行客户端&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;重点&lt;/span&gt;
+&lt;span class="n"&gt;redis&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;benchmark&lt;/span&gt; &lt;span class="err"&gt;性能测试工具&lt;/span&gt;
+&lt;span class="n"&gt;redis&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;check&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;aof&lt;/span&gt; &lt;span class="n"&gt;AOF&lt;/span&gt;&lt;span class="err"&gt;文件修复工具&lt;/span&gt;
+&lt;span class="n"&gt;redis&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;check&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;dump&lt;/span&gt; &lt;span class="n"&gt;RDB&lt;/span&gt;&lt;span class="err"&gt;文件检查工具&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;启动&lt;/p&gt;
+&lt;p&gt;直接启动&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;redis&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;server&lt;/span&gt; &lt;span class="err"&gt;#默认&lt;/span&gt;&lt;span class="mi"&gt;6379&lt;/span&gt;
+&lt;span class="n"&gt;redis&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;server&lt;/span&gt; &lt;span class="o"&gt;--&lt;/span&gt;&lt;span class="n"&gt;port&lt;/span&gt; &lt;span class="mi"&gt;6380&lt;/span&gt;
+&lt;span class="n"&gt;redis&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;server&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;path&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;to&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;redis&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;conf&lt;/span&gt; &lt;span class="o"&gt;--&lt;/span&gt;&lt;span class="n"&gt;loglevel&lt;/span&gt; &lt;span class="n"&gt;warning&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;通过初始化脚本运行(生产环境)&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="err"&gt;在安装包目录&lt;/span&gt;&lt;span class="n"&gt;redis&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mf"&gt;2.6.16&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;utils&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;redis_init_script&lt;/span&gt;
+
+&lt;span class="mf"&gt;1.&lt;/span&gt;&lt;span class="err"&gt;将脚本复制到&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;etc&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;init&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;d&lt;/span&gt;&lt;span class="err"&gt;目录下，文件名为&lt;/span&gt; &lt;span class="n"&gt;redis_&lt;/span&gt;&lt;span class="err"&gt;端口号&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;修改文件第六行&lt;/span&gt; &lt;span class="n"&gt;REDISPORT&lt;/span&gt;&lt;span class="err"&gt;为相同端口号&lt;/span&gt;
+&lt;span class="mf"&gt;2.&lt;/span&gt;&lt;span class="err"&gt;建立目录&lt;/span&gt;
+    &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;etc&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;redis&lt;/span&gt;           &lt;span class="err"&gt;存放配置文件&lt;/span&gt;
+    &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;var&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;redis&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="err"&gt;端口号&lt;/span&gt;    &lt;span class="err"&gt;存放持久化文件&lt;/span&gt;
+&lt;span class="mf"&gt;3.&lt;/span&gt;&lt;span class="err"&gt;修改配置文件&lt;/span&gt;
+    &lt;span class="err"&gt;将配置文件&lt;/span&gt;&lt;span class="n"&gt;redis&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mf"&gt;2.6.16&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;redis&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;conf&lt;/span&gt; &lt;span class="err"&gt;复制到&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;etc&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;redis&lt;/span&gt;&lt;span class="err"&gt;目录下，以端口号命名&lt;/span&gt; &lt;span class="n"&gt;e&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;g&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;  &lt;span class="mf"&gt;6379.&lt;/span&gt;&lt;span class="n"&gt;conf&lt;/span&gt;
+    &lt;span class="err"&gt;修改配置文件中部分参数&lt;/span&gt;
+        &lt;span class="n"&gt;daemonize&lt;/span&gt;   &lt;span class="n"&gt;yes&lt;/span&gt;   &lt;span class="err"&gt;使&lt;/span&gt;&lt;span class="n"&gt;redis&lt;/span&gt;&lt;span class="err"&gt;以守护进程模式运行&lt;/span&gt;
+        &lt;span class="n"&gt;pidfile&lt;/span&gt;     &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;var&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;run&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;redis_&lt;/span&gt;&lt;span class="err"&gt;端口号&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;pid&lt;/span&gt;   &lt;span class="err"&gt;设置&lt;/span&gt;&lt;span class="n"&gt;redis&lt;/span&gt;&lt;span class="err"&gt;的&lt;/span&gt;&lt;span class="n"&gt;PID&lt;/span&gt;&lt;span class="err"&gt;文件按位置&lt;/span&gt;
+        &lt;span class="n"&gt;port&lt;/span&gt;        &lt;span class="err"&gt;端口号&lt;/span&gt;  &lt;span class="err"&gt;设置监听的端口号&lt;/span&gt;
+        &lt;span class="n"&gt;dir&lt;/span&gt;         &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;var&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;redis&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="err"&gt;端口号&lt;/span&gt;   &lt;span class="err"&gt;设置持久化文件存放位置&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;停止&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;redis&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;cli&lt;/span&gt; &lt;span class="n"&gt;SHUTDOWN&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Redis命令行客户端&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="err"&gt;发送命令：&lt;/span&gt;
+    &lt;span class="n"&gt;redis&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;cli&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;h&lt;/span&gt; &lt;span class="mf"&gt;127.0.0.1&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;p&lt;/span&gt; &lt;span class="mi"&gt;6379&lt;/span&gt;
+    &lt;span class="n"&gt;redis&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;cli&lt;/span&gt; &lt;span class="n"&gt;PING&lt;/span&gt;
+    &lt;span class="n"&gt;redis&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;cli&lt;/span&gt;
+&lt;span class="err"&gt;命令返回值&lt;/span&gt;
+    &lt;span class="err"&gt;状态回复，&lt;/span&gt;&lt;span class="n"&gt;e&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;g&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;  &lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;PING&lt;/span&gt;
+    &lt;span class="err"&gt;错误恢复&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;e&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;g&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;  &lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ECMD&lt;/span&gt;
+    &lt;span class="err"&gt;整数回复&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;e&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;g&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;  &lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;INCR&lt;/span&gt; &lt;span class="n"&gt;foo&lt;/span&gt;
+    &lt;span class="err"&gt;字符串回复，&lt;/span&gt;&lt;span class="n"&gt;e&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;g&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;GET&lt;/span&gt; &lt;span class="n"&gt;foo&lt;/span&gt;   &lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;GET&lt;/span&gt; &lt;span class="n"&gt;notexists&lt;/span&gt;&lt;span class="err"&gt;`&lt;/span&gt;
+    &lt;span class="err"&gt;多行字符串回复，&lt;/span&gt;&lt;span class="n"&gt;e&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;g&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;KEYS&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;五种数据类型及相应命令&lt;/h3&gt;
+&lt;p&gt;基础命令(redis-cli)&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;返回符合规则的键名列表&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;pattern支持通配符, ? * [] 等&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;KEYS&lt;/span&gt; &lt;span class="n"&gt;pattern&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;ol&gt;
+&lt;li&gt;判断一个键是否存在&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;返回，0不存在，1存在&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;EXISTS&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;ol&gt;
+&lt;li&gt;删除键&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;返回删除的个数&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;DEL&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="p"&gt;...]&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;ol&gt;
+&lt;li&gt;获取键值的数据类型&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;返回string,hash(散列),list(列表),set(集合),zset(有序集合)&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;TYPE&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;字符串类型&lt;/h3&gt;
+&lt;p&gt;赋值和取值命令&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SET&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="n"&gt;value&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;GET&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;递增数字(当存储的字符串是整数形式时)&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="err"&gt;当操作键不存在时，默认值&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="err"&gt;，第一次递增后结果&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="err"&gt;，当键值不是整数时，报错&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;INCR&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt;
+&lt;span class="err"&gt;原子操作，可用于类似访问量统计&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;自增&lt;/span&gt;&lt;span class="n"&gt;id&lt;/span&gt;
+
+&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;INCRBY&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="n"&gt;increment&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;INCRBY&lt;/span&gt; &lt;span class="n"&gt;bar&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;减少数字&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;DECR&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;DECRBY&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="n"&gt;decrement&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;浮点数&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;INCRBYFLOAT&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="n"&gt;increment&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;INCRBYFLOAT&lt;/span&gt; &lt;span class="n"&gt;bar&lt;/span&gt; &lt;span class="mf"&gt;2.7&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;向尾部追加&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="err"&gt;返回追加字符串长度&lt;/span&gt;
+
+&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;APPEND&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="n"&gt;value&lt;/span&gt;
+
+&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SET&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="n"&gt;hello&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;APPEND&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;world&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;获取字符串长度&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;STRLEN&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;同时设置，获取多个键值&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;MGET&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="p"&gt;...]&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;MSET&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="n"&gt;value&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="n"&gt;value&lt;/span&gt; &lt;span class="p"&gt;...]&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;位操作&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;GETBIT&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="n"&gt;offset&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SETBIT&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="n"&gt;offset&lt;/span&gt; &lt;span class="n"&gt;value&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;BITCOUNT&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;start&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;end&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="err"&gt;#获取值为&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="err"&gt;的二进制位个数&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;BITOP&lt;/span&gt; &lt;span class="n"&gt;operation&lt;/span&gt; &lt;span class="n"&gt;destkey&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="p"&gt;...]&lt;/span&gt;
+&lt;span class="n"&gt;e&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;g&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt; &lt;span class="n"&gt;BITOP&lt;/span&gt; &lt;span class="n"&gt;OR&lt;/span&gt; &lt;span class="n"&gt;res&lt;/span&gt; &lt;span class="n"&gt;fol&lt;/span&gt; &lt;span class="n"&gt;fo2&lt;/span&gt;
+     &lt;span class="n"&gt;GET&lt;/span&gt; &lt;span class="n"&gt;res&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;BP: redis对键的命名，  对象类型:对象id:对象属性&lt;/p&gt;
+&lt;h3&gt;散列类型&lt;/h3&gt;
+&lt;p&gt;一种字典结构，其存储了字段(field)和字段值映射，但字段值只能是字符串，不支持其他数据类型&lt;/p&gt;
+&lt;p&gt;散列类型适合存储对象 对象类型:id - 对象属性 - 对象属性值&lt;/p&gt;
+&lt;p&gt;命令&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;HSET&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="n"&gt;field&lt;/span&gt; &lt;span class="n"&gt;value&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;HGET&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="n"&gt;field&lt;/span&gt;
+&lt;span class="n"&gt;e&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;g&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;
+    &lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;HSET&lt;/span&gt; &lt;span class="n"&gt;car&lt;/span&gt; &lt;span class="n"&gt;name&lt;/span&gt; &lt;span class="n"&gt;bmw&lt;/span&gt;
+    &lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;HGET&lt;/span&gt; &lt;span class="n"&gt;car&lt;/span&gt; &lt;span class="n"&gt;name&lt;/span&gt;
+&lt;span class="n"&gt;HSET&lt;/span&gt;&lt;span class="err"&gt;不区分插入更新&lt;/span&gt;
+
+&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;HMSET&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="n"&gt;field&lt;/span&gt; &lt;span class="n"&gt;value&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;field&lt;/span&gt; &lt;span class="n"&gt;value&lt;/span&gt; &lt;span class="p"&gt;...]&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;HMGET&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="n"&gt;field&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;field&lt;/span&gt; &lt;span class="p"&gt;...]&lt;/span&gt;
+
+&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;HGETALL&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;判断字段是否存在&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="cp"&gt;#存在返回1，否则返回0&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;HEXISTS&lt;/span&gt; &lt;span class="n"&gt;car&lt;/span&gt; &lt;span class="n"&gt;model&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;当字段不存在时赋值&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="cp"&gt;#已存在不进行任何操作&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;HSETNX&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="n"&gt;field&lt;/span&gt; &lt;span class="n"&gt;value&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;增加数字&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;HINCRBY&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="n"&gt;field&lt;/span&gt; &lt;span class="n"&gt;increment&lt;/span&gt;
+&lt;span class="n"&gt;e&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;g&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;HINCRBY&lt;/span&gt; &lt;span class="n"&gt;person&lt;/span&gt; &lt;span class="n"&gt;score&lt;/span&gt; &lt;span class="mi"&gt;60&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;删除字段&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;HDEL&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="n"&gt;field&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;field&lt;/span&gt; &lt;span class="p"&gt;...]&lt;/span&gt;
+&lt;span class="n"&gt;e&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;g&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt; &lt;span class="n"&gt;HDEL&lt;/span&gt; &lt;span class="n"&gt;car&lt;/span&gt; &lt;span class="n"&gt;price&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;只获取字段名或字段值&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;HKEYS&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;HVALS&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;获取字段数量&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;HLEN&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt;
+&lt;span class="n"&gt;e&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;g&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt; &lt;span class="n"&gt;HLEN&lt;/span&gt; &lt;span class="n"&gt;car&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;列表类型&lt;/h3&gt;
+&lt;p&gt;可以用在分页&lt;/p&gt;
+&lt;p&gt;有序的字符串列表，可以向两端加入元素，或者获得列表的某一个片段 ，内部使用双向链表实现,两端添加元素复杂度O(1)&lt;/p&gt;
+&lt;p&gt;向列表两端增加元素(可同时增加多个)&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;LPUSH&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="n"&gt;value&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;value&lt;/span&gt; &lt;span class="p"&gt;...]&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;RPUSH&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="n"&gt;value&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;value&lt;/span&gt; &lt;span class="p"&gt;...]&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;从列表两端弹出元素&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="err"&gt;先移除一个元素，然后返回之&lt;/span&gt;
+
+&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;LPOP&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;RPOP&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;获取元素个数&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;LLEN&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;获取片段(同python切片，-1表最后一个)&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;LRANGE&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="n"&gt;start&lt;/span&gt; &lt;span class="n"&gt;stop&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;删除列表中指定值的元素&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;LREM&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="n"&gt;count&lt;/span&gt; &lt;span class="n"&gt;value&lt;/span&gt;
+ &lt;span class="err"&gt;删除列表中前&lt;/span&gt;&lt;span class="n"&gt;count&lt;/span&gt;&lt;span class="err"&gt;个值为&lt;/span&gt;&lt;span class="n"&gt;value&lt;/span&gt;&lt;span class="err"&gt;的元素，返回值为实际删除元素的个数&lt;/span&gt;
+ &lt;span class="n"&gt;count&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="err"&gt;所有&lt;/span&gt;
+       &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt; &lt;span class="err"&gt;从左边开始删&lt;/span&gt;&lt;span class="n"&gt;count&lt;/span&gt;&lt;span class="err"&gt;个&lt;/span&gt;
+       &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt; &lt;span class="err"&gt;从右边开始删&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="n"&gt;count&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="err"&gt;个&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;设置指定索引元素值&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;LINDEX&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="n"&gt;index&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;LSET&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="n"&gt;index&lt;/span&gt; &lt;span class="n"&gt;value&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;只保留列表指定片段&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="err"&gt;删除指定索引范围之外的所有元素&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;LTRIM&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="n"&gt;start&lt;/span&gt; &lt;span class="n"&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;向列表中插入元素&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;LINSERT&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="n"&gt;BEFORE&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="n"&gt;AFTER&lt;/span&gt; &lt;span class="n"&gt;pivot&lt;/span&gt; &lt;span class="n"&gt;value&lt;/span&gt;
+&lt;span class="err"&gt;从左到右查找值为&lt;/span&gt;&lt;span class="n"&gt;pivot&lt;/span&gt;&lt;span class="err"&gt;的元素，然后根据&lt;/span&gt;&lt;span class="n"&gt;BEFORE&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;AFTER&lt;/span&gt;&lt;span class="err"&gt;决定将&lt;/span&gt;&lt;span class="n"&gt;value&lt;/span&gt;&lt;span class="err"&gt;插入该元素前面还是后面&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;将元素从一个列表转到另一个列表&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;RPOPLPUSH&lt;/span&gt; &lt;span class="n"&gt;source&lt;/span&gt; &lt;span class="n"&gt;destination&lt;/span&gt;
+&lt;span class="cp"&gt;#RPOP，然后LPUSH，返回每个元素值，e.g.循环测试网址的可用性&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;集合类型&lt;/h3&gt;
+&lt;p&gt;无序，无重复，可以存储最多2^32 - 1 个字符串&lt;/p&gt;
+&lt;p&gt;增加删除元素&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SADD&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="n"&gt;member&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;member&lt;/span&gt; &lt;span class="p"&gt;...]&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SREM&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="n"&gt;member&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;member&lt;/span&gt; &lt;span class="p"&gt;...]&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;获得集合中的所有元素&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SMEMBERS&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;判断元素是否在集合中(复杂度O(1))&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SISMEMBER&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="n"&gt;member&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;集合间运算&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SDIFF&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="p"&gt;...]&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SINTER&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="p"&gt;...]&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SUNION&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="p"&gt;...]&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;获得集合中元素个数&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SCARD&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;进行集合运算并将结果存储&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SDIFFSTORE&lt;/span&gt; &lt;span class="n"&gt;destination&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="p"&gt;...]&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SINTERSTORE&lt;/span&gt; &lt;span class="n"&gt;destination&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="p"&gt;...]&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SUNIONSTORE&lt;/span&gt; &lt;span class="n"&gt;destination&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="p"&gt;...]&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;随机获取集合中元素&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SRANDMEMBER&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;count&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;span class="n"&gt;count&lt;/span&gt;&lt;span class="err"&gt;，正数，获取&lt;/span&gt;&lt;span class="n"&gt;count&lt;/span&gt;&lt;span class="err"&gt;个不重复的元素&lt;/span&gt;
+&lt;span class="n"&gt;count&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="err"&gt;负数，获取&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="n"&gt;count&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="err"&gt;个，可能重复&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;弹出一个元素&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SPOP&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;有序集合&lt;/h3&gt;
+&lt;p&gt;sorted set,集合中每个元素都关联一个分数，可以根据分数进行排序，进行有序相关的操作(分数可以相同)
+按点击量排序，按时间排序等等，时间轴操作&lt;/p&gt;
+&lt;p&gt;增加元素&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ZADD&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="n"&gt;score&lt;/span&gt; &lt;span class="n"&gt;member&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;score&lt;/span&gt; &lt;span class="n"&gt;member&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;获取元素分数&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ZSCORE&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="n"&gt;member&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;获取排名在某个范围内的元素列表&lt;/p&gt;
+&lt;p&gt;分数相同，按字典序排,中文的话，取决于编码方式&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="cp"&gt;#分数从小到大排，返回索引从 start-stop之间的所有元素，包含两端元素, WITHSCORES同时获得元素分数&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ZRANGE&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="n"&gt;start&lt;/span&gt; &lt;span class="n"&gt;stop&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;WITHSCORES&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ZREVRANGE&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="n"&gt;start&lt;/span&gt; &lt;span class="n"&gt;stop&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;WITHSCORES&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;获取指定分数范围的元素&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ZRANGEBYSCORE&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="n"&gt;min&lt;/span&gt; &lt;span class="n"&gt;max&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;WITHSCORES&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;LIMIT&lt;/span&gt; &lt;span class="n"&gt;offset&lt;/span&gt; &lt;span class="n"&gt;count&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+
+&lt;span class="err"&gt;希望不包含端点值&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ZRANGEBYSCORE&lt;/span&gt; &lt;span class="n"&gt;scoreboard&lt;/span&gt; &lt;span class="mi"&gt;80&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;100&lt;/span&gt;
+&lt;span class="err"&gt;正负无穷大&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="n"&gt;inf&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;inf&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;增加某个元素分数&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ZINCRBY&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="n"&gt;increment&lt;/span&gt; &lt;span class="n"&gt;member&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;获得集合中元素数量&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ZCARD&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;获得指定分数范围内的元素个数&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ZCOUNT&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="n"&gt;min&lt;/span&gt; &lt;span class="n"&gt;max&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;删除一个或多个元素&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ZREM&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="n"&gt;member&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;member&lt;/span&gt; &lt;span class="p"&gt;...]&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;按照排名范围删除元素&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ZREMRANGEBYRANK&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="n"&gt;start&lt;/span&gt; &lt;span class="n"&gt;stop&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;按照分数范围删除&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ZREMRANGEBYSCORE&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="n"&gt;min&lt;/span&gt; &lt;span class="n"&gt;max&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;获得元素排名&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ZRANK&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="n"&gt;member&lt;/span&gt; &lt;span class="err"&gt;#从小到大&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ZREVRANK&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="n"&gt;member&lt;/span&gt; &lt;span class="err"&gt;#相反&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;计算有序集合的交集&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ZINTERSTORE&lt;/span&gt; &lt;span class="n"&gt;destination&lt;/span&gt; &lt;span class="n"&gt;numkeys&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="p"&gt;...]&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;WEIGHTS&lt;/span&gt; &lt;span class="n"&gt;weight&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;weight&lt;/span&gt; &lt;span class="p"&gt;...]]&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;AGGREGATE&lt;/span&gt; &lt;span class="n"&gt;SUM&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="n"&gt;MIN&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="n"&gt;MAX&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+
+&lt;span class="cp"&gt;#返回值为destination中元素个数&lt;/span&gt;
+&lt;span class="cp"&gt;#AGGREGATE sum默认值，destination键中元素分数是每个参与计算的集合中该元素分数的和&lt;/span&gt;
+           &lt;span class="n"&gt;min&lt;/span&gt;&lt;span class="err"&gt;取最小值&lt;/span&gt;
+           &lt;span class="n"&gt;max&lt;/span&gt;&lt;span class="err"&gt;取最大值&lt;/span&gt;
+&lt;span class="cp"&gt;#WEIGHTS 设置每个集合的权重，每个集合在参与计算时分数会被乘以权重&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;生存时间&lt;/h3&gt;
+&lt;p&gt;TTL, time to live
+时效数据，过一定时间删除这些数据&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;EXPIRE&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="n"&gt;seconds&lt;/span&gt;
+
+&lt;span class="cp"&gt;#去除时效&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;PERSIST&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;任务队列&lt;/h3&gt;
+&lt;p&gt;一般队列&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="err"&gt;生产者&lt;/span&gt; &lt;span class="n"&gt;LPUSH&lt;/span&gt;
+&lt;span class="err"&gt;消费者&lt;/span&gt; &lt;span class="n"&gt;RPOP&lt;/span&gt;
+    &lt;span class="n"&gt;BRPOP&lt;/span&gt; &lt;span class="err"&gt;和&lt;/span&gt;&lt;span class="n"&gt;RPOP&lt;/span&gt;&lt;span class="err"&gt;类似，但是当列表中没有元素时，&lt;/span&gt;&lt;span class="n"&gt;BRPOP&lt;/span&gt;&lt;span class="err"&gt;会一直阻塞住链接，直到有新元素加入&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;优先队列&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;BLPOP&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="p"&gt;...]&lt;/span&gt; &lt;span class="n"&gt;timeout&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="err"&gt;同时检测多个键，如果所有键都没有元素则阻塞，如果其中有一个键有元素，则从该键中弹出元素&lt;/span&gt;
+&lt;span class="err"&gt;如果都有，则从左到右的顺序取第一个键中的一个元素&lt;/span&gt;
+
+&lt;span class="n"&gt;BLPOP&lt;/span&gt; &lt;span class="n"&gt;queue&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt; &lt;span class="n"&gt;queue&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt; &lt;span class="n"&gt;queue&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;3&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;发布/订阅模式&lt;/h3&gt;
+&lt;p&gt;进程间消息传递&lt;/p&gt;
+&lt;p&gt;订阅者：订阅者可以订阅一个或多个频道&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SUBSCRIBE&lt;/span&gt; &lt;span class="n"&gt;channel1&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;发布者：可以向指定的频道发送消息，所有订阅此频道的订阅者都会受到此消息&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;PUBLISH&lt;/span&gt; &lt;span class="n"&gt;channel1&lt;/span&gt; &lt;span class="n"&gt;helloworld&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;Python中使用Redis&lt;/h3&gt;
+&lt;p&gt;官方推荐&lt;a href="https://github.com/andymccurdy/redis-py"&gt;redis-py&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;安装&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;sudo&lt;/span&gt; &lt;span class="n"&gt;easy_install&lt;/span&gt; &lt;span class="n"&gt;redis&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;使用&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;redis&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;py&lt;/span&gt;&lt;span class="err"&gt;提供两个类&lt;/span&gt;&lt;span class="n"&gt;Redis&lt;/span&gt;&lt;span class="err"&gt;和&lt;/span&gt;&lt;span class="n"&gt;StrictRedis&lt;/span&gt;&lt;span class="err"&gt;用于实现&lt;/span&gt;&lt;span class="n"&gt;Redis&lt;/span&gt;&lt;span class="err"&gt;的命令，&lt;/span&gt;
+&lt;span class="n"&gt;StrictRedis&lt;/span&gt;&lt;span class="err"&gt;用于实现大部分官方的命令，并使用官方的语法和命令（比如，&lt;/span&gt;&lt;span class="n"&gt;SET&lt;/span&gt;&lt;span class="err"&gt;命令对应与&lt;/span&gt;&lt;span class="n"&gt;StrictRedis&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;set&lt;/span&gt;&lt;span class="err"&gt;方法）&lt;/span&gt;
+&lt;span class="n"&gt;Redis&lt;/span&gt;&lt;span class="err"&gt;是&lt;/span&gt;&lt;span class="n"&gt;StrictRedis&lt;/span&gt;&lt;span class="err"&gt;的子类，用于向后兼容旧版本的&lt;/span&gt;&lt;span class="n"&gt;redis&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;py&lt;/span&gt;
+
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;import&lt;/span&gt; &lt;span class="n"&gt;redis&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;r&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;redis&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;StrictRedis&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;host&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;localhost&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;port&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mi"&gt;6379&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;db&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;r&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;set&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;foo&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;bar&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;True&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;r&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;foo&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;bar&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;connection pool&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="err"&gt;管理对一个&lt;/span&gt;&lt;span class="n"&gt;redis&lt;/span&gt; &lt;span class="n"&gt;server&lt;/span&gt;&lt;span class="err"&gt;的所有连接，避免每次建立、释放连接的开销。&lt;/span&gt;
+&lt;span class="err"&gt;默认，每个&lt;/span&gt;&lt;span class="n"&gt;Redis&lt;/span&gt;&lt;span class="err"&gt;实例都会维护一个自己的连接池。可以直接建立一个连接池，然后作为参数&lt;/span&gt;&lt;span class="n"&gt;Redis&lt;/span&gt;&lt;span class="err"&gt;，这样就可以实现多个&lt;/span&gt;&lt;span class="n"&gt;Redis&lt;/span&gt;&lt;span class="err"&gt;实例共享一个连接池。&lt;/span&gt;
+
+&lt;span class="n"&gt;pool&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;redis&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;ConnectionPool&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;host&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="mf"&gt;127.0.0.1&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;port&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mi"&gt;6379&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;r&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;redis&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Redis&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;connection_pool&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;pool&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;pipeline机制&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="err"&gt;可以在一次请求中执行多个命令，这样避免了多次的往返时延&lt;/span&gt;
+
+&lt;span class="n"&gt;pipe&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;r&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;pipeline&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="n"&gt;pipe&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;set&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;one&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;first&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;pipe&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;set&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;two&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;second&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;pipe&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;execute&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+
+&lt;span class="n"&gt;pipeline&lt;/span&gt;&lt;span class="err"&gt;中的操作是原子的，要改变这种方式，可以传入&lt;/span&gt;&lt;span class="n"&gt;transaction&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;False&lt;/span&gt;
+
+&lt;span class="n"&gt;pipe&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;r&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;pipeline&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;transaction&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;False&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;实际实例&lt;/h3&gt;
+&lt;p&gt;什么应用，都用什么方式处理的&lt;/p&gt;
+&lt;p&gt;1.一般的缓存&lt;/p&gt;
+&lt;p&gt;用字符串类型足矣,
+e.g.注册时得用户名冲突,在线用户&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SET&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="n"&gt;value&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;GET&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;2.计数,访问量统计，自增id等&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;INCR&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;3.存储对象实例&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="err"&gt;用散列&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;HSET&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="n"&gt;field&lt;/span&gt; &lt;span class="n"&gt;value&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;HGET&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="n"&gt;field&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;4.存列表，队列相关&lt;/p&gt;
+&lt;p&gt;文章分类列表，评论列表等&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="err"&gt;用列表&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;LPUSH&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="n"&gt;value&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;RPUSH&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="n"&gt;value&lt;/span&gt;
+
+&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;LPOP&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;RPOP&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;5.集合相关的&lt;/p&gt;
+&lt;p&gt;标签云等&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SADD&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="n"&gt;member&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SREM&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="n"&gt;member&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;6.排序相关&lt;/p&gt;
+&lt;p&gt;访问量排序,点击量等&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="err"&gt;用有序结合&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ZADD&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="n"&gt;score&lt;/span&gt; &lt;span class="n"&gt;member&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;7.访问频率控制&lt;/p&gt;
+&lt;p&gt;设置key的失效时间
+用 INCR&lt;/p&gt;
+&lt;h3&gt;管理&lt;/h3&gt;
+&lt;p&gt;持久化：&lt;/p&gt;
+&lt;p&gt;RDB, 快照,符合一定条件时，将内存中的所有数据进行快照并存储到硬盘上&lt;/p&gt;
+&lt;p&gt;AOF, 每次执行一条会修改Redis中数据的命令，Redis会将该命令写到硬盘中的AOF文件&lt;/p&gt;
+&lt;p&gt;Redis可以配置主从数据库&lt;/p&gt;
+&lt;p&gt;redis-server --port 6380 --slaveof 127.0.0.1 6379&lt;/p&gt;
+&lt;p&gt;常用查看命令&lt;/p&gt;
+&lt;p&gt;telnet连接&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;telnet&lt;/span&gt; &lt;span class="mf"&gt;127.0.0.1&lt;/span&gt; &lt;span class="mi"&gt;6379&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;设定最大可用内存&lt;/p&gt;
+&lt;p&gt;配置文件的 maxmemory,单位字节
+超出后，按照maxmemory-policy指定的策略来进行删除，直到小于指定内存&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="k"&gt;volatile&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;lru&lt;/span&gt;  &lt;span class="err"&gt;使用&lt;/span&gt;&lt;span class="n"&gt;LRU&lt;/span&gt;&lt;span class="err"&gt;算法删除一个键，支队设置了生存时间的&lt;/span&gt;
+&lt;span class="n"&gt;allkeys&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;lru&lt;/span&gt;   &lt;span class="err"&gt;使用&lt;/span&gt;&lt;span class="n"&gt;LRU&lt;/span&gt;&lt;span class="err"&gt;算法删除一个键&lt;/span&gt;
+&lt;span class="k"&gt;volatile&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;random&lt;/span&gt; &lt;span class="err"&gt;随机&lt;/span&gt;
+&lt;span class="n"&gt;allkeys&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;random&lt;/span&gt;
+&lt;span class="k"&gt;volatile&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;ttl&lt;/span&gt;    &lt;span class="err"&gt;删除生存时间最近的&lt;/span&gt;
+&lt;span class="n"&gt;noeviction&lt;/span&gt;      &lt;span class="err"&gt;不删除键，返回错误&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;其他&lt;/h3&gt;
+&lt;p&gt;批量删除&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="cp"&gt;#删除 /test/*开始的&lt;/span&gt;
+&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;redis&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;cli&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;a&lt;/span&gt; &lt;span class="n"&gt;password&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;n&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt; &lt;span class="n"&gt;keys&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;/test/*&amp;quot;&lt;/span&gt; &lt;span class="o"&gt;|&lt;/span&gt; &lt;span class="n"&gt;xargs&lt;/span&gt; &lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;redis&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;cli&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;a&lt;/span&gt; &lt;span class="n"&gt;password&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;n&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt; &lt;span class="n"&gt;del&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;hr /&gt;
+&lt;p&gt;The end! To be continue ....&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sat, 19 Oct 2013 00:00:00 +0800</pubDate><guid>tag:wklken.me,2013-10-19:posts/2013/10/19/redis-base.html</guid><category>redis</category><category>python</category></item><item><title>搜索下拉提示框实现(python/golang)</title><link>http://wklken.me/posts/2013/10/13/search-suggestion.html</link><description>&lt;p&gt;在百度，google，taobao.com的搜索框，输入某个关键字时，会存在下拉提示，提示关键字列表&lt;/p&gt;
 &lt;p&gt;国庆的时候，想了下如何实现这个功能&lt;/p&gt;
 &lt;p&gt;用python和golang搞了个基本版本，国庆后直接上到线上了&lt;/p&gt;
 &lt;p&gt;项目地址:&lt;/p&gt;
