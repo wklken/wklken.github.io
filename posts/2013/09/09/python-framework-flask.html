@@ -57,7 +57,6 @@
 
 		<div class="nav">
                                     <a href="/">首页</a>
-                                    <a href="http://bbs.wklken.me">DIS区域</a>
                                     <a href="/categories.html">分类</a>
                                     <a href="/archives.html">归档</a>
                                     <a href="/pages/projects.html">项目</a>
@@ -150,6 +149,15 @@
 </pre></div>
 
 
+<h3>获取post提交中的checkbox</h3>
+<div class="highlight"><pre><span class="p">{</span><span class="o">%</span><span class="nb">for</span> <span class="n">page</span> <span class="k">in</span> <span class="nx">pages</span> <span class="o">%</span><span class="p">}</span>
+<span class="o">&lt;</span><span class="nx">tr</span><span class="o">&gt;&lt;</span><span class="nx">td</span><span class="o">&gt;&lt;</span><span class="nb">input</span> <span class="k">type</span><span class="o">=</span><span class="nx">checkbox</span> <span class="n">name</span><span class="o">=</span><span class="nx">do_delete</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;{{ page[&#39;id&#39;] }}&quot;</span><span class="o">&gt;&lt;/</span><span class="nx">td</span><span class="o">&gt;&lt;</span><span class="nx">td</span><span class="o">&gt;</span>
+<span class="p">{</span><span class="o">%</span><span class="nx">endfor</span><span class="o">%</span><span class="p">}</span>
+
+<span class="n">page_ids</span> <span class="o">=</span> <span class="nx">request.form.getlist</span><span class="p">(</span><span class="s2">&quot;do_delete&quot;</span><span class="p">)</span>
+</pre></div>
+
+
 <h3>使用url中的参数</h3>
 <div class="highlight"><pre><span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/query/&lt;qid&gt;/&#39;</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">query</span><span class="p">(</span><span class="n">qid</span><span class="p">):</span>
@@ -223,12 +231,18 @@
 
 
 <h3>使用session</h3>
+<p>包装cookie实现的，没有session id</p>
 <div class="highlight"><pre><span class="n">app</span><span class="o">.</span><span class="n">secret_key</span> <span class="o">=</span> <span class="s">&#39;PS#yio`%_!((f_or(%)))s&#39;</span>
 
 <span class="err">然后</span>
 <span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">session</span>
 
 <span class="n">session</span><span class="p">[</span><span class="s">&#39;somekey&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+<span class="c">#过期时间,通过cookie实现的</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">timedelta</span>
+<span class="n">session</span><span class="o">.</span><span class="n">permanent</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="n">app</span><span class="o">.</span><span class="n">permanent_session_lifetime</span> <span class="o">=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">minutes</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
 </pre></div>
 
 
@@ -251,6 +265,20 @@
 <p>接收</p>
 <div class="highlight"><pre><span class="n">f</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">files</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;upload&#39;</span><span class="p">)</span>
 <span class="n">img_data</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+</pre></div>
+
+
+<h3>请求重定向</h3>
+<p><a href="http://flask.pocoo.org/docs/api/#flask.redirect">文档</a></p>
+<p>flask.redirect(location, code=302)
+ the redirect status code. defaults to 302.Supported codes are 301, 302, 303, 305, and 307. 300 is not supported.</p>
+<div class="highlight"><pre><span class="err">@</span><span class="n">app</span><span class="p">.</span><span class="n">route</span><span class="p">(</span><span class="sc">&#39;/&#39;</span><span class="p">)</span>
+<span class="n">def</span> <span class="n">hello</span><span class="p">()</span><span class="o">:</span>
+    <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="err">&#39;</span><span class="n">foo</span><span class="err">&#39;</span><span class="p">))</span>
+
+<span class="err">@</span><span class="n">app</span><span class="p">.</span><span class="n">route</span><span class="p">(</span><span class="err">&#39;</span><span class="o">/</span><span class="n">foo</span><span class="err">&#39;</span><span class="p">)</span>
+<span class="n">def</span> <span class="n">foo</span><span class="p">()</span><span class="o">:</span>
+    <span class="k">return</span><span class="err">&#39;</span><span class="n">Hello</span> <span class="n">Foo</span><span class="o">!</span><span class="err">&#39;</span>
 </pre></div>
         </div><!-- /.entry-content -->
                 <div class="comments">

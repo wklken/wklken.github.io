@@ -710,6 +710,15 @@ e.g.注册时得用户名冲突,在线用户&lt;/p&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
+&lt;h3&gt;获取post提交中的checkbox&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="o"&gt;%&lt;/span&gt;&lt;span class="nb"&gt;for&lt;/span&gt; &lt;span class="n"&gt;page&lt;/span&gt; &lt;span class="k"&gt;in&lt;/span&gt; &lt;span class="nx"&gt;pages&lt;/span&gt; &lt;span class="o"&gt;%&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="nx"&gt;tr&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&amp;lt;&lt;/span&gt;&lt;span class="nx"&gt;td&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&amp;lt;&lt;/span&gt;&lt;span class="nb"&gt;input&lt;/span&gt; &lt;span class="k"&gt;type&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nx"&gt;checkbox&lt;/span&gt; &lt;span class="n"&gt;name&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nx"&gt;do_delete&lt;/span&gt; &lt;span class="n"&gt;value&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;{{ page[&amp;#39;id&amp;#39;] }}&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class="nx"&gt;td&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&amp;lt;&lt;/span&gt;&lt;span class="nx"&gt;td&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;
+&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="o"&gt;%&lt;/span&gt;&lt;span class="nx"&gt;endfor&lt;/span&gt;&lt;span class="o"&gt;%&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="n"&gt;page_ids&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;request.form.getlist&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;do_delete&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
 &lt;h3&gt;使用url中的参数&lt;/h3&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="nd"&gt;@app.route&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;/query/&amp;lt;qid&amp;gt;/&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
 &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;query&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;qid&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
@@ -783,12 +792,18 @@ e.g.注册时得用户名冲突,在线用户&lt;/p&gt;
 
 
 &lt;h3&gt;使用session&lt;/h3&gt;
+&lt;p&gt;包装cookie实现的，没有session id&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;app&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;secret_key&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;PS#yio`%_!((f_or(%)))s&amp;#39;&lt;/span&gt;
 
 &lt;span class="err"&gt;然后&lt;/span&gt;
 &lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;flask&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;session&lt;/span&gt;
 
 &lt;span class="n"&gt;session&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;somekey&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;
+
+&lt;span class="c"&gt;#过期时间,通过cookie实现的&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;datetime&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;timedelta&lt;/span&gt;
+&lt;span class="n"&gt;session&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;permanent&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="bp"&gt;True&lt;/span&gt;
+&lt;span class="n"&gt;app&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;permanent_session_lifetime&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;timedelta&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;minutes&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mi"&gt;5&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
@@ -811,6 +826,20 @@ e.g.注册时得用户名冲突,在线用户&lt;/p&gt;
 &lt;p&gt;接收&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;f&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;request&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;files&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;upload&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
 &lt;span class="n"&gt;img_data&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;read&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;请求重定向&lt;/h3&gt;
+&lt;p&gt;&lt;a href="http://flask.pocoo.org/docs/api/#flask.redirect"&gt;文档&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;flask.redirect(location, code=302)
+ the redirect status code. defaults to 302.Supported codes are 301, 302, 303, 305, and 307. 300 is not supported.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="err"&gt;@&lt;/span&gt;&lt;span class="n"&gt;app&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;route&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="sc"&gt;&amp;#39;/&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;def&lt;/span&gt; &lt;span class="n"&gt;hello&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;redirect&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;url_for&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;foo&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+
+&lt;span class="err"&gt;@&lt;/span&gt;&lt;span class="n"&gt;app&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;route&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;foo&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;def&lt;/span&gt; &lt;span class="n"&gt;foo&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
+    &lt;span class="k"&gt;return&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;Hello&lt;/span&gt; &lt;span class="n"&gt;Foo&lt;/span&gt;&lt;span class="o"&gt;!&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;</summary><category term="flask"></category></entry><entry><title>[翻译]快速Python性能优化要点</title><link href="http://wklken.me/posts/2013/09/07/quick-python-performance-optimization.html" rel="alternate"></link><updated>2013-09-07T00:00:00+08:00</updated><author><name>wklken</name></author><id>tag:wklken.me,2013-09-07:posts/2013/09/07/quick-python-performance-optimization.html</id><summary type="html">&lt;p&gt;翻译，两篇博文 Quick Python Performance Optimization&lt;a href="http://infiniteloop.in/blog/quick-python-performance-optimization-part-i/"&gt;一&lt;/a&gt;  &lt;a href="http://infiniteloop.in/blog/quick-python-performance-optimization-part-ii/"&gt;二&lt;/a&gt;, 很短&lt;/p&gt;
 &lt;blockquote&gt;
 &lt;p&gt;第一篇&lt;/p&gt;
@@ -1143,6 +1172,7 @@ e.g.注册时得用户名冲突,在线用户&lt;/p&gt;
 &lt;p&gt;google的python文档 &lt;a href="https://developers.google.com/edu/python/"&gt;Google's Python Class入口&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;pep8 &lt;a href="http://www.python.org/dev/peps/pep-0008/"&gt;入口&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;zetcode &lt;a href="http://zetcode.com/lang/python/"&gt;入口&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;building skills in Python &lt;a href="http://www.itmaybeahack.com/book/python-2.6/html/index.html"&gt;入口&lt;/a&gt;&lt;/p&gt;
 &lt;blockquote&gt;
 &lt;p&gt;风格&lt;/p&gt;
 &lt;/blockquote&gt;
@@ -1167,19 +1197,23 @@ e.g.注册时得用户名冲突,在线用户&lt;/p&gt;
        &lt;a href="https://docs.djangoproject.com/en/1.5/"&gt;文档&lt;/a&gt;|
        &lt;a href="http://djangobook.py3k.cn/2.0/"&gt;The Django book&lt;/a&gt;|
        &lt;a href="http://www.tangowithdjango.com/"&gt;Tango With Django&lt;/a&gt;|
+       &lt;a href="http://lincolnloop.com/django-best-practices/index.html"&gt;Django Best Practices&lt;/a&gt;|
        &lt;a href="http://effectivedjango.com/"&gt;Effective Django&lt;/a&gt;|
        &lt;a href="http://django-china.cn/"&gt;Django china&lt;/a&gt;|
        &lt;a href="http://haoluobo.com/trac/wiki/Django"&gt;Django资源汇总&lt;/a&gt;|
        &lt;a href="http://blog.jobbole.com/15555/"&gt;10个实用Django建议&lt;/a&gt;|
-       &lt;a href="http://www.mercurytide.co.uk/about/news/article/django-15-cheat-sheet/"&gt;cheat sheet&lt;/a&gt;
-       &lt;a href="http://www.the5fire.com/django-database-access-optimization.html"&gt;Djangof访问数据库优化&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;Flask  &lt;a href="https://dormousehole.readthedocs.org/en/latest/"&gt;文档&lt;/a&gt;
-       &lt;a href="http://www.oschina.net/translate/the-flask-mega-tutorial-part-i-hello-world"&gt;快速教材&lt;/a&gt;
-       &lt;a href="http://pythonhosted.org/Flask-SQLAlchemy/"&gt;flask-sqlalchemy&lt;/a&gt;&lt;/p&gt;
+       &lt;a href="http://www.mercurytide.co.uk/about/news/article/django-15-cheat-sheet/"&gt;cheat sheet&lt;/a&gt;|
+       &lt;a href="http://www.the5fire.com/django-database-access-optimization.html"&gt;Djangof访问数据库优化&lt;/a&gt;|
+       &lt;a href="https://code.djangoproject.com/wiki/UsingVimWithDjango"&gt;配置vim&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Flask  &lt;a href="https://dormousehole.readthedocs.org/en/latest/"&gt;文档&lt;/a&gt;|&lt;a href="http://flask.pocoo.org/docs/"&gt;英文&lt;/a&gt;
+       &lt;a href="http://www.oschina.net/translate/the-flask-mega-tutorial-part-i-hello-world"&gt;快速教材&lt;/a&gt;|
+       &lt;a href="http://pythonhosted.org/Flask-SQLAlchemy/"&gt;flask-sqlalchemy&lt;/a&gt;|
+       &lt;a href="http://pythonhosted.org/Flask-Security/"&gt;flask-security&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;Bottle &lt;a href="http://bottlepy.org/docs/dev/"&gt;文档&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;Tornado &lt;a href="http://www.tornadoweb.cn/documentation"&gt;文档&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;Celery &lt;a href="http://celeryproject.org/"&gt;文档&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;Scrapy &lt;a href="http://scrapy.org/"&gt;文档&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;pyramid &lt;a href="http://docs.pylonsproject.org/projects/pyramid_tutorials/en/latest/index.html"&gt;入口&lt;/a&gt;&lt;/p&gt;
 &lt;h3&gt;数据库&lt;/h3&gt;
 &lt;p&gt;sqlalchemy &lt;a href="http://docs.sqlalchemy.org/"&gt;入口&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;couchDB &lt;a href="http://pythonhosted.org/CouchDB/index.html"&gt;文档&lt;/a&gt;&lt;/p&gt;
@@ -1198,6 +1232,9 @@ e.g.注册时得用户名冲突,在线用户&lt;/p&gt;
         &lt;a href="http://turtlerbender007.appspot.com/twisted/index.html"&gt;入门-中文&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;gevent &lt;a href="http://www.gevent.org/"&gt;入口&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;wtforms &lt;a href="http://wtforms.simplecodes.com/"&gt;入口&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Routes &lt;a href="http://routes.readthedocs.org/en/latest/index.html"&gt;入口&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;kombu &lt;a href="http://kombu.readthedocs.org/en/latest/introduction.html"&gt;入口&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;pil &lt;a href="http://www.pythonware.com/products/pil/"&gt;入口&lt;/a&gt;&lt;/p&gt;
 &lt;h3&gt;视频&lt;/h3&gt;
 &lt;p&gt;疯狂地Python: 快速入门精讲 &lt;a href="http://study.163.com/course/introduction.htm?courseId=302001#/courseDetail"&gt;入口&lt;/a&gt;&lt;/p&gt;
 &lt;h3&gt;书籍&lt;/h3&gt;
@@ -1229,15 +1266,25 @@ e.g.注册时得用户名冲突,在线用户&lt;/p&gt;
 &lt;p&gt;Python中的默认参数 &lt;a href="http://blog.jobbole.com/40088/"&gt;入口&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;可爱的Python Python中的函数式编程  &lt;a href="http://blog.jobbole.com/35028/"&gt;第一部分&lt;/a&gt;  &lt;a href="http://blog.jobbole.com/35042/"&gt;第二部分&lt;/a&gt; &lt;a href="http://blog.jobbole.com/35045/"&gt;第三部分&lt;/a&gt;&lt;/p&gt;
 &lt;h3&gt;社区&lt;/h3&gt;
+&lt;p&gt;为毛没有给力的.... (╯‵□′)╯︵┻━┻zi&lt;/p&gt;
 &lt;h3&gt;其他&lt;/h3&gt;
 &lt;p&gt;一个python正则在线工具 &lt;a href="http://www.pyregex.com/"&gt;入口&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;动态语言设计模式 &lt;a href="http://norvig.com/design-patterns/ppframe.htm"&gt;入口&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;Python challenge &lt;a href="http://www.pythonchallenge.com/"&gt;入口&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;Python 初学者 &lt;a href="https://github.com/Yixiaohan/codeparkshare"&gt;PythonShare&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;Pythonista的vim编辑器 &lt;a href="https://github.com/wklken/k-vim"&gt;k-vim&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;国内pypi镜像 &lt;a href="http://pypi.sdutlinux.org/"&gt;pypi&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;国内pypi镜像 &lt;a href="http://pypi.sdutlinux.org/"&gt;pypi&lt;/a&gt;|
+             &lt;a href="http://pypi.douban.com/simple/"&gt;douban&lt;/a&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;sudo&lt;/span&gt; &lt;span class="n"&gt;easy_install&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="n"&gt;http&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="c1"&gt;//pypi.douban.com/simple/ saltTesting&lt;/span&gt;
+&lt;span class="n"&gt;sudo&lt;/span&gt; &lt;span class="n"&gt;pip&lt;/span&gt; &lt;span class="n"&gt;install&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="n"&gt;http&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="c1"&gt;//pypi.douban.com/simple/ saltTesting&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
 &lt;p&gt;经典代码片段 &lt;a href="http://code.activestate.com/recipes/langs/"&gt;入口&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;windows下各种python第三方exe下载 &lt;a href="http://www.lfd.uci.edu/~gohlke/pythonlibs/"&gt;入口&lt;/a&gt;&lt;/p&gt;</summary><category term="sources"></category></entry><entry><title>Python-进阶-functools模块小结</title><link href="http://wklken.me/posts/2013/08/18/python-extra-functools.html" rel="alternate"></link><updated>2013-08-18T00:00:00+08:00</updated><author><name>wklken</name></author><id>tag:wklken.me,2013-08-18:posts/2013/08/18/python-extra-functools.html</id><summary type="html">&lt;p&gt;文档 &lt;a href="http://docs.python.org/2/library/functools.html"&gt;地址&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;windows下各种python第三方exe下载 &lt;a href="http://www.lfd.uci.edu/~gohlke/pythonlibs/"&gt;入口&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;python 视频站 &lt;a href="http://pyvideo.org/"&gt;pyvideo&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;python 源码搜索引擎 &lt;a href="http://nullege.com/"&gt;入口&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;python for beginners &lt;a href="http://www.pythonforbeginners.com/"&gt;入口&lt;/a&gt;&lt;/p&gt;</summary><category term="sources"></category></entry><entry><title>Python-进阶-functools模块小结</title><link href="http://wklken.me/posts/2013/08/18/python-extra-functools.html" rel="alternate"></link><updated>2013-08-18T00:00:00+08:00</updated><author><name>wklken</name></author><id>tag:wklken.me,2013-08-18:posts/2013/08/18/python-extra-functools.html</id><summary type="html">&lt;p&gt;文档 &lt;a href="http://docs.python.org/2/library/functools.html"&gt;地址&lt;/a&gt;&lt;/p&gt;
 &lt;h3&gt;functools.partial&lt;/h3&gt;
 &lt;p&gt;作用:&lt;/p&gt;
 &lt;p&gt;functools.partial 通过包装手法，允许我们 "重新定义" 函数签名&lt;/p&gt;
