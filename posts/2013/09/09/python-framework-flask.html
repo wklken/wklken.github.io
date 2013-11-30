@@ -99,7 +99,11 @@
 
         <div class="entry-content">
         <p>flask 使用的一些整理</p>
-<p>当前进度50%</p>
+<h3>资源</h3>
+<p>Flask  <a href="https://dormousehole.readthedocs.org/en/latest/">文档</a>|<a href="http://flask.pocoo.org/docs/">英文</a>
+       <a href="http://www.oschina.net/translate/the-flask-mega-tutorial-part-i-hello-world">快速教材</a>|
+       <a href="http://pythonhosted.org/Flask-SQLAlchemy/">flask-sqlalchemy</a>|
+       <a href="http://pythonhosted.org/Flask-Security/">flask-security</a></p>
 <hr />
 <h3>最简单的hello world</h3>
 <table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
@@ -275,6 +279,11 @@
 </pre></div>
 
 
+<h3>直接返回某个文件</h3>
+<div class="highlight"><pre><span class="k">return</span> <span class="n">send_file</span><span class="p">(</span><span class="n">settings</span><span class="p">.</span><span class="n">TEMPLATE_FOLDER</span> <span class="o">+</span> <span class="err">&#39;</span><span class="n">tweet</span><span class="o">/</span><span class="n">tweet_list</span><span class="p">.</span><span class="n">html</span><span class="err">&#39;</span><span class="p">)</span>
+</pre></div>
+
+
 <h3>请求重定向</h3>
 <p><a href="http://flask.pocoo.org/docs/api/#flask.redirect">文档</a></p>
 <p>flask.redirect(location, code=302)
@@ -287,6 +296,65 @@
 <span class="n">def</span> <span class="n">foo</span><span class="p">()</span><span class="o">:</span>
     <span class="k">return</span><span class="err">&#39;</span><span class="n">Hello</span> <span class="n">Foo</span><span class="o">!</span><span class="err">&#39;</span>
 </pre></div>
+
+
+<h3>获取用户真实ip</h3>
+<div class="highlight"><pre><span class="n">real_ip</span> <span class="o">=</span> <span class="n">request</span><span class="p">.</span><span class="n">headers</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="err">&#39;</span><span class="n">X</span><span class="o">-</span><span class="n">Real</span><span class="o">-</span><span class="n">Ip</span><span class="err">&#39;</span><span class="p">,</span> <span class="n">request</span><span class="p">.</span><span class="n">remote_addr</span><span class="p">)</span>
+</pre></div>
+
+
+<h3>return json &amp; jsonp</h3>
+<div class="highlight"><pre><span class="n">import</span> <span class="n">json</span>
+<span class="n">from</span> <span class="n">flask</span> <span class="n">import</span> <span class="n">jsonify</span><span class="p">,</span> <span class="n">Response</span><span class="p">,</span> <span class="n">json</span>
+
+<span class="n">data</span> <span class="o">=</span> <span class="p">[]</span> <span class="err">#</span> <span class="n">or</span> <span class="n">others</span>
+<span class="k">return</span> <span class="n">jsonify</span><span class="p">(</span><span class="n">ok</span><span class="o">=</span><span class="n">True</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
+
+<span class="n">jsonp_callback</span> <span class="o">=</span>  <span class="n">request</span><span class="p">.</span><span class="n">args</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="err">&#39;</span><span class="n">callback</span><span class="err">&#39;</span><span class="p">,</span> <span class="err">&#39;&#39;</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">jsonp_callback</span><span class="o">:</span>
+    <span class="k">return</span> <span class="n">Response</span><span class="p">(</span>
+            <span class="s">&quot;%s(%s);&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">jsonp_callback</span><span class="p">,</span> <span class="n">json</span><span class="p">.</span><span class="n">dumps</span><span class="p">({</span><span class="err">&#39;</span><span class="n">ok</span><span class="err">&#39;</span><span class="o">:</span> <span class="n">True</span><span class="p">,</span> <span class="err">&#39;</span><span class="n">data</span><span class="err">&#39;</span><span class="o">:</span><span class="n">data</span><span class="p">})),</span>
+            <span class="n">mimetype</span><span class="o">=</span><span class="s">&quot;text/javascript&quot;</span>
+            <span class="p">)</span>
+<span class="k">return</span> <span class="n">ok_jsonify</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+</pre></div>
+
+
+<h3>EG. 一个create_app方法</h3>
+<div class="highlight"><pre><span class="n">from</span> <span class="n">flask</span> <span class="n">import</span> <span class="n">Flask</span><span class="p">,</span> <span class="n">g</span>
+
+<span class="n">def</span> <span class="n">create_app</span><span class="p">(</span><span class="n">debug</span><span class="o">=</span><span class="n">settings</span><span class="p">.</span><span class="n">DEBUG</span><span class="p">)</span><span class="o">:</span>
+    <span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="n">__name__</span><span class="p">,</span>
+                <span class="n">template_folder</span><span class="o">=</span><span class="n">settings</span><span class="p">.</span><span class="n">TEMPLATE_FOLDER</span><span class="p">,</span>
+                <span class="n">static_folder</span><span class="o">=</span><span class="n">settings</span><span class="p">.</span><span class="n">STATIC_FOLDER</span><span class="p">)</span>
+
+    <span class="n">app</span><span class="p">.</span><span class="n">register_blueprint</span><span class="p">(</span><span class="n">bp_test</span><span class="p">)</span>
+
+    <span class="n">app</span><span class="p">.</span><span class="n">jinja_env</span><span class="p">.</span><span class="n">globals</span><span class="p">.</span><span class="n">update</span><span class="p">(</span><span class="n">JINJA2_GLOBALS</span><span class="p">)</span>
+    <span class="n">app</span><span class="p">.</span><span class="n">jinja_env</span><span class="p">.</span><span class="n">filters</span><span class="p">.</span><span class="n">update</span><span class="p">(</span><span class="n">JINJA2_FILTERS</span><span class="p">)</span>
+
+    <span class="n">app</span><span class="p">.</span><span class="n">secret_key</span> <span class="o">=</span> <span class="err">&#39;</span><span class="n">PO</span><span class="o">+</span><span class="n">_</span><span class="p">)(</span><span class="o">*&amp;</span><span class="mi">678</span><span class="n">OUIJKKO</span><span class="err">#</span><span class="o">%</span><span class="n">_</span><span class="o">!</span><span class="p">(((</span><span class="o">%</span><span class="p">)))</span><span class="err">&#39;</span>
+
+    <span class="err">@</span><span class="n">app</span><span class="p">.</span><span class="n">before_request</span>
+    <span class="n">def</span> <span class="n">before_request</span><span class="p">()</span><span class="o">:</span>
+        <span class="n">g</span><span class="p">.</span><span class="n">xxx</span> <span class="o">=</span> <span class="p">...</span>    <span class="err">#</span><span class="k">do</span> <span class="n">some</span> <span class="n">thing</span>
+
+    <span class="err">@</span><span class="n">app</span><span class="p">.</span><span class="n">teardown_request</span>
+    <span class="n">def</span> <span class="n">teardown_request</span><span class="p">(</span><span class="n">exception</span><span class="p">)</span><span class="o">:</span>
+        <span class="n">g</span><span class="p">.</span><span class="n">xxx</span> <span class="o">=</span> <span class="p">...</span>    <span class="err">#</span><span class="k">do</span> <span class="n">some</span> <span class="n">thing</span>
+
+    <span class="k">return</span> <span class="n">app</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">create_app</span><span class="p">(</span><span class="n">settings</span><span class="p">.</span><span class="n">DEBUG</span><span class="p">)</span>
+<span class="n">host</span><span class="o">=</span><span class="n">settings</span><span class="p">.</span><span class="n">SERVER_IP</span>
+<span class="n">port</span><span class="o">=</span><span class="n">settings</span><span class="p">.</span><span class="n">SERVER_PORT</span>
+<span class="n">app</span><span class="p">.</span><span class="n">run</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="n">port</span><span class="p">)</span>
+</pre></div>
+
+
+<hr />
+<p>wklken</p>
+<p>2013-09-09</p>
         </div><!-- /.entry-content -->
         <div class="comments">
             如果文章对你有帮助，欢迎对wklken进行无负担小额赞助 <a href="https://me.alipay.com/wklken" target="_blank"> 支付宝 </a> <br>
