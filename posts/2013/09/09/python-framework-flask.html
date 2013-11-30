@@ -249,6 +249,9 @@
 <span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">session</span>
 
 <span class="n">session</span><span class="p">[</span><span class="s">&#39;somekey&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">session</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;logged_in&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+
+<span class="n">session</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
 
 <span class="c">#过期时间,通过cookie实现的</span>
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">timedelta</span>
@@ -317,6 +320,47 @@
             <span class="n">mimetype</span><span class="o">=</span><span class="s">&quot;text/javascript&quot;</span>
             <span class="p">)</span>
 <span class="k">return</span> <span class="n">ok_jsonify</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+</pre></div>
+
+
+<h3>配置读取方法</h3>
+<div class="highlight"><pre><span class="cp"># create our little application :)</span>
+<span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+<span class="cp"># Load default config and override config from an environment variable</span>
+<span class="n">app</span><span class="p">.</span><span class="n">config</span><span class="p">.</span><span class="n">update</span><span class="p">(</span><span class="n">dict</span><span class="p">(</span>
+    <span class="n">DATABASE</span><span class="o">=</span><span class="err">&#39;</span><span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">flaskr</span><span class="p">.</span><span class="n">db</span><span class="err">&#39;</span><span class="p">,</span>
+    <span class="n">DEBUG</span><span class="o">=</span><span class="n">True</span><span class="p">,</span>
+    <span class="n">SECRET_KEY</span><span class="o">=</span><span class="err">&#39;</span><span class="n">development</span> <span class="n">key</span><span class="err">&#39;</span><span class="p">,</span>
+    <span class="n">USERNAME</span><span class="o">=</span><span class="err">&#39;</span><span class="n">admin</span><span class="err">&#39;</span><span class="p">,</span>
+    <span class="n">PASSWORD</span><span class="o">=</span><span class="err">&#39;</span><span class="k">default</span><span class="err">&#39;</span>
+<span class="p">))</span>
+<span class="n">app</span><span class="p">.</span><span class="n">config</span><span class="p">.</span><span class="n">from_envvar</span><span class="p">(</span><span class="err">&#39;</span><span class="n">FLASKR_SETTINGS</span><span class="err">&#39;</span><span class="p">,</span> <span class="n">silent</span><span class="o">=</span><span class="n">True</span><span class="p">)</span>
+
+
+<span class="o">------------------</span>
+<span class="cp"># configuration</span>
+<span class="n">DATABASE</span> <span class="o">=</span> <span class="err">&#39;</span><span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">minitwit</span><span class="p">.</span><span class="n">db</span><span class="err">&#39;</span>
+<span class="n">PER_PAGE</span> <span class="o">=</span> <span class="mi">30</span>
+<span class="n">DEBUG</span> <span class="o">=</span> <span class="n">True</span>
+<span class="n">SECRET_KEY</span> <span class="o">=</span> <span class="err">&#39;</span><span class="n">development</span> <span class="n">key</span><span class="err">&#39;</span>
+
+<span class="cp"># create our little application :)</span>
+<span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+<span class="n">app</span><span class="p">.</span><span class="n">config</span><span class="p">.</span><span class="n">from_object</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+<span class="n">app</span><span class="p">.</span><span class="n">config</span><span class="p">.</span><span class="n">from_envvar</span><span class="p">(</span><span class="err">&#39;</span><span class="n">MINITWIT_SETTINGS</span><span class="err">&#39;</span><span class="p">,</span> <span class="n">silent</span><span class="o">=</span><span class="n">True</span><span class="p">)</span>
+</pre></div>
+
+
+<h3>几个不常用的方法</h3>
+<div class="highlight"><pre><span class="n">from</span> <span class="n">flask</span> <span class="n">import</span> <span class="n">abort</span><span class="p">,</span> <span class="n">flash</span>
+
+<span class="n">abort</span>
+<span class="k">if</span> <span class="n">not</span> <span class="n">session</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="err">&#39;</span><span class="n">logged_in</span><span class="err">&#39;</span><span class="p">)</span><span class="o">:</span>
+    <span class="n">abort</span><span class="p">(</span><span class="mi">401</span><span class="p">)</span>
+
+<span class="n">flash</span>
+<span class="n">flash</span><span class="p">(</span><span class="err">&#39;</span><span class="n">New</span> <span class="n">entry</span> <span class="n">was</span> <span class="n">successfully</span> <span class="n">posted</span><span class="err">&#39;</span><span class="p">)</span>
 </pre></div>
 
 
