@@ -364,6 +364,43 @@
 </pre></div>
 
 
+<h3>项目配置</h3>
+<p>1.直接</p>
+<div class="highlight"><pre><span class="n">app</span><span class="p">.</span><span class="n">config</span><span class="p">[</span><span class="err">&#39;</span><span class="n">HOST</span><span class="err">&#39;</span><span class="p">]</span><span class="o">=</span><span class="err">&#39;</span><span class="n">xxx</span><span class="p">.</span><span class="n">a</span><span class="p">.</span><span class="n">com</span><span class="err">&#39;</span>
+<span class="n">print</span> <span class="n">app</span><span class="p">.</span><span class="n">config</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="err">&#39;</span><span class="n">HOST</span><span class="err">&#39;</span><span class="p">)</span>
+</pre></div>
+
+
+<p>2.环境变量</p>
+<div class="highlight"><pre><span class="n">export</span> <span class="n">MyAppConfig</span><span class="o">=/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">settings</span><span class="p">.</span><span class="n">cfg</span>
+<span class="n">app</span><span class="p">.</span><span class="n">config</span><span class="p">.</span><span class="n">from_envvar</span><span class="p">(</span><span class="err">&#39;</span><span class="n">MyAppConfig</span><span class="err">&#39;</span><span class="p">)</span>
+</pre></div>
+
+
+<p>3.对象</p>
+<div class="highlight"><pre> <span class="n">class</span> <span class="n">Config</span><span class="p">(</span><span class="n">object</span><span class="p">)</span><span class="o">:</span>
+     <span class="n">DEBUG</span> <span class="o">=</span> <span class="n">False</span>
+     <span class="n">TESTING</span> <span class="o">=</span> <span class="n">False</span>
+     <span class="n">DATABASE_URI</span> <span class="o">=</span> <span class="err">&#39;</span><span class="n">sqlite</span><span class="o">:</span><span class="c1">//:memory:&#39;</span>
+
+ <span class="n">class</span> <span class="n">ProductionConfig</span><span class="p">(</span><span class="n">Config</span><span class="p">)</span><span class="o">:</span>
+     <span class="n">DATABASE_URI</span> <span class="o">=</span> <span class="err">&#39;</span><span class="n">mysql</span><span class="o">:</span><span class="c1">//user@localhost/foo&#39;</span>
+
+ <span class="n">app</span><span class="p">.</span><span class="n">config</span><span class="p">.</span><span class="n">from_object</span><span class="p">(</span><span class="n">ProductionConfig</span><span class="p">)</span>
+ <span class="n">print</span> <span class="n">app</span><span class="p">.</span><span class="n">config</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="err">&#39;</span><span class="n">DATABASE_URI</span><span class="err">&#39;</span><span class="p">)</span> <span class="err">#</span> <span class="n">mysql</span><span class="o">:</span><span class="c1">//user@localhost/foo</span>
+</pre></div>
+
+
+<p>4.文件</p>
+<div class="highlight"><pre><span class="cp"># default_config.py</span>
+<span class="n">HOST</span> <span class="o">=</span> <span class="err">&#39;</span><span class="n">localhost</span><span class="err">&#39;</span>
+<span class="n">PORT</span> <span class="o">=</span> <span class="mi">5000</span>
+<span class="n">DEBUG</span> <span class="o">=</span> <span class="n">True</span>
+
+<span class="n">app</span><span class="p">.</span><span class="n">config</span><span class="p">.</span><span class="n">from_pyfile</span><span class="p">(</span><span class="err">&#39;</span><span class="n">default_config</span><span class="p">.</span><span class="n">py</span><span class="err">&#39;</span><span class="p">)</span>
+</pre></div>
+
+
 <h3>EG. 一个create_app方法</h3>
 <div class="highlight"><pre><span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">Flask</span><span class="p">,</span> <span class="n">g</span>
 
