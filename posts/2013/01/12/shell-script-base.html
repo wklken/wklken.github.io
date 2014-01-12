@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <title>如何书写shell脚本</title>
+        <meta charset="utf-8" />
+     <meta name="description" content="">
+    <meta name="keywords" content="" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+        <link rel="shortcut icon" href="/favicon.ico"/>
+        <link rel="stylesheet" href="http://wklken.me/theme/css/style.css" media="all" />
+        <link rel="stylesheet" href="http://wklken.me/theme/css/pygment.css" media="all" />
+        <link rel="stylesheet" href="http://wklken.me/theme/css/mobile.css" media="all" />
+        <link href="http://fonts.googleapis.com/css?family=Open+Sans:400italic,700italic,300italic,600italic,400,600,700,800' rel='stylesheet' type='text/css">
+
+        <link rel="stylesheet" href="http://wklken.me/theme/css/font-awesome.min.css">
+        <!--[if IE 7]>
+            <link rel="stylesheet" href="http://wklken.me/theme/css/font-awesome-ie7.min.css">
+        <![endif]-->
+
+        <link href="http://wklken.me/" type="application/atom+xml" rel="alternate" title="wklken's blog ATOM Feed" />
+        <link href="http://wklken.me/feed.xml" type="application/atom+xml" rel="alternate" title="wklken's blog RSS Feed" />
+
+        <!--[if IE]>
+                <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+        <!--[if lte IE 7]>
+                <link rel="stylesheet" type="text/css" media="all" href="http://wklken.me/css/ie.css"/>
+                <script src="http://wklken.me/js/IE8.js" type="text/javascript"></script><![endif]-->
+
+        <!--[if lt IE 7]>
+                <link rel="stylesheet" type="text/css" media="all" href="http://wklken.me/css/ie6.css"/><![endif]-->
+        <script src="http://upcdn.b0.upaiyun.com/libs/jquery/jquery-1.9.1.min.js"></script>
+        <script src="http://wklken.me/theme/js/jquery.scrollToTop.js"></script>
+        <script type="text/javascript">
+            $(function() {
+                $("#toTop").scrollToTop(1000);
+            });
+        </script>
+
+</head>
+
+<body id="index" class="home">
+  <header id="header">
+     <div class="constraint">
+
+       <div class="o"> 
+   <a href="/"><h1>Wklken <span class="red"> Python</span></h1></a>
+
+    <div class="social">
+                <a href="https://github.com/wklken" target='_blank'><i class="icon-github-sign icon-2x"></i></a>
+                <a href="http://weibo.com/wklken" target='_blank'><i class="icon-weibo icon-2x"></i></a>
+                <a href="mailto:wklken@yeah.net"><i class="icon-envelope icon-2x"></i></a>
+                <a href="/feed.xml" target='_blank'><i class="icon-rss-sign icon-2x"></i></a>
+    </div>
+
+		<div class="nav">
+                    <a href="/">首页</a>
+                    <a href="/categories.html">分类</a>
+                    <a href="/archives.html">归档</a>
+                    <a href="/pages/projects.html">项目</a>
+                    <a href="/pages/tools.html">工具</a>
+                    <a href="/pages/books.html">书单</a>
+                    <a href="/pages/aboutme.html">关于</a>
+
+           </div>
+         </div>
+         </div>
+         </header><!-- /#banner -->
+
+<section class="content blog">
+<div class="constraint">
+<div class="posts">
+<article>
+<aside class="sidebar">
+<h3 class="published" title="2013-01-12T00:00:00">
+               2013年01月12日
+</h3>
+
+<p>
+<div class="tag">
+    分类: <a href="/category/linux.html">linux</a>
+
+    </div>
+
+
+<div class="tag">
+    标签: <a href="http://wklken.me/tag/linux.html">linux</a>
+   </div>
+
+
+</p>
+
+</aside><!-- /.post-info -->        <header> <h1 class="blog-title"><a href=""
+        rel="bookmark" title="Permalink to 如何书写shell脚本">如何书写shell脚本</a></h1> 
+        </header>
+
+
+        <div class="entry-content">
+        <p>关于Linux基础命令，可以查看另一篇博文 <a href="http://wklken.me/posts/2013/07/04/note-of-linux-shell-scripting-cookbook.html">Linux Shell脚本攻略笔记</a></p>
+<p>以下内容，主要是，了解书写shell脚本所需要的大部分知识,主要内容来自于书籍和网络</p>
+<p>目的是，能快速书写出需要的shell脚本</p>
+<p>开始</p>
+<p>version 0.1 2014-01-12 基本内容, 完成度30%</p>
+<hr />
+<p>资源</p>
+<p><a href="http://wklken.me/posts/2013/07/04/note-of-linux-shell-scripting-cookbook.html">Linux Shell脚本攻略笔记</a></p>
+<hr />
+<h2>第一部分 一些概念</h2>
+<p>标准IO</p>
+<div class="highlight"><pre><span class="err">文件描述符</span>
+<span class="mi">0</span> <span class="err">标准输入</span> <span class="err">默认键盘</span>
+<span class="mi">1</span> <span class="err">标准输出</span> <span class="err">默认终端</span>
+<span class="mi">2</span> <span class="err">标准错误</span> <span class="err">默认终端</span>
+</pre></div>
+
+
+<p>重定向</p>
+<div class="highlight"><pre><span class="o">&gt;</span> <span class="err">输出重定向</span>
+<span class="o">&gt;&gt;</span> <span class="err">追加到输出重定向</span>
+<span class="o">&lt;</span> <span class="err">输入重定向</span>
+<span class="o">&lt;&lt;</span> <span class="err">追加到输入重定向</span>
+
+<span class="n">ls</span> <span class="o">-</span><span class="n">l</span> <span class="o">&gt;</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">a</span>
+
+<span class="n">cmd</span> <span class="o">&gt;/</span><span class="n">dev</span><span class="o">/</span><span class="n">null</span> <span class="mi">2</span><span class="o">&gt;&amp;</span><span class="mi">1</span> <span class="err">#输出到垃圾桶</span>
+</pre></div>
+
+
+<p>管道</p>
+<div class="highlight"><pre><span class="err">前后连接两个命令</span>
+
+<span class="n">ls</span> <span class="o">-</span><span class="n">l</span> <span class="o">|</span> <span class="n">grep</span> <span class="n">test</span>
+</pre></div>
+
+
+<p>引号</p>
+<div class="highlight"><pre><span class="err">双引号：可以除了字符$`\外地任何字符或字符串</span>
+<span class="err">单引号：忽略任何引用值，将引号里的所有字符作为一个字符串</span> <span class="err">$</span><span class="n">var</span> <span class="err">不能被解析</span>
+<span class="err">反引号：设置系统命令输出到变量</span>
+</pre></div>
+
+
+<p>and/or</p>
+<div class="highlight"><pre><span class="n">expression1</span> <span class="o">&amp;&amp;</span> <span class="n">expression2</span> <span class="o">&amp;&amp;</span> <span class="n">expression3</span>
+<span class="err">只有前面一条命令执行成功，才执行下一条</span>
+<span class="n">expression1</span><span class="err">执行成功，才执行</span><span class="n">expression2</span>
+<span class="err">串联的</span>
+
+<span class="n">expression1</span> <span class="o">||</span> <span class="n">expression2</span> <span class="o">||</span> <span class="n">expression3</span>
+<span class="err">执行命令，直到有一条成功为止</span>
+</pre></div>
+
+
+<hr />
+<h2>第二部分 shell脚本</h2>
+<p>首行声明使用bash</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="highlight"><pre><span class="c">#!/bin/bash</span>
+
+<span class="c"># do something</span>
+
+<span class="nb">exit </span>0/n
+</pre></div>
+</td></tr></table>
+
+<p>运行</p>
+<div class="highlight"><pre><span class="n">sh</span> <span class="n">xx</span><span class="p">.</span><span class="n">sh</span>
+<span class="n">bash</span> <span class="n">xx</span><span class="p">.</span><span class="n">sh</span> <span class="err">#大部分情况下两个一样，某些命令只有</span><span class="n">bash</span><span class="err">有，只能用这个</span>
+
+<span class="n">or</span>
+
+<span class="n">chmod</span> <span class="n">u</span><span class="o">+</span><span class="n">x</span> <span class="n">xx</span><span class="p">.</span><span class="n">sh</span>
+<span class="p">.</span><span class="o">/</span><span class="n">xx</span><span class="p">.</span><span class="n">sh</span>
+</pre></div>
+
+
+<p>调试</p>
+<div class="highlight"><pre><span class="cp">#查看运行时，每个命令回显，执行之后回显</span>
+<span class="n">sh</span> <span class="o">-</span><span class="n">x</span> <span class="n">xx</span><span class="p">.</span><span class="n">sh</span>
+
+<span class="cp">#执行之前回显</span>
+<span class="n">sh</span> <span class="o">-</span><span class="n">v</span> <span class="n">xx</span><span class="p">.</span><span class="n">sh</span>
+
+<span class="cp">#检查语法错误，不执行</span>
+<span class="n">sh</span> <span class="o">-</span><span class="n">n</span> <span class="n">xx</span><span class="p">.</span><span class="n">sh</span>
+
+<span class="cp">#如果使用了未定义的变量，给出错误信息</span>
+<span class="n">sh</span> <span class="o">-</span><span class="n">u</span> <span class="n">xx</span><span class="p">.</span><span class="n">sh</span>
+</pre></div>
+
+
+<p>判断执行结果</p>
+<div class="highlight"><pre><span class="n">N</span><span class="o">=</span><span class="err">$</span><span class="o">?</span>
+
+<span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">N</span> <span class="o">&lt;=</span> <span class="mi">255</span>
+<span class="mi">0</span> <span class="err">无错误，正常执行结束</span>
+<span class="err">非</span><span class="mi">0</span> <span class="err">异常</span>
+</pre></div>
+
+
+<p>获取目录名和文件名</p>
+<div class="highlight"><pre><span class="cp"># To find base directory</span>
+<span class="n">APP_ROOT</span><span class="o">=</span><span class="err">`</span><span class="n">dirname</span> <span class="s">&quot;$0&quot;</span><span class="err">`</span>
+
+<span class="cp"># To find the file name</span>
+<span class="n">filename</span><span class="o">=</span><span class="err">`</span><span class="n">basename</span> <span class="s">&quot;$filepath&quot;</span><span class="err">`</span>
+
+<span class="cp"># To find the file name without extension</span>
+<span class="n">filename</span><span class="o">=</span><span class="err">`</span><span class="n">basename</span> <span class="s">&quot;$filepath&quot;</span> <span class="p">.</span><span class="n">html</span><span class="err">`</span>
+</pre></div>
+
+
+<p>日期</p>
+<p>crontab调度</p>
+<div class="highlight"><pre><span class="err">查看</span>
+<span class="n">crontab</span> <span class="o">-</span><span class="n">l</span>
+<span class="err">编辑</span>
+<span class="n">crontab</span> <span class="o">-</span><span class="n">e</span>
+
+<span class="err">格式</span>
+<span class="o">*</span> <span class="o">*</span> <span class="o">*</span> <span class="o">*</span> <span class="o">*</span> <span class="n">command_path</span>
+
+<span class="err">字段</span>      <span class="err">含义</span>     <span class="err">范围</span>
+<span class="mi">1</span>        <span class="err">分钟</span>         <span class="mi">0</span><span class="o">-</span><span class="mi">59</span>
+<span class="mi">2</span>        <span class="err">小时</span>         <span class="mi">0</span><span class="o">-</span><span class="mi">23</span>
+<span class="mi">3</span>        <span class="err">日期</span>         <span class="mi">1</span><span class="o">-</span><span class="mi">31</span>
+<span class="mi">4</span>        <span class="err">月份</span>         <span class="mi">1</span><span class="o">-</span><span class="mi">12</span>
+<span class="mi">5</span>        <span class="err">星期几，</span><span class="mi">0</span><span class="o">=</span><span class="err">周日</span>   <span class="mi">0</span><span class="o">-</span><span class="mi">6</span>
+<span class="mi">6</span>        <span class="err">具体命令</span><span class="p">,</span><span class="err">可以是调用脚本</span>
+
+<span class="o">*</span><span class="err">任意时刻</span>
+<span class="n">n1</span><span class="p">,</span><span class="n">n2</span>  <span class="err">分割，</span><span class="n">n1</span><span class="err">和</span><span class="n">n2</span>
+<span class="err">*/</span><span class="n">n</span>  <span class="err">每隔</span><span class="n">n</span><span class="err">单位</span>
+<span class="n">n1</span><span class="o">-</span><span class="n">n2</span>   <span class="err">时段，一个时段内</span>
+
+<span class="mi">0</span> <span class="err">*/</span><span class="mi">2</span> <span class="o">*</span> <span class="o">*</span> <span class="o">*</span> <span class="n">sh</span> <span class="o">-</span><span class="n">x</span> <span class="n">run</span><span class="p">.</span><span class="n">sh</span>     <span class="err">每隔两小时</span>
+<span class="mi">20</span> <span class="mi">7</span> <span class="o">*</span> <span class="o">*</span> <span class="o">*</span> <span class="n">sh</span> <span class="o">-</span><span class="n">x</span> <span class="n">run</span><span class="p">.</span><span class="n">sh</span> <span class="err">每天</span><span class="mi">7</span><span class="o">:</span><span class="mi">20</span>
+<span class="mi">0</span> <span class="mi">1</span><span class="p">,</span><span class="mi">5</span> <span class="o">*</span> <span class="o">*</span> <span class="o">*</span> <span class="n">sh</span> <span class="o">-</span><span class="n">x</span> <span class="n">run</span><span class="p">.</span><span class="n">sh</span> <span class="err">每天</span><span class="mi">1</span><span class="err">点和</span><span class="mi">5</span><span class="err">点</span>
+</pre></div>
+
+
+<hr />
+<h2>第三部分 变量</h2>
+<h4>1.变量赋值</h4>
+<div class="highlight"><pre><span class="n">varname</span><span class="o">=</span><span class="s">&quot;value&quot;</span>
+<span class="n">varname</span><span class="o">=</span><span class="err">`</span><span class="n">expression</span><span class="err">`</span>
+
+<span class="err">注意，等号两边必须不能包含空格</span>
+</pre></div>
+
+
+<h4>2.分类</h4>
+<div class="highlight"><pre><span class="err">四种变量：环境变量、本地变量、位置变量、特定变量参数</span>
+
+<span class="err">环境变量可作用于所有子进程</span>
+<span class="err">本地变量在用户现在的</span><span class="n">shell</span> <span class="err">生命期的脚本中使用，仅存在于当前进程</span>
+<span class="err">位置变量：作为程序参数</span>
+<span class="err">特定变量：特殊作用</span>
+</pre></div>
+
+
+<h4>3.环境变量</h4>
+<div class="highlight"><pre><span class="err">设置</span>
+<span class="n">MYVAR</span><span class="o">=</span><span class="s">&quot;test&quot;</span>
+<span class="n">expirt</span> <span class="n">MYVAR</span>
+<span class="n">or</span>
+<span class="n">export</span> <span class="n">MYVAR</span><span class="o">=</span><span class="s">&quot;test&quot;</span>
+
+<span class="err">显示</span>
+<span class="n">env</span> <span class="err">#查看所有环境变量</span>
+<span class="err">$</span><span class="n">MYVAR</span> <span class="err">#获取</span>
+
+<span class="err">消除</span>
+<span class="n">unset</span> <span class="n">MYVAR</span>
+</pre></div>
+
+
+<h4>4.本地变量</h4>
+<div class="highlight"><pre><span class="err">设置</span>
+<span class="n">LOCAL_VAR</span><span class="o">=</span><span class="s">&quot;test&quot;</span>
+<span class="n">or</span>
+<span class="n">LOCAL_VAR</span><span class="o">=</span><span class="s">&quot;test&quot;</span>
+<span class="n">readonly</span> <span class="n">LOCAL_VAR</span> <span class="err">#设置只读</span>
+
+<span class="err">还可以使用</span><span class="n">declare</span><span class="err">命令定义</span>
+</pre></div>
+
+
+<h4>5.位置变量</h4>
+<div class="highlight"><pre><span class="err">$</span><span class="mi">0</span> <span class="err">脚本名称</span>
+<span class="err">$#</span> <span class="err">传递到脚本参数个数</span>
+<span class="err">$$</span> <span class="n">shell</span><span class="err">脚本运行当前进程</span><span class="n">ID</span>
+<span class="err">$</span><span class="o">?</span> <span class="err">退出状态</span>
+<span class="err">$</span><span class="n">N</span> <span class="n">N</span><span class="o">&gt;=</span><span class="mi">1</span><span class="err">，第</span><span class="n">n</span><span class="err">个参数</span>
+</pre></div>
+
+
+<h4>6.字符串处理</h4>
+<p>长度</p>
+<div class="highlight"><pre><span class="cp">${</span><span class="c">#VARIABLE_NAME</span><span class="cp">}</span> 可以给出字符串的长度。
+
+if [ <span class="cp">${</span><span class="c">#authy_api_key</span><span class="cp">}</span> != 32 ]
+then
+    return <span class="nv">$FAIL</span>
+fi
+</pre></div>
+
+
+<p>拼接字符串</p>
+<div class="highlight"><pre><span class="n">echo</span> <span class="s">&quot;$x$y&quot;</span>
+</pre></div>
+
+
+<p>字符串切片</p>
+<div class="highlight"><pre><span class="cp">${</span><span class="err">变量名</span><span class="p">:</span><span class="err">起始</span><span class="p">:</span><span class="err">长度</span><span class="cp">}</span>得到子字符串
+
+$ test=&#39;I love china&#39;
+$ echo <span class="cp">${</span><span class="n">test</span><span class="p">:</span><span class="mi">5</span><span class="cp">}</span>
+e china
+$ echo <span class="cp">${</span><span class="n">test</span><span class="p">:</span><span class="mi">5</span><span class="p">:</span><span class="mi">10</span><span class="cp">}</span>
+e china
+
+str=&quot;hello world&quot;
+echo <span class="cp">${</span><span class="nb">str</span><span class="p">:</span><span class="mi">6</span><span class="cp">}</span>  # <span class="cp">${</span><span class="n">var</span><span class="p">:</span><span class="n">offset</span><span class="p">:</span><span class="n">length</span><span class="cp">}</span>
+</pre></div>
+
+
+<p>字符串替换</p>
+<div class="highlight"><pre><span class="cp">${</span><span class="err">变量</span><span class="o">/</span><span class="err">查找</span><span class="o">/</span><span class="err">替换值</span><span class="cp">}</span> 一个“/”表示替换第一个，”//”表示替换所有,当查找中出现了：”/”请加转义符”\/”表示
+echo <span class="cp">${</span><span class="nb">str</span><span class="o">/</span><span class="n">foo</span><span class="o">/</span><span class="n">bar</span><span class="cp">}</span> #首个
+echo <span class="cp">${</span><span class="nb">str</span><span class="o">//</span><span class="n">foo</span><span class="o">/</span><span class="n">bar</span><span class="cp">}</span> #所有
+</pre></div>
+
+
+<p>正则匹配</p>
+<div class="highlight"><pre><span class="k">if</span> <span class="p">[[</span> <span class="err">$</span><span class="n">str</span> <span class="o">=~</span> <span class="p">[</span><span class="mi">0</span><span class="o">-</span><span class="mi">9</span><span class="p">]</span><span class="o">+</span><span class="err">\</span><span class="p">.[</span><span class="mi">0</span><span class="o">-</span><span class="mi">9</span><span class="p">]</span><span class="o">+</span> <span class="p">]]</span>
+</pre></div>
+
+
+<h4>7.数值处理</h4>
+<p>自增</p>
+<div class="highlight"><pre><span class="n">a</span><span class="o">=</span><span class="mi">1</span>
+<span class="n">a</span><span class="o">=</span><span class="err">`</span><span class="n">expr</span> <span class="n">a</span> <span class="o">+</span> <span class="mi">1</span><span class="err">`</span>
+
+<span class="n">or</span>
+
+<span class="n">a</span><span class="o">=</span><span class="mi">1</span>
+<span class="n">let</span> <span class="n">a</span><span class="o">++</span>
+<span class="n">let</span> <span class="n">a</span><span class="o">+=</span><span class="mi">2</span>
+</pre></div>
+
+
+<p>let</p>
+<div class="highlight"><pre><span class="n">no1</span><span class="o">=</span><span class="mi">4</span>
+<span class="n">no2</span><span class="o">=</span><span class="mi">5</span>
+<span class="n">let</span> <span class="n">result</span><span class="o">=</span><span class="n">no1</span><span class="o">+</span><span class="n">no2</span>
+</pre></div>
+
+
+<p>expr</p>
+<div class="highlight"><pre><span class="n">result</span><span class="o">=</span><span class="err">`</span><span class="n">expr</span> <span class="mi">3</span> <span class="o">+</span> <span class="mi">4</span><span class="err">`</span>
+<span class="n">result</span><span class="o">=</span><span class="err">$</span><span class="p">(</span><span class="n">expr</span> <span class="err">$</span><span class="n">no1</span> <span class="o">+</span> <span class="mi">5</span><span class="p">)</span>
+</pre></div>
+
+
+<p>其他</p>
+<div class="highlight"><pre><span class="n">result</span><span class="o">=</span><span class="err">$</span><span class="p">[</span> <span class="n">no1</span> <span class="o">+</span> <span class="n">no2</span> <span class="p">]</span>
+<span class="n">result</span><span class="o">=</span><span class="err">$</span><span class="p">[</span> <span class="err">$</span><span class="n">no</span> <span class="o">+</span> <span class="mi">5</span> <span class="p">]</span>
+
+<span class="n">result</span><span class="o">=</span><span class="err">$</span><span class="p">((</span> <span class="n">no1</span> <span class="o">+</span> <span class="mi">5</span> <span class="p">))</span>
+</pre></div>
+
+
+<p>浮点数</p>
+<div class="highlight"><pre><span class="n">echo</span> <span class="s">&quot;4 * 0.56&quot;</span> <span class="o">|</span> <span class="n">bc</span>
+<span class="err">设定精度</span>
+<span class="n">echo</span> <span class="s">&quot;scale=2;3/8&quot;</span> <span class="o">|</span> <span class="n">bc</span>
+<span class="err">进制转换</span>
+<span class="n">echo</span> <span class="s">&quot;obase=2;100&quot;</span> <span class="o">|</span> <span class="n">bc</span>
+<span class="err">平方</span>
+<span class="n">echo</span> <span class="s">&quot;sqrt(100)&quot;</span> <span class="o">|</span> <span class="n">bc</span>
+</pre></div>
+
+
+<p>数组和map</p>
+<hr />
+<h2>第四部分 控制流</h2>
+<h4>1.条件测试</h4>
+<p>语法</p>
+<div class="highlight"><pre><span class="n">test</span> <span class="n">condition</span>
+<span class="p">[</span> <span class="n">condition</span> <span class="p">]</span> <span class="err">#注意两边加空格</span>
+
+<span class="err">$</span><span class="o">?</span> <span class="err">#获取判断结果，</span><span class="mi">0</span><span class="err">表示</span><span class="n">condition</span><span class="o">=</span><span class="nb">true</span>
+</pre></div>
+
+
+<p>条件测试中的逻辑</p>
+<div class="highlight"><pre><span class="o">-</span><span class="n">a</span> <span class="err">与</span>
+<span class="o">-</span><span class="n">o</span> <span class="err">或</span>
+<span class="o">!</span>  <span class="err">非</span>
+<span class="o">&amp;&amp;</span>
+<span class="o">||</span>
+</pre></div>
+
+
+<p>字符串测试</p>
+<div class="highlight"><pre><span class="o">=</span>   <span class="err">两字符串相等</span>
+<span class="o">!=</span>  <span class="err">两字符串不等</span>
+<span class="o">-</span><span class="n">z</span>  <span class="err">空串</span> <span class="p">[</span><span class="n">zero</span><span class="p">]</span>
+<span class="o">-</span><span class="n">n</span>  <span class="err">非空串</span> <span class="p">[</span><span class="n">nozero</span><span class="p">]</span>
+
+<span class="p">[</span> <span class="o">-</span><span class="n">z</span> <span class="s">&quot;$EDITOR&quot;</span> <span class="p">]</span>
+<span class="p">[</span> <span class="s">&quot;$EDITOR&quot;</span> <span class="o">=</span> <span class="s">&quot;vi&quot;</span> <span class="p">]</span>
+</pre></div>
+
+
+<p>数值测试</p>
+<div class="highlight"><pre><span class="o">-</span><span class="n">eq</span>  <span class="err">数值相等（</span><span class="n">equal</span><span class="err">）</span>
+<span class="o">-</span><span class="n">ne</span>  <span class="err">不等（</span><span class="n">not</span> <span class="n">equal</span><span class="err">）</span>
+<span class="o">-</span><span class="n">gt</span>  <span class="n">A</span><span class="o">&gt;</span><span class="n">B</span><span class="err">（</span><span class="n">greater</span> <span class="n">than</span><span class="err">）</span>
+<span class="o">-</span><span class="n">lt</span>  <span class="n">A</span><span class="o">&lt;</span><span class="n">B</span><span class="err">（</span><span class="n">less</span> <span class="n">than</span><span class="err">）</span>
+<span class="o">-</span><span class="n">le</span>  <span class="n">A</span><span class="o">&lt;=</span><span class="n">B</span><span class="err">（</span><span class="n">less</span><span class="err">、</span><span class="n">equal</span><span class="err">）</span>
+<span class="o">-</span><span class="n">ge</span>  <span class="n">A</span><span class="o">&gt;=</span><span class="n">B</span><span class="err">（</span><span class="n">greater</span><span class="err">、</span><span class="n">equal</span><span class="err">）</span>
+
+<span class="n">N</span><span class="o">=</span><span class="mi">130</span>
+<span class="p">[</span> <span class="s">&quot;$N&quot;</span> <span class="o">-</span><span class="n">eq</span> <span class="mi">130</span> <span class="p">]</span>
+</pre></div>
+
+
+<p>文件测试</p>
+<div class="highlight"><pre><span class="o">-</span><span class="n">d</span><span class="err">目录</span>
+<span class="o">-</span><span class="n">f</span> <span class="err">普通文件（</span><span class="n">Regular</span> <span class="n">file</span><span class="err">）</span>
+
+<span class="o">-</span><span class="n">e</span> <span class="err">文件存在</span>
+<span class="o">-</span><span class="n">z</span> <span class="err">文件长度</span><span class="o">=</span><span class="mi">0</span>
+<span class="o">-</span><span class="n">s</span> <span class="err">文件长度大于</span><span class="mi">0</span><span class="err">，非空</span>
+
+<span class="o">-</span><span class="n">b</span> <span class="err">块专用文件</span>
+<span class="o">-</span><span class="n">c</span> <span class="err">字符专用文件</span>
+<span class="o">-</span><span class="n">L</span> <span class="err">符号链接</span>
+
+<span class="o">-</span><span class="n">r</span> <span class="n">Readable</span><span class="err">（文件、目录可读）</span>
+<span class="o">-</span><span class="n">w</span> <span class="n">Writable</span><span class="err">（文件、目录可写）</span>
+<span class="o">-</span><span class="n">x</span> <span class="n">Executable</span><span class="err">（文件可执行、目录可浏览）</span>
+
+<span class="o">-</span><span class="n">g</span> <span class="err">如果文件的</span><span class="n">set</span><span class="o">-</span><span class="n">group</span><span class="o">-</span><span class="n">id</span><span class="err">位被设置则结果为真</span>
+<span class="o">-</span><span class="n">u</span> <span class="err">文件有</span><span class="n">suid</span><span class="err">位设置</span>
+</pre></div>
+
+
+<h4>2.分支if-else/case</h4>
+<p>if-else语法</p>
+<div class="highlight"><pre><span class="k">if</span> <span class="n">condition1</span>
+<span class="n">then</span>
+    <span class="c1">//do thing a</span>
+<span class="n">elif</span> <span class="n">condition2</span>
+<span class="n">then</span>
+    <span class="c1">//do thing b</span>
+<span class="k">else</span>
+    <span class="c1">//do thing c</span>
+<span class="n">fi</span>
+
+<span class="n">or</span>
+
+<span class="k">if</span> <span class="n">condition</span><span class="p">;</span> <span class="n">then</span>
+<span class="cp"># do something</span>
+<span class="n">fi</span>
+</pre></div>
+
+
+<p>case语法</p>
+<div class="highlight"><pre><span class="k">case</span> <span class="err">$</span><span class="n">VAR</span> <span class="n">in</span>
+    <span class="mi">1</span><span class="p">)</span>
+        <span class="n">echo</span> <span class="s">&quot;abc&quot;</span>
+        <span class="p">;;</span>
+    <span class="mi">2</span><span class="o">|</span><span class="mi">3</span><span class="o">|</span><span class="mi">4</span><span class="p">)</span>
+        <span class="n">echo</span> <span class="s">&quot;def&quot;</span>
+        <span class="p">;;</span>
+    <span class="o">*</span><span class="p">)</span>
+        <span class="n">echo</span> <span class="s">&quot;last&quot;</span>
+        <span class="p">;;</span>
+<span class="n">esac</span>
+</pre></div>
+
+
+<h4>3.循环for/while/until</h4>
+<p>for语法</p>
+<div class="highlight"><pre><span class="k">for</span> <span class="n">VARIABLE</span> <span class="n">in</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span> <span class="mi">5</span> <span class="p">..</span> <span class="n">N</span>
+<span class="k">do</span>
+    <span class="c1">//commands</span>
+<span class="n">done</span>
+
+<span class="k">for</span> <span class="n">OUTPUT</span> <span class="n">in</span> <span class="err">$</span><span class="p">(</span><span class="n">Linux</span><span class="o">-</span><span class="n">Or</span><span class="o">-</span><span class="n">Unix</span><span class="o">-</span><span class="n">Command</span><span class="o">-</span><span class="n">Here</span><span class="p">)</span>
+<span class="k">do</span>
+    <span class="c1">//commands on $OUTPUT</span>
+<span class="n">done</span>
+
+<span class="cp">#bash</span>
+<span class="k">for</span> <span class="p">((</span> <span class="n">EXP1</span><span class="p">;</span> <span class="n">EXP2</span><span class="p">;</span> <span class="n">EXP3</span> <span class="p">))</span>
+<span class="k">do</span>
+    <span class="c1">//commands</span>
+<span class="n">done</span>
+
+<span class="err">例子</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="n">in</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span> <span class="mi">5</span><span class="p">;</span> <span class="k">do</span>
+    <span class="n">echo</span> <span class="err">$</span><span class="n">i</span>
+<span class="n">done</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="n">in</span> <span class="err">`</span><span class="n">seq</span> <span class="mi">1</span> <span class="mi">5</span><span class="err">`</span><span class="p">;</span> <span class="k">do</span>
+    <span class="n">echo</span> <span class="err">$</span><span class="n">i</span>
+<span class="n">done</span>
+
+<span class="cp">#!/bin/bash</span>
+<span class="n">echo</span> <span class="s">&quot;Bash version&quot;</span>
+<span class="k">for</span> <span class="n">i</span> <span class="n">in</span> <span class="err">$</span><span class="p">(</span><span class="n">seq</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">20</span><span class="p">)</span>
+<span class="k">do</span>
+   <span class="n">echo</span> <span class="s">&quot;Welcome $i times&quot;</span>
+<span class="n">done</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="n">in</span> <span class="p">{</span><span class="mf">1..5</span><span class="p">};</span> <span class="k">do</span>
+    <span class="n">echo</span> <span class="err">$</span><span class="n">i</span>
+<span class="n">done</span>
+
+<span class="cp">#!/bin/bash</span>
+<span class="n">echo</span> <span class="s">&quot;Bash version&quot;</span>
+<span class="k">for</span> <span class="n">i</span> <span class="n">in</span> <span class="p">{</span><span class="mf">0..10</span><span class="p">.</span><span class="mf">.2</span><span class="p">}</span>
+<span class="k">do</span>
+    <span class="n">echo</span> <span class="s">&quot;Welcome $i times&quot;</span>
+<span class="n">done</span>
+
+<span class="k">for</span> <span class="p">((</span><span class="n">i</span><span class="o">=</span><span class="mi">1</span><span class="p">;</span> <span class="n">i</span><span class="o">&lt;=</span><span class="mi">10</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">));</span> <span class="k">do</span>
+    <span class="n">echo</span> <span class="err">$</span><span class="n">i</span>
+<span class="n">done</span>
+
+<span class="cp">#无限循环</span>
+<span class="cp">#!/bin/bash</span>
+<span class="k">for</span> <span class="p">((</span> <span class="p">;</span> <span class="p">;</span> <span class="p">))</span>
+<span class="k">do</span>
+   <span class="n">echo</span> <span class="s">&quot;infinite loops [ hit CTRL+C to stop]&quot;</span>
+<span class="n">done</span>
+</pre></div>
+
+
+<p>while</p>
+<div class="highlight"><pre><span class="k">while</span> <span class="n">condition</span>
+<span class="k">do</span>
+    <span class="c1">//do something</span>
+<span class="n">done</span>
+
+<span class="n">COUNTER</span><span class="o">=</span><span class="mi">0</span>
+<span class="k">while</span> <span class="p">[</span> <span class="err">$</span><span class="n">COUNTER</span> <span class="o">-</span><span class="n">lt</span> <span class="mi">5</span> <span class="p">]</span>
+<span class="k">do</span>
+    <span class="n">COUNTER</span><span class="o">=</span><span class="err">`</span><span class="n">expr</span> <span class="err">$</span><span class="n">COUNTER</span> <span class="o">+</span> <span class="mi">1</span><span class="err">`</span>
+    <span class="n">echo</span> <span class="err">$</span><span class="n">COUNTER</span>
+<span class="n">done</span>
+
+
+<span class="err">无限循环</span>
+<span class="k">while</span> <span class="p">[</span> <span class="mi">1</span> <span class="p">]</span>
+<span class="k">do</span>
+    <span class="c1">//</span>
+<span class="n">done</span>
+</pre></div>
+
+
+<p>until</p>
+<div class="highlight"><pre><span class="cp">#执行命令，直到条件为真，至少执行一次，可以用来做监控，condition每次都回去检查</span>
+<span class="n">until</span> <span class="n">condition</span>
+<span class="k">do</span>
+    <span class="c1">//do something</span>
+<span class="n">done</span>
+</pre></div>
+
+
+<p>break/continue</p>
+<div class="highlight"><pre><span class="k">break</span>
+<span class="err">允许跳出循环，通常在进行一些列处理后退出循环或</span><span class="k">case</span><span class="err">语句</span>
+<span class="err">若多重循环，可指定跳出的循环个数，如跳出两重循环</span>  <span class="k">break</span> <span class="mi">2</span>
+
+<span class="k">continue</span>
+<span class="err">不会跳出循环，只是跳过此循环步</span>
+<span class="err">命令是程序在本循体内忽略下面的语句</span><span class="p">,</span><span class="err">从循环头开始执行</span>
+</pre></div>
+
+
+<hr />
+<h2>第五部分 函数</h2>
+<h4>1.函数定义</h4>
+<div class="highlight"><pre><span class="kd">function</span> <span class="nx">func_name</span><span class="p">()</span> <span class="p">{</span>
+
+<span class="p">}</span>
+
+<span class="nx">func_name</span><span class="p">()</span> <span class="p">{</span>
+    <span class="c1">//do some thing</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>注意</p>
+<div class="highlight"><pre><span class="err">函数名，在脚本中必须唯一</span>
+<span class="err">函数必须，先定义，后使用</span>
+</pre></div>
+
+
+<h3>2.参数传递</h3>
+<div class="highlight"><pre><span class="err">#位置参数</span>
+<span class="kd">function</span> <span class="nx">copyfile</span><span class="p">()</span> <span class="p">{</span>
+    <span class="nx">cp</span> <span class="nx">$1</span> <span class="nx">$2</span>
+    <span class="k">return</span> <span class="nx">$</span><span class="o">?</span>
+<span class="p">}</span>
+
+<span class="err">调用</span>
+
+<span class="nx">copyfile</span> <span class="o">/</span><span class="nx">tmp</span><span class="o">/</span><span class="nx">a</span> <span class="o">/</span><span class="nx">tmp</span><span class="o">/</span><span class="nx">b</span>
+<span class="nx">or</span><span class="err">获取返回值</span>
+<span class="nx">result</span><span class="o">=</span><span class="err">`</span><span class="nx">copyfile</span> <span class="o">/</span><span class="nx">tmp</span><span class="o">/</span><span class="nx">a</span> <span class="o">/</span><span class="nx">tmp</span><span class="o">/</span><span class="nx">b</span><span class="err">`</span>
+</pre></div>
+
+
+<h3>3.返回值和退出状态</h3>
+<div class="highlight"><pre><span class="err">#返回值</span>
+<span class="kd">function</span> <span class="nx">func_a</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="mi">1</span>
+<span class="p">}</span>
+
+<span class="nx">result</span><span class="o">=</span><span class="err">`</span><span class="nx">func_a</span><span class="err">`</span>
+<span class="k">if</span> <span class="cp">[</span> <span class="nb">result</span> <span class="o">!=</span> <span class="mi">0</span> <span class="cp">]</span>
+<span class="nx">then</span>
+    <span class="nx">echo</span> <span class="s2">&quot;Error&quot;</span>
+<span class="nx">fi</span>
+
+<span class="err">#退出状态</span>
+<span class="kd">function</span> <span class="nx">func_b</span><span class="p">()</span> <span class="p">{</span>
+    <span class="c1">//do something</span>
+<span class="p">}</span>
+
+<span class="nx">func_b</span>
+<span class="k">if</span> <span class="cp">[</span> <span class="err">$</span><span class="o">?</span> <span class="na">-eq</span> <span class="mi">0</span> <span class="cp">]</span>
+<span class="nx">then</span>
+    <span class="nx">echo</span> <span class="s2">&quot;Success&quot;</span>
+<span class="k">else</span>
+    <span class="nx">echo</span> <span class="s2">&quot;Error&quot;</span>
+<span class="nx">fi</span>
+
+<span class="err">#更简洁</span>
+<span class="k">if</span> <span class="nx">func_b</span><span class="p">;</span> <span class="nx">then</span>
+    <span class="nx">echo</span> <span class="s2">&quot;Success&quot;</span>
+<span class="k">else</span>
+    <span class="nx">echo</span> <span class="s2">&quot;Error&quot;</span>
+<span class="nx">fi</span>
+
+<span class="nx">func_b</span> <span class="o">&amp;&amp;</span> <span class="nx">echo</span> <span class="s2">&quot;Success&quot;</span> <span class="o">||</span> <span class="nx">echo</span> <span class="s2">&quot;Error&quot;</span>
+</pre></div>
+
+
+<h2>第四部分 其他</h2>
+<p>读文件</p>
+<div class="highlight"><pre><span class="k">while</span> <span class="n">read</span> <span class="o">-</span><span class="n">r</span> <span class="n">line</span><span class="p">;</span> <span class="k">do</span>
+    <span class="n">echo</span> <span class="err">$</span><span class="n">line</span>
+<span class="n">done</span> <span class="o">&lt;</span> <span class="n">file</span>
+
+<span class="err">保留首尾字符</span>
+<span class="k">while</span> <span class="n">IFS</span><span class="o">=</span> <span class="n">reaad</span> <span class="o">-</span><span class="n">r</span> <span class="n">line</span><span class="p">;</span> <span class="k">do</span>
+    <span class="n">echo</span> <span class="err">$</span><span class="n">line</span>
+<span class="n">done</span>
+</pre></div>
+
+
+<p>一些内置命令</p>
+<div class="highlight"><pre><span class="o">:</span>
+<span class="err">空命令，类似</span><span class="n">python</span><span class="err">的</span><span class="n">pass</span>
+
+<span class="p">.</span>
+<span class="err">相当于</span><span class="n">source</span>
+
+\
+<span class="err">用于跨行命令</span>
+
+<span class="n">echo</span>
+<span class="err">输出，类似</span><span class="n">println</span>
+
+<span class="n">exec</span>
+
+<span class="n">exit</span> <span class="n">n</span>
+<span class="err">脚本以</span><span class="n">n</span><span class="err">作为退出码退出</span>
+
+<span class="n">export</span>
+<span class="err">设置或显示环境变量</span>
+
+<span class="n">expr</span>
+<span class="err">简单计算</span>
+<span class="n">x</span><span class="o">=</span><span class="err">`</span><span class="n">expr</span> <span class="err">$</span><span class="n">x</span> <span class="o">+</span> <span class="mi">1</span><span class="err">`</span>
+<span class="n">x</span><span class="o">=</span><span class="err">$</span><span class="p">(</span><span class="n">expr</span> <span class="err">$</span><span class="n">x</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
+<span class="n">let</span>
+<span class="n">d</span><span class="o">=</span><span class="mi">111</span>
+<span class="n">let</span> <span class="n">d</span><span class="o">=</span><span class="err">$</span><span class="n">d</span><span class="o">+</span><span class="mi">1</span><span class="p">;</span> <span class="n">echo</span> <span class="err">$</span><span class="n">d</span>
+<span class="mi">112</span>
+
+<span class="n">printf</span>
+<span class="err">格式化输出</span>
+
+<span class="k">return</span>
+<span class="err">函数返回</span>
+
+<span class="n">set</span>
+
+<span class="n">shift</span>
+<span class="err">所有参数变量左移一个位置</span>
+
+<span class="n">unset</span>
+<span class="err">从环境变量中删除变量或函数</span>
+</pre></div>
+
+
+<p>BP:</p>
+<div class="highlight"><pre><span class="err">使用$</span><span class="p">()</span> <span class="err">代替反引号``</span>
+
+<span class="err">$</span><span class="p">(())</span> <span class="err">代替</span><span class="n">expr</span><span class="err">运算符</span>
+</pre></div>
+
+
+<p>bash</p>
+<div class="highlight"><pre><span class="n">GNU</span> <span class="n">Bash</span> <span class="err">主页</span>
+<span class="nl">http:</span><span class="c1">//www.gnu.org/software/bash/</span>
+<span class="n">GNU</span> <span class="n">Bash</span> <span class="err">手册</span>
+<span class="nl">http:</span><span class="c1">//www.gnu.org/software/bash/manual/</span>
+</pre></div>
+
+
+<p>更多的特性</p>
+<div class="highlight"><pre>$((3 + 4))          而不需要 expr 3 + 4
+/usr/{bin,local/bin}  而不需要 /usr/bin /usr/local/bin
+<span class="cp">${</span><span class="nb">str</span><span class="o">/</span><span class="n">src</span><span class="o">/</span><span class="n">dst</span><span class="cp">}</span>       而不需要 echo <span class="nv">$str</span> | sed ”s/<span class="nv">$src</span>/<span class="nv">$dst</span>/”
+</pre></div>
+
+
+<p>更方便的语法</p>
+<div class="highlight"><pre><span class="k">for</span> <span class="p">((</span> <span class="n">expr1</span><span class="p">;</span> <span class="n">expr2</span><span class="p">;</span> <span class="n">expr3</span> <span class="p">));</span> <span class="k">do</span>
+        <span class="n">commands</span>
+<span class="n">done</span>
+<span class="k">for</span> <span class="p">((</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">100</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span> <span class="p">));</span> <span class="k">do</span> <span class="err">…</span> <span class="n">done</span>
+<span class="n">echo</span> <span class="n">a</span><span class="p">{</span><span class="n">b</span><span class="p">,</span><span class="n">c</span><span class="p">,</span><span class="n">d</span><span class="p">}</span><span class="n">e</span>  <span class="o">==&gt;</span> <span class="n">abe</span> <span class="n">ace</span> <span class="n">ade</span>
+</pre></div>
+
+
+<p>表达式求值</p>
+<div class="highlight"><pre><span class="err">$</span><span class="p">[]</span>    <span class="p">[]</span><span class="err">$中间可以加表达式</span>  <span class="n">eg</span><span class="o">:</span> <span class="n">echo</span> <span class="err">$</span><span class="p">[</span><span class="err">$</span><span class="n">a</span><span class="o">+</span><span class="err">$</span><span class="n">b</span><span class="p">]</span>
+<span class="err">$</span><span class="p">(())</span>   <span class="p">(())</span><span class="err">中间可以加表达式。</span><span class="n">Eg</span><span class="err">：</span> <span class="n">total</span><span class="o">=</span><span class="err">$</span><span class="p">((</span><span class="err">$</span><span class="n">a</span><span class="o">*</span><span class="err">$</span><span class="n">b</span><span class="p">))</span>
+</pre></div>
+
+
+<p>正则</p>
+<div class="highlight"><pre><span class="n">bash</span><span class="err">的正则表达式</span>
+<span class="n">str</span><span class="o">=</span><span class="err">&#39;</span><span class="n">hello</span><span class="p">,</span> <span class="n">world</span><span class="err">&#39;</span>
+<span class="k">if</span> <span class="p">[[</span> <span class="err">$</span><span class="n">str</span> <span class="o">=~</span> <span class="err">&#39;\</span><span class="n">s</span><span class="o">+</span><span class="n">world</span><span class="err">$&#39;</span> <span class="p">]];</span> <span class="n">then</span>
+    <span class="n">echo</span> <span class="n">match</span><span class="o">!</span>
+<span class="n">fi</span>
+<span class="k">if</span> <span class="n">echo</span> <span class="s">&quot;$str&quot;</span> <span class="o">|</span> <span class="n">grep</span> <span class="o">-</span><span class="n">E</span> <span class="err">&#39;</span><span class="p">[</span> <span class="p">]</span><span class="o">+</span><span class="n">world</span><span class="err">$&#39;</span><span class="p">;</span> <span class="n">then</span>
+    <span class="n">echo</span> <span class="n">match</span><span class="o">!</span>
+<span class="n">fi</span>
+</pre></div>
+
+
+<p>获取软连接指向的真实文件名</p>
+<div class="highlight"><pre><span class="cp">#注:有些系统没有这个命令</span>
+<span class="n">readlink</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">bin</span><span class="o">/</span><span class="n">python</span>
+</pre></div>
+
+
+<p>增加debug</p>
+<div class="highlight"><pre><span class="kd">function</span> <span class="nx">debug</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="cp">[</span><span class="err">[</span> <span class="nv">$DEBUG</span> <span class="cp">]</span><span class="p">]</span>
+    <span class="nx">then</span>
+        <span class="nx">echo</span> <span class="s2">&quot;&gt;&gt;&gt; $*&quot;</span>
+    <span class="nx">fi</span>
+<span class="p">}</span>
+
+<span class="err">#</span> <span class="nx">For</span> <span class="nx">any</span> <span class="nx">debug</span> <span class="nx">message</span>
+<span class="nx">debug</span> <span class="s2">&quot;Trying to find config file&quot;</span>
+
+<span class="err">还有来自于一些很酷的</span><span class="nx">Geeks</span><span class="err">的单行</span><span class="nx">debug</span><span class="err">函数：</span>
+
+<span class="kd">function</span> <span class="nx">debug</span><span class="p">()</span> <span class="p">{</span> <span class="p">((</span><span class="nx">DEBUG</span><span class="p">))</span> <span class="o">&amp;&amp;</span> <span class="nx">echo</span> <span class="s2">&quot;&gt;&gt;&gt; $*&quot;</span><span class="p">;</span> <span class="p">}</span>
+<span class="kd">function</span> <span class="nx">debug</span><span class="p">()</span> <span class="p">{</span> <span class="cp">[</span> <span class="s2">&quot;$DEBUG&quot;</span> <span class="cp">]</span> <span class="o">&amp;&amp;</span> <span class="nx">echo</span> <span class="s2">&quot;&gt;&gt;&gt; $*&quot;</span><span class="p">;</span> <span class="p">}</span>
+</pre></div>
+
+
+<hr />
+        </div><!-- /.entry-content -->
+        <div class="comments">
+            如果文章对你有帮助，欢迎对wklken进行无负担小额赞助 <a href="https://me.alipay.com/wklken" target="_blank"> 支付宝 </a> <br>
+            版权声明：自由转载-非商用-非衍生-保持署名 | <a href="http://creativecommons.org/licenses/by-nc-nd/3.0/deed.zh" target="_blank" >Creative Commons BY-NC-ND 3.0</a>
+        <h2>Comments !</h2>
+            <div id="disqus_thread"></div>
+            <script type="text/javascript">
+               var disqus_identifier = "posts/2013/01/12/shell-script-base.html";
+               (function() {
+               var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+               dsq.src = 'http://wklken.disqus.com/embed.js';
+               (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+              })();
+            </script>
+        </div>
+
+        </article>
+</div>
+
+
+</div>
+</section>
+<script type="text/javascript">
+    var disqus_shortname = 'wklken';
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = 'http://' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+
+
+<!-- JiaThis Button BEGIN -->
+<script type="text/javascript" >
+var jiathis_config={
+    siteNum:15,
+    sm:"fav,copy,ishare,tsina,googleplus,fb,twitter,evernote,ydnote,sdonote,xianguo,digg,qingbiji,weixin",
+    summary:"",
+    boldNum:3,
+    showClose:false,
+    hideMore:true
+}
+</script>
+<script type="text/javascript" src="http://v3.jiathis.com/code_mini/jiathis_r.js?btn=r2.gif&move=0" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+<a href="#top" id="toTop" style="display: inline;"></a>
+
+
+
+        <section id="extras" class="body">
+        </section><!-- /#extras -->
+
+		<footer id="footer">
+		<p class="copyright">
+                <address id="about" class="vcard body">
+                    Powered by <a href="http://alexis.notmyidea.org/pelican/">pelican</a>. Theme by <a href="https://github.com/daker">Adnane Belmadiaf</a> and modify by <a href="https://github.com/wklken">wklken</a> Social Icons by <a href="http://fortawesome.github.io/Font-Awesome/">Font-Awesome</a>.
+
+                    <span xmlns:dct="http://purl.org/dc/terms/" href="http://purl.org/dc/dcmitype/Text" property="dct:title" rel="dct:type">Theme licensed under <a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a>.
+             </address><!-- /#about -->
+
+			 </p>
+        </footer><!-- /#contentinfo -->
+
+    <script type="text/javascript">
+    var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+    document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+    </script>
+    <script type="text/javascript">
+    try {
+        var pageTracker = _gat._getTracker("UA-42275748-1");
+    pageTracker._trackPageview();
+    } catch(err) {}</script>
+
+
+</body>
+</html>
