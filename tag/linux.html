@@ -78,61 +78,68 @@
 
             <article>
 <aside class="sidebar">
-<h3 class="published" title="2013-11-23T00:00:00">
-               2013年11月23日
+<h3 class="published" title="2014-01-12T00:00:00">
+               2014年01月12日
 </h3>
 
 <p>
 <div class="tag">
-    分类: <a href="/category/nginx.html">nginx</a>
+    分类: <a href="/category/linux.html">linux</a>
 
     </div>
 
 
 <div class="tag">
-    标签: <a href="http://wklken.me/tag/linux.html">linux</a><a href="http://wklken.me/tag/nginx.html">nginx</a>
+    标签: <a href="http://wklken.me/tag/linux.html">linux</a>
    </div>
 
 
 </p>
 
-</aside><!-- /.post-info -->                    <h1 class="blog-title"><a href="http://wklken.me/posts/2013/11/23/nginx-base.html">Nginx基础笔记</a></h1>
-                        <p>nginx小结</p>
-<h3>资源</h3>
-<blockquote>
+</aside><!-- /.post-info -->                    <h1 class="blog-title"><a href="http://wklken.me/posts/2014/01/12/shell-script-base.html">如何书写shell脚本</a></h1>
+                        <p>关于Linux基础命令，可以查看另一篇博文 <a href="http://wklken.me/posts/2013/07/04/note-of-linux-shell-scripting-cookbook.html">Linux Shell脚本攻略笔记</a></p>
+<p>以下内容，主要是，了解书写shell脚本所需要的大部分知识,主要内容来自于书籍和网络</p>
+<p>目的是，能快速书写出需要的shell脚本</p>
+<p>开始</p>
+<p>version 0.1 2014-01-12 基本内容, 完成度30%</p>
+<hr />
 <p>资源</p>
-</blockquote>
-<p>Nginx <a href="http://nginx.org/">官网</a></p>
-<p>Nginx <a href="http://nginx.org/en/download.html">官方下载地址</a></p>
-<p>Nginx最佳实践配置项目 <a href="https://github.com/Umkus/nginx-boilerplate">地址</a></p>
-<blockquote>
-<p>教程</p>
-</blockquote>
-<p>agentzh的Nginx教程 <a href="http://openresty.org/download/agentzh-nginx-tutorials-zhcn.html">链接</a></p>
-<p>Nginx开发从入门到精通 <a href="http://tengine.taobao.org/book/index.html">入口</a></p>
-<blockquote>
-<p>文章</p>
-</blockquote>
-<p>Nginx战斗准备-优化指南 <a href="http://www.oschina.net/translate/nginx-setup">入口</a></p>
-<p>Nginx模块开发入门 <a href="http://blog.codinglabs.org/articles/intro-of-nginx-module-development.html">入口</a></p>
-<p>解析Nginx负载均衡 <a href="http://stblog.baidu-tech.com/?p=2027">入口</a></p>
-<p>Nginx Rewrite研究笔记 <a href="http://blog.cafeneko.info/2010/10/nginx_rewrite_note/">入口</a></p>
-<h2>安装</h2>
-<h3>ubuntu下</h3>
-<div class="highlight"><pre><span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="n">nginx</span>
+<p><a href="http://wklken.me/posts/2013/07/04/note-of-linux-shell-scripting-cookbook.html">Linux Shell脚本攻略笔记</a></p>
+<hr />
+<h2>第一部分 一些概念</h2>
+<p>标准IO</p>
+<div class="highlight"><pre><span class="err">文件描述符</span>
+<span class="mi">0</span> <span class="err">标准输入</span> <span class="err">默认键盘</span>
+<span class="mi">1</span> <span class="err">标准输出</span> <span class="err">默认终端</span>
+<span class="mi">2</span> <span class="err">标准错误</span> <span class="err">默认终端</span>
+</pre></div>
 
-<span class="err">启动</span>
-<span class="n">sudo</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">init</span><span class="p">.</span><span class="n">d</span><span class="o">/</span><span class="n">nginx</span> <span class="n">start</span>       <span class="err">#通过</span><span class="n">init</span><span class="p">.</span><span class="n">d</span><span class="err">下的启动文件启动。</span>
-<span class="n">sudo</span> <span class="n">service</span> <span class="n">nginx</span> <span class="n">start</span><span class="err">#通过</span><span class="n">ubuntu</span><span class="err">的服务管理器启动</span>
 
-<span class="err">配置文件位置 ...</span></pre></div>
+<p>重定向</p>
+<div class="highlight"><pre><span class="o">&gt;</span> <span class="err">输出重定向</span>
+<span class="o">&gt;&gt;</span> <span class="err">追加到输出重定向</span>
+<span class="o">&lt;</span> <span class="err">输入重定向</span>
+<span class="o">&lt;&lt;</span> <span class="err">追加到输入重定向</span>
 
-<p><a href="http://wklken.me/posts/2013/11/23/nginx-base.html#disqus_thread">评论</a></p>
+<span class="n">ls</span> <span class="o">-</span><span class="n">l</span> <span class="o">&gt;</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">a</span>
+
+<span class="n">cmd</span> <span class="o">&gt;/</span><span class="n">dev</span><span class="o">/</span><span class="n">null</span> <span class="mi">2</span><span class="o">&gt;&amp;</span><span class="mi">1</span> <span class="err">#输出到垃圾桶</span>
+</pre></div>
+
+
+<p>管道</p>
+<div class="highlight"><pre><span class="err">前后连接两个命令 ...</span></pre></div>
+
+<p><a href="http://wklken.me/posts/2014/01/12/shell-script-base.html#disqus_thread">评论</a></p>
                 </article>
                 <section id="content" class="body">
                     <h1>其他文章</h1>
                     <hr />
                         <ol id="posts-list" class="hfeed">
+
+			<li align="left">
+                        <h1 class="blog-title"><a href="http://wklken.me/posts/2013/11/23/nginx-base.html" rel="bookmark" title="Permalink to Nginx基础笔记">Nginx基础笔记</a></h1>
+		    </li>
 
 			<li align="left">
                         <h1 class="blog-title"><a href="http://wklken.me/posts/2013/08/11/mysql-base.html" rel="bookmark" title="Permalink to Mysql基础笔记">Mysql基础笔记</a></h1>
@@ -152,10 +159,6 @@
 
 			<li align="left">
                         <h1 class="blog-title"><a href="http://wklken.me/posts/2013/05/17/shell-cheat-sheet.html" rel="bookmark" title="Permalink to shell下小抄速查工具cmdcheatsheet[python实现]">shell下小抄速查工具cmdcheatsheet[python实现]</a></h1>
-		    </li>
-
-			<li align="left">
-                        <h1 class="blog-title"><a href="http://wklken.me/posts/2013/01/12/shell-script-base.html" rel="bookmark" title="Permalink to 如何书写shell脚本">如何书写shell脚本</a></h1>
 		    </li>
 <p class="paginator">
     Page 1 / 1
