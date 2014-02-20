@@ -143,6 +143,15 @@
 </pre></div>
 
 
+<p>shell脚本识别三种基本命令：内建命令，shell函数和外部命令</p>
+<p>基本的命令查找:shell会沿着查找路径$PATH来寻找命令</p>
+<div class="highlight"><pre><span class="n">echo</span> <span class="err">$</span><span class="n">PATH</span>
+
+<span class="err">可以在</span><span class="p">.</span><span class="n">profile</span><span class="err">文件中修改</span>
+<span class="n">export</span> <span class="n">PATH</span><span class="o">=</span><span class="err">$</span><span class="n">PATH</span><span class="o">:</span><span class="err">$</span><span class="n">HOME</span><span class="o">/</span><span class="n">bin</span>
+</pre></div>
+
+
 <p>and/or</p>
 <div class="highlight"><pre><span class="n">expression1</span> <span class="o">&amp;&amp;</span> <span class="n">expression2</span> <span class="o">&amp;&amp;</span> <span class="n">expression3</span>
 <span class="err">只有前面一条命令执行成功，才执行下一条</span>
@@ -156,7 +165,7 @@
 
 <hr />
 <h2>第二部分 shell脚本</h2>
-<p>首行声明使用bash</p>
+<p>首行声明使用bash(声明脚本执行解释器)</p>
 <table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
 2
 3
@@ -202,11 +211,14 @@
 
 
 <p>判断执行结果</p>
-<div class="highlight"><pre><span class="n">N</span><span class="o">=</span><span class="err">$</span><span class="o">?</span>
+<div class="highlight"><pre><span class="n">N</span><span class="o">=</span><span class="err">$</span><span class="o">?</span>  <span class="err">#</span><span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">N</span> <span class="o">&lt;=</span> <span class="mi">255</span>
 
-<span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">N</span> <span class="o">&lt;=</span> <span class="mi">255</span>
 <span class="mi">0</span> <span class="err">无错误，正常执行结束</span>
 <span class="err">非</span><span class="mi">0</span> <span class="err">异常</span>
+    <span class="mi">1</span><span class="o">-</span><span class="mi">125</span><span class="err">命令不成功退出</span>
+    <span class="mi">126</span><span class="err">命令成功，但文件无法执行</span>
+    <span class="mi">127</span><span class="err">命令找不到</span>
+    <span class="o">&gt;</span><span class="mi">128</span><span class="err">命令因收到信号而死亡</span>
 </pre></div>
 
 
@@ -245,9 +257,10 @@
 <span class="err">*/</span><span class="n">n</span>  <span class="err">每隔</span><span class="n">n</span><span class="err">单位</span>
 <span class="n">n1</span><span class="o">-</span><span class="n">n2</span>   <span class="err">时段，一个时段内</span>
 
-<span class="mi">0</span> <span class="err">*/</span><span class="mi">2</span> <span class="o">*</span> <span class="o">*</span> <span class="o">*</span> <span class="n">sh</span> <span class="o">-</span><span class="n">x</span> <span class="n">run</span><span class="p">.</span><span class="n">sh</span>     <span class="err">每隔两小时</span>
-<span class="mi">20</span> <span class="mi">7</span> <span class="o">*</span> <span class="o">*</span> <span class="o">*</span> <span class="n">sh</span> <span class="o">-</span><span class="n">x</span> <span class="n">run</span><span class="p">.</span><span class="n">sh</span> <span class="err">每天</span><span class="mi">7</span><span class="o">:</span><span class="mi">20</span>
-<span class="mi">0</span> <span class="mi">1</span><span class="p">,</span><span class="mi">5</span> <span class="o">*</span> <span class="o">*</span> <span class="o">*</span> <span class="n">sh</span> <span class="o">-</span><span class="n">x</span> <span class="n">run</span><span class="p">.</span><span class="n">sh</span> <span class="err">每天</span><span class="mi">1</span><span class="err">点和</span><span class="mi">5</span><span class="err">点</span>
+<span class="mi">0</span> <span class="err">*/</span><span class="mi">2</span> <span class="o">*</span> <span class="o">*</span> <span class="o">*</span> <span class="n">sh</span> <span class="n">run</span><span class="p">.</span><span class="n">sh</span>     <span class="err">每隔两小时</span>
+<span class="mi">20</span> <span class="mi">7</span> <span class="o">*</span> <span class="o">*</span> <span class="o">*</span> <span class="n">sh</span> <span class="n">run</span><span class="p">.</span><span class="n">sh</span> <span class="err">每天</span><span class="mi">7</span><span class="o">:</span><span class="mi">20</span>
+<span class="mi">0</span> <span class="mi">1</span><span class="p">,</span><span class="mi">5</span> <span class="o">*</span> <span class="o">*</span> <span class="o">*</span> <span class="n">sh</span> <span class="n">run</span><span class="p">.</span><span class="n">sh</span> <span class="err">每天</span><span class="mi">1</span><span class="err">点和</span><span class="mi">5</span><span class="err">点</span>
+<span class="o">*</span> <span class="o">*</span> <span class="o">*</span> <span class="o">*</span> <span class="o">*</span> <span class="n">sh</span> <span class="n">run</span><span class="p">.</span><span class="n">sh</span> <span class="err">每分钟执行一次</span>
 </pre></div>
 
 
@@ -278,7 +291,14 @@
 <span class="n">or</span>
 <span class="n">export</span> <span class="n">MYVAR</span><span class="o">=</span><span class="s">&quot;test&quot;</span>
 
+<span class="err">只读</span>
+<span class="n">MYVAR</span><span class="o">=</span><span class="s">&quot;test&quot;</span>
+<span class="n">readonly</span> <span class="n">MYVAR</span>
+<span class="n">or</span>
+<span class="n">readonly</span> <span class="n">MYVAR</span><span class="o">=</span><span class="s">&quot;test&quot;</span>
+
 <span class="err">显示</span>
+<span class="n">export</span> <span class="o">-</span><span class="n">p</span>
 <span class="n">env</span> <span class="err">#查看所有环境变量</span>
 <span class="err">$</span><span class="n">MYVAR</span> <span class="err">#获取</span>
 
@@ -412,6 +432,9 @@ echo <span class="cp">${</span><span class="nb">str</span><span class="o">//</sp
 <span class="o">!</span>  <span class="err">非</span>
 <span class="o">&amp;&amp;</span>
 <span class="o">||</span>
+
+<span class="k">if</span> <span class="p">[</span> <span class="o">-</span><span class="n">n</span> <span class="s">&quot;$str&quot;</span> <span class="o">-</span><span class="n">a</span> <span class="o">-</span><span class="n">f</span> <span class="s">&quot;$file&quot;</span> <span class="p">]</span>
+<span class="k">if</span> <span class="p">[</span> <span class="o">-</span><span class="n">n</span> <span class="s">&quot;$str&quot;</span> <span class="p">]</span> <span class="o">&amp;&amp;</span> <span class="p">[</span> <span class="o">-</span><span class="n">f</span> <span class="s">&quot;$file&quot;</span> <span class="p">]</span>
 </pre></div>
 
 
@@ -615,6 +638,16 @@ echo <span class="cp">${</span><span class="nb">str</span><span class="o">//</sp
 </pre></div>
 
 
+<p>return</p>
+<div class="highlight"><pre><span class="kd">function</span> <span class="nx">equal</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="mi">1</span>
+<span class="p">}</span>
+
+<span class="nx">equal</span>
+<span class="nx">echo</span> <span class="nx">$</span><span class="o">?</span> <span class="err">#</span><span class="nx">got</span> <span class="mi">1</span>
+</pre></div>
+
+
 <h3>2.参数传递</h3>
 <div class="highlight"><pre><span class="err">#位置参数</span>
 <span class="kd">function</span> <span class="nx">copyfile</span><span class="p">()</span> <span class="p">{</span>
@@ -627,6 +660,14 @@ echo <span class="cp">${</span><span class="nb">str</span><span class="o">//</sp
 <span class="nx">copyfile</span> <span class="o">/</span><span class="nx">tmp</span><span class="o">/</span><span class="nx">a</span> <span class="o">/</span><span class="nx">tmp</span><span class="o">/</span><span class="nx">b</span>
 <span class="nx">or</span><span class="err">获取返回值</span>
 <span class="nx">result</span><span class="o">=</span><span class="err">`</span><span class="nx">copyfile</span> <span class="o">/</span><span class="nx">tmp</span><span class="o">/</span><span class="nx">a</span> <span class="o">/</span><span class="nx">tmp</span><span class="o">/</span><span class="nx">b</span><span class="err">`</span>
+</pre></div>
+
+
+<p>位置参数</p>
+<div class="highlight"><pre>$1 - $9，当参数超过10个时，需要使用<span class="cp">${</span><span class="mi">10</span><span class="cp">}</span>
+$# 参数个数
+$* 将所有参数视为一个字符串=&quot;$1 $2 ...&quot;
+$@ 将所有参数视为个体=&quot;$1&quot; &quot;$2&quot; &quot;$3&quot;
 </pre></div>
 
 
@@ -666,7 +707,23 @@ echo <span class="cp">${</span><span class="nb">str</span><span class="o">//</sp
 </pre></div>
 
 
-<h2>第四部分 其他</h2>
+<h2>第四部分 高级</h2>
+<p>bash中参数展开-展开运算符</p>
+<div class="highlight"><pre><span class="err">$</span><span class="p">{</span><span class="nn">varname</span><span class="p">:</span><span class="o">-</span><span class="s-Atom">word</span><span class="p">}</span> <span class="s-Atom">如果变量未定义，返回默认值</span><span class="p">.</span>  <span class="err">$</span><span class="p">{</span><span class="nn">noexist</span><span class="p">:</span><span class="o">-</span><span class="m">0</span><span class="p">}</span><span class="s-Atom">返回0</span>
+<span class="err">$</span><span class="p">{</span><span class="nn">varname</span><span class="p">:</span><span class="o">=</span><span class="s-Atom">word</span><span class="p">}</span> <span class="s-Atom">如果变量未定义，设置变量为默认值</span>  <span class="err">$</span><span class="p">{</span><span class="nn">noexists</span><span class="p">:</span><span class="o">=</span><span class="m">0</span><span class="p">};</span> <span class="s-Atom">echo</span> <span class="err">$</span><span class="p">{</span><span class="s-Atom">noexists</span><span class="p">};</span> <span class="s-Atom">得到0</span>
+
+<span class="err">$</span><span class="p">{</span><span class="nn">varname</span><span class="p">:</span><span class="s-Atom">?message</span><span class="p">}</span> <span class="s-Atom">若未定义，显示varname:message并退出当前的命令或脚本</span>
+<span class="err">$</span><span class="p">{</span><span class="nn">varname</span><span class="p">:</span><span class="o">+</span><span class="s-Atom">word</span><span class="p">}</span> <span class="s-Atom">若存在且非null，返回word，否则返回null</span>
+</pre></div>
+
+
+<p>模式匹配</p>
+<div class="highlight"><pre><span class="cp">${</span><span class="n">variable</span><span class="c">##pattern</span><span class="cp">}</span>
+<span class="cp">${</span><span class="n">variable</span><span class="o">%</span><span class="n">pattern</span><span class="cp">}</span>
+</pre></div>
+
+
+<h2>第五部分 其他</h2>
 <p>读文件</p>
 <div class="highlight"><pre><span class="k">while</span> <span class="n">read</span> <span class="o">-</span><span class="n">r</span> <span class="n">line</span><span class="p">;</span> <span class="k">do</span>
     <span class="n">echo</span> <span class="err">$</span><span class="n">line</span>
@@ -728,7 +785,6 @@ echo <span class="cp">${</span><span class="nb">str</span><span class="o">//</sp
 
 <p>BP:</p>
 <div class="highlight"><pre><span class="err">使用$</span><span class="p">()</span> <span class="err">代替反引号``</span>
-
 <span class="err">$</span><span class="p">(())</span> <span class="err">代替</span><span class="n">expr</span><span class="err">运算符</span>
 </pre></div>
 
@@ -742,7 +798,7 @@ echo <span class="cp">${</span><span class="nb">str</span><span class="o">//</sp
 
 
 <p>更多的特性</p>
-<div class="highlight"><pre>$((3 + 4))          而不需要 expr 3 + 4
+<div class="highlight"><pre>$((3 + 4))          而不需要 expr 3 + 4, 算术展开
 /usr/{bin,local/bin}  而不需要 /usr/bin /usr/local/bin
 <span class="cp">${</span><span class="nb">str</span><span class="o">/</span><span class="n">src</span><span class="o">/</span><span class="n">dst</span><span class="cp">}</span>       而不需要 echo <span class="nv">$str</span> | sed ”s/<span class="nv">$src</span>/<span class="nv">$dst</span>/”
 </pre></div>
