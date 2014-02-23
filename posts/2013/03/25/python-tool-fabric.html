@@ -99,11 +99,12 @@
 
         <div class="entry-content">
         <h2>fabric</h2>
-<p>title是开发，但是同时要干开发测试还有运维的活……为毛 task*3 不是 salary * 3 (o(╯□╰)o)</p>
+<p>title是开发，但是同时要干开发测试还有运维的活 (o(╯□╰)o)</p>
 <p>近期接手越来越多的东西，发布和运维的工作相当机械，加上频率还蛮高，导致时间浪费还是优点多。</p>
 <p>修复bug什么的，测试，提交版本库(2分钟)，ssh到测试环境pull部署（2分钟），rsync到线上机器A,B,C,D,E（1分钟），分别ssh到ABCDE五台机器，逐一重启(8-10分钟) =  13-15分钟</p>
 <p>其中郁闷的是，每次操作都是相同的，命令一样，要命的是在多个机器上，很难在本机一个脚本搞定，主要时间都浪费在ssh，敲命令上了，写成脚本，完全可以一键执行，花两分钟看下执行结果</p>
 <p>直到，发现了fabric这货</p>
+<p>官方文档 <a href="http://fabric.readthedocs.org/">入口</a></p>
 <h3>作用</h3>
 <p>很强大的工具</p>
 <p>可以将自动化部署或者多机操作的命令固化到一个脚本里</p>
@@ -116,14 +117,14 @@
 </pre></div>
 
 
-<p>目前是1.6版本（或者用pip install，一样的）</p>
+<p>目前是1.8版本</p>
 <p>安装完后，可以查看是否安装成功</p>
 <div class="highlight"><pre><span class="p">[</span><span class="n">ken</span><span class="err">@</span><span class="o">~</span><span class="err">$</span><span class="p">]</span> <span class="n">which</span> <span class="n">fab</span>
 <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">local</span><span class="o">/</span><span class="n">bin</span><span class="o">/</span><span class="n">fab</span>
 </pre></div>
 
 
-<p>装完之后，可以浏览下<a href="http://docs.fabfile.org/en/1.6/">官方文档</a></p>
+<p>装完之后，可以浏览下<a href="http://docs.fabfile.org/en/1.8/">官方文档</a></p>
 <p>然后，可以动手了</p>
 <h3>hello world</h3>
 <p>先进行本机简单操作，有一个初步认识，例子来源与官网</p>
@@ -373,11 +374,11 @@
 <p>3.密码管理</p>
 <p>看<a href="http://docs.fabfile.org/en/1.6/usage/execution.html#password-management">文档</a></p>
 <p>更好的密码管理方式，哥比较土，没打通，主要是服务器列表变化频繁，我的处理方式是：</p>
-<p>1.host,user,port,password配置列表，所有的都写在一个文件</p>
+<p>3.1 host,user,port,password配置列表，所有的都写在一个文件</p>
 <p>或者直接搞到脚本里，当然这个更........</p>
 <div class="highlight"><pre><span class="n">env</span><span class="o">.</span><span class="n">hosts</span> <span class="o">=</span> <span class="p">[</span>
-<span class="s">&#39;host1&#39;</span><span class="p">,</span>
-<span class="s">&#39;host2&#39;</span>
+        <span class="s">&#39;host1&#39;</span><span class="p">,</span>
+        <span class="s">&#39;host2&#39;</span>
 <span class="p">]</span>
 <span class="n">env</span><span class="o">.</span><span class="n">passwords</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s">&#39;host1&#39;</span><span class="p">:</span> <span class="s">&quot;pwdofhost1&quot;</span><span class="p">,</span>
@@ -397,9 +398,29 @@
 </pre></div>
 
 
-<p>2.根据key解析成map嵌套，放到deploy中</p>
+<p>3.2 根据key解析成map嵌套，放到deploy中</p>
 <p>另外命令其实也可以固化成一个cmds列表的…..</p>
-<p>初略就用到这些，后续有更多需求的时候再去捞文档了，话说文档里好东西真多，就是太多了，看了晕。。。</p>
+<p>粗略就用到这些，后续有更多需求的时候再去捞文档了，话说文档里好东西真多，就是太多了，看了晕。。。</p>
+<p>TODO:</p>
+<div class="highlight"><pre><span class="err">装饰器作用？</span>
+<span class="err">@</span><span class="n">task</span>
+<span class="err">@</span><span class="n">parallel</span>
+
+<span class="err">命令行常用：</span> <span class="n">fab</span> <span class="o">--</span><span class="n">help</span>
+<span class="n">fab</span> <span class="o">-</span><span class="n">l</span>             <span class="o">--</span> <span class="err">显示可用的</span><span class="n">task</span><span class="err">（命令）</span>
+<span class="n">fab</span> <span class="o">-</span><span class="n">H</span>             <span class="o">--</span> <span class="err">指定</span><span class="n">host</span><span class="err">，支持多</span><span class="n">host</span><span class="err">逗号分开</span>
+<span class="n">fab</span> <span class="o">-</span><span class="n">R</span>             <span class="o">--</span> <span class="err">指定</span><span class="n">role</span><span class="err">，支持多个</span>
+<span class="n">fab</span> <span class="o">-</span><span class="n">P</span>             <span class="o">--</span> <span class="err">并发数，默认是串行</span>
+<span class="n">fab</span> <span class="o">-</span><span class="n">w</span>             <span class="o">--</span> <span class="n">warn_only</span><span class="err">，默认是碰到异常直接</span><span class="n">abort</span><span class="err">退出</span>
+<span class="n">fab</span> <span class="o">-</span><span class="n">f</span>             <span class="o">--</span> <span class="err">指定入口文件，</span><span class="n">fab</span><span class="err">默认入口文件是：</span><span class="n">fabfile</span><span class="o">/</span><span class="n">fabfile</span><span class="p">.</span><span class="n">py</span>
+
+<span class="err">状态确认及错误处理</span>
+
+<span class="err">更复杂的操作</span>
+</pre></div>
+
+
+<hr />
 <p>The end!</p>
 <p>To be continue….</p>
 <p>wklken</p>
