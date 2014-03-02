@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <title>Golang笔记-03-控制流</title>
+        <meta charset="utf-8" />
+     <meta name="description" content="">
+    <meta name="keywords" content="" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+        <link rel="shortcut icon" href="/favicon.ico"/>
+        <link rel="stylesheet" href="http://wklken.me/theme/css/style.css" media="all" />
+        <link rel="stylesheet" href="http://wklken.me/theme/css/pygment.css" media="all" />
+        <link rel="stylesheet" href="http://wklken.me/theme/css/mobile.css" media="all" />
+        <link href="http://fonts.googleapis.com/css?family=Open+Sans:400italic,700italic,300italic,600italic,400,600,700,800' rel='stylesheet' type='text/css">
+
+        <link rel="stylesheet" href="http://wklken.me/theme/css/font-awesome.min.css">
+        <!--[if IE 7]>
+            <link rel="stylesheet" href="http://wklken.me/theme/css/font-awesome-ie7.min.css">
+        <![endif]-->
+
+        <link href="http://wklken.me/" type="application/atom+xml" rel="alternate" title="wklken's blog ATOM Feed" />
+        <link href="http://wklken.me/feed.xml" type="application/atom+xml" rel="alternate" title="wklken's blog RSS Feed" />
+
+        <!--[if IE]>
+                <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+        <!--[if lte IE 7]>
+                <link rel="stylesheet" type="text/css" media="all" href="http://wklken.me/css/ie.css"/>
+                <script src="http://wklken.me/js/IE8.js" type="text/javascript"></script><![endif]-->
+
+        <!--[if lt IE 7]>
+                <link rel="stylesheet" type="text/css" media="all" href="http://wklken.me/css/ie6.css"/><![endif]-->
+        <script src="http://upcdn.b0.upaiyun.com/libs/jquery/jquery-1.9.1.min.js"></script>
+        <script src="http://wklken.me/theme/js/jquery.scrollToTop.js"></script>
+        <script type="text/javascript">
+            $(function() {
+                $("#toTop").scrollToTop(1000);
+            });
+        </script>
+
+</head>
+
+<body id="index" class="home">
+  <header id="header">
+     <div class="constraint">
+
+       <div class="o"> 
+   <a href="/"><h1>Wklken <span class="red"> Python</span></h1></a>
+
+    <div class="social">
+                <a href="https://github.com/wklken" target='_blank'><i class="icon-github-sign icon-2x"></i></a>
+                <a href="http://weibo.com/wklken" target='_blank'><i class="icon-weibo icon-2x"></i></a>
+                <a href="mailto:wklken@yeah.net"><i class="icon-envelope icon-2x"></i></a>
+                <a href="/feed.xml" target='_blank'><i class="icon-rss-sign icon-2x"></i></a>
+    </div>
+
+		<div class="nav">
+                    <a href="/">首页</a>
+                    <a href="/categories.html">分类</a>
+                    <a href="/archives.html">归档</a>
+                    <a href="/pages/projects.html">项目</a>
+                    <a href="/pages/tools.html">工具</a>
+                    <a href="/pages/books.html">书单</a>
+                    <a href="/pages/aboutme.html">关于</a>
+
+           </div>
+         </div>
+         </div>
+         </header><!-- /#banner -->
+
+<section class="content blog">
+<div class="constraint">
+<div class="posts">
+<article>
+<aside class="sidebar">
+<h3 class="published" title="2014-03-02T03:00:00">
+               2014年03月02日
+</h3>
+
+<p>
+<div class="tag">
+    分类: <a href="/category/golang-notes.html">golang-notes</a>
+
+    </div>
+
+
+<div class="tag">
+    标签: <a href="http://wklken.me/tag/golang.html">golang</a>
+   </div>
+
+
+</p>
+
+</aside><!-- /.post-info -->        <header> <h1 class="blog-title"><a href=""
+        rel="bookmark" title="Permalink to Golang笔记-03-控制流">Golang笔记-03-控制流</a></h1> 
+        </header>
+
+
+        <div class="entry-content">
+        <p>控制结构分为： 条件+选择+循环</p>
+<h3>IF</h3>
+<p>1.说明</p>
+<div class="highlight"><pre><span class="err">条件表达式没有括号</span>
+<span class="err">支持一个初始化表达式（可以是多变量初始化语句）</span>
+<span class="err">初始化语句中定义的都是只能在</span><span class="n">block</span><span class="err">级别中使用的局部变量，不能在</span><span class="n">block</span><span class="err">之外使用</span>
+<span class="err">左大括号必须和条件语句在同一行</span><span class="p">(</span><span class="err">必须与</span><span class="k">if</span><span class="o">/</span><span class="k">else</span><span class="err">在同一行</span><span class="p">)</span>
+<span class="n">go</span><span class="err">没有三元运算符</span>
+
+<span class="k">if</span><span class="err">判断语句条件不需要括号</span>
+<span class="err">在判断语句里卖弄允许声明一个变量，其作用域只在逻辑块内，其他地方不起作用</span>
+<span class="err">花括号一定存在，且必须与</span><span class="k">if</span><span class="o">/</span><span class="k">else</span><span class="err">在同一行</span>
+</pre></div>
+
+
+<p>2.语法</p>
+<div class="highlight"><pre><span class="c1">//基本</span>
+<span class="k">if</span> <span class="n">a</span> <span class="o">&gt;</span> <span class="mh">0</span> <span class="p">{</span>  <span class="c1">//无括号</span>
+     <span class="n">dosomething</span><span class="p">()</span>
+<span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="n">a</span> <span class="o">==</span> <span class="mh">0</span> <span class="p">{</span> <span class="c1">//必须用花括号</span>
+     <span class="n">doothertings</span><span class="p">()</span>
+<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+     <span class="n">donothing</span><span class="p">()</span>
+<span class="p">}</span>
+
+<span class="c1">//单行模式</span>
+<span class="k">if</span> <span class="n">a</span> <span class="o">&gt;</span> <span class="mh">0</span> <span class="p">{</span> <span class="n">a</span> <span class="o">+=</span> <span class="mh">100</span> <span class="p">}</span> <span class="k">else</span> <span class="p">{</span> <span class="n">a</span> <span class="o">-=</span> <span class="mh">100</span> <span class="p">}</span>
+</pre></div>
+
+
+<p>3.示例</p>
+<div class="highlight"><pre><span class="n">package</span> <span class="n">main</span>
+
+<span class="n">func</span> <span class="nf">main</span><span class="p">(){</span>
+    <span class="n">a</span> <span class="o">:=</span> <span class="mi">10</span>
+
+    <span class="k">if</span> <span class="n">a</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="p">{</span>
+        <span class="n">a</span> <span class="o">+=</span> <span class="mi">100</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="n">a</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">{</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="n">a</span> <span class="o">-=</span> <span class="mi">100</span>
+    <span class="p">}</span>
+    <span class="n">println</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+
+    <span class="n">b</span> <span class="o">:=</span> <span class="mi">101</span>
+    <span class="k">if</span> <span class="n">b</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="p">{</span> <span class="n">b</span> <span class="o">+=</span> <span class="mi">100</span> <span class="p">}</span> <span class="k">else</span> <span class="p">{</span> <span class="n">b</span> <span class="o">-=</span> <span class="mi">100</span> <span class="p">}</span>
+    <span class="n">println</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="c1">//支持一个初始化语句</span>
+<span class="k">if</span> <span class="n">a</span><span class="o">:=</span><span class="mi">1</span><span class="p">;</span> <span class="n">a</span><span class="o">&lt;</span><span class="mi">10</span> <span class="p">{</span> <span class="c1">//允许在条件之前执行一个简单语句，由此语句定义的变量作用域仅在if/else范围内</span>
+    <span class="k">return</span> <span class="n">a</span>
+<span class="p">}</span>
+<span class="k">if</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">:=</span> <span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">;</span> <span class="n">a</span><span class="o">+</span><span class="n">b</span> <span class="o">==</span> <span class="mi">10</span> <span class="p">{</span>
+<span class="p">}</span>
+
+<span class="k">if</span> <span class="n">x</span> <span class="o">:=</span> <span class="n">computedValue</span><span class="p">();</span> <span class="n">x</span> <span class="o">&gt;</span> <span class="mi">10</span> <span class="p">{</span>
+<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>4.结果</p>
+<div class="highlight"><pre><span class="mi">110</span>
+<span class="mi">201</span>
+</pre></div>
+
+
+<p>注意，在有返回值的函数中，不允许将“最终的”return语句放到if ... else ... 结构中，否则编译失败</p>
+<div class="highlight"><pre><span class="n">func</span> <span class="n">example</span><span class="p">(</span><span class="n">x</span> <span class="kt">int</span><span class="p">)</span> <span class="kt">int</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="n">x</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="mi">5</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="n">x</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<h3>FOR</h3>
+<p>for是go的"while", 只支持for关键字.有三种形式</p>
+<p>1.语法</p>
+<div class="highlight"><pre><span class="k">for</span> <span class="n">init</span><span class="p">;</span> <span class="n">condition</span><span class="p">;</span> <span class="n">post</span> <span class="p">{</span>
+    <span class="c1">//init不支持逗号，只能平行赋值</span>
+    <span class="c1">//condition每次循环开始都会检查，不建议在里面使用函数，建议用计算好的变量/常量代替</span>
+    <span class="c1">//post后面必须跟花括号,每轮循环结束的时候调用</span>
+<span class="p">}</span>
+
+<span class="k">for</span> <span class="n">i</span><span class="o">:=</span><span class="mi">0</span><span class="p">;</span> <span class="n">i</span><span class="o">&lt;</span><span class="mi">10</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span> <span class="p">{</span>
+<span class="p">}</span>
+
+<span class="o">-----------------------------</span>
+
+<span class="k">for</span> <span class="n">condition</span> <span class="p">{</span>
+    <span class="n">dosomething</span><span class="p">()</span>
+<span class="p">}</span>
+
+<span class="nl">i:</span><span class="o">=</span><span class="mi">1</span>
+<span class="k">for</span> <span class="n">i</span><span class="o">&lt;</span><span class="mi">10</span> <span class="p">{</span>
+<span class="p">}</span>
+
+<span class="o">-----------------------------</span>
+
+<span class="k">for</span> <span class="p">{</span> <span class="c1">//无限循环</span>
+    <span class="n">dosomething</span><span class="p">()</span>
+<span class="p">}</span>
+
+<span class="k">for</span> <span class="p">{</span>
+    <span class="n">a</span><span class="o">++</span>
+    <span class="k">if</span> <span class="n">a</span> <span class="o">&gt;</span> <span class="mi">10</span> <span class="p">{</span>
+        <span class="k">break</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="o">-----------------------------</span>
+</pre></div>
+
+
+<p>2.说明</p>
+<div class="highlight"><pre><span class="n">a</span><span class="p">.</span> <span class="err">初始化和步进表达式可以使多个值：必须使用平行赋值</span>
+    <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="o">:=</span><span class="mi">0</span><span class="p">,</span><span class="n">len</span><span class="p">(</span><span class="n">a</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">;</span> <span class="n">i</span><span class="o">&lt;</span><span class="n">j</span><span class="p">;</span> <span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="o">=</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="n">j</span><span class="o">-</span><span class="mi">1</span>
+<span class="n">b</span><span class="p">.</span><span class="err">每次循环都会重新检查条件表达式</span>
+</pre></div>
+
+
+<p>3.示例</p>
+<div class="highlight"><pre><span class="n">package</span> <span class="n">main</span>
+
+<span class="n">func</span> <span class="nf">main</span><span class="p">(){</span>
+    <span class="n">ss</span> <span class="o">:=</span> <span class="s">&quot;abcd&quot;</span>
+    <span class="k">for</span> <span class="n">i</span><span class="o">:=</span><span class="mi">0</span><span class="p">;</span> <span class="n">i</span><span class="o">&lt;</span><span class="n">len</span><span class="p">(</span><span class="n">ss</span><span class="p">);</span> <span class="n">i</span><span class="o">++</span> <span class="p">{</span>
+        <span class="n">println</span><span class="p">(</span><span class="n">ss</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>得到：</p>
+<div class="highlight"><pre><span class="mi">97</span>
+<span class="mi">98</span>
+<span class="mi">99</span>
+<span class="mi">100</span>
+</pre></div>
+
+
+<p>4.配合range</p>
+<p>for循环和保留字range一起使用，完成迭代器iterator操作</p>
+<p>string, array, slice, map, channel都可以用range进行迭代器操作</p>
+<p>range返回序号和值，若是不想要，可以用_</p>
+<div class="highlight"><pre>  <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">c</span> <span class="o">:=</span> <span class="n">range</span> <span class="s">&quot;abc&quot;</span> <span class="p">{</span>
+      <span class="n">fmt</span><span class="p">.</span><span class="n">Printf</span><span class="p">(</span><span class="s">&quot;s[%d] = %c</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span>
+  <span class="p">}</span>
+</pre></div>
+
+
+<p>得到</p>
+<div class="highlight"><pre>  <span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span>
+  <span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">b</span>
+  <span class="n">s</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">c</span>
+</pre></div>
+
+
+<h3>SWITCH</h3>
+<p>python里面没有</p>
+<p>1.语法</p>
+<p>支持初始化表达式</p>
+<div class="highlight"><pre><span class="k">switch</span> <span class="n">a</span><span class="o">:=</span><span class="mi">5</span><span class="p">;</span> <span class="n">a</span> <span class="p">{</span> <span class="c1">//默认break，匹配成功后不会自动向下执行其他case,而是跳出整个switch</span>
+    <span class="k">case</span> <span class="mi">0</span>:         <span class="c1">//普通</span>
+        <span class="n">println</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+    <span class="k">case</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span>:      <span class="c1">//多个分支，逗号分隔</span>
+        <span class="n">println</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+    <span class="k">case</span> <span class="mi">100</span>:       <span class="c1">//什么都不做</span>
+    <span class="k">case</span> <span class="mi">5</span>:
+        <span class="n">println</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+        <span class="n">fallthrough</span>   <span class="c1">//进入后面的case 进行处理，而不是跳出block</span>
+    <span class="nl">default:</span>
+        <span class="n">println</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>    <span class="c1">//默认</span>
+<span class="p">}</span>
+<span class="err">注意，不需要</span><span class="k">break</span><span class="err">来明确退出一个</span><span class="k">case</span><span class="err">，一旦条件符合，自动终止</span><span class="p">,</span><span class="err">除非使用</span><span class="n">fallthough</span>
+
+<span class="o">--------------</span>
+
+<span class="err">可以不带表达式</span>
+<span class="k">switch</span> <span class="n">sExpr</span> <span class="p">{</span>
+        <span class="k">case</span> <span class="n">expr1</span>: <span class="c1">//sExpr和expr1必须类型一致,不限制为常量或者证书，可以用任何类型或表达式</span>
+            <span class="p">...</span>
+<span class="p">}</span>
+
+<span class="k">switch</span> <span class="p">{</span>
+    <span class="k">case</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">Num</span> <span class="o">&amp;&amp;</span> <span class="n">Num</span> <span class="o">&lt;=</span> <span class="mi">3</span>:
+        <span class="n">fmt</span><span class="p">.</span><span class="n">Printf</span><span class="p">(</span><span class="s">&quot;3&quot;</span><span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>几种形式:</p>
+<div class="highlight"><pre><span class="n">a</span> <span class="o">:=</span> <span class="mi">1</span>
+<span class="k">switch</span> <span class="n">a</span> <span class="p">{</span>
+    <span class="k">case</span> <span class="mi">0</span>:
+        <span class="p">...</span>
+<span class="p">}</span>
+
+<span class="n">a</span> <span class="o">:=</span> <span class="mi">1</span>
+<span class="k">switch</span> <span class="p">{</span>
+    <span class="k">case</span> <span class="n">a</span><span class="o">&gt;=</span><span class="mi">0</span>:
+        <span class="p">....</span>
+    <span class="k">case</span> <span class="n">a</span><span class="o">&gt;</span><span class="mi">1</span>:
+        <span class="p">....</span>
+<span class="p">}</span>
+
+<span class="k">switch</span> <span class="n">a</span><span class="o">:=</span><span class="mi">1</span><span class="p">;</span> <span class="p">{</span>
+    <span class="k">case</span> <span class="n">a</span><span class="o">&gt;=</span><span class="mi">0</span>:
+        <span class="p">...</span>
+    <span class="k">case</span> <span class="n">a</span><span class="o">&gt;</span><span class="mi">1</span>:
+        <span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>2.替代if...else if…else…</p>
+<p>不指定switch 条件表达式(没有条件表达式，在case语句中有)，或者直接为true</p>
+<div class="highlight"><pre>  <span class="n">a</span> <span class="o">:=</span> <span class="mi">5</span>
+  <span class="k">switch</span> <span class="p">{</span>     <span class="c1">//两句可合并位 switch a:=5; {</span>
+      <span class="k">case</span> <span class="n">a</span> <span class="o">&gt;</span> <span class="mi">1</span>:
+          <span class="n">println</span><span class="p">(</span><span class="s">&quot;a&quot;</span><span class="p">)</span>
+      <span class="k">case</span> <span class="n">a</span> <span class="o">&gt;</span> <span class="mi">2</span>:
+          <span class="n">println</span><span class="p">(</span><span class="s">&quot;b&quot;</span><span class="p">)</span>
+      <span class="nl">default:</span>
+          <span class="n">println</span><span class="p">(</span><span class="s">&quot;c&quot;</span><span class="p">)</span>
+  <span class="p">}</span>
+</pre></div>
+
+
+<h3>goto break continue</h3>
+<p>均可配合标签使用(标签区分大小写，若声明了没有使用会导致编译错误)</p>
+<div class="highlight"><pre><span class="k">break</span><span class="o">/</span><span class="k">continue</span><span class="err">可配合标签用于多重循环跳出</span>
+<span class="k">goto</span><span class="err">是调整执行位置，与其他两个执行结果并不相同</span>
+</pre></div>
+
+
+<p>1.goto</p>
+<div class="highlight"><pre><span class="err">支持函数内部</span><span class="k">goto</span><span class="err">跳转</span>
+
+<span class="err">请善用</span>
+
+<span class="err">必须跳转到当前函数内定义的标签</span><span class="p">,</span><span class="err">标签名大小写敏感</span>
+
+<span class="n">func</span> <span class="n">myFunc</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">i</span> <span class="o">:=</span> <span class="mi">0</span>
+<span class="nl">Here:</span>
+    <span class="n">println</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+    <span class="n">i</span><span class="o">++</span>
+    <span class="k">goto</span> <span class="n">Here</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>2.continue</p>
+<div class="highlight"><pre><span class="err">进入下一次循环</span>
+</pre></div>
+
+
+<p>3.break</p>
+<div class="highlight"><pre><span class="err">终止循环</span>
+
+<span class="k">for</span> <span class="n">index</span> <span class="o">:=</span> <span class="mi">10</span><span class="p">;</span> <span class="n">index</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">;</span> <span class="n">index</span> <span class="o">--</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="n">index</span> <span class="o">==</span> <span class="mi">5</span> <span class="p">{</span>
+        <span class="k">break</span> <span class="c1">//continue</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>示例</p>
+<div class="highlight"><pre><span class="n">package</span> <span class="n">main</span>
+<span class="n">func</span> <span class="nf">main</span><span class="p">(){</span>
+    <span class="n">a</span> <span class="o">:=</span> <span class="mi">1</span>
+    <span class="nl">LABEL1:</span>
+        <span class="n">println</span><span class="p">(</span><span class="s">&quot;inc a=&quot;</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span>
+        <span class="n">a</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="nl">LABEL2:</span>
+        <span class="c1">//println(&quot;here&quot;)</span>
+
+    <span class="k">for</span> <span class="p">;</span> <span class="n">a</span> <span class="o">&lt;</span> <span class="mi">6</span><span class="p">;</span> <span class="p">{</span>
+        <span class="n">println</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">a</span> <span class="o">==</span> <span class="mi">3</span> <span class="p">{</span>
+            <span class="n">a</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">continue</span> <span class="n">LABEL2</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="n">a</span> <span class="o">==</span> <span class="mi">5</span> <span class="p">{</span>
+            <span class="k">break</span>
+        <span class="p">}</span>
+        <span class="k">goto</span> <span class="n">LABEL1</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>结果:</p>
+<div class="highlight"><pre><span class="n">inc</span> <span class="n">a</span><span class="o">=</span> <span class="mi">1</span>
+<span class="mi">2</span>
+<span class="n">inc</span> <span class="n">a</span><span class="o">=</span> <span class="mi">2</span>
+<span class="mi">3</span>
+<span class="mi">4</span>
+<span class="n">inc</span> <span class="n">a</span><span class="o">=</span> <span class="mi">4</span>
+<span class="mi">5</span>
+</pre></div>
+        </div><!-- /.entry-content -->
+        <div class="comments">
+            如果文章对你有帮助，欢迎对wklken进行无负担小额赞助 <a href="https://me.alipay.com/wklken" target="_blank"> 支付宝 </a> <br>
+            版权声明：自由转载-非商用-非衍生-保持署名 | <a href="http://creativecommons.org/licenses/by-nc-nd/3.0/deed.zh" target="_blank" >Creative Commons BY-NC-ND 3.0</a>
+        <h2>Comments !</h2>
+            <div id="disqus_thread"></div>
+            <script type="text/javascript">
+               var disqus_identifier = "posts/2014/03/02/03-control-flow.html";
+               (function() {
+               var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+               dsq.src = 'http://wklken.disqus.com/embed.js';
+               (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+              })();
+            </script>
+        </div>
+
+        </article>
+</div>
+
+
+</div>
+</section>
+<script type="text/javascript">
+    var disqus_shortname = 'wklken';
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = 'http://' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+
+
+<!-- JiaThis Button BEGIN -->
+<script type="text/javascript" >
+var jiathis_config={
+    siteNum:15,
+    sm:"fav,copy,ishare,tsina,googleplus,fb,twitter,evernote,ydnote,sdonote,xianguo,digg,qingbiji,weixin",
+    summary:"",
+    boldNum:3,
+    showClose:false,
+    hideMore:true
+}
+</script>
+<script type="text/javascript" src="http://v3.jiathis.com/code_mini/jiathis_r.js?btn=r2.gif&move=0" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+<a href="#top" id="toTop" style="display: inline;"></a>
+
+
+
+        <section id="extras" class="body">
+        </section><!-- /#extras -->
+
+		<footer id="footer">
+		<p class="copyright">
+                <address id="about" class="vcard body">
+                    Powered by <a href="http://alexis.notmyidea.org/pelican/">pelican</a>. Theme by <a href="https://github.com/daker">Adnane Belmadiaf</a> and modify by <a href="https://github.com/wklken">wklken</a> Social Icons by <a href="http://fortawesome.github.io/Font-Awesome/">Font-Awesome</a>.
+
+                    <span xmlns:dct="http://purl.org/dc/terms/" href="http://purl.org/dc/dcmitype/Text" property="dct:title" rel="dct:type">Theme licensed under <a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a>.
+             </address><!-- /#about -->
+
+			 </p>
+        </footer><!-- /#contentinfo -->
+
+    <script type="text/javascript">
+    var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+    document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+    </script>
+    <script type="text/javascript">
+    try {
+        var pageTracker = _gat._getTracker("UA-42275748-1");
+    pageTracker._trackPageview();
+    } catch(err) {}</script>
+
+
+<!-- 先停掉，感觉有丢页,需要仔细学习用法排查问题
+<script src="http://wklken.me/theme/js/instantclick.min.js" data-no-instant></script>
+<script data-no-instant>InstantClick.init();</script>
+-->
+
+</body>
+</html>
