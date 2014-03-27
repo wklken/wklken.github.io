@@ -107,6 +107,10 @@
 <p>资源</p>
 <p><a href="http://google-styleguide.googlecode.com/svn/trunk/shell.xml">google shell style guide</a></p>
 <p><a href="http://wklken.me/posts/2013/07/04/note-of-linux-shell-scripting-cookbook.html">Linux Shell脚本攻略笔记</a></p>
+<p><a href="http://blog.jobbole.com/48717/">Linux Shell编程实战技巧</a></p>
+<p><a href="http://kodango.com/bash-pitfalls-part-1">Bash编程易犯的错误 1234</a></p>
+<p><a href="http://blog.jobbole.com/16604/">关于shell脚本编程的10个最佳实践</a></p>
+<p><a href="http://bash.cumulonim.biz/BashPitfalls.html">Bash Pitfalls</a></p>
 <hr />
 <h2>第一部分 一些概念</h2>
 <p>标准IO</p>
@@ -231,10 +235,29 @@
 
 <span class="cp"># To find the file name without extension</span>
 <span class="n">filename</span><span class="o">=</span><span class="err">`</span><span class="n">basename</span> <span class="s">&quot;$filepath&quot;</span> <span class="p">.</span><span class="n">html</span><span class="err">`</span>
+
+<span class="n">e</span><span class="p">.</span><span class="n">g</span><span class="p">.</span>
+<span class="n">BASEDIR</span><span class="o">=</span><span class="err">$</span><span class="p">(</span><span class="n">dirname</span> <span class="err">$</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">cd</span> <span class="err">$</span><span class="n">BASEDIR</span>
+<span class="n">CURRENT_DIR</span><span class="o">=</span><span class="err">`</span><span class="n">pwd</span><span class="err">`</span>
 </pre></div>
 
 
 <p>日期</p>
+<div class="highlight"><pre><span class="n">TODAY</span><span class="o">=</span><span class="err">`</span><span class="n">date</span> <span class="o">+%</span><span class="n">Y</span><span class="o">%</span><span class="n">m</span><span class="o">%</span><span class="n">d</span><span class="err">`</span>
+<span class="n">DAY_1_AGO</span><span class="o">=</span><span class="err">`</span><span class="n">date</span> <span class="o">-</span><span class="n">d</span> <span class="s">&quot;$TODAY 1 days ago&quot;</span> <span class="o">+%</span><span class="n">Y</span><span class="o">%</span><span class="n">m</span><span class="o">%</span><span class="n">d</span><span class="err">`</span>
+
+<span class="err">常用接受日期</span><span class="o">/</span><span class="err">使用默认日期处理</span>
+
+<span class="k">if</span> <span class="p">[</span> <span class="o">-</span><span class="n">n</span> <span class="s">&quot;$1&quot;</span> <span class="p">]</span>
+<span class="n">then</span>
+    <span class="n">TODAY</span><span class="o">=</span><span class="s">&quot;$1&quot;</span>
+<span class="k">else</span>
+    <span class="n">TODAY</span><span class="o">=</span><span class="err">`</span><span class="n">date</span> <span class="o">+%</span><span class="n">Y</span><span class="o">%</span><span class="n">m</span><span class="o">%</span><span class="n">d</span><span class="err">`</span>
+<span class="n">fi</span>
+</pre></div>
+
+
 <p>crontab调度</p>
 <div class="highlight"><pre><span class="err">查看</span>
 <span class="n">crontab</span> <span class="o">-</span><span class="n">l</span>
@@ -852,6 +875,12 @@ $@ 将所有参数视为个体=&quot;$1&quot; &quot;$2&quot; &quot;$3&quot;
 
 <span class="kd">function</span> <span class="nx">debug</span><span class="p">()</span> <span class="p">{</span> <span class="p">((</span><span class="nx">DEBUG</span><span class="p">))</span> <span class="o">&amp;&amp;</span> <span class="nx">echo</span> <span class="s2">&quot;&gt;&gt;&gt; $*&quot;</span><span class="p">;</span> <span class="p">}</span>
 <span class="kd">function</span> <span class="nx">debug</span><span class="p">()</span> <span class="p">{</span> <span class="cp">[</span> <span class="s2">&quot;$DEBUG&quot;</span> <span class="cp">]</span> <span class="o">&amp;&amp;</span> <span class="nx">echo</span> <span class="s2">&quot;&gt;&gt;&gt; $*&quot;</span><span class="p">;</span> <span class="p">}</span>
+</pre></div>
+
+
+<p>将执行日志全部写到某个文件</p>
+<div class="highlight"><pre><span class="n">exec</span> <span class="o">&gt;&gt;</span><span class="s">&quot;$LOGPATH&quot;</span><span class="o">/</span><span class="n">xx</span><span class="p">.</span><span class="n">log</span><span class="p">.</span><span class="err">$</span><span class="n">TODAY</span> <span class="mi">2</span><span class="o">&gt;&amp;</span><span class="mi">1</span>
+<span class="cp">#begin of code</span>
 </pre></div>
 
 
