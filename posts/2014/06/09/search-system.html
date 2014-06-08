@@ -179,7 +179,7 @@
 <hr />
 <p>接下去, 分块简要说明下</p>
 <h3>搜索服务-数据层</h3>
-<p>数据存储跟各自业务有关系, 信息录入渠道主要是运营录入或者抓取导入等, 存储使用mysql/postgresql等数据库</p>
+<p>数据存储跟各自业务有关系, 信息录入渠道主要是运营录入或者抓取导入等, 存储使用<code>mysql/postgresql</code>等数据库</p>
 <p>rank data 主要是由日志系统统计出一些根据涉及排序相关的数据, 例如用户点击次数, 玩次, 评分等等, 会直接影响到结果排序</p>
 <p>注意, 由于这些数据都会存在变更, 所以, 需要存储update_time, 用于引擎增量建立索引</p>
 <h3>搜索服务-引擎</h3>
@@ -205,19 +205,19 @@
 </pre></div>
 
 
-<p>然后, 在内存中建立前缀树. 这里使用的是double-arry-trie实现</p>
-<p>double-array-trie文章: <a href="http://en.wikipedia.org/wiki/Trie">What is Trie</a> | <a href="http://linux.thai.net/~thep/datrie/datrie.html">An Implementation of Double-Array Trie</a></p>
-<p>用户输入query, 没发生一次变化, 发送请求到下拉提示服务, 首先会去命中缓存, 未命中, 进入trie树搜索前缀, 获取此前缀所有后缀, 即获取提示关键词集合, 排序获取权重最高的进行返回</p>
+<p>然后, 在内存中建立前缀树. 这里使用的是<code>double-arry-trie</code>实现</p>
+<p><code>double-array-trie</code>文章: <a href="http://en.wikipedia.org/wiki/Trie">What is Trie</a> | <a href="http://linux.thai.net/~thep/datrie/datrie.html">An Implementation of Double-Array Trie</a></p>
+<p>用户输入query, 没发生一次变化, 发送请求到下拉提示服务, 首先会去命中缓存, 未命中, 进入trie树搜索前缀, 获取此前缀所有后缀, 即获取提示关键词集合, 排序获取权重最高的进行返回(是这个流程, 但实际上没那么简单, 要考虑性能)</p>
 <p>开源了一份, 但并不是线上的实现, 而是优化版本, 但是一直没有机会上到线上看下效果, 有兴趣可以看下 <a href="https://github.com/wklken/suggestion">suggestion</a></p>
 <h3>相关搜索服务</h3>
 <p>目前做得比较简单, 使用同一个用户的搜索关键词链进行分析, 处理成
 <code>[ 搜索关键词-后继搜索关键词]</code>, 并进行统计, 最终获取统计结果</p>
 <p>这个服务一直没有进行优化, 导致相关搜索的结果并不好, 存在很多bad case,以及推荐重复的内容</p>
 <h3>关键词改写</h3>
-<p>用户输入的关键词, 往往存在错别字/缺词/多词/混合词等等导致了搜索无结果
+<p>用户输入的关键词, 往往存在<code>错别字/缺词/多词/混合词</code>等等导致了搜索无结果
 针对这些词, 可以通过纠错的方式进行处理</p>
 <p>目前处理方式, 用户搜索关键词链, 处理成 <code>[无结果词 - 有结果词]</code>, 然后进行统计, 根据一系列规则进行筛选, 获取改写列表.(目前是基于规则的, 优化空间还很大)</p>
-<p>另外需要提供入口, 提供给运营人员针对一些术语进行改写, 例如[gta -&gt; 侠盗猎车手]</p>
+<p>另外需要提供入口, 提供给运营人员针对一些术语进行改写, 例如<code>[gta -&gt; 侠盗猎车手]</code></p>
 <p>这个服务比较简单粗暴, 计算完成后直接将键值对刷入缓存, 对外提供服务.</p>
 <hr />
 <h3>一些感想</h3>
