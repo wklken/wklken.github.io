@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>wklken's blog</title><link href="/" rel="alternate"></link><link href="/feeds/system.atom.xml" rel="self"></link><id>/</id><updated>2014-06-09T00:00:00+08:00</updated><entry><title>搜索系统组成简单总结</title><link href="/posts/2014/06/09/search-system.html" rel="alternate"></link><updated>2014-06-09T00:00:00+08:00</updated><author><name>wklken</name></author><id>tag:,2014-06-09:posts/2014/06/09/search-system.html</id><summary type="html">&lt;p&gt;最近在进行离职前交接工作了, 对之前做的一些东西也大概进行了下简单总结.&lt;/p&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>wklken's blog</title><link href="/" rel="alternate"></link><link href="/feeds/system.atom.xml" rel="self"></link><id>/</id><updated>2014-06-09T00:00:00+08:00</updated><entry><title>简单搜索系统组成总结</title><link href="/posts/2014/06/09/search-system.html" rel="alternate"></link><updated>2014-06-09T00:00:00+08:00</updated><author><name>wklken</name></author><id>tag:,2014-06-09:posts/2014/06/09/search-system.html</id><summary type="html">&lt;p&gt;最近在进行离职前交接工作了, 对之前做的一些东西也大概进行了下简单总结.&lt;/p&gt;
 &lt;p&gt;今天整理了下, 搜索系统组成简要描述, 一些思想, 不涉及太多具体实现.&lt;/p&gt;
 &lt;p&gt;这套系统从开始设计到最终完成, 前前后后花了3个月的样子(计算所有时间投入), 也算是做得感觉比较完善的一套系统.&lt;/p&gt;
 &lt;p&gt;上线接近一年, 支持快玩游戏搜索业务(快玩盒子/快玩网站/移动端等), 无结果率降低16%, 系统每天百万级的搜索(峰值在250w左右, 应用层两台机器负载均衡, 单机核心层, 单机引擎), 很遗憾, 由于业务所限, 一直没有看到这套系统能支持的量上限, 即使在峰值, 核心层qps大概也才50左右, 预计搜索量到千万级应该没什么压力, 当然, 优化的余地还很多.&lt;/p&gt;
@@ -15,13 +15,18 @@
 &lt;ol&gt;
 &lt;li&gt;用户在输入框输入关键词, 此时输入框会下拉提示一些词, 用户可以选择进行搜索&lt;/li&gt;
 &lt;li&gt;用户点击, 进行搜索, 前端调用搜索接口&lt;/li&gt;
-&lt;li&gt;应用层&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;&lt;code&gt;3.1 请求关键词改写, 获得改写后词
-3.2 查询缓存是否存在, 存在直接返回缓存内容. 此时, 会记录搜索日志
-3.3 不存在缓存, 调用解析输入, 调用核心层接口&lt;/code&gt;&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;核心层, 调用引擎接口, 获取搜索结果, 并整合信息, 返回应用层&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;应用层&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="mf"&gt;3.1&lt;/span&gt; &lt;span class="err"&gt;请求关键词改写&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;获得改写后词&lt;/span&gt;
+&lt;span class="mf"&gt;3.2&lt;/span&gt; &lt;span class="err"&gt;查询缓存是否存在&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;存在直接返回缓存内容&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt; &lt;span class="err"&gt;此时&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;会记录搜索日志&lt;/span&gt;
+&lt;span class="mf"&gt;3.3&lt;/span&gt; &lt;span class="err"&gt;不存在缓存&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;调用解析输入&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;调用核心层接口&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;核心层, 调用引擎接口, 获取搜索结果, 并整合信息, 返回应用层&lt;/p&gt;
+&lt;/li&gt;
 &lt;li&gt;应用层, 获取结果, 此时根据需要, 可能调用相关搜索和热门词服务, 获取必要信息, 最终进行页面渲染, 记录日志, 返回给客户端&lt;/li&gt;
 &lt;/ol&gt;
 &lt;h3&gt;系统结构图&lt;/h3&gt;
@@ -47,7 +52,8 @@
 &lt;blockquote&gt;
 &lt;p&gt;缓存&lt;/p&gt;
 &lt;/blockquote&gt;
-&lt;p&gt;缓存在整个搜索系统中起到很关键的作用, 各个服务都需要使用缓存进行优化,系统使用memcached/redis分别进行处理. 整个搜索中用得最多的是下拉提示suggestion, 用户输入关键词整个过程中存在变动都会发起一次请求.&lt;/p&gt;
+&lt;p&gt;缓存在整个搜索系统中起到很关键的作用, 各个服务都需要使用缓存进行优化&lt;/p&gt;
+&lt;p&gt;系统使用memcached/redis分别进行处理. 整个搜索中用得最多的是下拉提示suggestion, 用户输入关键词整个过程中存在变动都会发起一次请求.&lt;/p&gt;
 &lt;blockquote&gt;
 &lt;p&gt;业务(应用层+核心层)&lt;/p&gt;
 &lt;/blockquote&gt;
@@ -102,18 +108,22 @@
 &lt;h3&gt;下拉提示服务&lt;/h3&gt;
 &lt;p&gt;元信息直接导出, 以游戏为例, 游戏名+图标+类型+玩次等信息&lt;/p&gt;
 &lt;p&gt;主要是针对游戏名进行处理:(原词+拼音+拼音首字母)&lt;/p&gt;
-&lt;p&gt;植物大战僵尸 -&amp;gt; [植物大战僵尸, zhiwudazhanjiangshi, zwdzjs]&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="err"&gt;植物大战僵尸&lt;/span&gt; &lt;span class="o"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="err"&gt;植物大战僵尸&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;zhiwudazhanjiangshi&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;zwdzjs&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
 &lt;p&gt;然后, 在内存中建立前缀树. 这里使用的是double-arry-trie实现&lt;/p&gt;
 &lt;p&gt;double-array-trie文章: &lt;a href="http://en.wikipedia.org/wiki/Trie"&gt;What is Trie&lt;/a&gt; | &lt;a href="http://linux.thai.net/~thep/datrie/datrie.html"&gt;An Implementation of Double-Array Trie&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;用户输入query, 没发生一次变化, 发送请求到下拉提示服务, 首先会去命中缓存, 未命中, 进入trie树搜索前缀, 获取此前缀所有后缀, 即获取提示关键词集合, 排序获取权重最高的进行返回&lt;/p&gt;
 &lt;p&gt;开源了一份, 但并不是线上的实现, 而是优化版本, 但是一直没有机会上到线上看下效果, 有兴趣可以看下 &lt;a href="https://github.com/wklken/suggestion"&gt;suggestion&lt;/a&gt;&lt;/p&gt;
 &lt;h3&gt;相关搜索服务&lt;/h3&gt;
-&lt;p&gt;目前做得比较简单, 使用同一个用户的搜索关键词链进行分析, 处理成[ 搜索关键词-后继搜索关键词], 并进行统计, 最终获取统计结果&lt;/p&gt;
+&lt;p&gt;目前做得比较简单, 使用同一个用户的搜索关键词链进行分析, 处理成
+&lt;code&gt;[ 搜索关键词-后继搜索关键词]&lt;/code&gt;, 并进行统计, 最终获取统计结果&lt;/p&gt;
 &lt;p&gt;这个服务一直没有进行优化, 导致相关搜索的结果并不好, 存在很多bad case,以及推荐重复的内容&lt;/p&gt;
 &lt;h3&gt;关键词改写&lt;/h3&gt;
 &lt;p&gt;用户输入的关键词, 往往存在错别字/缺词/多词/混合词等等导致了搜索无结果
 针对这些词, 可以通过纠错的方式进行处理&lt;/p&gt;
-&lt;p&gt;目前处理方式, 用户搜索关键词链, 处理成 [无结果词 - 有结果词], 然后进行统计, 根据一系列规则进行筛选, 获取改写列表.(目前是基于规则的, 优化空间还很大)&lt;/p&gt;
+&lt;p&gt;目前处理方式, 用户搜索关键词链, 处理成 &lt;code&gt;[无结果词 - 有结果词]&lt;/code&gt;, 然后进行统计, 根据一系列规则进行筛选, 获取改写列表.(目前是基于规则的, 优化空间还很大)&lt;/p&gt;
 &lt;p&gt;另外需要提供入口, 提供给运营人员针对一些术语进行改写, 例如[gta -&amp;gt; 侠盗猎车手]&lt;/p&gt;
 &lt;p&gt;这个服务比较简单粗暴, 计算完成后直接将键值对刷入缓存, 对外提供服务.&lt;/p&gt;
 &lt;hr /&gt;

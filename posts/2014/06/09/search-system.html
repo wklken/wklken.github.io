@@ -6,7 +6,7 @@
 
 <head>
     <meta name="google-site-verification" content="SzE6WCs23qFevgBzRIuG9vcfLU0lW_Vd5hFT-cJOLBE" />
-    <title>搜索系统组成简单总结</title>
+    <title>简单搜索系统组成总结</title>
     <meta charset="utf-8" />
     <meta name="description" content="">
     <meta name="keywords" content="" />
@@ -86,10 +86,10 @@
     <section id="header">
         <!--
         <div class="meta">2014年06月09日</div>
-        <h1 id="title"> 搜索系统组成简单总结 </h1>
+        <h1 id="title"> 简单搜索系统组成总结 </h1>
         -->
         <div class="meta"> &nbsp; </div>
-        <h1> 搜索系统组成简单总结 </h1>
+        <h1> 简单搜索系统组成总结 </h1>
     </section>
     <section id="content">
         <p>最近在进行离职前交接工作了, 对之前做的一些东西也大概进行了下简单总结.</p>
@@ -108,13 +108,18 @@
 <ol>
 <li>用户在输入框输入关键词, 此时输入框会下拉提示一些词, 用户可以选择进行搜索</li>
 <li>用户点击, 进行搜索, 前端调用搜索接口</li>
-<li>应用层</li>
-</ol>
-<p><code>3.1 请求关键词改写, 获得改写后词
-3.2 查询缓存是否存在, 存在直接返回缓存内容. 此时, 会记录搜索日志
-3.3 不存在缓存, 调用解析输入, 调用核心层接口</code></p>
-<ol>
-<li>核心层, 调用引擎接口, 获取搜索结果, 并整合信息, 返回应用层</li>
+<li>
+<p>应用层</p>
+<div class="codehilite"><pre><span class="mf">3.1</span> <span class="err">请求关键词改写</span><span class="p">,</span> <span class="err">获得改写后词</span>
+<span class="mf">3.2</span> <span class="err">查询缓存是否存在</span><span class="p">,</span> <span class="err">存在直接返回缓存内容</span><span class="p">.</span> <span class="err">此时</span><span class="p">,</span> <span class="err">会记录搜索日志</span>
+<span class="mf">3.3</span> <span class="err">不存在缓存</span><span class="p">,</span> <span class="err">调用解析输入</span><span class="p">,</span> <span class="err">调用核心层接口</span>
+</pre></div>
+
+
+</li>
+<li>
+<p>核心层, 调用引擎接口, 获取搜索结果, 并整合信息, 返回应用层</p>
+</li>
 <li>应用层, 获取结果, 此时根据需要, 可能调用相关搜索和热门词服务, 获取必要信息, 最终进行页面渲染, 记录日志, 返回给客户端</li>
 </ol>
 <h3>系统结构图</h3>
@@ -140,7 +145,8 @@
 <blockquote>
 <p>缓存</p>
 </blockquote>
-<p>缓存在整个搜索系统中起到很关键的作用, 各个服务都需要使用缓存进行优化,系统使用memcached/redis分别进行处理. 整个搜索中用得最多的是下拉提示suggestion, 用户输入关键词整个过程中存在变动都会发起一次请求.</p>
+<p>缓存在整个搜索系统中起到很关键的作用, 各个服务都需要使用缓存进行优化</p>
+<p>系统使用memcached/redis分别进行处理. 整个搜索中用得最多的是下拉提示suggestion, 用户输入关键词整个过程中存在变动都会发起一次请求.</p>
 <blockquote>
 <p>业务(应用层+核心层)</p>
 </blockquote>
@@ -195,18 +201,22 @@
 <h3>下拉提示服务</h3>
 <p>元信息直接导出, 以游戏为例, 游戏名+图标+类型+玩次等信息</p>
 <p>主要是针对游戏名进行处理:(原词+拼音+拼音首字母)</p>
-<p>植物大战僵尸 -&gt; [植物大战僵尸, zhiwudazhanjiangshi, zwdzjs]</p>
+<div class="codehilite"><pre><span class="err">植物大战僵尸</span> <span class="o">-&gt;</span> <span class="p">[</span><span class="err">植物大战僵尸</span><span class="p">,</span> <span class="n">zhiwudazhanjiangshi</span><span class="p">,</span> <span class="n">zwdzjs</span><span class="p">]</span>
+</pre></div>
+
+
 <p>然后, 在内存中建立前缀树. 这里使用的是double-arry-trie实现</p>
 <p>double-array-trie文章: <a href="http://en.wikipedia.org/wiki/Trie">What is Trie</a> | <a href="http://linux.thai.net/~thep/datrie/datrie.html">An Implementation of Double-Array Trie</a></p>
 <p>用户输入query, 没发生一次变化, 发送请求到下拉提示服务, 首先会去命中缓存, 未命中, 进入trie树搜索前缀, 获取此前缀所有后缀, 即获取提示关键词集合, 排序获取权重最高的进行返回</p>
 <p>开源了一份, 但并不是线上的实现, 而是优化版本, 但是一直没有机会上到线上看下效果, 有兴趣可以看下 <a href="https://github.com/wklken/suggestion">suggestion</a></p>
 <h3>相关搜索服务</h3>
-<p>目前做得比较简单, 使用同一个用户的搜索关键词链进行分析, 处理成[ 搜索关键词-后继搜索关键词], 并进行统计, 最终获取统计结果</p>
+<p>目前做得比较简单, 使用同一个用户的搜索关键词链进行分析, 处理成
+<code>[ 搜索关键词-后继搜索关键词]</code>, 并进行统计, 最终获取统计结果</p>
 <p>这个服务一直没有进行优化, 导致相关搜索的结果并不好, 存在很多bad case,以及推荐重复的内容</p>
 <h3>关键词改写</h3>
 <p>用户输入的关键词, 往往存在错别字/缺词/多词/混合词等等导致了搜索无结果
 针对这些词, 可以通过纠错的方式进行处理</p>
-<p>目前处理方式, 用户搜索关键词链, 处理成 [无结果词 - 有结果词], 然后进行统计, 根据一系列规则进行筛选, 获取改写列表.(目前是基于规则的, 优化空间还很大)</p>
+<p>目前处理方式, 用户搜索关键词链, 处理成 <code>[无结果词 - 有结果词]</code>, 然后进行统计, 根据一系列规则进行筛选, 获取改写列表.(目前是基于规则的, 优化空间还很大)</p>
 <p>另外需要提供入口, 提供给运营人员针对一些术语进行改写, 例如[gta -&gt; 侠盗猎车手]</p>
 <p>这个服务比较简单粗暴, 计算完成后直接将键值对刷入缓存, 对外提供服务.</p>
 <hr />
