@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--[if IE 8]> <html class="no-js lt-ie9" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
+
+<head>
+    <meta name="google-site-verification" content="SzE6WCs23qFevgBzRIuG9vcfLU0lW_Vd5hFT-cJOLBE" />
+    <title>搜索系统组成简单总结</title>
+    <meta charset="utf-8" />
+    <meta name="description" content="">
+    <meta name="keywords" content="" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+        <link rel="shortcut icon" href="/favicon.ico"/>
+        <link rel="stylesheet" href="/theme/css/styles.css" media="all" />
+        <link rel="stylesheet" href="/theme/css/ui.totop.css" media="all" />
+
+        <!--
+        <link href='http://fonts.googleapis.com/css?family=Gentium+Basic:400,700,400italic,700italic|Gentium+Book+Basic:400,700|PT+Sans+Narrow|Source+Code+Pro' rel='stylesheet' type='text/css'>
+        <link rel="stylesheet" href="/theme/css/normalize.css" media="all" />
+        -->
+
+        <link rel="stylesheet" href="/theme/css/font-awesome.min.css">
+        <!--[if IE 7]>
+            <link rel="stylesheet" href="/theme/css/font-awesome-ie7.min.css">
+        <![endif]-->
+
+        <link href="/" type="application/atom+xml" rel="alternate" title="wklken's blog ATOM Feed" />
+        <link href="/feed.xml" type="application/atom+xml" rel="alternate" title="wklken's blog RSS Feed" />
+
+        <!--[if IE]>
+                <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+        <!--[if lte IE 7]>
+                <link rel="stylesheet" type="text/css" media="all" href="/css/ie.css"/>
+                <script src="/js/IE8.js" type="text/javascript"></script><![endif]-->
+
+        <!--[if lt IE 7]>
+                <link rel="stylesheet" type="text/css" media="all" href="/css/ie6.css"/><![endif]-->
+
+        <script src="http://upcdn.b0.upaiyun.com/libs/jquery/jquery-1.9.1.min.js"></script>
+    <script src="/theme/js/jquery.ui.totop.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $().UItoTop({ easingType: 'easeOutQuart' });
+        });
+    </script>
+
+</head>
+
+<body id="index" class="home">
+    <div id="page" class="row">
+        <div class="large-8 large-centered columns">
+
+        <header id="header">
+            <div class="constraint">
+                <div class="o"> 
+                    <a href="/"><h1 class="banner">Wklken <span class="blue"> Python</span></h1></a>
+
+                <div class="social">
+                            <a href="https://github.com/wklken" target='_blank'><i class="icon-github-sign icon-2x"></i></a>
+                            <a href="http://weibo.com/wklken" target='_blank'><i class="icon-weibo icon-2x"></i></a>
+                            <a href="mailto:wklken@yeah.net"><i class="icon-envelope icon-2x"></i></a>
+                            <a href="/feed.xml" target='_blank'><i class="icon-rss-sign icon-2x"></i></a>
+                </div>
+                <div class="nav">
+                            <a href="/">首页</a>
+                            <a href="/categories.html">分类</a>
+                            <a href="/archives.html">归档</a>
+                            <a href="/pages/projects.html">项目</a>
+                            <a href="/pages/tools.html">工具</a>
+                            <a href="/pages/books.html">书单</a>
+                            <a href="/pages/aboutme.html">关于</a>
+
+                </div>
+
+                </div>
+            </div>
+        </header><!-- /#banner -->
+
+        <section id="main">
+
+<article id="article">
+    <section id="header">
+        <!--
+        <div class="meta">2014年06月09日</div>
+        <h1 id="title"> 搜索系统组成简单总结 </h1>
+        -->
+        <div class="meta"> &nbsp; </div>
+        <h1> 搜索系统组成简单总结 </h1>
+    </section>
+    <section id="content">
+        <p>最近在进行离职前交接工作了, 对之前做的一些东西也大概进行了下简单总结.</p>
+<p>今天整理了下, 搜索系统组成简要描述, 一些思想, 不涉及太多具体实现.</p>
+<p>这套系统从开始设计到最终完成, 前前后后花了3个月的样子(计算所有时间投入), 也算是做得感觉比较完善的一套系统.</p>
+<p>上线接近一年, 支持快玩游戏搜索业务(快玩盒子/快玩网站/移动端等), 无结果率降低16%, 系统每天百万级的搜索(峰值在250w左右, 应用层两台机器负载均衡, 单机核心层, 单机引擎), 很遗憾, 由于业务所限, 一直没有看到这套系统能支持的量上限, 即使在峰值, 核心层qps大概也才50左右, 预计搜索量到千万级应该没什么压力, 当然, 优化的余地还很多.</p>
+<p>外面正在狂风骤雨, 开始吧</p>
+<hr />
+<h3>目标</h3>
+<p>当系统数据达到一定量时, 搜索就成为了除类目以外的第二大入口.</p>
+<ol>
+<li>更好的搜索结果(指标: 召回率, 转化率, 排序效果)</li>
+<li>更好的用户体验(下拉提示点击率,相关搜索准确率等)</li>
+</ol>
+<h3>搜索步骤</h3>
+<ol>
+<li>用户在输入框输入关键词, 此时输入框会下拉提示一些词, 用户可以选择进行搜索</li>
+<li>用户点击, 进行搜索, 前端调用搜索接口</li>
+<li>应用层
+<code>3.1 请求关键词改写, 获得改写后词
+3.2 查询缓存是否存在, 存在直接返回缓存内容. 此时, 会记录搜索日志
+3.3 不存在缓存, 调用解析输入, 调用核心层接口</code></li>
+<li>核心层, 调用引擎接口, 获取搜索结果, 并整合信息, 返回应用层</li>
+<li>应用层, 获取结果, 此时根据需要, 可能调用相关搜索和热门词服务, 获取必要信息, 最终进行页面渲染, 记录日志, 返回给客户端</li>
+</ol>
+<h3>系统结构图</h3>
+<p>实现: java(solr)只需配置 + python(所有服务) + golang(suggestion)</p>
+<p><img alt="search system" src="/imgs/system/search.png" /></p>
+<h3>系统组成(简单描述)</h3>
+<blockquote>
+<p>对外服务<br />
+搜索整体系统,对外提供服务包括
+1. 基本搜索服务
+用户输入query, 系统返回筛选并且排序后的结果, 在前端进行展现
+2. 下拉提示服务
+用户在输入框输入query时, 下拉框根据输入提示搜索关键词, google/baidu的搜索框
+3. 相关搜索服务
+在搜索结果页,根据用户所在的系统(客户端/移动端/网站等)以及关键词,提示搜索query相关的搜索
+4. 热门搜索
+在某些业务中,或者前端,展示热门搜索关键词
+5. 关键词改写
+对用户输入关键词进行改写, 以获取更好的搜索结果, 或者进行关键词纠错, 转换</p>
+<p>缓存
+缓存在整个搜索系统中起到很关键的作用, 各个服务都需要使用缓存进行优化,系统使用memcached/redis分别进行处理. 整个搜索中用得最多的是下拉提示suggestion, 用户输入关键词整个过程中存在变动都会发起一次请求.</p>
+<p>业务(应用层+核心层)
+核心层, 提供单一职责, 灵活且性能足够的接口
+应用层, 根据不同系统的业务需求进行编写, 调用核心层接口获取数据, 整合搜索结果, 并进行展示渲染</p>
+<p>元信息(数据元信息+排行信息等)
+业务本身的核心数据, 包含元信息, 元信息中只有少部分需要导入引擎, 建立索引 or 存储, 元信息中还可能包含排序相关的信息, 例如评分等</p>
+</blockquote>
+<p>排行信息, 主要来自后端统计系统</p>
+<blockquote>
+<p>引擎
+对元信息, 进行分析并处理, 建立索引, 存储内容
+并提供搜索, 可以决定排序规则</p>
+<p>日志系统
+负责记录各个服务的日志, 用于统计以及其他服务的数据挖掘</p>
+</blockquote>
+<p>可以记录每次搜索的时间,用户,关键词,改写词,是否有结果,结果信息, 翻页信息等等</p>
+<blockquote>
+<p>算法模块
+对记录日志进行分析, 使用算法生成其他服务需要的数据</p>
+<p>报告系统
+对日志进行统计, 计算搜索pv/uv, 无结果率, 搜索关键词排行, 下拉提示点击率等等</p>
+</blockquote>
+<p>用于关键性指标的统计, 方便针对性优化</p>
+<hr />
+<p>接下去, 分块简要说明下</p>
+<h3>搜索服务-数据层</h3>
+<p>数据存储跟各自业务有关系, 信息录入渠道主要是运营录入或者抓取导入等, 存储使用mysql/postgresql等数据库</p>
+<p>rank data 主要是由日志系统统计出一些根据涉及排序相关的数据, 例如用户点击次数, 玩次, 评分等等, 会直接影响到结果排序</p>
+<p>注意, 由于这些数据都会存在变更, 所以, 需要存储update_time, 用于引擎增量建立索引</p>
+<h3>搜索服务-引擎</h3>
+<p>实现上, 使用的是开源的 <a href="http://lucene.apache.org/solr/">apache solr</a>, 版本4.5, 刚才看了下最新版到了4.8了. </p>
+<p>曾经一度想自己去实现, 结果发现复杂化了, 系统设计中, 切忌把实现问题的手段当做问题本身去处理.</p>
+<p>还有很多同类引擎, 可以去对比下</p>
+<p>选中solr的原因: 简单</p>
+<ol>
+<li>
+<p>输入, 足够简单的数据提供方式, 通过配置文件定义数据库及sql等信息, 就可以建立元数据到引擎数据的关系, 且有接口可以方便地进行全量/增量更新</p>
+</li>
+<li>
+<p>配置简单, 可以配置索引处理方式, 例如中文分词,拼音搜索等, 可以配置不同接口的排序, 可以配置缓存等</p>
+</li>
+<li>
+<p>输出, 足够强大的查询接口</p>
+</li>
+</ol>
+<h3>下拉提示服务</h3>
+<p>元信息直接导出, 以游戏为例, 游戏名+图标+类型+玩次等信息</p>
+<p>主要是针对游戏名进行处理:(原词+拼音+拼音首字母)</p>
+<p>植物大战僵尸 -&gt; [植物大战僵尸, zhiwudazhanjiangshi, zwdzjs]</p>
+<p>然后, 在内存中建立前缀树. 这里使用的是double-arry-trie实现</p>
+<p>double-array-trie文章: <a href="http://en.wikipedia.org/wiki/Trie">What is Trie</a> | <a href="http://linux.thai.net/~thep/datrie/datrie.html">An Implementation of Double-Array Trie</a></p>
+<p>用户输入query, 没发生一次变化, 发送请求到下拉提示服务, 首先会去命中缓存, 未命中, 进入trie树搜索前缀, 获取此前缀所有后缀, 即获取提示关键词集合, 排序获取权重最高的进行返回</p>
+<p>开源了一份, 但并不是线上的实现, 而是优化版本, 但是一直没有机会上到线上看下效果, 有兴趣可以看下 <a href="https://github.com/wklken/suggestion">suggestion</a></p>
+<h3>相关搜索服务</h3>
+<p>目前做得比较简单, 使用同一个用户的搜索关键词链进行分析, 处理成[ 搜索关键词-后继搜索关键词], 并进行统计, 最终获取统计结果</p>
+<p>这个服务一直没有进行优化, 导致相关搜索的结果并不好, 存在很多bad case,以及推荐重复的内容</p>
+<h3>关键词改写</h3>
+<p>用户输入的关键词, 往往存在错别字/缺词/多词/混合词等等导致了搜索无结果
+针对这些词, 可以通过纠错的方式进行处理</p>
+<p>目前处理方式, 用户搜索关键词链, 处理成 [无结果词 - 有结果词], 然后进行统计, 根据一系列规则进行筛选, 获取改写列表.(目前是基于规则的, 优化空间还很大)</p>
+<p>另外需要提供入口, 提供给运营人员针对一些术语进行改写, 例如[gta -&gt; 侠盗猎车手]</p>
+<p>这个服务比较简单粗暴, 计算完成后直接将键值对刷入缓存, 对外提供服务.</p>
+<hr />
+<h3>一些感想</h3>
+<p>需要确认整体目标, 然后建立关键性指标, 实现基础方案, 上线, 并持续地关注数据, 分析日志以及bad case, 然后进行优化, 观察指标变化. 记得系统最初的召回率84%, 后来一步步提升到了92%.</p>
+<p>当然, 这只是一个小型的搜索系统, 其中每一个模块都可以针对性地扩展和优化, 使用更好的算法, 达到更好的效果.</p>
+<blockquote>
+<p>It's simple, but it works, that's enough:)</p>
+</blockquote>
+<p>系统总是跟随业务逐渐成长变化的, 很可惜, 业务夭折, 这个系统失去了在这里继续进化的可能. </p>
+<p>希望提供一些可供大家借鉴的方法. That's all.</p>
+<hr />
+<p>完成度: 60%, 晚上突然想起来就写了, 还没有系统的进行梳理总结, 后面再更新.</p>
+<p>先这样吧</p>
+<p>wklken</p>
+<p>2014-06-09 于深圳</p>
+    </section>
+
+    <section id="copyright">
+        <div class="copyright">
+            版权声明：自由转载-非商用-非衍生-保持署名 | <a href="http://creativecommons.org/licenses/by-nc-nd/3.0/deed.zh" target="_blank" >Creative Commons BY-NC-ND 3.0</a>
+        </div>
+    </section>
+
+    <section id="comments">
+
+        <div class="comments">
+            <h2>Comments !</h2>
+            <div id="disqus_thread"></div>
+            <script type="text/javascript">
+                var disqus_identifier = "posts/2014/06/09/search-system.html";
+                (function() {
+                var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                dsq.src = 'http://wklken.disqus.com/embed.js';
+                (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                })();
+            </script>
+            </div>
+    </section>
+
+</article>
+        </section><!--end #main-->
+
+            <footer class="row">
+                <div class="large-12 columns">
+                    <p>
+                            Copyright © 2014 wklken <br>
+                            Powered by <a href="http://alexis.notmyidea.org/pelican/">pelican</a>. Social Icons by <a href="http://fortawesome.github.io/Font-Awesome/">Font-Awesome</a>.
+                    </p>
+                </div>
+            </footer>
+
+            </div>
+        </div>
+
+        <section id="extras" class="body">
+        </section><!-- /#extras -->
+
+    <script type="text/javascript">
+    var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+    document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+    </script>
+    <script type="text/javascript">
+    try {
+        var pageTracker = _gat._getTracker("UA-42275748-1");
+    pageTracker._trackPageview();
+    } catch(err) {}</script>
+
+
+</body>
+</html>
