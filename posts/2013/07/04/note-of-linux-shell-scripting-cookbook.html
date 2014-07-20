@@ -77,6 +77,12 @@
 <p><a href="http://coolshell.cn/articles/9104.html">sed简明教程</a></p>
 <p><a href="http://coolshell.cn/articles/9070.html">awk简明教程</a></p>
 <hr />
+<h3>shell script</h3>
+<div class="codehilite"><pre><span class="c">#!/bin/bash</span>
+<span class="c"># do something</span>
+</pre></div>
+
+
 <h3>run shell script</h3>
 <div class="codehilite"><pre><span class="n">sh</span> <span class="n">script</span><span class="p">.</span><span class="n">sh</span>
 
@@ -84,6 +90,7 @@
 
 <span class="n">chmod</span> <span class="n">a</span><span class="o">+</span><span class="n">x</span> <span class="n">script</span><span class="p">.</span><span class="n">sh</span>
 <span class="p">.</span><span class="o">/</span><span class="n">script</span><span class="p">.</span><span class="n">sh</span>
+<span class="cp"># 会读取首行的解释器, 执行</span>
 </pre></div>
 
 
@@ -105,7 +112,7 @@
 
 
 <p>使用不带引号的echo时，无法显示分号</p>
-<p>使用单引号echo时，bash不会对单引号中变量求值  $var</p>
+<p>使用单引号echo时，bash不会对单引号中变量求值  '$var'</p>
 <p>echo 中转义换行符</p>
 <p>默认情况，echo将换行标志追加到文本尾部，可以忽略结尾换行符</p>
 <div class="codehilite"><pre><span class="n">echo</span> <span class="o">-</span><span class="n">n</span> <span class="err">&#39;</span><span class="n">test</span><span class="err">\</span><span class="n">n</span><span class="err">&#39;</span>
@@ -147,17 +154,21 @@
 
 
 <h3>printf</h3>
-<p>可以格式化字符串
-默认不会加换行符</p>
+<p>可以格式化字符串, 使用参数同c中printf一样</p>
+<div class="codehilite"><pre><span class="n">printf</span> <span class="s">&quot;hello world&quot;</span>
+</pre></div>
+
+
+<p>默认不会加换行符, 需要手动添加</p>
 <div class="codehilite"><pre><span class="n">printf</span> <span class="s">&quot;%-5s %-10s %-4.2f</span><span class="se">\n</span><span class="s">&quot;</span> <span class="mi">3</span> <span class="n">Jeff</span> <span class="mf">77.564</span>
 
 <span class="mi">3</span>    <span class="n">Jeff</span>      <span class="mf">77.56</span>
 </pre></div>
 
 
-<p>同c语言的格式化意义</p>
 <h3>环境变量和变量</h3>
 <p>bash中，每个变量的值都是字符串，无论你给变量赋值时是否使用引号，值都会以字符串的形式存储</p>
+<p>环境变量</p>
 <p>查看所有与此终端进程相关的环境变量</p>
 <div class="codehilite"><pre><span class="n">env</span>
 </pre></div>
@@ -169,25 +180,29 @@
 
 
 <p>变量赋值</p>
-<div class="codehilite"><pre><span class="n">var</span><span class="o">=</span><span class="n">value</span>
-<span class="n">var</span><span class="o">=</span><span class="err">&#39;</span><span class="n">the</span> <span class="n">value</span><span class="err">&#39;</span>
-<span class="n">var</span><span class="o">=</span><span class="s">&quot;the $PARAM&quot;</span>
+<div class="codehilite"><pre>var=value
+var=&#39;the value&#39;
+var=&quot;the <span class="nv">$PARAM</span>&quot;
 
-<span class="n">echo</span> <span class="err">$</span><span class="n">var</span>
+echo <span class="nv">$var</span>
+echo <span class="cp">${</span><span class="n">var</span><span class="cp">}</span>
 
-<span class="n">var</span> <span class="o">=</span> <span class="n">value</span><span class="err">非变量赋值是相等操作</span>
+var = value非变量赋值是相等操作
 </pre></div>
 
 
 <p>环境变量</p>
 <div class="codehilite"><pre><span class="err">未在当前进程中定义，而是从父进程中继承而来的变量</span>
+<span class="n">export</span> <span class="err">设置环境变量</span><span class="p">,</span><span class="err">之后</span><span class="p">,</span><span class="err">从当前</span><span class="n">shell</span> <span class="err">执行的任何程序都会继承这个变量</span>
 
 <span class="n">export</span> <span class="n">PYTHONPATH</span><span class="o">=</span><span class="err">$</span><span class="n">PYTHONPATH</span><span class="o">:/</span><span class="n">home</span><span class="o">/</span><span class="n">ken</span><span class="o">/</span><span class="n">workspace</span>
 </pre></div>
 
 
 <p>常用的环境变量</p>
-<div class="codehilite"><pre><span class="n">HOME</span>
+<div class="codehilite"><pre><span class="n">PATH</span> <span class="err">查找可执行文件路径</span><span class="p">,</span> <span class="err">通常定义在</span><span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">environment</span> <span class="n">or</span> <span class="o">/</span><span class="n">ect</span><span class="o">/</span><span class="n">profile</span> <span class="n">or</span> <span class="o">~/</span><span class="p">.</span><span class="n">bashrc</span>
+<span class="err">修改</span><span class="o">:</span>        <span class="n">export</span> <span class="n">PATH</span><span class="o">=</span><span class="err">$</span><span class="n">PATH</span><span class="o">:/</span><span class="n">new</span><span class="o">/</span><span class="n">path</span><span class="o">/</span>
+<span class="n">HOME</span>
 <span class="n">PWD</span>
 <span class="n">USER</span>
 <span class="n">UID</span>
@@ -208,7 +223,7 @@
 </pre></div>
 
 
-<p>检查是否为超级用户</p>
+<p>检查是否为超级用户 or 普通用户</p>
 <div class="codehilite"><pre><span class="n">root</span><span class="err">的</span><span class="n">UID</span><span class="o">=</span><span class="mi">0</span>
 
 <span class="k">if</span> <span class="p">[</span> <span class="err">$</span><span class="n">UID</span> <span class="o">-</span><span class="n">ne</span> <span class="mi">0</span> <span class="p">]</span>
@@ -248,7 +263,7 @@
 </pre></div>
 
 
-<p>expr</p>
+<p>expr(少用)</p>
 <div class="codehilite"><pre><span class="n">result</span><span class="o">=</span><span class="err">`</span><span class="n">expr</span> <span class="mi">3</span> <span class="o">+</span> <span class="mi">4</span><span class="err">`</span>
 <span class="n">result</span><span class="o">=</span><span class="err">$</span><span class="p">(</span><span class="n">expr</span> <span class="err">$</span><span class="n">no1</span> <span class="o">+</span> <span class="mi">5</span><span class="p">)</span>
 </pre></div>
@@ -269,20 +284,27 @@
 <span class="err">进制转换</span>
 <span class="n">echo</span> <span class="s">&quot;obase=2;100&quot;</span> <span class="o">|</span> <span class="n">bc</span>
 <span class="err">平方</span>
+<span class="n">echo</span> <span class="s">&quot;10^10&quot;</span> <span class="o">|</span> <span class="n">bc</span>
+<span class="err">平方根</span>
 <span class="n">echo</span> <span class="s">&quot;sqrt(100)&quot;</span> <span class="o">|</span> <span class="n">bc</span>
 </pre></div>
 
 
+<h3>命令状态</h3>
+<p>当命令成功完成, 返回0</p>
+<p>发生错误并退回, 返回非0</p>
+<p>可以从$?中获取  cmd; echo $?</p>
 <h3>文件描述符和重定向</h3>
-<p>文件描述符</p>
-<div class="codehilite"><pre><span class="mi">0</span> <span class="n">stdin</span> <span class="err">标砖输入</span>
+<p>文件描述符: 与文件输入/输出相关联的整数, 用来跟踪已打开的文件</p>
+<div class="codehilite"><pre><span class="mi">0</span> <span class="n">stdin</span>  <span class="err">标砖输入</span>
 <span class="mi">1</span> <span class="n">stdout</span> <span class="err">标准输出</span>
 <span class="mi">2</span> <span class="n">stderr</span> <span class="err">标准错误</span>
 </pre></div>
 
 
 <p>重定向到文件</p>
-<div class="codehilite"><pre><span class="n">echo</span> <span class="s">&quot;test&quot;</span> <span class="o">&gt;</span> <span class="n">temp</span><span class="p">.</span><span class="n">txt</span>
+<div class="codehilite"><pre><span class="err">清空文件写入新内容</span>
+<span class="n">echo</span> <span class="s">&quot;test&quot;</span> <span class="o">&gt;</span> <span class="n">temp</span><span class="p">.</span><span class="n">txt</span>
 <span class="err">追加</span>
 <span class="n">echo</span> <span class="s">&quot;test&quot;</span> <span class="o">&gt;&gt;</span> <span class="n">temp</span><span class="p">.</span><span class="n">txt</span>
 
@@ -292,8 +314,10 @@
 
 
 <p>输出分离或合并</p>
-<div class="codehilite"><pre><span class="n">cmd</span> <span class="mi">2</span><span class="o">&gt;</span><span class="n">stderr</span><span class="p">.</span><span class="n">txt</span>  <span class="mi">1</span><span class="o">&gt;</span><span class="n">stdout</span><span class="p">.</span><span class="n">txt</span>
+<div class="codehilite"><pre><span class="err">分离</span>
+<span class="n">cmd</span> <span class="mi">2</span><span class="o">&gt;</span><span class="n">stderr</span><span class="p">.</span><span class="n">txt</span>  <span class="mi">1</span><span class="o">&gt;</span><span class="n">stdout</span><span class="p">.</span><span class="n">txt</span>
 
+<span class="err">合并</span>
 <span class="n">cmd</span> <span class="o">&gt;</span> <span class="n">output</span><span class="p">.</span><span class="n">txt</span> <span class="mi">2</span><span class="o">&gt;&amp;</span><span class="mi">1</span>
 <span class="n">or</span>
 <span class="n">cmd</span> <span class="o">&amp;&gt;</span> <span class="n">output</span><span class="p">.</span><span class="n">txt</span>
@@ -301,14 +325,26 @@
 
 
 <p>扔到垃圾桶</p>
-<div class="codehilite"><pre><span class="n">cmd</span> <span class="o">&gt;/</span><span class="n">dev</span><span class="o">/</span><span class="n">null</span> <span class="mi">2</span><span class="o">&gt;&amp;</span><span class="mi">1</span>
+<div class="codehilite"><pre><span class="o">/</span><span class="n">dev</span><span class="o">/</span><span class="n">null</span> <span class="err">特殊设备文件</span><span class="p">,</span> <span class="err">接收到的任何数据都会被丢弃</span><span class="p">(</span><span class="err">位桶</span><span class="o">/</span><span class="err">黑洞</span><span class="p">)</span>
+
+<span class="err">只有标准错误</span>
+<span class="n">cmd</span> <span class="mi">2</span> <span class="o">&gt;</span> <span class="o">/</span><span class="n">dev</span><span class="o">/</span><span class="n">null</span>
+
+<span class="err">标准输出和标准错误</span>
+<span class="n">cmd</span> <span class="o">&gt;/</span><span class="n">dev</span><span class="o">/</span><span class="n">null</span> <span class="mi">2</span><span class="o">&gt;&amp;</span><span class="mi">1</span>
 </pre></div>
 
 
-<p>输出到终端机文件</p>
+<p>同时输出到终端和文件</p>
 <div class="codehilite"><pre><span class="n">cmd</span> <span class="o">|</span> <span class="n">tee</span> <span class="n">file1</span>
+
 <span class="n">tee</span><span class="err">默认覆盖，可以</span><span class="o">-</span><span class="n">a</span><span class="err">选项追加</span>
 <span class="n">cmd</span> <span class="o">|</span> <span class="n">tee</span> <span class="o">-</span><span class="n">a</span> <span class="n">file1</span>
+</pre></div>
+
+
+<p>将stdin作为命令参数</p>
+<div class="codehilite"><pre><span class="n">cmd1</span> <span class="o">|</span> <span class="n">cmd2</span> <span class="o">|</span> <span class="n">cmd3</span> <span class="o">-</span>
 </pre></div>
 
 
@@ -318,17 +354,19 @@
 
 
 <p>自定义文件描述符</p>
-<div class="codehilite"><pre>exec 3<span class="nt">&lt;input</span><span class="err">.</span><span class="na">txt</span>
+<div class="codehilite"><pre>使用文件描述符3打开并读取文件
+exec 3<span class="nt">&lt;input</span><span class="err">.</span><span class="na">txt</span>
 <span class="na">cat</span> <span class="err">&lt;&amp;</span>3
 
+使用文件描述符4进行写入
 exec 4&gt;output.txt
 echo newline &gt;<span class="err">&amp;</span>4
 </pre></div>
 
 
 <h3>cat</h3>
-<p>cat, concatenate(拼接)
-“cat”代表了连结（Concatenation），连接两个或者更多文本文件或者以标准输出形式打印文件的内容</p>
+<p>cat, concatenate(拼接)</p>
+<p>“cat”代表了连结（Concatenation），连接两个或者更多文本文件或者以标准输出形式打印文件的内容</p>
 <p>一般格式</p>
 <div class="codehilite"><pre><span class="n">cat</span> <span class="n">file1</span> <span class="n">file2</span> <span class="n">file3</span>
 
@@ -339,13 +377,13 @@ echo newline &gt;<span class="err">&amp;</span>4
 </pre></div>
 
 
-<p>压缩空白行</p>
+<p>压缩空白行, 多个连续空行变成单个</p>
 <div class="codehilite"><pre><span class="n">cat</span> <span class="o">-</span><span class="n">s</span>  <span class="n">file</span>
 </pre></div>
 
 
 <p>配合tr移除空白行</p>
-<div class="codehilite"><pre><span class="n">cat</span> <span class="n">file</span> <span class="o">|</span> <span class="n">tr</span> <span class="o">-</span><span class="n">s</span> <span class="sc">&#39;\n&#39;</span>
+<div class="codehilite"><pre><span class="n">cat</span> <span class="n">file</span> <span class="o">|</span> <span class="n">tr</span> <span class="o">-</span><span class="n">s</span> <span class="sc">&#39;\n&#39;</span> <span class="err">#连续多个\</span><span class="n">n</span> <span class="o">-&gt;</span> <span class="err">\</span><span class="n">n</span>
 </pre></div>
 
 
@@ -358,7 +396,9 @@ echo newline &gt;<span class="err">&amp;</span>4
 <div class="codehilite"><pre><span class="n">cat</span> <span class="o">-</span><span class="n">T</span> <span class="n">file</span>
 
 <span class="n">cat</span> <span class="n">f</span> <span class="o">&gt;</span> <span class="n">t</span>
-<span class="err">注意：“</span><span class="o">&gt;&gt;</span><span class="err">”和“</span><span class="o">&gt;</span><span class="err">”调用了追加符号。它们用来追加到文件里，而不是显示在标准输出上。“</span><span class="o">&gt;</span><span class="err">”符号会删除已存在的文件，然后创建一个新的文件。所以因为安全的原因，建议使用“</span><span class="o">&gt;&gt;</span><span class="err">”，它会写入到文件中，而不是覆盖或者删除。</span>
+<span class="err">注意：“</span><span class="o">&gt;&gt;</span><span class="err">”和“</span><span class="o">&gt;</span><span class="err">”调用了追加符号。它们用来追加到文件里，而不是显示在标准输出上。</span>
+<span class="err">“</span><span class="o">&gt;</span><span class="err">”符号会删除已存在的文件，然后创建一个新的文件。</span>
+<span class="err">所以因为安全的原因，建议使用“</span><span class="o">&gt;&gt;</span><span class="err">”，它会写入到文件中，而不是覆盖或者删除。</span>
 </pre></div>
 
 
@@ -367,14 +407,16 @@ echo newline &gt;<span class="err">&amp;</span>4
 </pre></div>
 
 
-<h3>数组</h3>
-<p>普通数组，整数作为数组索引</p>
-<p>关联数组，可以使用字符串作为索引</p>
+<h3>数组和关联数组</h3>
+<p>普通数组，整数作为数组索引, 借助索引将多个独立的数据存储为一个集合(list)</p>
+<p>关联数组，可以使用字符串作为索引(map)</p>
+<p>数组</p>
 <p>定义</p>
 <div class="codehilite"><pre><span class="n">array_var</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span> <span class="mi">5</span><span class="p">)</span>
 
 <span class="n">or</span>
 <span class="n">array_var</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="s">&quot;test1&quot;</span>
+<span class="n">array_var</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">=</span><span class="s">&quot;test3&quot;</span>
 </pre></div>
 
 
@@ -394,18 +436,21 @@ echo <span class="cp">${</span><span class="n">array_var</span><span class="p">[
 </pre></div>
 
 
-<p>获取索引</p>
+<p>获取索引列表</p>
 <div class="codehilite"><pre>echo <span class="cp">${</span><span class="err">!</span><span class="n">array_var</span><span class="p">[</span><span class="o">*</span><span class="p">]</span><span class="cp">}</span>
 </pre></div>
 
 
 <p>关联数组</p>
-<div class="codehilite"><pre><span class="n">declare</span> <span class="o">-</span><span class="n">A</span> <span class="n">ass_array</span>
+<div class="codehilite"><pre>declare -A ass_array
 
-<span class="err">添加</span>
-<span class="n">ass_array</span><span class="o">=</span><span class="p">([</span><span class="n">index1</span><span class="p">]</span><span class="o">=</span><span class="n">value1</span> <span class="p">[</span><span class="n">index2</span><span class="p">]</span><span class="o">=</span><span class="n">value2</span><span class="p">)</span>
+内嵌索引-值
+ass_array=([index1]=value1 [index2]=value2)
 
-<span class="n">ass_array</span><span class="p">[</span><span class="n">index3</span><span class="p">]</span><span class="o">=</span><span class="n">value3</span>
+独立
+ass_array[index3]=value3
+
+echo <span class="cp">${</span><span class="n">ass_array</span><span class="p">[</span><span class="n">index1</span><span class="p">]</span><span class="cp">}</span>
 </pre></div>
 
 
@@ -455,13 +500,17 @@ echo <span class="cp">${</span><span class="n">array_var</span><span class="p">[
 
 <p>格式化</p>
 <div class="codehilite"><pre><span class="n">date</span> <span class="s">&quot;+%Y %B %d&quot;</span>
+
 <span class="n">date</span> <span class="o">+%</span><span class="n">Y</span><span class="o">-%</span><span class="n">m</span><span class="o">-%</span><span class="n">d</span>
 <span class="err">输出：</span> <span class="mi">2011</span><span class="o">-</span><span class="mo">07</span><span class="o">-</span><span class="mi">28</span>
+<span class="n">date</span> <span class="o">+</span><span class="s">&quot;%Y-%m-%d %H:%M:%S&quot;</span>
 </pre></div>
 
 
 <p>设置日期和时间</p>
 <div class="codehilite"><pre><span class="n">date</span> <span class="o">-</span><span class="n">s</span> <span class="s">&quot;格式化日期字符串&quot;</span>
+
+<span class="n">date</span> <span class="o">-</span><span class="n">s</span> <span class="s">&quot;21 June 2009 11:01:22&quot;</span>
 </pre></div>
 
 
@@ -473,6 +522,12 @@ echo <span class="cp">${</span><span class="n">array_var</span><span class="p">[
 <p>两天后及两天前</p>
 <div class="codehilite"><pre><span class="n">date</span> <span class="o">-</span><span class="n">d</span> <span class="err">&#39;</span><span class="mi">2</span> <span class="n">days</span><span class="err">&#39;</span> <span class="o">+%</span><span class="n">Y</span><span class="o">%</span><span class="n">m</span><span class="o">%</span><span class="n">d</span>
 <span class="n">date</span> <span class="o">-</span><span class="n">d</span> <span class="err">&#39;</span><span class="mi">2</span> <span class="n">days</span> <span class="n">ago</span><span class="err">&#39;</span> <span class="o">+%</span><span class="n">Y</span><span class="o">%</span><span class="n">m</span><span class="o">%</span><span class="n">d</span>
+</pre></div>
+
+
+<p>某一天的几天前</p>
+<div class="codehilite"><pre><span class="n">TODAY</span><span class="o">=</span><span class="err">`</span><span class="n">date</span> <span class="o">+%</span><span class="n">Y</span><span class="o">%</span><span class="n">m</span><span class="o">%</span><span class="n">d</span><span class="err">`</span>
+<span class="n">DAY_1_AGO</span><span class="o">=</span><span class="err">`</span><span class="n">date</span> <span class="o">-</span><span class="n">d</span> <span class="s">&quot;$TODAY 1 days ago&quot;</span> <span class="o">+%</span><span class="n">Y</span><span class="o">%</span><span class="n">m</span><span class="o">%</span><span class="n">d</span><span class="err">`</span>
 </pre></div>
 
 
@@ -527,6 +582,7 @@ echo <span class="cp">${</span><span class="n">array_var</span><span class="p">[
 
 <p>调用</p>
 <div class="codehilite"><pre><span class="n">fname</span><span class="p">;</span>
+<span class="err">传参</span>
 <span class="n">fname</span> <span class="n">arg1</span> <span class="n">arg2</span><span class="p">;</span>
 </pre></div>
 
@@ -538,6 +594,7 @@ echo <span class="cp">${</span><span class="n">array_var</span><span class="p">[
 
 <span class="s">&quot;$@&quot;</span><span class="err">被扩展成</span> <span class="s">&quot;$1&quot;</span> <span class="s">&quot;$2&quot;</span> <span class="s">&quot;$3&quot;</span>
 <span class="s">&quot;$*&quot;</span><span class="err">扩展成</span><span class="s">&quot;$1c$2c$3&quot;</span><span class="p">,</span> <span class="err">其中</span><span class="n">c</span><span class="err">是</span><span class="n">IFS</span><span class="err">第一个字符</span>
+
 <span class="s">&quot;$@&quot;</span><span class="err">使用最多</span><span class="p">,</span> <span class="err">$</span><span class="o">*</span><span class="err">将所有的参数当做单个字符串</span>
 </pre></div>
 
@@ -553,18 +610,36 @@ echo <span class="cp">${</span><span class="n">array_var</span><span class="p">[
 <span class="n">echo</span> <span class="err">$</span><span class="o">?</span>
 
 <span class="err">退出状态，成功退出，状态为</span><span class="mi">0</span><span class="err">，否则，非</span><span class="mi">0</span>
+
+<span class="n">cmd</span>
+<span class="k">if</span> <span class="p">[</span> <span class="err">$</span><span class="o">?</span> <span class="o">-</span><span class="n">eq</span> <span class="mi">0</span> <span class="p">]</span>
+<span class="n">then</span>
+    <span class="n">echo</span> <span class="s">&quot;success&quot;</span>
+<span class="k">else</span>
+    <span class="n">echo</span> <span class="s">&quot;fail&quot;</span>
+<span class="n">fi</span>
 </pre></div>
 
 
 <h3>管道</h3>
+<p>前一个命令的输出作为后一个命令的输入</p>
 <div class="codehilite"><pre><span class="err">$</span><span class="n">cmd1</span> <span class="o">|</span> <span class="n">cmd2</span> <span class="o">|</span> <span class="n">cmd3</span>
 </pre></div>
 
 
 <h3>读取命令输出</h3>
-<div class="codehilite"><pre><span class="n">cmd_output</span><span class="o">=</span><span class="err">$</span><span class="p">(</span><span class="n">COMMANDS</span><span class="p">)</span>
+<div class="codehilite"><pre><span class="err">子</span><span class="n">shell</span>  <span class="n">subshell</span>
+<span class="n">cmd_output</span><span class="o">=</span><span class="err">$</span><span class="p">(</span><span class="n">COMMANDS</span><span class="p">)</span>
 <span class="n">or</span>
+<span class="err">反引用</span>
 <span class="n">cmd_output</span><span class="o">=</span><span class="err">`</span><span class="n">COMMANDS</span><span class="err">`</span>
+</pre></div>
+
+
+<p>子shell本身是独立进程, 不会对当前shell有任何影响</p>
+<div class="codehilite"><pre><span class="n">pwd</span><span class="p">;</span>
+<span class="p">(</span><span class="n">cd</span> <span class="o">/</span><span class="n">bin</span><span class="p">;</span> <span class="n">ls</span><span class="p">)</span>
+<span class="n">pwd</span> <span class="err">#同上一个</span><span class="n">pwd</span>
 </pre></div>
 
 
@@ -574,10 +649,22 @@ echo <span class="cp">${</span><span class="n">array_var</span><span class="p">[
 
 <span class="n">out</span><span class="o">=</span><span class="s">&quot;$(cat text.txt)&quot;</span>
 <span class="n">echo</span> <span class="err">$</span><span class="n">out</span>  <span class="err">#保留</span>
+
+<span class="n">cat</span> <span class="n">a</span>
+<span class="mi">1</span>
+<span class="mi">2</span>
+<span class="mi">3</span>
+<span class="n">echo</span> <span class="err">$</span><span class="p">(</span><span class="n">cat</span> <span class="n">a</span><span class="p">)</span>
+<span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span>
+<span class="n">echo</span> <span class="s">&quot;$(cat a)&quot;</span>
+<span class="mi">1</span>
+<span class="mi">2</span>
+<span class="mi">3</span>
 </pre></div>
 
 
 <h3>read</h3>
+<p>read, 用于从键盘或标准输入中读取文本</p>
 <p>读取n个字符存入变量</p>
 <div class="codehilite"><pre><span class="n">read</span> <span class="o">-</span><span class="n">n</span> <span class="n">number_of_chars</span> <span class="n">variable_name</span>
 </pre></div>
@@ -615,12 +702,16 @@ echo <span class="cp">${</span><span class="n">array_var</span><span class="p">[
 <span class="k">do</span>
         <span class="n">echo</span> <span class="err">$</span><span class="n">item</span>
 <span class="n">done</span>
+
+<span class="n">IFS</span><span class="o">=</span><span class="err">$</span><span class="n">oldIFS</span>
 </pre></div>
 
 
 <h3>循环</h3>
 <p>for循环</p>
-<div class="codehilite"><pre><span class="k">for</span> <span class="n">i</span> <span class="n">in</span> <span class="p">{</span><span class="n">a</span><span class="p">..</span><span class="n">z</span><span class="p">};</span> <span class="k">do</span> <span class="n">actions</span><span class="p">;</span> <span class="n">done</span><span class="p">;</span>
+<div class="codehilite"><pre><span class="n">echo</span> <span class="p">{</span><span class="mf">1..50</span><span class="p">}</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="n">in</span> <span class="p">{</span><span class="n">a</span><span class="p">..</span><span class="n">z</span><span class="p">};</span> <span class="k">do</span> <span class="n">actions</span><span class="p">;</span> <span class="n">done</span><span class="p">;</span>
 
 <span class="n">or</span>
 
@@ -633,6 +724,14 @@ echo <span class="cp">${</span><span class="n">array_var</span><span class="p">[
 
 <p>while循环</p>
 <div class="codehilite"><pre><span class="k">while</span> <span class="n">condition</span>
+<span class="k">do</span>
+    <span class="n">commands</span><span class="p">;</span>
+<span class="n">done</span>
+</pre></div>
+
+
+<p>until循环</p>
+<div class="codehilite"><pre><span class="n">until</span> <span class="n">condition</span>
 <span class="k">do</span>
     <span class="n">commands</span><span class="p">;</span>
 <span class="n">done</span>
@@ -653,7 +752,7 @@ echo <span class="cp">${</span><span class="n">array_var</span><span class="p">[
 </pre></div>
 
 
-<p>逻辑运算符进行简化</p>
+<p>逻辑运算符进行简化, 短路运算更简洁</p>
 <div class="codehilite"><pre><span class="p">[</span> <span class="n">condition</span> <span class="p">]</span> <span class="o">&amp;&amp;</span> <span class="n">action</span><span class="p">;</span>
 <span class="p">[</span> <span class="n">condition</span> <span class="p">]</span> <span class="o">||</span> <span class="n">action</span><span class="p">;</span>
 </pre></div>
@@ -667,10 +766,13 @@ echo <span class="cp">${</span><span class="n">array_var</span><span class="p">[
 <span class="o">-</span><span class="n">ne</span> <span class="err">不等于</span>
 <span class="o">-</span><span class="n">eq</span> <span class="err">等于</span>
 
+<span class="err">注意</span><span class="p">[]</span><span class="err">和操作数之间的空格</span>
 <span class="p">[</span> <span class="err">$</span><span class="n">var</span> <span class="o">-</span><span class="n">eq</span> <span class="mi">0</span> <span class="p">]</span>
 
-<span class="p">[</span> <span class="err">$</span><span class="n">var</span> <span class="o">-</span><span class="n">ne</span> <span class="mi">0</span> <span class="o">-</span><span class="n">a</span> <span class="err">$</span><span class="n">var2</span> <span class="o">-</span><span class="n">get</span> <span class="mi">2</span> <span class="p">]</span>
-<span class="p">[</span> <span class="err">$</span><span class="n">var</span> <span class="o">-</span><span class="n">ne</span> <span class="mi">0</span> <span class="o">-</span><span class="n">o</span> <span class="err">$</span><span class="n">var2</span> <span class="o">-</span><span class="n">get</span> <span class="mi">2</span> <span class="p">]</span>
+<span class="n">and</span>
+<span class="p">[</span> <span class="err">$</span><span class="n">var</span> <span class="o">-</span><span class="n">ne</span> <span class="mi">0</span> <span class="o">-</span><span class="n">a</span> <span class="err">$</span><span class="n">var2</span> <span class="o">-</span><span class="n">ge</span> <span class="mi">2</span> <span class="p">]</span>
+<span class="n">or</span>
+<span class="p">[</span> <span class="err">$</span><span class="n">var</span> <span class="o">-</span><span class="n">ne</span> <span class="mi">0</span> <span class="o">-</span><span class="n">o</span> <span class="err">$</span><span class="n">var2</span> <span class="o">-</span><span class="n">ge</span> <span class="mi">2</span> <span class="p">]</span>
 </pre></div>
 
 
@@ -692,18 +794,26 @@ echo <span class="cp">${</span><span class="n">array_var</span><span class="p">[
 <span class="k">[[ $str1 == $str2 ]]</span>
 
 <span class="na">[[ $str1 !</span><span class="o">=</span> <span class="s">$str2 ]] 不等</span>
+
 <span class="k">[[ $str1 &gt; $str2 ]]</span>
 <span class="k">[[ $str1 &lt; $str2 ]]</span>
+
 <span class="err">[[</span> <span class="err">-z</span> <span class="err">$str1</span> <span class="err">]]</span>  <span class="err">空</span>
 <span class="err">[[</span> <span class="err">-n</span> <span class="err">$str1</span> <span class="err">]]</span>  <span class="err">非空</span>
+
+<span class="err">if</span> <span class="k">[[ -n $str1 ]] &amp;&amp; [[ -z $str2 ]]</span>
+<span class="err">then</span>
+    <span class="err">commands</span><span class="c1">;</span>
+<span class="err">fi</span>
 </pre></div>
 
 
-<p>p35</p>
 <h3>find</h3>
 <p>搜索指定目录下的文件，从开始于父目录，然后搜索子目录</p>
 <p>基本</p>
 <div class="codehilite"><pre><span class="n">find</span> <span class="n">base_path</span>
+
+<span class="cp"># 打印文件和目录列表</span>
 <span class="n">find</span> <span class="p">.</span> <span class="o">-</span><span class="n">print</span>  <span class="err">#默认\</span><span class="n">n</span><span class="err">分割文件名</span>
 </pre></div>
 
@@ -712,14 +822,16 @@ echo <span class="cp">${</span><span class="n">array_var</span><span class="p">[
 <div class="codehilite"><pre><span class="n">find</span> <span class="n">path</span> <span class="o">-</span><span class="n">name</span> <span class="s">&quot;*.txt&quot;</span> <span class="o">-</span><span class="n">print</span>
           <span class="o">-</span><span class="n">iname</span>  <span class="err">忽略大小写</span>
 
-<span class="err">多个条件</span>
+<span class="err">多个条件</span> <span class="n">or</span>
 <span class="n">find</span> <span class="p">.</span> <span class="err">\</span><span class="p">(</span> <span class="o">-</span><span class="n">name</span> <span class="s">&quot;*.txt&quot;</span> <span class="o">-</span><span class="n">o</span> <span class="o">-</span><span class="n">name</span> <span class="s">&quot;*.py&quot;</span> <span class="err">\</span><span class="p">)</span>
 </pre></div>
 
 
 <p>文件路径</p>
-<div class="codehilite"><pre><span class="n">find</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">users</span> <span class="o">-</span><span class="n">path</span> <span class="s">&quot;*slynux*&quot;</span> <span class="o">-</span><span class="n">print</span>
+<div class="codehilite"><pre><span class="err">通配符</span>
+<span class="n">find</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">users</span> <span class="o">-</span><span class="n">path</span> <span class="s">&quot;*slynux*&quot;</span> <span class="o">-</span><span class="n">print</span>
 
+<span class="err">正则</span>
 <span class="n">find</span> <span class="p">.</span> <span class="o">-</span><span class="n">regex</span> <span class="s">&quot;.*\(\.py\|\.sh\)$&quot;</span>
        <span class="o">-</span><span class="n">iregex</span> <span class="err">忽略大小写</span>
 </pre></div>
@@ -754,13 +866,16 @@ echo <span class="cp">${</span><span class="n">array_var</span><span class="p">[
 <span class="o">-</span><span class="n">mtime</span> <span class="err">最后一次被修改时间</span>
 <span class="o">-</span><span class="n">ctime</span> <span class="err">文件元数据，最近一次修改时间</span>
 
-<span class="n">find</span> <span class="p">.</span> <span class="o">-</span><span class="n">type</span> <span class="n">f</span> <span class="o">-</span><span class="n">atime</span> <span class="o">-</span><span class="mi">7</span> <span class="o">-</span><span class="n">print</span> <span class="err">#七天内</span>
+<span class="n">find</span> <span class="p">.</span> <span class="o">-</span><span class="n">type</span> <span class="n">f</span> <span class="o">-</span><span class="n">atime</span> <span class="o">-</span><span class="mi">7</span> <span class="o">-</span><span class="n">print</span> <span class="err">#最近七天内被访问的</span>
+<span class="n">find</span> <span class="p">.</span> <span class="o">-</span><span class="n">type</span> <span class="n">f</span> <span class="o">-</span><span class="n">atime</span> <span class="mi">7</span> <span class="o">-</span><span class="n">print</span>  <span class="err">#恰好在七天前</span>
                       <span class="o">+</span><span class="mi">7</span> <span class="o">-</span><span class="n">print</span> <span class="err">#超过七天</span>
 
-<span class="err">分钟</span>
+<span class="err">计量单位</span> <span class="err">分钟</span>
 <span class="o">-</span><span class="n">amin</span> <span class="err">访问时间</span>
 <span class="o">-</span><span class="n">mmin</span> <span class="err">修改时间</span>
 <span class="o">-</span><span class="n">cmin</span> <span class="err">变化时间</span>
+
+<span class="n">find</span> <span class="p">.</span> <span class="o">-</span><span class="n">type</span> <span class="n">f</span> <span class="o">-</span><span class="n">amin</span> <span class="o">+</span><span class="mi">7</span> <span class="o">-</span><span class="n">print</span> <span class="err">#访问时间超过</span><span class="mi">7</span><span class="err">分钟的</span>
 
 <span class="n">find</span> <span class="p">.</span> <span class="o">-</span><span class="n">type</span> <span class="n">f</span> <span class="o">-</span><span class="n">newer</span> <span class="n">file</span><span class="p">.</span><span class="n">txt</span> <span class="o">-</span><span class="n">print</span>  <span class="err">#用于比较时间戳的参考文件，比参考文件更新的文件</span>
 </pre></div>
@@ -792,12 +907,13 @@ echo <span class="cp">${</span><span class="n">array_var</span><span class="p">[
 </pre></div>
 
 
-<p>执行命令或动作</p>
+<p>执行命令或动作(最强大的命令)</p>
 <div class="codehilite"><pre><span class="n">find</span> <span class="p">.</span> <span class="o">-</span><span class="n">type</span> <span class="n">f</span> <span class="o">-</span><span class="n">user</span> <span class="n">root</span> <span class="o">-</span><span class="n">exec</span> <span class="n">chown</span> <span class="n">slynux</span> <span class="p">{}</span> <span class="err">\</span><span class="p">;</span>
 <span class="n">find</span> <span class="p">.</span> <span class="o">-</span><span class="n">type</span> <span class="n">f</span> <span class="o">-</span><span class="n">exec</span> <span class="n">cp</span> <span class="p">{}</span> <span class="n">OLD</span> <span class="err">\</span><span class="p">;</span>
 <span class="n">find</span> <span class="p">.</span> <span class="o">-</span><span class="n">iname</span> <span class="s">&quot;abc.txt&quot;</span> <span class="o">-</span><span class="n">exec</span> <span class="n">md5sum</span> <span class="p">{}</span> <span class="err">\</span><span class="p">;</span>
 
-<span class="n">exec</span><span class="err">无法结合多个命令，可以将多个命令放入脚本，调用只</span>
+<span class="p">{}</span> <span class="err">江北替换成对应文件名</span>
+<span class="n">exec</span><span class="err">无法结合多个命令，可以将多个命令放入脚本，调用之</span>
 </pre></div>
 
 
@@ -806,7 +922,6 @@ echo <span class="cp">${</span><span class="n">array_var</span><span class="p">[
 </pre></div>
 
 
-<p>second part</p>
 <h3>xargs</h3>
 <p>将标准输入数据转化成命令行参数</p>
 <p>将stdin接收到的数据重新格式化，再将其作为参数传给其他命令</p>
@@ -846,7 +961,7 @@ echo <span class="cp">${</span><span class="n">array_var</span><span class="p">[
 
 
 <h3>tr</h3>
-<p>tr可以对来自标准输入的字符进行替换，删除以及压缩</p>
+<p>tr可以对来自标准输入的字符进行替换，删除以及压缩(translate, 可以将一组字符变成另一组字符)</p>
 <p>tr只能通过stdin，无法通过其他命令行进行接收参数</p>
 <p>格式</p>
 <div class="codehilite"><pre><span class="n">tr</span> <span class="p">[</span><span class="n">options</span><span class="p">]</span> <span class="n">source</span><span class="o">-</span><span class="kt">char</span><span class="o">-</span><span class="n">set</span> <span class="n">replace</span><span class="o">-</span><span class="kt">char</span><span class="o">-</span><span class="n">set</span>
@@ -872,12 +987,14 @@ echo <span class="cp">${</span><span class="n">array_var</span><span class="p">[
 
 
 <p>删除字符</p>
-<div class="codehilite"><pre><span class="n">cat</span> <span class="n">file</span> <span class="o">|</span> <span class="n">tr</span> <span class="o">-</span><span class="n">d</span> <span class="err">&#39;</span><span class="mi">0</span><span class="o">-</span><span class="mi">9</span><span class="err">&#39;</span>
+<div class="codehilite"><pre><span class="n">echo</span> <span class="s">&quot;hello 123 world 456&quot;</span><span class="o">|</span> <span class="n">tr</span> <span class="o">-</span><span class="n">d</span> <span class="err">&#39;</span><span class="mi">0</span><span class="o">-</span><span class="mi">9</span><span class="err">&#39;</span>
+<span class="n">hello</span>  <span class="n">world</span>
 </pre></div>
 
 
 <p>字符集补集</p>
 <div class="codehilite"><pre><span class="n">echo</span> <span class="s">&quot;hello 1 char 2&quot;</span> <span class="o">|</span> <span class="n">tr</span> <span class="o">-</span><span class="n">d</span> <span class="o">-</span><span class="n">c</span> <span class="err">&#39;</span><span class="mi">0</span><span class="o">-</span><span class="mi">9</span><span class="err">&#39;</span>  <span class="err">#删除非</span><span class="mi">0</span><span class="o">-</span><span class="mi">9</span>
+<span class="mi">12</span>
 </pre></div>
 
 
@@ -930,16 +1047,17 @@ echo <span class="cp">${</span><span class="n">array_var</span><span class="p">[
 <div class="codehilite"><pre><span class="n">sort</span> <span class="p">[</span><span class="n">options</span><span class="p">]</span> <span class="p">[</span><span class="n">file</span><span class="p">(</span><span class="n">s</span><span class="p">)]</span>
 
 <span class="o">-</span><span class="n">c</span> <span class="err">检查是否已排序</span>
-<span class="o">-</span><span class="n">k</span> <span class="err">定义排序键值字段</span>
-<span class="o">-</span><span class="n">o</span> <span class="err">输出到指定文件</span>
 <span class="o">-</span><span class="n">u</span> <span class="err">丢弃所有具有相同键值的记录</span>
 
 <span class="o">-</span><span class="n">b</span> <span class="err">忽略开头空白</span>
 <span class="o">-</span><span class="n">d</span> <span class="err">字典序</span>
 <span class="o">-</span><span class="n">g</span> <span class="err">一般数值，以浮点数类型比较字段，仅支持</span><span class="n">gnu</span>
 <span class="o">-</span><span class="n">i</span> <span class="err">忽略无法打印的字符</span>
+
+<span class="o">-</span><span class="n">k</span> <span class="err">定义排序键值字段</span>
 <span class="o">-</span><span class="n">n</span> <span class="err">以整数类型比较字段</span>
 <span class="o">-</span><span class="n">r</span> <span class="err">倒转</span>
+<span class="o">-</span><span class="n">o</span> <span class="err">输出到指定文件</span>
 </pre></div>
 
 
@@ -949,7 +1067,7 @@ echo <span class="cp">${</span><span class="n">array_var</span><span class="p">[
 </pre></div>
 
 
-<p>按数字</p>
+<p>按数字, 要明确</p>
 <div class="codehilite"><pre><span class="n">sort</span> <span class="o">-</span><span class="n">n</span> <span class="n">file1</span>
 </pre></div>
 
@@ -972,7 +1090,7 @@ echo <span class="cp">${</span><span class="n">array_var</span><span class="p">[
 </pre></div>
 
 
-<p>根据键或者列排序</p>
+<p>根据键或者列排序(按照哪一个列)</p>
 <div class="codehilite"><pre><span class="n">sort</span> <span class="o">-</span><span class="n">k</span> <span class="mi">1</span> <span class="n">data</span>
 </pre></div>
 
@@ -988,6 +1106,12 @@ echo <span class="cp">${</span><span class="n">array_var</span><span class="p">[
 
 <p>忽略前导空白及字典序排序</p>
 <div class="codehilite"><pre><span class="n">sort</span> <span class="o">-</span><span class="n">bd</span> <span class="n">unsorted</span><span class="p">.</span><span class="n">txt</span>
+</pre></div>
+
+
+<p>去重</p>
+<div class="codehilite"><pre><span class="n">sort</span> <span class="n">a</span><span class="p">.</span><span class="n">txt</span> <span class="o">|</span> <span class="n">uniq</span>
+<span class="n">sort</span> <span class="o">-</span><span class="n">u</span> <span class="n">a</span><span class="p">.</span><span class="n">txt</span>
 </pre></div>
 
 
@@ -1016,18 +1140,18 @@ echo <span class="cp">${</span><span class="n">array_var</span><span class="p">[
 
 <p>p57</p>
 <h3>tempfile</h3>
-<p>只有在基于Debian的发布版才有</p>
+<p>只有在基于Debian的发布版才有(Ubuntu/Debian)</p>
 <div class="codehilite"><pre><span class="n">temp_file</span><span class="o">=</span><span class="err">$</span><span class="p">(</span><span class="n">tempfile</span><span class="p">)</span>
 <span class="err">等同</span>
 <span class="n">temp_file</span><span class="o">=</span><span class="s">&quot;/tmp/file-$RANDOM&quot;</span>
 
-<span class="cp">#$$为进城id</span>
+<span class="cp">#$$为进程id</span>
 <span class="n">temp_file</span><span class="o">=</span><span class="s">&quot;/tmp/var.$$&quot;</span>
 </pre></div>
 
 
 <h3>split</h3>
-<p>分割文件</p>
+<p>按大小分割文件, 单位k(KB), M, G, c(byte), w(word)</p>
 <div class="codehilite"><pre><span class="n">split</span> <span class="o">-</span><span class="n">b</span> <span class="mi">10</span><span class="n">k</span> <span class="n">data</span><span class="p">.</span><span class="n">file</span>
 </pre></div>
 
@@ -1037,8 +1161,11 @@ echo <span class="cp">${</span><span class="n">array_var</span><span class="p">[
 </pre></div>
 
 
-<p>分割后指定文件名长度</p>
+<p>分割后指定文件名前缀</p>
 <div class="codehilite"><pre><span class="n">split</span> <span class="o">-</span><span class="n">b</span> <span class="mi">10</span><span class="n">k</span> <span class="n">data</span><span class="p">.</span><span class="n">file</span> <span class="n">file_prefix</span>
+
+<span class="err">设置后缀格式</span>
+<span class="n">split</span> <span class="o">-</span><span class="n">b</span> <span class="mi">10</span><span class="n">k</span> <span class="n">data</span><span class="p">.</span><span class="n">file</span> <span class="o">-</span><span class="n">d</span> <span class="o">-</span><span class="n">a</span> <span class="mi">4</span> <span class="n">file_prefix</span>
 </pre></div>
 
 
@@ -1050,7 +1177,9 @@ echo <span class="cp">${</span><span class="n">array_var</span><span class="p">[
 <p>其扩展是csplit，可根据文件特性切分，关注</p>
 <h3>bash变量匹配切分</h3>
 <p>sample.jpg</p>
-<div class="codehilite"><pre>从右向左匹配
+<div class="codehilite"><pre>file_jpg=&quot;sample.jpg&quot;
+
+从右向左匹配
 <span class="cp">${</span><span class="n">file_jpg</span><span class="o">%.*</span><span class="cp">}</span>
 #sample
 
@@ -1078,22 +1207,43 @@ echo <span class="cp">${</span><span class="n">array_var</span><span class="p">[
 <div class="codehilite"><pre><span class="n">spawn</span> <span class="p">.</span><span class="o">/</span><span class="n">ineractive</span><span class="p">.</span><span class="n">sh</span>
 <span class="n">expect</span> <span class="s">&quot;Enter the number&quot;</span>
 <span class="n">send</span> <span class="s">&quot;1</span><span class="se">\n</span><span class="s">&quot;</span>
-<span class="n">expect</span> <span class="s">&quot;Ener name:&quot;</span>
+<span class="n">expect</span> <span class="s">&quot;Enter name:&quot;</span>
 <span class="n">send</span> <span class="s">&quot;hello</span><span class="se">\n</span><span class="s">&quot;</span>
 <span class="n">expect</span> <span class="n">eof</span>
+
+<span class="n">spawn</span><span class="err">指定需要自动化的命令</span>
+<span class="n">expect</span><span class="err">提供需要等待的消息</span>
+<span class="n">send</span><span class="err">发送消息</span>
+<span class="n">expect</span> <span class="n">eof</span><span class="err">指明命令交互结束</span>
 </pre></div>
 
 
 <h3>dd</h3>
-<div class="codehilite"><pre><span class="n">dd</span> <span class="k">if</span><span class="o">=/</span><span class="n">dev</span><span class="o">/</span><span class="n">zero</span> <span class="n">of</span><span class="o">=</span><span class="n">junk</span><span class="p">.</span><span class="n">data</span> <span class="n">bs</span><span class="o">=</span><span class="mi">1</span><span class="n">M</span> <span class="n">count</span><span class="o">=</span><span class="mi">1</span>
+<p>生成任意大小的文件</p>
+<div class="codehilite"><pre><span class="cp"># 创建一个1M大小的文件junk.data</span>
+<span class="n">bs</span><span class="o">=</span><span class="mi">2</span><span class="n">M</span> <span class="n">count</span><span class="o">=</span><span class="mi">2</span> <span class="err">则文件大小</span><span class="mi">4</span><span class="n">M</span>
+
+<span class="n">dd</span> <span class="k">if</span><span class="o">=/</span><span class="n">dev</span><span class="o">/</span><span class="n">zero</span> <span class="n">of</span><span class="o">=</span><span class="n">junk</span><span class="p">.</span><span class="n">data</span> <span class="n">bs</span><span class="o">=</span><span class="mi">1</span><span class="n">M</span> <span class="n">count</span><span class="o">=</span><span class="mi">1</span>
    <span class="err">输入文件</span>     <span class="err">输出文件</span>     <span class="err">块大小</span>   <span class="err">复制块数</span>
+
+<span class="err">块大小单位</span>
+<span class="err">字节</span><span class="p">(</span><span class="mi">1</span><span class="n">B</span><span class="p">)</span> <span class="n">c</span>
+<span class="err">字</span><span class="p">(</span><span class="mi">2</span><span class="n">B</span><span class="p">)</span>   <span class="n">w</span>
+<span class="err">块</span><span class="p">(</span><span class="mi">512</span><span class="n">B</span><span class="p">)</span>   <span class="n">b</span>
+<span class="err">千字节</span><span class="p">(</span><span class="mi">1024</span><span class="n">B</span><span class="p">)</span> <span class="n">k</span>
+<span class="err">兆字节</span><span class="p">(</span><span class="mi">1024</span><span class="n">KB</span><span class="p">)</span> <span class="n">M</span>
+<span class="err">吉字节</span><span class="p">(</span><span class="mi">1024</span><span class="n">MB</span><span class="p">)</span> <span class="n">G</span>
 </pre></div>
 
 
 <h3>comm</h3>
-<p>两个文件之间比较，输出三列
-onleA   bothAB  onlyB</p>
-<div class="codehilite"><pre><span class="n">comm</span> <span class="n">A</span> <span class="n">B</span> <span class="o">-</span><span class="mi">1</span> <span class="o">-</span><span class="mi">2</span> <span class="err">#删除第一第二列</span>
+<p>两个文件之间比较，输出三列</p>
+<div class="codehilite"><pre><span class="n">onleA</span> <span class="err">\</span><span class="n">t</span> <span class="n">onlyB</span> <span class="err">\</span><span class="n">t</span> <span class="n">bothAB</span>
+
+<span class="n">comm</span> <span class="n">A</span> <span class="n">B</span> <span class="o">-</span><span class="mi">1</span> <span class="o">-</span><span class="mi">2</span> <span class="err">#删除第一第二列</span>
+<span class="o">-</span><span class="mi">3</span> <span class="err">删除第三列</span>
+
+<span class="err">可以得到</span><span class="n">A</span><span class="o">^</span><span class="n">B</span>  <span class="n">A</span><span class="o">-</span><span class="n">B</span> <span class="n">B</span><span class="o">-</span><span class="n">A</span>
 </pre></div>
 
 
@@ -1108,7 +1258,7 @@ onleA   bothAB  onlyB</p>
 </pre></div>
 
 
-<p>注意：目录只能在用户拥有写权限的目录下才能创建。mkdir：不能创建目录<code>tecmint</code>，因为文件已经存在了。（上面的输出中不要被文件迷惑了，你应该记住我开头所说的-在linux中，文件，文件夹，驱动，命令，脚本都视为文件）</p>
+<p>注意：目录只能在用户拥有写权限的目录下才能创建</p>
 <h3>ls</h3>
 <p>ls命令是列出目录内容(List Directory Contents)的意思。运行它就是列出文件夹里的内容，可能是文件也可能是文件夹</p>
 <p>ls文件的内容关系</p>
@@ -1122,13 +1272,13 @@ onleA   bothAB  onlyB</p>
 
 <span class="err">文件权限序列</span>
 <span class="n">rwx</span>
-<span class="n">rwS</span>  <span class="n">setuid</span><span class="err">，允许用户以其拥有者的权限来执行文件</span>
+<span class="n">rwS</span>  <span class="n">setuid</span><span class="p">(</span><span class="n">S</span><span class="p">)</span><span class="err">，特殊权限</span><span class="p">,</span> <span class="err">出现在</span><span class="n">x</span><span class="err">的位置</span><span class="p">,</span> <span class="err">允许用户以其拥有者的权限来执行文件</span><span class="p">,</span> <span class="err">即使这个可执行文件是由其他用户运行的</span>
 
 <span class="err">目录</span>
 <span class="n">r</span><span class="p">,</span><span class="err">允许读取目录中文件和子目录列表</span>
 <span class="n">w</span><span class="p">,</span><span class="err">允许在目录中创建或删除文件或目录</span>
 <span class="n">x</span><span class="p">,</span><span class="err">指明是否可以访问目录中的文件和子目录</span>
-<span class="n">rwt</span><span class="o">/</span><span class="n">rwT</span> <span class="err">粘滞位，只有创建该目录的用户才能删除目录中的文件，即使用户组和其他用户也有写权限，典型例子</span><span class="o">/</span><span class="n">tmp</span>
+<span class="n">rwt</span><span class="o">/</span><span class="n">rwT</span> <span class="err">粘滞位，只有创建该目录的用户才能删除目录中的文件，即使用户组和其他用户也有写权限，典型例子</span><span class="o">/</span><span class="n">tmp</span><span class="p">,</span> <span class="err">写保护</span>
 </pre></div>
 
 
@@ -1147,9 +1297,13 @@ onleA   bothAB  onlyB</p>
 
 
 <h3>chmod</h3>
+<p>设置文件权限</p>
 <p>“chmod”命令就是改变文件的模式位。chmod会根据要求的模式来改变每个所给的文件，文件夹，脚本等等的文件模式（权限）。</p>
 <p>设置权限</p>
-<div class="codehilite"><pre><span class="n">chmod</span> <span class="n">u</span><span class="o">=</span><span class="n">rwx</span> <span class="n">g</span><span class="o">=</span><span class="n">rw</span> <span class="n">o</span><span class="o">=</span><span class="n">r</span> <span class="n">filename</span>
+<div class="codehilite"><pre><span class="n">user</span> <span class="n">group</span> <span class="n">others</span> <span class="n">all</span>
+<span class="n">u</span>    <span class="n">g</span>     <span class="n">o</span>      <span class="n">a</span>
+
+<span class="n">chmod</span> <span class="n">u</span><span class="o">=</span><span class="n">rwx</span> <span class="n">g</span><span class="o">=</span><span class="n">rw</span> <span class="n">o</span><span class="o">=</span><span class="n">r</span> <span class="n">filename</span>
 
 <span class="n">chmod</span> <span class="n">u</span><span class="o">+</span><span class="n">x</span> <span class="n">filename</span>
 <span class="n">chomd</span> <span class="n">a</span><span class="o">+</span><span class="n">x</span> <span class="n">filename</span> <span class="err">#所有</span>
@@ -1169,8 +1323,7 @@ onleA   bothAB  onlyB</p>
 
 <p>注意：对于系统管理员和用户来说，这个命令是最有用的命令之一了。在多用户环境或者服务器上，对于某个用户，如果设置了文件不可访问，那么这个命令就可以解决，如果设置了错误的权限，那么也就提供了为授权的访问。</p>
 <h3>chown</h3>
-<p>“chown”命令就是改变文件拥有者和所在用户组。每个文件都属于一个用户组和一个用户。在你的目录下，使用”ls -l”,你就会看到像这样的东西。</p>
-<p>“chown”命令用来改变文件的所有权，所以仅仅用来管理和提供文件的用户和用户组授权。</p>
+<p>每个文件都属于一个用户组和一个用户“chown”命令用来改变文件的所有权，所以仅仅用来管理和提供文件的用户和用户组授权。</p>
 <p>改变所有权</p>
 <div class="codehilite"><pre><span class="n">chown</span> <span class="n">user</span><span class="p">.</span><span class="n">group</span> <span class="n">filename</span>
 </pre></div>
@@ -1181,7 +1334,7 @@ onleA   bothAB  onlyB</p>
 </pre></div>
 
 
-<p>每次都以其他用户身份执行</p>
+<p>每次都以其他用户身份执行(允许其他用户以文件所有者的身份来执行)</p>
 <div class="codehilite"><pre><span class="n">chomod</span> <span class="o">+</span><span class="n">s</span> <span class="n">executable_file</span>
 
 <span class="n">chown</span> <span class="n">root</span><span class="p">.</span><span class="n">root</span> <span class="n">executable_file</span>
@@ -1190,15 +1343,20 @@ onleA   bothAB  onlyB</p>
 </pre></div>
 
 
-<p>注意：“chown”所给的文件改变用户和组的所有权到新的拥有者或者已经存在的用户或者用户组。</p>
 <h3>chattr</h3>
 <p>创建不可修改文件</p>
 <div class="codehilite"><pre><span class="n">chattr</span> <span class="o">+</span><span class="n">i</span> <span class="n">file</span>
 </pre></div>
 
 
+<p>一旦被设置为不可修改, 任何用户包括超级用户都不能删除该文件, 除非其不可修改的属性被移除</p>
+<div class="codehilite"><pre><span class="n">chattr</span> <span class="o">-</span><span class="n">i</span> <span class="n">file</span>
+</pre></div>
+
+
 <h3>touch</h3>
-<p>“touch”命令代表了将文件的访问和修改时间更新为当前时间。touch命令只会在文件不存在的时候才会创建它。如果文件已经存在了，它会更新时间戳，但是并不会改变文件的内容。</p>
+<p>“touch”命令代表了将文件的访问和修改时间更新为当前时间。</p>
+<p>touch命令只会在文件不存在的时候才会创建它(空白文件)。如果文件已经存在了，它会更新时间戳，但是并不会改变文件的内容。</p>
 <p>空白文件</p>
 <div class="codehilite"><pre><span class="n">touch</span> <span class="n">filename</span>
 
@@ -1227,15 +1385,19 @@ onleA   bothAB  onlyB</p>
 </pre></div>
 
 
-<p>-f 促使 ln 命令替换掉任何已经存在的目的路径。
-如果目的路径已经存在，而没有指定 -f 标志，ln 命令不会创建新的链接，而是向标准错误写一条诊断消息并继续链接剩下的 SourceFiles。</p>
+<p>如果目的路径已经存在，而没有指定 -f 标志，ln 命令不会创建新的链接，而是向标准错误写一条诊断消息并继续链接剩下的 SourceFiles。</p>
+<p>-f 促使 ln 命令替换掉任何已经存在的目的路径</p>
 <h3>readlink</h3>
 <p>读取链接对应真是路径</p>
 <div class="codehilite"><pre><span class="n">readlink</span> <span class="n">web</span>
+
+ <span class="n">readlink</span> <span class="o">~/</span><span class="p">.</span><span class="n">vim</span>
+ <span class="o">/</span><span class="n">Users</span><span class="o">/</span><span class="n">ken</span><span class="o">/</span><span class="n">github</span><span class="o">/</span><span class="n">k</span><span class="o">-</span><span class="n">vim</span>
 </pre></div>
 
 
 <h3>file</h3>
+<p>通过查看文件内容来找出特定类型的文件</p>
 <p>打印文件类型信息</p>
 <div class="codehilite"><pre><span class="n">file</span> <span class="n">filename</span>
 </pre></div>
@@ -1243,6 +1405,15 @@ onleA   bothAB  onlyB</p>
 
 <p>打印不包含文件名在内</p>
 <div class="codehilite"><pre><span class="n">file</span> <span class="o">-</span><span class="n">b</span> <span class="n">filename</span>
+</pre></div>
+
+
+<p>e.g.</p>
+<div class="codehilite"><pre><span class="n">file</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">passwd</span>
+<span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">passwd</span><span class="o">:</span> <span class="n">ASCII</span> <span class="n">English</span> <span class="n">text</span>
+
+<span class="n">file</span> <span class="o">-</span><span class="n">b</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">passwd</span>
+<span class="n">ASCII</span> <span class="n">English</span> <span class="n">text</span>
 </pre></div>
 
 
@@ -1255,13 +1426,13 @@ onleA   bothAB  onlyB</p>
 
 
 <h3>diff</h3>
-<p>生成文件差异
-非一体化</p>
+<p>生成文件差异</p>
+<p>非一体化</p>
 <div class="codehilite"><pre><span class="gh">diff version1.txt version2.txt</span>
 </pre></div>
 
 
-<p>一体化</p>
+<p>一体化, 可读性更好</p>
 <div class="codehilite"><pre><span class="gh">diff -u version.txt</span>
 </pre></div>
 
@@ -1274,6 +1445,7 @@ patch -p1 version1.txt &lt; version.patch
 
 <p>递归作用于目录</p>
 <div class="codehilite"><pre><span class="gh">diff -Naur directory1 directory2</span>
+
 <span class="gd">-N 所有缺失的文件作为空文件</span>
 <span class="gd">-a 所有文件视为文本文件</span>
 <span class="gd">-u 一体化输出</span>
@@ -1319,6 +1491,11 @@ patch -p1 version1.txt &lt; version.patch
 </pre></div>
 
 
+<p>当某个给定进程结束后,  tail随之终结</p>
+<div class="codehilite"><pre><span class="n">tail</span> <span class="o">-</span><span class="n">f</span> <span class="n">file</span> <span class="o">--</span><span class="n">PID</span> <span class="err">$</span><span class="n">PID</span>
+</pre></div>
+
+
 <h3>pushd/popd</h3>
 <p>将当前路径压入栈</p>
 <div class="codehilite"><pre><span class="n">pushd</span>
@@ -1353,8 +1530,19 @@ patch -p1 version1.txt &lt; version.patch
 </pre></div>
 
 
-<p>注意： 在终端中切换目录时，cd就大显身手了。“cd ～”会改变工作目录为用户的家目录，而且当用户发现自己在终端中迷失了路径时，非常有用。“cd ..”从当前工作目录切换到(当前工作目录的)父目录</p>
+<p>会到HOME目录</p>
+<div class="codehilite"><pre><span class="n">cd</span>
+<span class="n">cd</span> <span class="o">~</span>
+</pre></div>
+
+
+<p>会到上一级目录</p>
+<div class="codehilite"><pre><span class="n">cd</span> <span class="p">..</span>
+</pre></div>
+
+
 <h3>wc</h3>
+<p>Word Count</p>
 <p>统计行数</p>
 <div class="codehilite"><pre><span class="n">wc</span> <span class="o">-</span><span class="n">l</span> <span class="n">file</span>
 </pre></div>
@@ -1372,6 +1560,11 @@ patch -p1 version1.txt &lt; version.patch
 
 <p>统计所有</p>
 <div class="codehilite"><pre><span class="n">wc</span> <span class="n">file</span>
+</pre></div>
+
+
+<p>统计最长行的长度</p>
+<div class="codehilite"><pre><span class="n">wc</span> <span class="n">file</span> <span class="o">-</span><span class="n">L</span>
 </pre></div>
 
 
@@ -1397,6 +1590,7 @@ patch -p1 version1.txt &lt; version.patch
 
 
 <h3>grep</h3>
+<p>文本搜索工具, 支持正则表达式和通配符</p>
 <p>‘grep‘命令搜索指定文件中包含给定字符串或者单词的行</p>
 <p>基本用法</p>
 <div class="codehilite"><pre><span class="n">grep</span> <span class="s">&quot;match_pattern&quot;</span> <span class="n">file1</span> <span class="n">file2</span>
@@ -1457,12 +1651,16 @@ patch -p1 version1.txt &lt; version.patch
 
 
 <p>匹配多个样式</p>
-<div class="codehilite"><pre><span class="n">grep</span> <span class="o">-</span><span class="n">e</span> <span class="s">&quot;pattern1&quot;</span> <span class="o">-</span><span class="n">e</span> <span class="s">&quot;pattern2&quot;</span>
+<div class="codehilite"><pre><span class="n">grep</span> <span class="o">-</span><span class="n">e</span> <span class="s">&quot;pattern1&quot;</span> <span class="o">-</span><span class="n">e</span> <span class="s">&quot;pattern2&quot;</span> <span class="n">file</span>
 </pre></div>
 
 
 <p>运行匹配脚本</p>
 <div class="codehilite"><pre><span class="n">grep</span> <span class="o">-</span><span class="n">f</span> <span class="n">pattern_file</span> <span class="n">source_file</span>
+
+<span class="nl">pattern_file:</span>
+<span class="n">hello</span>
+<span class="n">cool</span>
 </pre></div>
 
 
@@ -1473,10 +1671,11 @@ patch -p1 version1.txt &lt; version.patch
 
 <p>排除</p>
 <div class="codehilite"><pre><span class="n">grep</span> <span class="o">--</span><span class="n">exclude</span> <span class="s">&quot;Readme&quot;</span> <span class="n">filename</span>
+<span class="o">--</span><span class="n">exclude</span><span class="o">-</span><span class="n">dir</span>
 </pre></div>
 
 
-<p>静默输出，用于判断</p>
+<p>静默输出，用于判断(不会产生任何输出)</p>
 <div class="codehilite"><pre><span class="n">grep</span> <span class="o">-</span><span class="n">q</span> <span class="n">word</span> <span class="n">file</span>
 <span class="k">if</span> <span class="p">[</span> <span class="err">$</span><span class="o">?</span> <span class="o">-</span><span class="n">eq</span> <span class="mi">0</span> <span class="p">]</span>
 </pre></div>
@@ -1497,13 +1696,6 @@ patch -p1 version1.txt &lt; version.patch
 </pre></div>
 
 
-<p>注意：您还可以使用以下选项：</p>
-<div class="codehilite"><pre><span class="mi">1</span> <span class="o">-</span><span class="n">w</span><span class="err">搜索单词</span> <span class="p">(</span><span class="n">egrep</span> <span class="o">-</span><span class="n">w</span> <span class="err">‘</span><span class="n">word1</span><span class="o">|</span><span class="n">word2</span><span class="err">‘</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">file</span><span class="p">).</span>
-<span class="mi">2</span> <span class="o">-</span><span class="n">c</span><span class="err">用于统计满足要求的行</span> <span class="p">(</span><span class="n">i</span><span class="p">.</span><span class="n">e</span><span class="p">.,</span> <span class="n">total</span> <span class="n">number</span> <span class="n">of</span> <span class="n">times</span> <span class="n">the</span> <span class="n">pattern</span> <span class="n">matched</span><span class="p">)</span> <span class="p">(</span><span class="n">grep</span> <span class="o">-</span><span class="n">c</span> <span class="err">‘</span><span class="n">word</span><span class="err">‘</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">file</span><span class="p">).</span>
-<span class="mi">3</span> <span class="err">–</span><span class="n">color</span><span class="err">彩色输出</span> <span class="p">(</span><span class="n">grep</span> <span class="err">–</span><span class="n">color</span> <span class="n">server</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">passwd</span><span class="p">).</span>
-</pre></div>
-
-
 <h3>cut</h3>
 <p>语法</p>
 <div class="codehilite"><pre><span class="n">cut</span> <span class="o">-</span><span class="n">c</span> <span class="n">list</span> <span class="p">[</span> <span class="n">file</span> <span class="p">...</span> <span class="p">]</span>
@@ -1515,7 +1707,10 @@ patch -p1 version1.txt &lt; version.patch
 
 
 <p>提取字段或列</p>
-<div class="codehilite"><pre><span class="n">cut</span> <span class="o">-</span><span class="n">f1</span> <span class="n">filenam</span>
+<div class="codehilite"><pre><span class="cp">#第一列</span>
+<span class="n">cut</span> <span class="o">-</span><span class="n">f1</span> <span class="n">filenam</span>
+
+<span class="cp">#第二三列</span>
 <span class="n">cut</span> <span class="o">-</span><span class="n">f2</span><span class="p">,</span><span class="mi">3</span> <span class="n">filename</span>
 </pre></div>
 
@@ -1531,8 +1726,12 @@ patch -p1 version1.txt &lt; version.patch
 </pre></div>
 
 
-<p>指定字节</p>
-<div class="codehilite"><pre><span class="n">cut</span> <span class="o">-</span><span class="n">c1</span><span class="o">-</span><span class="mi">5</span> <span class="n">filename</span>
+<p>指定字符</p>
+<div class="codehilite"><pre><span class="o">-</span><span class="n">b</span> <span class="err">字节</span>
+<span class="o">-</span><span class="n">c</span> <span class="err">字符</span>
+<span class="o">-</span><span class="n">f</span> <span class="err">字段</span>
+
+<span class="n">cut</span> <span class="o">-</span><span class="n">c1</span><span class="o">-</span><span class="mi">5</span> <span class="n">filename</span>
 <span class="n">N</span><span class="o">-</span>
 <span class="n">N</span><span class="o">-</span><span class="n">M</span>
 <span class="o">-</span><span class="n">M</span>
@@ -1564,18 +1763,24 @@ patch -p1 version1.txt &lt; version.patch
 
 
 <h3>sed</h3>
+<p>sed(Stream editor)流编辑器, 可以配合正则使用, 进行替换等</p>
 <p>sed替换语法</p>
 <div class="codehilite"><pre><span class="n">sed</span> <span class="err">&#39;</span><span class="n">s</span><span class="o">/</span><span class="n">pattern</span><span class="o">/</span><span class="n">replace_string</span><span class="o">/</span><span class="err">&#39;</span> <span class="n">file</span>
 </pre></div>
 
 
 <p>将结果直接运用于源文件</p>
-<div class="codehilite"><pre><span class="err">替换第一个</span>
+<div class="codehilite"><pre><span class="o">-</span><span class="n">i</span> <span class="err">用于</span><span class="p">,</span> <span class="err">直接修改源文件</span>
+
+<span class="err">替换第一个</span>
 <span class="n">sed</span> <span class="o">-</span><span class="n">i</span> <span class="err">&#39;</span><span class="n">s</span><span class="o">/</span><span class="n">pattern</span><span class="o">/</span><span class="n">replace_string</span><span class="o">/</span><span class="err">&#39;</span> <span class="n">file</span>
+
 <span class="err">替换第二个</span>
 <span class="n">sed</span> <span class="o">-</span><span class="n">i</span> <span class="err">&#39;</span><span class="n">s</span><span class="o">/</span><span class="n">pattern</span><span class="o">/</span><span class="n">replace_string</span><span class="o">/</span><span class="mi">2</span><span class="err">&#39;</span> <span class="n">file</span>
+
 <span class="err">替换所有</span>
 <span class="n">sed</span> <span class="o">-</span><span class="n">i</span> <span class="err">&#39;</span><span class="n">s</span><span class="o">/</span><span class="n">pattern</span><span class="o">/</span><span class="n">replace_string</span><span class="o">/</span><span class="n">g</span><span class="err">&#39;</span> <span class="n">file</span>
+
 <span class="err">从第</span><span class="n">N</span><span class="err">处开始替换</span>
 <span class="n">sed</span> <span class="o">-</span><span class="n">i</span> <span class="err">&#39;</span><span class="n">s</span><span class="o">/</span><span class="n">pattern</span><span class="o">/</span><span class="n">replcae_string</span><span class="o">/</span><span class="mi">2</span><span class="n">g</span><span class="err">&#39;</span> <span class="n">file</span>
 </pre></div>
@@ -1587,7 +1792,8 @@ patch -p1 version1.txt &lt; version.patch
 
 
 <p>已匹配字符串标记</p>
-<div class="codehilite"><pre><span class="n">sed</span> <span class="err">&#39;</span><span class="n">s</span><span class="o">/</span><span class="err">\</span><span class="n">w</span><span class="err">\</span><span class="o">+/</span><span class="p">[</span><span class="o">&amp;</span><span class="p">]</span><span class="o">/</span><span class="n">g</span><span class="err">&#39;</span> <span class="n">filename</span>
+<div class="codehilite"><pre><span class="err">引用匹配到的</span>
+<span class="n">sed</span> <span class="err">&#39;</span><span class="n">s</span><span class="o">/</span><span class="err">\</span><span class="n">w</span><span class="err">\</span><span class="o">+/</span><span class="p">[</span><span class="o">&amp;</span><span class="p">]</span><span class="o">/</span><span class="n">g</span><span class="err">&#39;</span> <span class="n">filename</span>
 </pre></div>
 
 
@@ -1638,10 +1844,11 @@ patch -p1 version1.txt &lt; version.patch
 
 
 <p>特殊变量</p>
-<div class="codehilite"><pre><span class="n">NR</span> <span class="n">nuber</span> <span class="n">of</span> <span class="n">records</span>
-<span class="n">NF</span> <span class="n">number</span> <span class="n">of</span> <span class="n">fields</span>
+<div class="codehilite"><pre><span class="n">NR</span> <span class="n">nuber</span> <span class="n">of</span> <span class="n">records</span><span class="p">,</span> <span class="err">记录数</span>
+<span class="n">NF</span> <span class="n">number</span> <span class="n">of</span> <span class="n">fields</span><span class="p">,</span> <span class="err">字段数</span>
 <span class="err">$</span><span class="mi">0</span> <span class="err">当前行文本</span>
 <span class="err">$</span><span class="mi">1</span> <span class="err">第一字段</span>
+<span class="err">$</span><span class="mi">2</span> <span class="err">第二字段</span>
 <span class="err">$</span><span class="n">NF</span> <span class="err">最后一个字段</span>
 
 <span class="n">FILENAME</span> <span class="err">当前输入文件的名称</span>
@@ -1674,6 +1881,9 @@ patch -p1 version1.txt &lt; version.patch
 <span class="n">awk</span> <span class="err">&#39;</span><span class="o">/</span><span class="n">linux</span><span class="o">/</span><span class="err">&#39;</span> <span class="err">#包含样式</span><span class="n">linux</span>
 <span class="n">awk</span> <span class="err">&#39;</span><span class="o">!/</span><span class="n">linux</span><span class="o">/</span><span class="err">&#39;</span> <span class="err">#不包含</span>
 <span class="n">awk</span> <span class="err">&#39;$</span><span class="mi">1</span> <span class="o">~/</span><span class="n">jones</span><span class="o">/</span><span class="err">&#39;</span> <span class="err">#第一个字段包含</span><span class="n">jones</span>
+
+<span class="n">tail</span> <span class="n">file</span>
+<span class="n">awk</span> <span class="err">&#39;</span><span class="n">NR</span> <span class="o">&lt;=</span> <span class="mi">10</span><span class="err">&#39;</span> <span class="n">file</span>
 </pre></div>
 
 
@@ -1713,7 +1923,7 @@ patch -p1 version1.txt &lt; version.patch
 <span class="n">split</span><span class="p">(</span><span class="n">str</span><span class="p">,</span><span class="n">array</span><span class="p">,</span><span class="n">delimiter</span><span class="p">)</span> <span class="err">用界定符生成一个字符串列表</span>
 <span class="n">substr</span><span class="p">(</span><span class="n">string</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span> <span class="err">#子串</span>
 <span class="n">sub</span><span class="p">(</span><span class="n">regex</span><span class="p">,</span> <span class="n">replacement_str</span><span class="p">,</span> <span class="n">str</span><span class="p">)</span> <span class="err">#正则替换首个匹配位置</span>
-<span class="n">gsub</span><span class="p">(...)</span> <span class="err">#最后一个匹配位置</span>
+<span class="n">gsub</span><span class="p">(</span><span class="n">regex</span><span class="p">,</span> <span class="n">replacement_str</span><span class="p">,</span> <span class="n">string</span><span class="p">)</span> <span class="err">#最后一个匹配位置</span>
 <span class="n">match</span><span class="p">(</span><span class="n">string</span><span class="p">,</span> <span class="n">regex</span><span class="p">)</span> <span class="err">#检查是否能够匹配字符串</span>
 <span class="n">tolower</span><span class="p">(</span><span class="n">string</span><span class="p">)</span> <span class="err">#转小写</span>
 <span class="n">toupper</span><span class="p">(</span><span class="n">string</span><span class="p">)</span> <span class="err">#转大写</span>
@@ -1770,8 +1980,14 @@ done
 </pre></div>
 
 
+<h3>rev</h3>
+<p>接收一个文件或stdin作为输入, 逆序打印每一行内容</p>
+<div class="codehilite"><pre><span class="n">echo</span> <span class="s">&quot;abc&quot;</span> <span class="o">|</span> <span class="n">rev</span>
+</pre></div>
+
+
 <h3>wget</h3>
-<p>Wget是用于非交互式（例如后台）下载文件的免费工具.支持HTTP, HTTPS, FTP协议和 HTTP 代理</p>
+<p>Wget是用于非交互式（例如后台）下载文件的免费工具.支持HTTP, HTTPS, FTP协议和 HTTP 代理(选项多, 用法灵活)</p>
 <p>一个用于文件下载的命令行工具</p>
 <div class="codehilite"><pre><span class="n">wget</span> <span class="n">URL1</span> <span class="n">URL2</span>
 </pre></div>
@@ -1847,6 +2063,7 @@ done
 
 
 <h3>curl</h3>
+<p>基本用法</p>
 <div class="codehilite"><pre><span class="n">curl</span> <span class="n">url</span> <span class="o">&gt;</span> <span class="n">index</span><span class="p">.</span><span class="n">html</span>
 </pre></div>
 
@@ -1902,7 +2119,7 @@ done
 </pre></div>
 
 
-<p>指定最大下载量</p>
+<p>指定最大下载量(可下载的最大文件大小)</p>
 <div class="codehilite"><pre><span class="n">curl</span> <span class="n">url</span> <span class="o">--</span><span class="n">max</span><span class="o">-</span><span class="n">filesize</span> <span class="n">bytes</span>
 <span class="err">超出限制的话，返回非</span><span class="mi">0</span>
 </pre></div>
@@ -1915,6 +2132,7 @@ done
 
 <p>只打印头部信息,不下载远程文件</p>
 <div class="codehilite"><pre><span class="n">curl</span> <span class="o">-</span><span class="n">I</span> <span class="n">url</span>
+<span class="n">curl</span> <span class="o">-</span><span class="n">head</span> <span class="n">url</span>
 </pre></div>
 
 
@@ -1942,11 +2160,15 @@ done
 
 <h3>tar</h3>
 <p>“tar”命令是磁带归档(Tape Archive)，对创建一些文件的的归档和它们的解压很有用。</p>
+<p>将多个文件和文件夹保存成单个文件, 同时还能保留所有的文件属性</p>
 <p>对文件进行归档</p>
-<div class="codehilite"><pre><span class="n">tar</span> <span class="o">-</span><span class="n">cf</span> <span class="n">output</span><span class="p">.</span><span class="n">tar</span> <span class="n">file1</span> <span class="n">file2</span> <span class="n">file3</span>
-<span class="n">tar</span> <span class="o">-</span><span class="n">cf</span> <span class="n">output</span><span class="p">.</span><span class="n">tar</span> <span class="o">*</span><span class="p">.</span><span class="n">txt</span>
-<span class="o">-</span><span class="n">c</span> <span class="n">create</span> <span class="n">file</span><span class="p">,</span><span class="err">创建文件</span>
+<div class="codehilite"><pre><span class="o">-</span><span class="n">c</span> <span class="n">create</span> <span class="n">file</span><span class="p">,</span><span class="err">创建文件</span>
 <span class="o">-</span><span class="n">f</span> <span class="n">specify</span> <span class="n">filename</span><span class="p">,</span><span class="err">指定文件名</span>
+
+<span class="n">tar</span> <span class="o">-</span><span class="n">cf</span> <span class="n">output</span><span class="p">.</span><span class="n">tar</span> <span class="n">file1</span> <span class="n">file2</span> <span class="n">file3</span>
+<span class="n">tar</span> <span class="o">-</span><span class="n">cf</span> <span class="n">output</span><span class="p">.</span><span class="n">tar</span> <span class="o">*</span><span class="p">.</span><span class="n">txt</span>
+
+<span class="n">tar</span> <span class="o">-</span><span class="n">cvf</span> <span class="n">output</span><span class="p">.</span><span class="n">tar</span> <span class="o">*</span><span class="p">.</span><span class="n">txt</span>
 </pre></div>
 
 
@@ -1963,10 +2185,14 @@ done
 
 
 <p>提取文件或文件夹</p>
-<div class="codehilite"><pre><span class="n">tar</span> <span class="o">-</span><span class="n">xf</span> <span class="n">archive</span><span class="p">.</span><span class="n">tar</span>
-<span class="o">-</span><span class="n">x</span><span class="p">,</span> <span class="n">exact</span>
-<span class="n">tar</span> <span class="o">-</span><span class="n">xf</span> <span class="n">archive</span><span class="p">.</span><span class="n">tar</span> <span class="o">-</span><span class="n">C</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">extraction_directory</span>
+<div class="codehilite"><pre><span class="o">-</span><span class="n">x</span><span class="p">,</span> <span class="n">exact</span>
+<span class="n">tar</span> <span class="o">-</span><span class="n">xf</span> <span class="n">archive</span><span class="p">.</span><span class="n">tar</span>
+
 <span class="o">-</span><span class="n">C</span><span class="p">,</span><span class="err">指定文件</span>
+<span class="n">tar</span> <span class="o">-</span><span class="n">xf</span> <span class="n">archive</span><span class="p">.</span><span class="n">tar</span> <span class="o">-</span><span class="n">C</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">extraction_directory</span>
+
+
+<span class="n">tar</span> <span class="o">-</span><span class="n">xvf</span> <span class="n">archive</span><span class="p">.</span><span class="n">tar</span>
 </pre></div>
 
 
@@ -2002,8 +2228,14 @@ done
 
 
 <p>压缩归档文件</p>
-<div class="codehilite"><pre><span class="n">f</span><span class="p">.</span><span class="n">tar</span><span class="p">.</span><span class="n">gz</span>   <span class="o">-</span><span class="n">z</span>
+<div class="codehilite"><pre><span class="n">gzip</span><span class="o">/</span><span class="n">gunzip</span> <span class="o">-&gt;</span> <span class="p">.</span><span class="n">gz</span>
+<span class="n">f</span><span class="p">.</span><span class="n">tar</span><span class="p">.</span><span class="n">gz</span>   <span class="o">-</span><span class="n">z</span>
+<span class="n">tar</span> <span class="o">-</span><span class="n">czvf</span> 
+<span class="n">tar</span> <span class="o">-</span><span class="n">xzvf</span>
+
+<span class="n">bzip</span><span class="o">/</span><span class="n">bunzip</span> <span class="o">-&gt;</span> <span class="p">.</span><span class="n">bz2</span>
 <span class="n">f</span><span class="p">.</span><span class="n">tar</span><span class="p">.</span><span class="n">bz2</span>  <span class="o">-</span><span class="n">j</span>
+
 <span class="n">f</span><span class="p">.</span><span class="n">tar</span><span class="p">.</span><span class="n">lzma</span> <span class="o">--</span><span class="n">lzma</span>
 <span class="n">f</span><span class="p">.</span><span class="n">tar</span><span class="p">.</span><span class="n">lzo</span>
 </pre></div>
@@ -2029,6 +2261,7 @@ done
 
 
 <h3>cpio</h3>
+<p>使用频率不高</p>
 <p>归档，保留文件属性（权限、所有权等）</p>
 <div class="codehilite"><pre><span class="n">echo</span> <span class="n">file1</span> <span class="n">file2</span> <span class="o">|</span> <span class="n">cpio</span> <span class="o">-</span><span class="n">ov</span> <span class="o">&gt;</span> <span class="n">archive</span><span class="p">.</span><span class="n">cpio</span>
 <span class="o">-</span><span class="n">o</span> <span class="err">指定输出</span>
@@ -2120,6 +2353,7 @@ done
 
 
 <h3>lzma</h3>
+<p>比gzip/bzip2更好的压缩率</p>
 <p>压缩</p>
 <div class="codehilite"><pre><span class="n">lzma</span> <span class="n">filename</span>
 </pre></div>
@@ -2137,6 +2371,7 @@ done
 
 <p>创建归档</p>
 <div class="codehilite"><pre><span class="n">tar</span> <span class="o">-</span><span class="n">cavvf</span> <span class="n">archive</span><span class="p">.</span><span class="n">tar</span><span class="p">.</span><span class="n">lzma</span> <span class="p">[</span><span class="n">files</span><span class="p">]</span>
+    <span class="o">-</span><span class="n">xavf</span>
 </pre></div>
 
 
@@ -2183,11 +2418,16 @@ md5 checksum(通常叫做哈希)使用匹配或者验证文件的文件的完整
 
 
 <h3>rsync</h3>
-<p>要确保远端安装了 openssh
-从一个目录复制到另一个目录</p>
+<p>可以对位于不同位置的文件和目录进行备份, 借助差异计算和压缩技术实现最小化数据传输量</p>
+<p>要确保远端安装了 openssh</p>
+<p>从一个目录复制到另一个目录</p>
 <div class="codehilite"><pre><span class="n">rsync</span> <span class="o">-</span><span class="n">av</span> <span class="n">source_path</span> <span class="n">dest_path</span>
 <span class="o">-</span><span class="n">a</span> <span class="err">进行归档</span>  <span class="o">-</span><span class="n">v</span><span class="err">打印细节</span>
 <span class="err">路径可以使本地，也可以是远端路径</span>
+
+<span class="n">e</span><span class="p">.</span><span class="n">g</span><span class="p">.</span>
+<span class="n">rsync</span> <span class="o">-</span><span class="n">av</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">test</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">backups</span><span class="o">/</span> <span class="err">#复制到</span><span class="n">backups</span><span class="err">目录下</span>
+<span class="n">rsync</span> <span class="o">-</span><span class="n">av</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">test</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">backups</span>  <span class="err">#创建</span><span class="n">backups</span><span class="err">目录</span><span class="p">,</span> <span class="err">复制</span>
 </pre></div>
 
 
@@ -2205,6 +2445,8 @@ md5 checksum(通常叫做哈希)使用匹配或者验证文件的文件的完整
 <p>排除文件</p>
 <div class="codehilite"><pre><span class="n">rsync</span> <span class="o">-</span><span class="n">avz</span> <span class="n">source</span> <span class="n">dest</span> <span class="o">--</span><span class="n">exclude</span> <span class="s">&quot;*.txt&quot;</span>
                        <span class="o">--</span><span class="n">exclude</span><span class="o">-</span><span class="n">from</span> <span class="n">FILEPATH</span>
+<span class="nl">FILEPATH:</span>
+<span class="o">*</span><span class="p">.</span><span class="n">bak</span>
 </pre></div>
 
 
@@ -2262,8 +2504,8 @@ md5 checksum(通常叫做哈希)使用匹配或者验证文件的文件的完整
 
 
 <h3>dd</h3>
-<p>“dd”命令代表了转换和复制文件。
-可以用来转换和复制文件，大多数时间是用来复制iso文件(或任何其它文件)到一个usb设备(或任何其它地方)中去，所以可以用来制作USB启动器</p>
+<p>Dtat Definiton, 要注意参数顺序, 错误的参数会损毁所有数据</p>
+<p>可以用来转换和复制文件，大多数时间是用来复制iso文件(或任何其它文件)到一个usb设备(或任何其它地方)中去，所以可以用来制作USB启动器</p>
 <p>语法说明</p>
 <div class="codehilite"><pre><span class="n">dd</span> <span class="k">if</span><span class="o">=</span><span class="n">SOURCE</span> <span class="n">of</span><span class="o">=</span><span class="n">TARGET</span> <span class="n">bs</span><span class="o">=</span><span class="n">BLOCK_SIZE</span> <span class="n">count</span><span class="o">=</span><span class="n">COUNT</span>
 <span class="k">if</span><span class="o">/</span><span class="n">of</span>  <span class="err">输入</span><span class="o">/</span><span class="err">输出文件或设备路径</span>
@@ -2271,7 +2513,16 @@ md5 checksum(通常叫做哈希)使用匹配或者验证文件的文件的完整
 <span class="n">count</span> <span class="err">限制复制到目标的字节数</span>
 
 <span class="n">dd</span> <span class="k">if</span><span class="o">=/</span><span class="n">dev</span><span class="o">/</span><span class="n">zero</span> <span class="n">of</span><span class="o">=/</span><span class="n">dev</span><span class="o">/</span><span class="n">sda1</span>
+
+<span class="cp">#制作iso 从cdrom设备读取所有数据, 创建iso文件</span>
 <span class="n">dd</span> <span class="k">if</span><span class="o">=/</span><span class="n">dev</span><span class="o">/</span><span class="n">cdrom</span> <span class="n">of</span><span class="o">=</span><span class="n">cdrom</span><span class="p">.</span><span class="n">iso</span>
+</pre></div>
+
+
+<p>备份恢复</p>
+<div class="codehilite"><pre><span class="n">dd</span> <span class="k">if</span><span class="o">=/</span><span class="n">dev</span><span class="o">/</span><span class="n">sda1</span> <span class="n">of</span><span class="o">=</span><span class="n">x</span><span class="p">.</span><span class="n">img</span>
+
+<span class="n">dd</span> <span class="k">if</span><span class="o">=</span><span class="n">x</span><span class="p">.</span><span class="n">img</span> <span class="n">of</span><span class="o">=/</span><span class="n">dev</span><span class="o">/</span><span class="n">sda1</span>
 </pre></div>
 
 
@@ -2302,11 +2553,20 @@ md5 checksum(通常叫做哈希)使用匹配或者验证文件的文件的完整
 <h3>ifconfig</h3>
 <p>显示网络接口、子网掩码等详细信息</p>
 <div class="codehilite"><pre><span class="n">ifconfig</span>
+<span class="o">/</span><span class="n">sbin</span><span class="o">/</span><span class="n">ifconfig</span>
 </pre></div>
 
 
 <p>打印某个特定网络接口</p>
 <div class="codehilite"><pre><span class="n">ifconfig</span> <span class="n">iface_name</span>
+
+<span class="n">e</span><span class="p">.</span><span class="n">g</span><span class="p">.</span>
+<span class="n">ifconfig</span> <span class="n">en1</span>
+
+<span class="n">HWaddr</span>     <span class="n">MAC</span><span class="err">地址</span>
+<span class="n">inet</span> <span class="n">addr</span>  <span class="n">ip</span><span class="err">地址</span>
+<span class="n">Bcast</span>      <span class="err">广播地址</span>
+<span class="n">Mask</span>       <span class="err">子网掩码</span>
 </pre></div>
 
 
@@ -2319,12 +2579,14 @@ md5 checksum(通常叫做哈希)使用匹配或者验证文件的文件的完整
 <div class="codehilite"><pre><span class="n">cat</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">resolv</span><span class="p">.</span><span class="n">conf</span>
 
 <span class="n">host</span> <span class="n">google</span><span class="p">.</span><span class="n">com</span> <span class="err">#</span><span class="n">Dns</span><span class="err">查找</span>
+
 <span class="n">nslookup</span> <span class="n">google</span><span class="p">.</span><span class="n">com</span> <span class="err">#更详细信息</span>
 </pre></div>
 
 
 <p>修改dns/host</p>
-<div class="codehilite"><pre><span class="n">echo</span> <span class="n">nameserver</span> <span class="n">IP_ADDRESS</span> <span class="o">&gt;</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">resolv</span><span class="p">.</span><span class="n">conf</span>
+<div class="codehilite"><pre><span class="n">echo</span> <span class="n">nameserver</span> <span class="n">IP_ADDRESS</span> <span class="o">&gt;&gt;</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">resolv</span><span class="p">.</span><span class="n">conf</span>
+
 <span class="n">echo</span> <span class="n">ip</span> <span class="n">domain</span> <span class="o">&gt;&gt;</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">hosts</span>
 </pre></div>
 
@@ -2335,7 +2597,10 @@ md5 checksum(通常叫做哈希)使用匹配或者验证文件的文件的完整
 
 
 <p>路由信息</p>
-<div class="codehilite"><pre><span class="n">route</span>
+<div class="codehilite"><pre><span class="err">显示路由表</span>
+<span class="n">route</span>
+
+<span class="err">以数字形式显示地址</span>
 <span class="n">route</span> <span class="o">-</span><span class="n">n</span>
 </pre></div>
 
@@ -2345,7 +2610,7 @@ md5 checksum(通常叫做哈希)使用匹配或者验证文件的文件的完整
 </pre></div>
 
 
-<p>trace_route</p>
+<p>trace_route, 显示分组途径的所有网关的地址</p>
 <div class="codehilite"><pre><span class="n">traceroute</span> <span class="n">google</span><span class="p">.</span><span class="n">com</span>
 </pre></div>
 
@@ -2356,8 +2621,11 @@ md5 checksum(通常叫做哈希)使用匹配或者验证文件的文件的完整
 </pre></div>
 
 
+<p>PING命令可以得到RTT(Round Trip Time), 分组从源到目的主机的往返时间, 单位ms</p>
 <p>限制发送分组数</p>
 <div class="codehilite"><pre><span class="n">ping</span> <span class="n">ADDRESS</span> <span class="o">-</span><span class="n">c</span> <span class="n">COUNT</span>
+
+<span class="n">ping</span>
 </pre></div>
 
 
@@ -2366,6 +2634,9 @@ md5 checksum(通常叫做哈希)使用匹配或者验证文件的文件的完整
 <div class="codehilite"><pre><span class="n">fping</span> <span class="o">-</span><span class="n">a</span> <span class="n">ip1</span> <span class="n">ip2</span> <span class="o">-</span><span class="n">g</span>
 <span class="n">fping</span> <span class="o">-</span><span class="n">a</span> <span class="mf">192.160.1</span><span class="o">/</span><span class="mi">24</span> <span class="o">-</span><span class="n">g</span>
 <span class="n">fping</span> <span class="o">-</span><span class="n">a</span> <span class="o">&lt;</span> <span class="n">ip</span><span class="p">.</span><span class="n">list</span>
+
+<span class="o">-</span><span class="n">a</span><span class="p">,</span> <span class="err">所有活动主机的</span><span class="n">ip</span>
+<span class="o">-</span><span class="n">g</span><span class="p">,</span> <span class="err">从</span><span class="n">IP</span><span class="o">/</span><span class="n">mask</span><span class="err">生成的</span><span class="n">ip</span><span class="err">地址范围</span>
 </pre></div>
 
 
@@ -2386,7 +2657,8 @@ md5 checksum(通常叫做哈希)使用匹配或者验证文件的文件的完整
 
 
 <h3>scp</h3>
-<p>scp是 secure copy的缩写, scp是linux系统下基于ssh登陆进行安全的远程文件拷贝命令。linux的scp命令可以在linux服务器之间复制文件和目录.</p>
+<p>scp是 secure copy的缩写, scp是linux系统下基于ssh登陆进行安全的远程文件拷贝命令。</p>
+<p>linux的scp命令可以在linux服务器之间复制文件和目录.</p>
 <p>拷贝文件</p>
 <div class="codehilite"><pre><span class="n">scp</span> <span class="n">filename</span> <span class="n">user</span><span class="err">@</span><span class="n">remotehost</span><span class="o">:/</span><span class="n">home</span><span class="o">/</span><span class="n">pat</span>
 <span class="n">ip</span><span class="err">或主机名均可</span>
@@ -2409,6 +2681,7 @@ md5 checksum(通常叫做哈希)使用匹配或者验证文件的文件的完整
 <h3>SSH</h3>
 <p>连接远程</p>
 <div class="codehilite"><pre><span class="n">ssh</span> <span class="n">username</span><span class="err">@</span><span class="n">remote_host</span>
+
 <span class="n">ssh</span> <span class="o">-</span><span class="n">p</span> <span class="n">port</span> <span class="n">username</span><span class="err">@</span><span class="n">remote_host</span>
 </pre></div>
 
@@ -2423,12 +2696,21 @@ md5 checksum(通常叫做哈希)使用匹配或者验证文件的文件的完整
 </pre></div>
 
 
+<p>打通ssh</p>
+<div class="codehilite"><pre><span class="mf">1.</span><span class="err">创建</span><span class="n">SSH</span><span class="err">密钥</span>
+  <span class="n">ssh</span><span class="o">-</span><span class="n">keygen</span> <span class="o">-</span><span class="n">t</span> <span class="n">rsa</span>
+  <span class="err">公钥</span><span class="p">,</span> <span class="o">~/</span><span class="p">.</span><span class="n">ssh</span><span class="o">/</span><span class="n">id_rsa</span><span class="p">.</span><span class="n">pub</span>
+<span class="mf">2.</span><span class="err">登陆远端服务器</span><span class="p">,</span> <span class="err">将公钥写入</span> <span class="o">~/</span><span class="p">.</span><span class="n">ssh</span><span class="o">/</span><span class="n">authorized_keys</span>
+</pre></div>
+
+
 <h3>lsof</h3>
 <p>列出系统中开放端口及运行在端口上的服务</p>
 <div class="codehilite"><pre><span class="n">lsof</span> <span class="o">-</span><span class="n">i</span>
 </pre></div>
 
 
+<p>配合grep, 获取需要的信息</p>
 <h3>netstat</h3>
 <p>查看开放端口和服务</p>
 <div class="codehilite"><pre><span class="n">netstat</span> <span class="o">-</span><span class="n">tnp</span>
@@ -2437,6 +2719,7 @@ md5 checksum(通常叫做哈希)使用匹配或者验证文件的文件的完整
 
 <h2>磁盘和系统</h2>
 <h3>du</h3>
+<p>du = disk usage</p>
 <p>估计文件的空间占用。 逐层统计文件（例如以递归方式）并输出摘要。</p>
 <p>查看占用磁盘空间</p>
 <div class="codehilite"><pre><span class="n">du</span> <span class="n">FILENAME1</span> <span class="n">FILENAME2</span>
@@ -2479,7 +2762,13 @@ md5 checksum(通常叫做哈希)使用匹配或者验证文件的文件的完整
 </pre></div>
 
 
+<p>指定目录最大的10个文件</p>
+<div class="codehilite"><pre><span class="n">du</span> <span class="o">-</span><span class="n">ak</span> <span class="n">S_DIR</span> <span class="o">|</span> <span class="n">sort</span> <span class="o">-</span><span class="n">nrk</span> <span class="mi">1</span> <span class="o">|</span> <span class="n">head</span>
+</pre></div>
+
+
 <h3>df</h3>
+<p>df = disk free</p>
 <p>报告系统的磁盘使用情况。在跟踪磁盘使用情况方面对于普通用户和系统管理员都很有用。 ‘df‘ 通过检查目录大小工作，但这一数值仅当文件关闭时才得到更新。</p>
 <p>查看磁盘可用空间</p>
 <div class="codehilite"><pre><span class="n">df</span>
@@ -2491,7 +2780,9 @@ md5 checksum(通常叫做哈希)使用匹配或者验证文件的文件的完整
 <p>计算命令执行时间</p>
 <div class="codehilite"><pre><span class="n">time</span> <span class="n">COMMAND</span>
 
-<span class="n">user</span> <span class="err">真正用于执行进程所花得时间</span>
+<span class="n">real</span> <span class="err">挂钟时间</span><span class="p">,</span> <span class="err">从开始执行到结束的时间</span>
+<span class="n">user</span> <span class="err">进程花费在用户模式中的</span><span class="n">cpu</span><span class="err">时间</span><span class="p">,</span> <span class="err">真正用于执行进程所花得时间</span>
+<span class="n">sys</span>  <span class="err">进程花费在内核模式中的</span><span class="n">cpu</span><span class="err">时间</span>
 </pre></div>
 
 
@@ -2510,14 +2801,12 @@ md5 checksum(通常叫做哈希)使用匹配或者验证文件的文件的完整
 
 
 <h3>who</h3>
-<p>当前用户登陆信息</p>
-<div class="codehilite"><pre><span class="n">who</span>
-<span class="n">or</span>
-<span class="n">w</span>
+<p>获取当前用户登陆信息</p>
+<div class="codehilite"><pre><span class="n">who</span> <span class="o">/</span> <span class="n">w</span>
 </pre></div>
 
 
-<p>当前登陆主机的列表</p>
+<p>当前登陆主机的用户列表</p>
 <div class="codehilite"><pre><span class="n">users</span>
 </pre></div>
 
@@ -2542,21 +2831,16 @@ md5 checksum(通常叫做哈希)使用匹配或者验证文件的文件的完整
 
 <h3>watch</h3>
 <p>在终端中以固定间隔监视命令输出</p>
-<div class="codehilite"><pre><span class="n">watch</span> <span class="n">ls</span>
-<span class="cp">#default 2s</span>
+<div class="codehilite"><pre><span class="cp">#default 2s</span>
+<span class="n">watch</span> <span class="n">ls</span>
 
+<span class="cp"># 5s</span>
 <span class="n">watch</span> <span class="o">-</span><span class="n">n</span> <span class="mi">5</span> <span class="n">ls</span>
 </pre></div>
 
 
 <p>颜色标示</p>
 <div class="codehilite"><pre><span class="n">watch</span> <span class="o">-</span><span class="n">d</span> <span class="err">&#39;</span><span class="n">COMMAND</span><span class="err">&#39;</span>
-</pre></div>
-
-
-<h3>inotifywait</h3>
-<p>很有用的功能</p>
-<div class="codehilite"><pre><span class="n">inotifywait</span> <span class="o">-</span><span class="n">m</span> <span class="o">-</span><span class="n">r</span> <span class="o">-</span><span class="n">e</span> <span class="n">create</span><span class="p">,</span><span class="n">move</span><span class="p">,</span><span class="n">delete</span> <span class="err">$</span><span class="n">path</span> <span class="o">-</span><span class="n">q</span>
 </pre></div>
 
 
@@ -2592,8 +2876,20 @@ md5 checksum(通常叫做哈希)使用匹配或者验证文件的文件的完整
 
 
 <p>查看进程信息</p>
-<div class="codehilite"><pre><span class="n">ps</span>
-<span class="cp">#当前终端</span>
+<div class="codehilite"><pre><span class="cp">#当前终端</span>
+<span class="n">ps</span>
+
+<span class="n">PID</span> <span class="n">TTY</span> <span class="n">TIME</span> <span class="n">CMD</span>
+<span class="n">PID</span>  <span class="err">进程</span><span class="n">ID</span>
+<span class="n">TTY</span>  <span class="err">终端</span>
+<span class="n">TIME</span> <span class="err">进程启动后过去的时间</span>
+<span class="n">CMD</span>  <span class="err">进程对应的命令</span>
+</pre></div>
+
+
+<p>显示更多信息</p>
+<div class="codehilite"><pre><span class="cp">#当前终端</span>
+<span class="n">ps</span> <span class="o">-</span><span class="n">f</span>
 </pre></div>
 
 
@@ -2605,12 +2901,6 @@ md5 checksum(通常叫做哈希)使用匹配或者验证文件的文件的完整
 
 <p>查看某个用户的所有进程</p>
 <div class="codehilite"><pre><span class="n">ps</span> <span class="n">U</span> <span class="n">ken</span>
-</pre></div>
-
-
-<p>显示更多信息</p>
-<div class="codehilite"><pre><span class="n">ps</span> <span class="o">-</span><span class="n">f</span>
-<span class="cp">#当前终端</span>
 </pre></div>
 
 
@@ -2649,6 +2939,7 @@ md5 checksum(通常叫做哈希)使用匹配或者验证文件的文件的完整
 
 
 <h3>pgrep</h3>
+<p>pgrep只需要命令名的一部分, ps需要准确的全名</p>
 <p>基本用法</p>
 <div class="codehilite"><pre><span class="n">pgrep</span> <span class="n">bash</span>
 </pre></div>
@@ -2705,6 +2996,10 @@ md5 checksum(通常叫做哈希)使用匹配或者验证文件的文件的完整
 
 <h3>which</h3>
 <p>查找PATH下某个命令位置</p>
+<div class="codehilite"><pre><span class="n">which</span> <span class="n">ls</span>
+</pre></div>
+
+
 <h3>whereis</h3>
 <p>whereis的作用是用来定位命令的二进制文件\资源\或者帮助页.举例来说,获得ls和kill命令的二进制文件/资源以及帮助页:</p>
 <div class="codehilite"><pre><span class="n">whereis</span> <span class="n">ls</span>
