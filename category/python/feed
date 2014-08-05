@@ -1,5 +1,115 @@
 <?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>wklken's blog</title><link>/</link><description></description><atom:link href="/category/python/feed" rel="self"></atom:link><lastBuildDate>Sat, 26 Jul 2014 00:00:00 +0800</lastBuildDate><item><title>Python后端相关技术/工具栈</title><link>//posts/2014/07/26/python-tech-stack.html</link><description>&lt;p&gt;整理下目前涉及到的python的技术栈和工具栈(用过或了解的, 其他的后续用到再补充)&lt;/p&gt;
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>wklken's blog</title><link>/</link><description></description><atom:link href="/category/python/feed" rel="self"></atom:link><lastBuildDate>Tue, 05 Aug 2014 17:32:00 +0800</lastBuildDate><item><title>Python源码阅读-对象</title><link>//posts/2014/08/05/python-source-object.html</link><description>&lt;p&gt;结束休息期, 开始准备面试事宜了, 发现要准备的东西好多(╯‵□′)╯︵┻━┻,  顺手整理下Python源码阅读笔记(力争在写完前找到工作)&lt;/p&gt;
+&lt;p&gt;参考内容: Python源码 + &amp;lt;&lt;Python源码剖析&gt;&amp;gt;&lt;/p&gt;
+&lt;p&gt;用&lt;code&gt;源代码+说明+图解&lt;/code&gt;的方式, 尽量说明白吧, 有一份注释在github上&lt;/p&gt;
+&lt;p&gt;内容:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="err"&gt;对象&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="err"&gt;类型&lt;/span&gt;
+&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="err"&gt;各种内建类型对象及机制&lt;/span&gt;
+&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="err"&gt;虚拟机相关&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;编译及执行&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="err"&gt;内存管理&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="err"&gt;动态加载&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="err"&gt;多线程等&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;PS: 画图的话google doc很好用&lt;/p&gt;
+&lt;p&gt;好的, 第一篇开始&lt;/p&gt;
+&lt;hr /&gt;
+&lt;blockquote&gt;
+&lt;p&gt;一切皆为对象&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;对象, 在C语言是如何实现的?&lt;/p&gt;
+&lt;p&gt;Python中对象分为两类: 定长(int等), 非定长(list/dict等)&lt;/p&gt;
+&lt;p&gt;所有对象都有一些相同的东西, 源码中定义为&lt;code&gt;PyObject&lt;/code&gt;和&lt;code&gt;PyVarObject&lt;/code&gt;, 两个定义都有一个共同的头部定义&lt;code&gt;PyObject_HEAD&lt;/code&gt;(其实PyVarObject有自己的头部定义&lt;code&gt;PyObject_VAR_HEAD&lt;/code&gt;, 但其实际上用的也是&lt;code&gt;PyObject_HEAD&lt;/code&gt;).&lt;/p&gt;
+&lt;p&gt;源码位置: &lt;a href="https://github.com/wklken/Python-2.7.8/blob/master/Include/object.h"&gt;Include/object.h&lt;/a&gt;&lt;/p&gt;
+&lt;h3&gt;PyObject_HEAD&lt;/h3&gt;
+&lt;p&gt;Python 内部, 每个对象拥有相同的头部.&lt;/p&gt;
+&lt;p&gt;定义&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="cm"&gt;/* PyObject_HEAD defines the initial segment of every PyObject. */&lt;/span&gt;
+&lt;span class="p"&gt;#&lt;/span&gt;&lt;span class="n"&gt;define&lt;/span&gt; &lt;span class="n"&gt;PyObject_HEAD&lt;/span&gt;                   \
+    &lt;span class="n"&gt;_PyObject_HEAD_EXTRA&lt;/span&gt;                \
+    &lt;span class="n"&gt;Py_ssize_t&lt;/span&gt; &lt;span class="n"&gt;ob_refcnt&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;               \
+    &lt;span class="k"&gt;struct&lt;/span&gt; &lt;span class="n"&gt;_typeobject&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;ob_type&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;说明&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="mf"&gt;1.&lt;/span&gt; &lt;span class="n"&gt;_PyObject_HEAD_EXTRA&lt;/span&gt;
+&lt;span class="err"&gt;先忽略&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;双向链表结构&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;后面垃圾回收再说&lt;/span&gt;
+
+&lt;span class="mf"&gt;2.&lt;/span&gt; &lt;span class="n"&gt;Py_ssize_t&lt;/span&gt; &lt;span class="n"&gt;ob_refcnt&lt;/span&gt;
+&lt;span class="n"&gt;Py_ssize_t&lt;/span&gt;&lt;span class="err"&gt;在编译时确定&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;整型&lt;/span&gt;
+&lt;span class="n"&gt;ob_refcnt&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;引用计数&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;跟&lt;/span&gt;&lt;span class="n"&gt;Python&lt;/span&gt;&lt;span class="err"&gt;的内存管理机制相关&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;基于引用计数的垃圾回收&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="mf"&gt;3.&lt;/span&gt; &lt;span class="k"&gt;struct&lt;/span&gt; &lt;span class="n"&gt;_typeobject&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;ob_type&lt;/span&gt;
+&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;ob_type&lt;/span&gt; &lt;span class="err"&gt;指向类型对象的指针&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;指向&lt;/span&gt;&lt;span class="n"&gt;_typeobject&lt;/span&gt;&lt;span class="err"&gt;结构体&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="err"&gt;决定了这个对象的类型&lt;/span&gt;&lt;span class="o"&gt;!&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;PyObject&lt;/h3&gt;
+&lt;p&gt;定义&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt; &lt;span class="k"&gt;typedef&lt;/span&gt; &lt;span class="k"&gt;struct&lt;/span&gt; &lt;span class="n"&gt;_object&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+     &lt;span class="n"&gt;PyObject_HEAD&lt;/span&gt;
+ &lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="n"&gt;PyObject&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;说明&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt; &lt;span class="mf"&gt;1.&lt;/span&gt; &lt;span class="err"&gt;依赖关系&lt;/span&gt;
+ &lt;span class="n"&gt;PyObject&lt;/span&gt; &lt;span class="o"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;PyObject_HEAD&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;结构&lt;/p&gt;
+&lt;p&gt;&lt;img alt="PyObject" src="/imgs/python-source/PyObject.png" /&gt;&lt;/p&gt;
+&lt;h3&gt;PyVarObject&lt;/h3&gt;
+&lt;p&gt;定义&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="k"&gt;typedef&lt;/span&gt; &lt;span class="k"&gt;struct&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="n"&gt;PyObject_VAR_HEAD&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="n"&gt;PyVarObject&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+&lt;span class="cp"&gt;#define PyObject_VAR_HEAD               \&lt;/span&gt;
+&lt;span class="cp"&gt;  PyObject_HEAD                       \&lt;/span&gt;
+&lt;span class="cp"&gt;  Py_ssize_t ob_size; &lt;/span&gt;&lt;span class="cm"&gt;/* Number of items in variable part */&lt;/span&gt;&lt;span class="cp"&gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;说明&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt; &lt;span class="mf"&gt;1.&lt;/span&gt; &lt;span class="err"&gt;依赖关系&lt;/span&gt;
+ &lt;span class="n"&gt;PyVarObject&lt;/span&gt; &lt;span class="o"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;PyObject_VAR_HEAD&lt;/span&gt; &lt;span class="o"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;PyObject_HEAD&lt;/span&gt;
+
+ &lt;span class="mf"&gt;2.&lt;/span&gt;&lt;span class="n"&gt;Py_ssize_t&lt;/span&gt; &lt;span class="n"&gt;ob_size&lt;/span&gt;
+ &lt;span class="n"&gt;ob_size&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;变长对象容纳的元素个数&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;结构&lt;/p&gt;
+&lt;p&gt;&lt;img alt="PyVarObject" src="/imgs/python-source/PyVarObject.png" /&gt;&lt;/p&gt;
+&lt;h3&gt;几个方法&lt;/h3&gt;
+&lt;p&gt;跟对象相关的方法&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="cp"&gt;#define Py_REFCNT(ob)           (((PyObject*)(ob))-&amp;gt;ob_refcnt)&lt;/span&gt;
+&lt;span class="err"&gt;读取引用计数&lt;/span&gt;
+
+&lt;span class="cp"&gt;#define Py_TYPE(ob)             (((PyObject*)(ob))-&amp;gt;ob_type)&lt;/span&gt;
+&lt;span class="err"&gt;获取对象类型&lt;/span&gt;
+
+&lt;span class="cp"&gt;#define Py_SIZE(ob)             (((PyVarObject*)(ob))-&amp;gt;ob_size)&lt;/span&gt;
+&lt;span class="err"&gt;读取元素个数&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;len&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;跟引用计数相关的方法&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;Py_INCREF&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;op&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;  &lt;span class="err"&gt;增加对象引用计数&lt;/span&gt;
+
+&lt;span class="n"&gt;Py_DECREF&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;op&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;  &lt;span class="err"&gt;减少对象引用计数&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;如果计数位&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;调用&lt;/span&gt;&lt;span class="n"&gt;_Py_Dealloc&lt;/span&gt;
+
+&lt;span class="n"&gt;_Py_Dealloc&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;op&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="err"&gt;调用对应类型的&lt;/span&gt; &lt;span class="n"&gt;tp_dealloc&lt;/span&gt; &lt;span class="err"&gt;方法&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;每种类型回收行为不一样的&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;各种缓存池机制&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;后面看&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;hr /&gt;
+&lt;p&gt;changelog:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="mi"&gt;2013&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;08&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mo"&gt;05&lt;/span&gt; &lt;span class="n"&gt;first&lt;/span&gt; &lt;span class="n"&gt;version&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Tue, 05 Aug 2014 17:32:00 +0800</pubDate><guid>tag:,2014-08-05:/posts/2014/08/05/python-source-object.html</guid><category>python</category></item><item><title>Python后端相关技术/工具栈</title><link>//posts/2014/07/26/python-tech-stack.html</link><description>&lt;p&gt;整理下目前涉及到的python的技术栈和工具栈(用过或了解的, 其他的后续用到再补充)&lt;/p&gt;
 &lt;p&gt;&lt;img alt="python" src="/imgs/python/python-logo.png" /&gt;&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;编辑器&lt;/li&gt;
