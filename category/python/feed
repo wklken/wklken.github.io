@@ -25,7 +25,8 @@
 
 
 &lt;p&gt;我们反向推导一个&lt;code&gt;int&lt;/code&gt;对象是怎么生成的.&lt;/p&gt;
-&lt;h3&gt;首先, 定义一种类型叫PyTypeObject&lt;/h3&gt;
+&lt;hr /&gt;
+&lt;h3&gt;1. 首先, 定义一种类型叫PyTypeObject&lt;/h3&gt;
 &lt;p&gt;代码位置 &lt;a href="https://github.com/wklken/Python-2.7.8/blob/master/Include/object.h"&gt;Include/object.h&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;定义&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt; &lt;span class="nx"&gt;typedef&lt;/span&gt; &lt;span class="nx"&gt;struct&lt;/span&gt; &lt;span class="nx"&gt;_typeobject&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
@@ -62,7 +63,8 @@
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;h3&gt;然后, 用PyTypeObject初始化得到一个对象PyType_Type&lt;/h3&gt;
+&lt;hr /&gt;
+&lt;h3&gt;2. 然后, 用PyTypeObject初始化得到一个对象PyType_Type&lt;/h3&gt;
 &lt;p&gt;代码位置 &lt;a href="https://github.com/wklken/Python-2.7.8/blob/master/Objects/typeobject.c"&gt;Objects/typeobject.c&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;定义&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;PyTypeObject&lt;/span&gt; &lt;span class="n"&gt;PyType_Type&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
@@ -110,7 +112,8 @@
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;h3&gt;然后, 定义具体的类型, 这里以PyInt_Type为例子&lt;/h3&gt;
+&lt;hr /&gt;
+&lt;h3&gt;3. 再然后, 定义具体的类型, 这里以PyInt_Type为例子&lt;/h3&gt;
 &lt;p&gt;代码位置 &lt;a href="https://github.com/wklken/Python-2.7.8/blob/master/Objects/intobject.c"&gt;Objects/intobject.c&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;定义&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;PyTypeObject&lt;/span&gt; &lt;span class="n"&gt;PyInt_Type&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
@@ -150,7 +153,8 @@
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;h3&gt;最后, 一个整数对象int&lt;/h3&gt;
+&lt;hr /&gt;
+&lt;h3&gt;4. 最后, 生成一个整数对象int&lt;/h3&gt;
 &lt;p&gt;代码位置 &lt;a href="https://github.com/wklken/Python-2.7.8/blob/master/Include/intobject.h"&gt;Include/intobject.h&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;定义&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="k"&gt;typedef&lt;/span&gt; &lt;span class="k"&gt;struct&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
@@ -170,6 +174,7 @@
 &lt;/pre&gt;&lt;/div&gt;
 
 
+&lt;hr /&gt;
 &lt;h3&gt;到这里, 总结下&lt;/h3&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt; &lt;span class="mf"&gt;1.&lt;/span&gt; &lt;span class="err"&gt;一切都是对象&lt;/span&gt;
 
@@ -187,6 +192,7 @@
 &lt;/pre&gt;&lt;/div&gt;
 
 
+&lt;hr /&gt;
 &lt;h3&gt;多态是如何实现的?&lt;/h3&gt;
 &lt;p&gt;对象的多态&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;hash&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
@@ -198,14 +204,13 @@
 
 &lt;p&gt;从上面数据结构可以看到, 方法及属性, 在不同Type实例化时就确定了&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;PyTypeObject&lt;/span&gt; &lt;span class="n"&gt;PyInt_Type&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
-
+    &lt;span class="p"&gt;...&lt;/span&gt;
     &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;hashfunc&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="n"&gt;int_hash&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;                         &lt;span class="cm"&gt;/* tp_hash */&lt;/span&gt;
-
+    &lt;span class="p"&gt;...&lt;/span&gt;
 &lt;span class="p"&gt;}&lt;/span&gt;
 
 
 &lt;span class="n"&gt;PyTypeObject&lt;/span&gt; &lt;span class="n"&gt;PyString_Type&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
-
     &lt;span class="p"&gt;...&lt;/span&gt;
     &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;hashfunc&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="n"&gt;string_hash&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;                      &lt;span class="cm"&gt;/* tp_hash */&lt;/span&gt;
     &lt;span class="p"&gt;...&lt;/span&gt;

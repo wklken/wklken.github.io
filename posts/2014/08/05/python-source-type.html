@@ -95,7 +95,8 @@
 
 
 <p>我们反向推导一个<code>int</code>对象是怎么生成的.</p>
-<h3>首先, 定义一种类型叫PyTypeObject</h3>
+<hr />
+<h3>1. 首先, 定义一种类型叫PyTypeObject</h3>
 <p>代码位置 <a href="https://github.com/wklken/Python-2.7.8/blob/master/Include/object.h">Include/object.h</a></p>
 <p>定义</p>
 <div class="codehilite"><pre> <span class="nx">typedef</span> <span class="nx">struct</span> <span class="nx">_typeobject</span> <span class="p">{</span>
@@ -132,7 +133,8 @@
 </pre></div>
 
 
-<h3>然后, 用PyTypeObject初始化得到一个对象PyType_Type</h3>
+<hr />
+<h3>2. 然后, 用PyTypeObject初始化得到一个对象PyType_Type</h3>
 <p>代码位置 <a href="https://github.com/wklken/Python-2.7.8/blob/master/Objects/typeobject.c">Objects/typeobject.c</a></p>
 <p>定义</p>
 <div class="codehilite"><pre><span class="n">PyTypeObject</span> <span class="n">PyType_Type</span> <span class="o">=</span> <span class="p">{</span>
@@ -180,7 +182,8 @@
 </pre></div>
 
 
-<h3>然后, 定义具体的类型, 这里以PyInt_Type为例子</h3>
+<hr />
+<h3>3. 再然后, 定义具体的类型, 这里以PyInt_Type为例子</h3>
 <p>代码位置 <a href="https://github.com/wklken/Python-2.7.8/blob/master/Objects/intobject.c">Objects/intobject.c</a></p>
 <p>定义</p>
 <div class="codehilite"><pre><span class="n">PyTypeObject</span> <span class="n">PyInt_Type</span> <span class="o">=</span> <span class="p">{</span>
@@ -220,7 +223,8 @@
 </pre></div>
 
 
-<h3>最后, 一个整数对象int</h3>
+<hr />
+<h3>4. 最后, 生成一个整数对象int</h3>
 <p>代码位置 <a href="https://github.com/wklken/Python-2.7.8/blob/master/Include/intobject.h">Include/intobject.h</a></p>
 <p>定义</p>
 <div class="codehilite"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>
@@ -240,6 +244,7 @@
 </pre></div>
 
 
+<hr />
 <h3>到这里, 总结下</h3>
 <div class="codehilite"><pre> <span class="mf">1.</span> <span class="err">一切都是对象</span>
 
@@ -257,6 +262,7 @@
 </pre></div>
 
 
+<hr />
 <h3>多态是如何实现的?</h3>
 <p>对象的多态</p>
 <div class="codehilite"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">hash</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
@@ -268,14 +274,13 @@
 
 <p>从上面数据结构可以看到, 方法及属性, 在不同Type实例化时就确定了</p>
 <div class="codehilite"><pre><span class="n">PyTypeObject</span> <span class="n">PyInt_Type</span> <span class="o">=</span> <span class="p">{</span>
-
+    <span class="p">...</span>
     <span class="p">(</span><span class="n">hashfunc</span><span class="p">)</span><span class="n">int_hash</span><span class="p">,</span>                         <span class="cm">/* tp_hash */</span>
-
+    <span class="p">...</span>
 <span class="p">}</span>
 
 
 <span class="n">PyTypeObject</span> <span class="n">PyString_Type</span> <span class="o">=</span> <span class="p">{</span>
-
     <span class="p">...</span>
     <span class="p">(</span><span class="n">hashfunc</span><span class="p">)</span><span class="n">string_hash</span><span class="p">,</span>                      <span class="cm">/* tp_hash */</span>
     <span class="p">...</span>
