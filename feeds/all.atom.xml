@@ -1,5 +1,227 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>wklken's blog</title><link href="/" rel="alternate"></link><link href="/feeds/all.atom.xml" rel="self"></link><id>/</id><updated>2014-08-05T17:32:00+08:00</updated><entry><title>Python源码阅读-对象</title><link href="//posts/2014/08/05/python-source-object.html" rel="alternate"></link><updated>2014-08-05T17:32:00+08:00</updated><author><name>wklken</name></author><id>tag:,2014-08-05:/posts/2014/08/05/python-source-object.html</id><summary type="html">&lt;p&gt;结束休息期, 开始准备面试事宜了, 发现要准备的东西好多(╯‵□′)╯︵┻━┻,  顺手整理下Python源码阅读笔记(力争在写完前找到工作)&lt;/p&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>wklken's blog</title><link href="/" rel="alternate"></link><link href="/feeds/all.atom.xml" rel="self"></link><id>/</id><updated>2014-08-05T19:31:00+08:00</updated><entry><title>Python源码阅读-类型</title><link href="//posts/2014/08/05/python-source-type.html" rel="alternate"></link><updated>2014-08-05T19:31:00+08:00</updated><author><name>wklken</name></author><id>tag:,2014-08-05:/posts/2014/08/05/python-source-type.html</id><summary type="html">&lt;p&gt;这篇主要涉及Python对象的类型机制&lt;/p&gt;
+&lt;p&gt;有点绕, 一定要思维清晰的时候再看哦:)&lt;/p&gt;
+&lt;hr /&gt;
+&lt;p&gt;一个例子&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;a&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;a&lt;/span&gt;
+&lt;span class="mi"&gt;1&lt;/span&gt;
+
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;type&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;a&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;type&lt;/span&gt; &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="kt"&gt;int&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;
+
+&lt;span class="cp"&gt;#等价的两个&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;type&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;type&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;a&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;type&lt;/span&gt; &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;type&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;type&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;int&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;type&lt;/span&gt; &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;type&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;
+
+&lt;span class="cp"&gt;#还是等价的两个&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;type&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;type&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;type&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;a&lt;/span&gt;&lt;span class="p"&gt;)))&lt;/span&gt;
+&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;type&lt;/span&gt; &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;type&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;type&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;type&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;int&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;type&lt;/span&gt; &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;type&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;我们反向推导一个&lt;code&gt;int&lt;/code&gt;对象是怎么生成的.&lt;/p&gt;
+&lt;h3&gt;首先, 定义一种类型叫PyTypeObject&lt;/h3&gt;
+&lt;p&gt;代码位置 &lt;a href="https://github.com/wklken/Python-2.7.8/blob/master/Include/object.h"&gt;Include/object.h&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;定义&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt; &lt;span class="nx"&gt;typedef&lt;/span&gt; &lt;span class="nx"&gt;struct&lt;/span&gt; &lt;span class="nx"&gt;_typeobject&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+
+  &lt;span class="cm"&gt;/* MARK: base, 注意, 是个变长对象*/&lt;/span&gt;
+  &lt;span class="nx"&gt;PyObject_VAR_HEAD&lt;/span&gt;
+  &lt;span class="nx"&gt;const&lt;/span&gt; &lt;span class="nx"&gt;char&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="nx"&gt;tp_name&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="cm"&gt;/* For printing, in format &amp;quot;&amp;lt;module&amp;gt;.&amp;lt;name&amp;gt;&amp;quot; */&lt;/span&gt;
+  &lt;span class="nx"&gt;Py_ssize_t&lt;/span&gt; &lt;span class="nx"&gt;tp_basicsize&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;tp_itemsize&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="cm"&gt;/* For allocation */&lt;/span&gt;
+
+
+  &lt;span class="c1"&gt;// 一堆方法定义, 函数和指针&lt;/span&gt;
+  &lt;span class="cm"&gt;/* Methods to implement standard operations */&lt;/span&gt;
+  &lt;span class="nx"&gt;printfunc&lt;/span&gt; &lt;span class="nx"&gt;tp_print&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="nx"&gt;hashfunc&lt;/span&gt; &lt;span class="nx"&gt;tp_hash&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+  &lt;span class="cm"&gt;/* Method suites for standard classes */&lt;/span&gt;
+  &lt;span class="nx"&gt;PyNumberMethods&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="nx"&gt;tp_as_number&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="nx"&gt;PySequenceMethods&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="nx"&gt;tp_as_sequence&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="nx"&gt;PyMappingMethods&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="nx"&gt;tp_as_mapping&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+  &lt;span class="c1"&gt;// 一堆属性定义&lt;/span&gt;
+  &lt;span class="nx"&gt;....&lt;/span&gt;
+
+&lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="nx"&gt;PyTypeObject&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;说明&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="mf"&gt;1.&lt;/span&gt; &lt;span class="n"&gt;PyObject_VAR_HEAD&lt;/span&gt;
+&lt;span class="err"&gt;变长对象&lt;/span&gt;
+
+&lt;span class="mf"&gt;2.&lt;/span&gt; &lt;span class="k"&gt;const&lt;/span&gt; &lt;span class="kt"&gt;char&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;tp_name&lt;/span&gt;
+&lt;span class="n"&gt;tp_name&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;类型名字符串数组&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;然后, 用PyTypeObject初始化得到一个对象PyType_Type&lt;/h3&gt;
+&lt;p&gt;代码位置 &lt;a href="https://github.com/wklken/Python-2.7.8/blob/master/Objects/typeobject.c"&gt;Objects/typeobject.c&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;定义&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;PyTypeObject&lt;/span&gt; &lt;span class="n"&gt;PyType_Type&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="n"&gt;PyVarObject_HEAD_INIT&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;PyType_Type&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+  &lt;span class="s"&gt;&amp;quot;type&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;                                     &lt;span class="cm"&gt;/* tp_name */&lt;/span&gt;
+  &lt;span class="k"&gt;sizeof&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;PyHeapTypeObject&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;                   &lt;span class="cm"&gt;/* tp_basicsize */&lt;/span&gt;
+  &lt;span class="k"&gt;sizeof&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;PyMemberDef&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;                        &lt;span class="cm"&gt;/* tp_itemsize */&lt;/span&gt;
+  &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;destructor&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="n"&gt;type_dealloc&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;                   &lt;span class="cm"&gt;/* tp_dealloc */&lt;/span&gt;
+
+  &lt;span class="c1"&gt;// type对象的方法和属性初始化值&lt;/span&gt;
+  &lt;span class="p"&gt;.....&lt;/span&gt;
+
+&lt;span class="p"&gt;};&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;说明&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="mf"&gt;1.&lt;/span&gt; &lt;span class="n"&gt;tp_name&lt;/span&gt;
+&lt;span class="err"&gt;类型名&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;这里是&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;type&amp;quot;&lt;/span&gt;
+
+&lt;span class="mf"&gt;2.&lt;/span&gt; &lt;span class="n"&gt;PyVarObject_HEAD_INIT&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;PyType_Type&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;PyVarObject_HEAD_INIT&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;这个方法在&lt;/span&gt; &lt;span class="n"&gt;Include&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;object&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;h&lt;/span&gt;&lt;span class="err"&gt;中&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;span class="err"&gt;等价于&lt;/span&gt;
+        &lt;span class="n"&gt;ob_refcnt&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;
+        &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;ob_type&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;PyType_Type&lt;/span&gt;
+        &lt;span class="n"&gt;ob_size&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;
+
+&lt;span class="err"&gt;即&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;PyType_Type&lt;/span&gt;&lt;span class="err"&gt;的类型是其本身&lt;/span&gt;&lt;span class="o"&gt;!&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;结构&lt;/p&gt;
+&lt;p&gt;第一张图, 箭头表示&lt;code&gt;实例化&lt;/code&gt;(google doc用不是很熟找不到对应类型的箭头)
+&lt;img alt="PyType_Type" src="/imgs/python-source/PyType_Type.png" /&gt;&lt;/p&gt;
+&lt;p&gt;第二张图, 箭头表示&lt;code&gt;指向&lt;/code&gt;
+&lt;img alt="PyType_Type2" src="/imgs/python-source/PyType_Type2.png" /&gt;&lt;/p&gt;
+&lt;p&gt;使用&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="cp"&gt;# 1. int 的 类型 是`type`&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;type&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;int&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;type&lt;/span&gt; &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;type&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;
+
+&lt;span class="cp"&gt;# 2. type 的类型 还是`type`, 对应上面说明第二点&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;type&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;type&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;int&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;type&lt;/span&gt; &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;type&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;然后, 定义具体的类型, 这里以PyInt_Type为例子&lt;/h3&gt;
+&lt;p&gt;代码位置 &lt;a href="https://github.com/wklken/Python-2.7.8/blob/master/Objects/intobject.c"&gt;Objects/intobject.c&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;定义&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;PyTypeObject&lt;/span&gt; &lt;span class="n"&gt;PyInt_Type&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="n"&gt;PyVarObject_HEAD_INIT&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;PyType_Type&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+  &lt;span class="s"&gt;&amp;quot;int&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+  &lt;span class="k"&gt;sizeof&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;PyIntObject&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;
+  &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+
+  &lt;span class="c1"&gt;// int类型的相关方法和属性值&lt;/span&gt;
+  &lt;span class="p"&gt;....&lt;/span&gt;
+
+  &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;hashfunc&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="n"&gt;int_hash&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;                         &lt;span class="cm"&gt;/* tp_hash */&lt;/span&gt;
+
+&lt;span class="p"&gt;};&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;说明&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="mf"&gt;1.&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;int&amp;quot;&lt;/span&gt;
+&lt;span class="n"&gt;PyInt_Type&lt;/span&gt;&lt;span class="err"&gt;的类型名是&lt;/span&gt;&lt;span class="kt"&gt;int&lt;/span&gt;
+
+&lt;span class="mf"&gt;2.&lt;/span&gt;&lt;span class="n"&gt;PyVarObject_HEAD_INIT&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;PyType_Type&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;PyInt_Type&lt;/span&gt;&lt;span class="err"&gt;的&lt;/span&gt;
+
+    &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;ob_type&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;PyType_Type&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;结构&lt;/p&gt;
+&lt;p&gt;&lt;img alt="PyType_Type2" src="/imgs/python-source/PyType_Type3.png" /&gt;&lt;/p&gt;
+&lt;p&gt;使用&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;type&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;type&lt;/span&gt; &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="kt"&gt;int&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;
+
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;type&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;type&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;type&lt;/span&gt; &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;type&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;最后, 一个整数对象int&lt;/h3&gt;
+&lt;p&gt;代码位置 &lt;a href="https://github.com/wklken/Python-2.7.8/blob/master/Include/intobject.h"&gt;Include/intobject.h&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;定义&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="k"&gt;typedef&lt;/span&gt; &lt;span class="k"&gt;struct&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="n"&gt;PyObject_HEAD&lt;/span&gt;
+    &lt;span class="kt"&gt;long&lt;/span&gt; &lt;span class="n"&gt;ob_ival&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="n"&gt;PyIntObject&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;结构&lt;/p&gt;
+&lt;p&gt;&lt;img alt="PyType_Type2" src="/imgs/python-source/PyType_Type4.png" /&gt;&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="mf"&gt;1.&lt;/span&gt; &lt;span class="n"&gt;PyIntObject&lt;/span&gt;&lt;span class="err"&gt;为整数类型&lt;/span&gt;
+
+&lt;span class="mf"&gt;2.&lt;/span&gt; &lt;span class="err"&gt;声明一个整数后得到整数对象&lt;/span&gt;
+
+&lt;span class="mf"&gt;3.&lt;/span&gt; &lt;span class="err"&gt;对象&lt;/span&gt;&lt;span class="n"&gt;ob_type&lt;/span&gt;&lt;span class="err"&gt;指向&lt;/span&gt;&lt;span class="n"&gt;PyInt_type&lt;/span&gt;&lt;span class="err"&gt;对象&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;到这里, 总结下&lt;/h3&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt; &lt;span class="mf"&gt;1.&lt;/span&gt; &lt;span class="err"&gt;一切都是对象&lt;/span&gt;
+
+ &lt;span class="mf"&gt;2.&lt;/span&gt; &lt;span class="n"&gt;PyType_Type&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="n"&gt;PyInt_Type&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="n"&gt;PyString_Type&lt;/span&gt; &lt;span class="p"&gt;....&lt;/span&gt;&lt;span class="err"&gt;等&lt;/span&gt;
+ &lt;span class="err"&gt;这些是`类型对象`&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;可以认为是同级&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;都是&lt;/span&gt;&lt;span class="n"&gt;PyTypeObject&lt;/span&gt;&lt;span class="err"&gt;这种`类型`的实例&lt;/span&gt;&lt;span class="o"&gt;!&lt;/span&gt;
+
+ &lt;span class="mf"&gt;3.&lt;/span&gt; &lt;span class="err"&gt;虽然是同级&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="err"&gt;但是其他&lt;/span&gt;&lt;span class="n"&gt;PyXXX_Type&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;其类型指向&lt;/span&gt; &lt;span class="n"&gt;PyType_Type&lt;/span&gt;
+ &lt;span class="n"&gt;PyType_Type&lt;/span&gt; &lt;span class="err"&gt;的类型指向自己&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;它使所有类型的`类型`&lt;/span&gt;
+
+ &lt;span class="mf"&gt;4.&lt;/span&gt; &lt;span class="n"&gt;PyTypeObject&lt;/span&gt; &lt;span class="err"&gt;是一个变长对象&lt;/span&gt;
+
+ &lt;span class="mf"&gt;5.&lt;/span&gt; &lt;span class="err"&gt;每个&lt;/span&gt;&lt;span class="n"&gt;object&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;例如&lt;/span&gt;&lt;span class="n"&gt;PyIntObject&lt;/span&gt;&lt;span class="err"&gt;都属于一种`类型`&lt;/span&gt;
+ &lt;span class="n"&gt;object&lt;/span&gt;&lt;span class="err"&gt;初始化时进行关联&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;多态是如何实现的?&lt;/h3&gt;
+&lt;p&gt;对象的多态&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;hash&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="mi"&gt;1&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;hash&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;abc&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="mi"&gt;1453079729188098211&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;从上面数据结构可以看到, 方法及属性, 在不同Type实例化时就确定了&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;PyTypeObject&lt;/span&gt; &lt;span class="n"&gt;PyInt_Type&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+
+    &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;hashfunc&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="n"&gt;int_hash&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;                         &lt;span class="cm"&gt;/* tp_hash */&lt;/span&gt;
+
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+
+&lt;span class="n"&gt;PyTypeObject&lt;/span&gt; &lt;span class="n"&gt;PyString_Type&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+
+    &lt;span class="p"&gt;...&lt;/span&gt;
+    &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;hashfunc&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="n"&gt;string_hash&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;                      &lt;span class="cm"&gt;/* tp_hash */&lt;/span&gt;
+    &lt;span class="p"&gt;...&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Python内部传递的是泛型指针&lt;code&gt;PyObject *&lt;/code&gt;, 函数调用时, 找到其类型&lt;code&gt;* ob_type&lt;/code&gt;, 然后调用&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;object&lt;/span&gt; &lt;span class="o"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;ob_type&lt;/span&gt; &lt;span class="o"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;func_name&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;hr /&gt;
+&lt;p&gt;changelog&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="mi"&gt;2014&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;08&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mo"&gt;05&lt;/span&gt; &lt;span class="n"&gt;first&lt;/span&gt; &lt;span class="n"&gt;version&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;</summary><category term="python"></category></entry><entry><title>Python源码阅读-对象</title><link href="//posts/2014/08/05/python-source-object.html" rel="alternate"></link><updated>2014-08-05T17:32:00+08:00</updated><author><name>wklken</name></author><id>tag:,2014-08-05:/posts/2014/08/05/python-source-object.html</id><summary type="html">&lt;p&gt;结束休息期, 开始准备面试事宜了, 发现要准备的东西好多(╯‵□′)╯︵┻━┻,  顺手整理下Python源码阅读笔记(力争在写完前找到工作)&lt;/p&gt;
 &lt;p&gt;参考内容: Python源码 + &lt;code&gt;&amp;lt;&amp;lt;Python源码剖析&amp;gt;&amp;gt;&lt;/code&gt;&lt;/p&gt;
 &lt;p&gt;用&lt;code&gt;源代码+说明+图解&lt;/code&gt;的方式, 尽量说明白吧, 有一份注释在github上&lt;/p&gt;
 &lt;p&gt;内容:&lt;/p&gt;

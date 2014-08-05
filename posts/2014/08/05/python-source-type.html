@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--[if IE 8]> <html class="no-js lt-ie9" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
+
+<head>
+    <meta name="google-site-verification" content="SzE6WCs23qFevgBzRIuG9vcfLU0lW_Vd5hFT-cJOLBE" />
+    <title>Python源码阅读-类型</title>
+    <meta charset="utf-8" />
+    <meta name="description" content="">
+    <meta name="keywords" content="" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+        <link rel="shortcut icon" href="/favicon.ico"/>
+        <link rel="stylesheet" href="/theme/css/styles.css" media="all" />
+        <link rel="stylesheet" href="/theme/css/tab.css" media="all" />
+
+        <link rel="stylesheet" href="/theme/css/font-awesome.min.css">
+        <!--[if IE 7]>
+            <link rel="stylesheet" href="/theme/css/font-awesome-ie7.min.css">
+        <![endif]-->
+
+        <link href="/" type="application/atom+xml" rel="alternate" title="wklken's blog ATOM Feed" />
+        <link href="/feed.xml" type="application/atom+xml" rel="alternate" title="wklken's blog RSS Feed" />
+
+</head>
+
+<body id="index" class="home">
+    <div id="page" class="row">
+        <div class="large-8 large-centered columns">
+
+        <header id="header">
+            <div class="constraint">
+                <div class="o">
+                    <a href="/"><h1 class="banner">Wklken <span class="blue"> Python</span></h1></a>
+
+                <div class="social">
+                            <a href="https://github.com/wklken" target='_blank'><i class="icon-github-sign icon-2x"></i></a>
+                            <a href="http://weibo.com/wklken" target='_blank'><i class="icon-weibo icon-2x"></i></a>
+                            <a href="mailto:wklken@yeah.net"><i class="icon-envelope icon-2x"></i></a>
+                            <a href="/feed.xml" target='_blank'><i class="icon-rss-sign icon-2x"></i></a>
+                </div>
+                <div class="nav">
+                            <a href="/">首页</a>
+                            <a href="/categories.html">分类</a>
+                            <a href="/archives.html">归档</a>
+                            <a href="/pages/projects.html">项目</a>
+                            <a href="/pages/tools.html">工具</a>
+                            <a href="/pages/books.html">书单</a>
+                            <a href="/pages/aboutme.html">关于</a>
+
+                </div>
+
+                </div>
+            </div>
+        </header><!-- /#banner -->
+
+        <section id="main">
+
+<article id="article">
+    <section id="header">
+        <!--
+        <div class="meta">2014年08月05日</div>
+        <h1 id="title"> Python源码阅读-类型 </h1>
+        -->
+        <div class="meta"> &nbsp; </div>
+        <h1> Python源码阅读-类型 </h1>
+    </section>
+    <section id="content">
+        <p>这篇主要涉及Python对象的类型机制</p>
+<p>有点绕, 一定要思维清晰的时候再看哦:)</p>
+<hr />
+<p>一个例子</p>
+<div class="codehilite"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">a</span>
+<span class="mi">1</span>
+
+<span class="o">&gt;&gt;&gt;</span> <span class="n">type</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="o">&lt;</span><span class="n">type</span> <span class="err">&#39;</span><span class="kt">int</span><span class="err">&#39;</span><span class="o">&gt;</span>
+
+<span class="cp">#等价的两个</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">type</span><span class="p">(</span><span class="n">type</span><span class="p">(</span><span class="n">a</span><span class="p">))</span>
+<span class="o">&lt;</span><span class="n">type</span> <span class="err">&#39;</span><span class="n">type</span><span class="err">&#39;</span><span class="o">&gt;</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">type</span><span class="p">(</span><span class="kt">int</span><span class="p">)</span>
+<span class="o">&lt;</span><span class="n">type</span> <span class="err">&#39;</span><span class="n">type</span><span class="err">&#39;</span><span class="o">&gt;</span>
+
+<span class="cp">#还是等价的两个</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">type</span><span class="p">(</span><span class="n">type</span><span class="p">(</span><span class="n">type</span><span class="p">(</span><span class="n">a</span><span class="p">)))</span>
+<span class="o">&lt;</span><span class="n">type</span> <span class="err">&#39;</span><span class="n">type</span><span class="err">&#39;</span><span class="o">&gt;</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">type</span><span class="p">(</span><span class="n">type</span><span class="p">(</span><span class="kt">int</span><span class="p">))</span>
+<span class="o">&lt;</span><span class="n">type</span> <span class="err">&#39;</span><span class="n">type</span><span class="err">&#39;</span><span class="o">&gt;</span>
+</pre></div>
+
+
+<p>我们反向推导一个<code>int</code>对象是怎么生成的.</p>
+<h3>首先, 定义一种类型叫PyTypeObject</h3>
+<p>代码位置 <a href="https://github.com/wklken/Python-2.7.8/blob/master/Include/object.h">Include/object.h</a></p>
+<p>定义</p>
+<div class="codehilite"><pre> <span class="nx">typedef</span> <span class="nx">struct</span> <span class="nx">_typeobject</span> <span class="p">{</span>
+
+  <span class="cm">/* MARK: base, 注意, 是个变长对象*/</span>
+  <span class="nx">PyObject_VAR_HEAD</span>
+  <span class="nx">const</span> <span class="nx">char</span> <span class="o">*</span><span class="nx">tp_name</span><span class="p">;</span> <span class="cm">/* For printing, in format &quot;&lt;module&gt;.&lt;name&gt;&quot; */</span>
+  <span class="nx">Py_ssize_t</span> <span class="nx">tp_basicsize</span><span class="p">,</span> <span class="nx">tp_itemsize</span><span class="p">;</span> <span class="cm">/* For allocation */</span>
+
+
+  <span class="c1">// 一堆方法定义, 函数和指针</span>
+  <span class="cm">/* Methods to implement standard operations */</span>
+  <span class="nx">printfunc</span> <span class="nx">tp_print</span><span class="p">;</span>
+  <span class="nx">hashfunc</span> <span class="nx">tp_hash</span><span class="p">;</span>
+
+  <span class="cm">/* Method suites for standard classes */</span>
+  <span class="nx">PyNumberMethods</span> <span class="o">*</span><span class="nx">tp_as_number</span><span class="p">;</span>
+  <span class="nx">PySequenceMethods</span> <span class="o">*</span><span class="nx">tp_as_sequence</span><span class="p">;</span>
+  <span class="nx">PyMappingMethods</span> <span class="o">*</span><span class="nx">tp_as_mapping</span><span class="p">;</span>
+
+  <span class="c1">// 一堆属性定义</span>
+  <span class="nx">....</span>
+
+<span class="p">}</span> <span class="nx">PyTypeObject</span><span class="p">;</span>
+</pre></div>
+
+
+<p>说明</p>
+<div class="codehilite"><pre><span class="mf">1.</span> <span class="n">PyObject_VAR_HEAD</span>
+<span class="err">变长对象</span>
+
+<span class="mf">2.</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">tp_name</span>
+<span class="n">tp_name</span><span class="p">,</span> <span class="err">类型名字符串数组</span>
+</pre></div>
+
+
+<h3>然后, 用PyTypeObject初始化得到一个对象PyType_Type</h3>
+<p>代码位置 <a href="https://github.com/wklken/Python-2.7.8/blob/master/Objects/typeobject.c">Objects/typeobject.c</a></p>
+<p>定义</p>
+<div class="codehilite"><pre><span class="n">PyTypeObject</span> <span class="n">PyType_Type</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="n">PyVarObject_HEAD_INIT</span><span class="p">(</span><span class="o">&amp;</span><span class="n">PyType_Type</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+  <span class="s">&quot;type&quot;</span><span class="p">,</span>                                     <span class="cm">/* tp_name */</span>
+  <span class="k">sizeof</span><span class="p">(</span><span class="n">PyHeapTypeObject</span><span class="p">),</span>                   <span class="cm">/* tp_basicsize */</span>
+  <span class="k">sizeof</span><span class="p">(</span><span class="n">PyMemberDef</span><span class="p">),</span>                        <span class="cm">/* tp_itemsize */</span>
+  <span class="p">(</span><span class="n">destructor</span><span class="p">)</span><span class="n">type_dealloc</span><span class="p">,</span>                   <span class="cm">/* tp_dealloc */</span>
+
+  <span class="c1">// type对象的方法和属性初始化值</span>
+  <span class="p">.....</span>
+
+<span class="p">};</span>
+</pre></div>
+
+
+<p>说明</p>
+<div class="codehilite"><pre><span class="mf">1.</span> <span class="n">tp_name</span>
+<span class="err">类型名</span><span class="p">,</span> <span class="err">这里是</span><span class="s">&quot;type&quot;</span>
+
+<span class="mf">2.</span> <span class="n">PyVarObject_HEAD_INIT</span><span class="p">(</span><span class="o">&amp;</span><span class="n">PyType_Type</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">PyVarObject_HEAD_INIT</span><span class="p">,</span> <span class="err">这个方法在</span> <span class="n">Include</span><span class="o">/</span><span class="n">object</span><span class="p">.</span><span class="n">h</span><span class="err">中</span><span class="p">,</span>
+<span class="err">等价于</span>
+        <span class="n">ob_refcnt</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="o">*</span><span class="n">ob_type</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">PyType_Type</span>
+        <span class="n">ob_size</span> <span class="o">=</span> <span class="mi">0</span>
+
+<span class="err">即</span><span class="p">,</span> <span class="n">PyType_Type</span><span class="err">的类型是其本身</span><span class="o">!</span>
+</pre></div>
+
+
+<p>结构</p>
+<p>第一张图, 箭头表示<code>实例化</code>(google doc用不是很熟找不到对应类型的箭头)
+<img alt="PyType_Type" src="/imgs/python-source/PyType_Type.png" /></p>
+<p>第二张图, 箭头表示<code>指向</code>
+<img alt="PyType_Type2" src="/imgs/python-source/PyType_Type2.png" /></p>
+<p>使用</p>
+<div class="codehilite"><pre><span class="cp"># 1. int 的 类型 是`type`</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">type</span><span class="p">(</span><span class="kt">int</span><span class="p">)</span>
+<span class="o">&lt;</span><span class="n">type</span> <span class="err">&#39;</span><span class="n">type</span><span class="err">&#39;</span><span class="o">&gt;</span>
+
+<span class="cp"># 2. type 的类型 还是`type`, 对应上面说明第二点</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">type</span><span class="p">(</span><span class="n">type</span><span class="p">(</span><span class="kt">int</span><span class="p">))</span>
+<span class="o">&lt;</span><span class="n">type</span> <span class="err">&#39;</span><span class="n">type</span><span class="err">&#39;</span><span class="o">&gt;</span>
+</pre></div>
+
+
+<h3>然后, 定义具体的类型, 这里以PyInt_Type为例子</h3>
+<p>代码位置 <a href="https://github.com/wklken/Python-2.7.8/blob/master/Objects/intobject.c">Objects/intobject.c</a></p>
+<p>定义</p>
+<div class="codehilite"><pre><span class="n">PyTypeObject</span> <span class="n">PyInt_Type</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="n">PyVarObject_HEAD_INIT</span><span class="p">(</span><span class="o">&amp;</span><span class="n">PyType_Type</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+  <span class="s">&quot;int&quot;</span><span class="p">,</span>
+  <span class="k">sizeof</span><span class="p">(</span><span class="n">PyIntObject</span><span class="p">),</span>
+  <span class="mi">0</span><span class="p">,</span>
+
+  <span class="c1">// int类型的相关方法和属性值</span>
+  <span class="p">....</span>
+
+  <span class="p">(</span><span class="n">hashfunc</span><span class="p">)</span><span class="n">int_hash</span><span class="p">,</span>                         <span class="cm">/* tp_hash */</span>
+
+<span class="p">};</span>
+</pre></div>
+
+
+<p>说明</p>
+<div class="codehilite"><pre><span class="mf">1.</span> <span class="s">&quot;int&quot;</span>
+<span class="n">PyInt_Type</span><span class="err">的类型名是</span><span class="kt">int</span>
+
+<span class="mf">2.</span><span class="n">PyVarObject_HEAD_INIT</span><span class="p">(</span><span class="o">&amp;</span><span class="n">PyType_Type</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">PyInt_Type</span><span class="err">的</span>
+
+    <span class="o">*</span><span class="n">ob_type</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">PyType_Type</span>
+</pre></div>
+
+
+<p>结构</p>
+<p><img alt="PyType_Type2" src="/imgs/python-source/PyType_Type3.png" /></p>
+<p>使用</p>
+<div class="codehilite"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">type</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="o">&lt;</span><span class="n">type</span> <span class="err">&#39;</span><span class="kt">int</span><span class="err">&#39;</span><span class="o">&gt;</span>
+
+<span class="o">&gt;&gt;&gt;</span> <span class="n">type</span><span class="p">(</span><span class="n">type</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+<span class="o">&lt;</span><span class="n">type</span> <span class="err">&#39;</span><span class="n">type</span><span class="err">&#39;</span><span class="o">&gt;</span>
+</pre></div>
+
+
+<h3>最后, 一个整数对象int</h3>
+<p>代码位置 <a href="https://github.com/wklken/Python-2.7.8/blob/master/Include/intobject.h">Include/intobject.h</a></p>
+<p>定义</p>
+<div class="codehilite"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">PyObject_HEAD</span>
+    <span class="kt">long</span> <span class="n">ob_ival</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">PyIntObject</span><span class="p">;</span>
+</pre></div>
+
+
+<p>结构</p>
+<p><img alt="PyType_Type2" src="/imgs/python-source/PyType_Type4.png" /></p>
+<div class="codehilite"><pre><span class="mf">1.</span> <span class="n">PyIntObject</span><span class="err">为整数类型</span>
+
+<span class="mf">2.</span> <span class="err">声明一个整数后得到整数对象</span>
+
+<span class="mf">3.</span> <span class="err">对象</span><span class="n">ob_type</span><span class="err">指向</span><span class="n">PyInt_type</span><span class="err">对象</span>
+</pre></div>
+
+
+<h3>到这里, 总结下</h3>
+<div class="codehilite"><pre> <span class="mf">1.</span> <span class="err">一切都是对象</span>
+
+ <span class="mf">2.</span> <span class="n">PyType_Type</span> <span class="o">/</span> <span class="n">PyInt_Type</span> <span class="o">/</span> <span class="n">PyString_Type</span> <span class="p">....</span><span class="err">等</span>
+ <span class="err">这些是`类型对象`</span><span class="p">,</span> <span class="err">可以认为是同级</span><span class="p">,</span> <span class="err">都是</span><span class="n">PyTypeObject</span><span class="err">这种`类型`的实例</span><span class="o">!</span>
+
+ <span class="mf">3.</span> <span class="err">虽然是同级</span><span class="p">,</span>
+ <span class="err">但是其他</span><span class="n">PyXXX_Type</span><span class="p">,</span> <span class="err">其类型指向</span> <span class="n">PyType_Type</span>
+ <span class="n">PyType_Type</span> <span class="err">的类型指向自己</span><span class="p">,</span> <span class="err">它使所有类型的`类型`</span>
+
+ <span class="mf">4.</span> <span class="n">PyTypeObject</span> <span class="err">是一个变长对象</span>
+
+ <span class="mf">5.</span> <span class="err">每个</span><span class="n">object</span><span class="p">,</span> <span class="err">例如</span><span class="n">PyIntObject</span><span class="err">都属于一种`类型`</span>
+ <span class="n">object</span><span class="err">初始化时进行关联</span>
+</pre></div>
+
+
+<h3>多态是如何实现的?</h3>
+<p>对象的多态</p>
+<div class="codehilite"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">hash</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="mi">1</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">hash</span><span class="p">(</span><span class="s">&quot;abc&quot;</span><span class="p">)</span>
+<span class="mi">1453079729188098211</span>
+</pre></div>
+
+
+<p>从上面数据结构可以看到, 方法及属性, 在不同Type实例化时就确定了</p>
+<div class="codehilite"><pre><span class="n">PyTypeObject</span> <span class="n">PyInt_Type</span> <span class="o">=</span> <span class="p">{</span>
+
+    <span class="p">(</span><span class="n">hashfunc</span><span class="p">)</span><span class="n">int_hash</span><span class="p">,</span>                         <span class="cm">/* tp_hash */</span>
+
+<span class="p">}</span>
+
+
+<span class="n">PyTypeObject</span> <span class="n">PyString_Type</span> <span class="o">=</span> <span class="p">{</span>
+
+    <span class="p">...</span>
+    <span class="p">(</span><span class="n">hashfunc</span><span class="p">)</span><span class="n">string_hash</span><span class="p">,</span>                      <span class="cm">/* tp_hash */</span>
+    <span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>Python内部传递的是泛型指针<code>PyObject *</code>, 函数调用时, 找到其类型<code>* ob_type</code>, 然后调用</p>
+<div class="codehilite"><pre><span class="n">object</span> <span class="o">-&gt;</span> <span class="n">ob_type</span> <span class="o">-&gt;</span> <span class="n">func_name</span>
+</pre></div>
+
+
+<hr />
+<p>changelog</p>
+<div class="codehilite"><pre><span class="mi">2014</span><span class="o">-</span><span class="mi">08</span><span class="o">-</span><span class="mo">05</span> <span class="n">first</span> <span class="n">version</span>
+</pre></div>
+    </section>
+
+    <section id="copyright">
+        <div class="copyright">
+            版权声明：自由转载-非商用-非衍生-保持署名 | <a href="http://creativecommons.org/licenses/by-nc-nd/3.0/deed.zh" target="_blank" >Creative Commons BY-NC-ND 3.0</a>
+        </div>
+    </section>
+
+    <section id="comments">
+
+        <div class="comments">
+            <h2>Comments !</h2>
+            <div id="disqus_thread"></div>
+            <script type="text/javascript">
+                var disqus_identifier = "/posts/2014/08/05/python-source-type.html";
+                (function() {
+                var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                dsq.src = 'http://wklken.disqus.com/embed.js';
+                (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                })();
+            </script>
+            </div>
+    </section>
+
+</article>
+        </section><!--end #main-->
+
+            <footer class="row">
+                <div class="large-12 columns">
+                    <p>
+                            Copyright © 2014 wklken <br>
+                            Hosted on <a href="https://www.digitalocean.com/?refcode=8ee73f2c47ce"> digitalocean </a>. Powered by <a href="http://alexis.notmyidea.org/pelican/">pelican</a>. Social Icons by <a href="http://fortawesome.github.io/Font-Awesome/">Font-Awesome</a>.
+                    </p>
+                </div>
+            </footer>
+
+            </div>
+        </div>
+
+        <section id="extras" class="body">
+        </section><!-- /#extras -->
+
+    <script type="text/javascript">
+    var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+    document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+    </script>
+    <script type="text/javascript">
+    try {
+        var pageTracker = _gat._getTracker("UA-42275748-1");
+    pageTracker._trackPageview();
+    } catch(err) {}</script>
+
+
+
+</body>
+<script src="http://apps.bdimg.com/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="http://apps.bdimg.com/libs/jquery-scrollUp/2.1.0/jquery.scrollUp.min.js"></script>
+<script>
+    $(function(){
+        $.scrollUp();
+    });
+</script>
+
+
+
+
+</html>
