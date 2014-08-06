@@ -1,5 +1,312 @@
 <?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>wklken's blog</title><link>/</link><description></description><atom:link href="/feed.xml" rel="self"></atom:link><lastBuildDate>Tue, 05 Aug 2014 19:31:00 +0800</lastBuildDate><item><title>Python源码阅读-类型</title><link>//posts/2014/08/05/python-source-type.html</link><description>&lt;p&gt;这篇主要涉及Python对象的类型机制&lt;/p&gt;
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>wklken's blog</title><link>/</link><description></description><atom:link href="/feed.xml" rel="self"></atom:link><lastBuildDate>Wed, 06 Aug 2014 00:00:00 +0800</lastBuildDate><item><title>Python 源码阅读 - int类型</title><link>//posts/2014/08/06/python-source-int.html</link><description>&lt;p&gt;==========================&lt;/p&gt;
+&lt;p&gt;代码我也仅仅是粗粗读了一遍, 可能出现疏漏和理解错误, 发现了望指出哈.&lt;/p&gt;
+&lt;p&gt;今天面了一家靠谱的创业公司, 可惜不是Python向的, 想继续玩Python是有代价的, 选择余地太窄了......&lt;/p&gt;
+&lt;p&gt;话说写文章很耗时间, 这个花了两个多小时....主要还是自个绘图渣效率低:(&lt;/p&gt;
+&lt;p&gt;准备找工作事宜很占时间, 后面只能慢慢来了(好像还很多很多的样子)&lt;/p&gt;
+&lt;hr /&gt;
+&lt;p&gt;示例&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;a&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;b&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;id&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;a&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="n"&gt;id&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;True&lt;/span&gt;
+
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;c&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;257&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;d&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;257&lt;/span&gt;
+&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;id&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;c&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="n"&gt;id&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;d&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;False&lt;/span&gt;
+
+&lt;span class="cp"&gt;#在python2.x中, 对于大的序列生成, 建议使用xrange(100000) 而不是range(100000), why?&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;hr /&gt;
+&lt;h3&gt;PyIntObject&lt;/h3&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="k"&gt;typedef&lt;/span&gt; &lt;span class="k"&gt;struct&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="n"&gt;PyObject_HEAD&lt;/span&gt;
+    &lt;span class="kt"&gt;long&lt;/span&gt; &lt;span class="n"&gt;ob_ival&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="n"&gt;PyIntObject&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;结构&lt;/p&gt;
+&lt;p&gt;&lt;img alt="PyIntObject" src="/imgs/python-source/PyIntObject.png" /&gt;&lt;/p&gt;
+&lt;hr /&gt;
+&lt;h3&gt;几个构造方法&lt;/h3&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="cp"&gt;# 从字符串, 生成PyIntObject对象&lt;/span&gt;
+&lt;span class="n"&gt;PyAPI_FUNC&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;PyObject&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;PyInt_FromString&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;char&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="kt"&gt;char&lt;/span&gt;&lt;span class="o"&gt;**&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="kt"&gt;int&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+
+&lt;span class="cp"&gt;# 从Py_UNICODE, 生成PyIntObject对象&lt;/span&gt;
+&lt;span class="cp"&gt;#ifdef Py_USING_UNICODE&lt;/span&gt;
+&lt;span class="n"&gt;PyAPI_FUNC&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;PyObject&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;PyInt_FromUnicode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;Py_UNICODE&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;Py_ssize_t&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="kt"&gt;int&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="cp"&gt;#endif&lt;/span&gt;
+
+&lt;span class="cp"&gt;# 从long值, 生成PyIntObject对象&lt;/span&gt;
+&lt;span class="n"&gt;PyAPI_FUNC&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;PyObject&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;PyInt_FromLong&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;long&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+
+&lt;span class="n"&gt;PyAPI_FUNC&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;PyObject&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;PyInt_FromSize_t&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;size_t&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="n"&gt;PyAPI_FUNC&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;PyObject&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;PyInt_FromSsize_t&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;Py_ssize_t&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;这几个方法, 只需要关注&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="cp"&gt;# 因为大家最后都调用这个方法完成对象生成&lt;/span&gt;
+&lt;span class="n"&gt;PyAPI_FUNC&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;PyObject&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;PyInt_FromLong&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;long&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;hr /&gt;
+&lt;h3&gt;具体的构造方法 PyInt_FromLong&lt;/h3&gt;
+&lt;p&gt;这个方法的定义&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;PyObject&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;
+&lt;span class="nf"&gt;PyInt_FromLong&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;long&lt;/span&gt; &lt;span class="n"&gt;ival&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="k"&gt;register&lt;/span&gt; &lt;span class="n"&gt;PyIntObject&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;v&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+    &lt;span class="cm"&gt;/* MARK: 如果, 值在小整数范围内, 直接从小整数对象池获取得到对象 */&lt;/span&gt;
+
+    &lt;span class="err"&gt;#&lt;/span&gt;&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;NSMALLNEGINTS&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;NSMALLPOSINTS&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;NSMALLNEGINTS&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;=&lt;/span&gt; &lt;span class="n"&gt;ival&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="n"&gt;ival&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="n"&gt;NSMALLPOSINTS&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+
+        &lt;span class="cm"&gt;/* MARK: small_ints是什么后面说 */&lt;/span&gt;
+        &lt;span class="n"&gt;v&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;small_ints&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;ival&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;NSMALLNEGINTS&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
+        &lt;span class="c1"&gt;// 引用+1&lt;/span&gt;
+        &lt;span class="n"&gt;Py_INCREF&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;v&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+
+        &lt;span class="cm"&gt;/* 这里先忽略, 计数 */&lt;/span&gt;
+        &lt;span class="err"&gt;#&lt;/span&gt;&lt;span class="n"&gt;ifdef&lt;/span&gt; &lt;span class="n"&gt;COUNT_ALLOCS&lt;/span&gt;
+            &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;ival&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+                &lt;span class="n"&gt;quick_int_allocs&lt;/span&gt;&lt;span class="o"&gt;++&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+            &lt;span class="k"&gt;else&lt;/span&gt;
+                &lt;span class="n"&gt;quick_neg_int_allocs&lt;/span&gt;&lt;span class="o"&gt;++&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="err"&gt;#&lt;/span&gt;&lt;span class="n"&gt;endif&lt;/span&gt;
+
+        &lt;span class="c1"&gt;// 返回&lt;/span&gt;
+        &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;PyObject&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;v&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+    &lt;span class="err"&gt;#&lt;/span&gt;&lt;span class="n"&gt;endif&lt;/span&gt;
+
+    &lt;span class="c1"&gt;// 如果free_list还不存在, 或者满了&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;free_list&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="nb"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="c1"&gt;// 新建一块PyIntBlock, 并将空闲空间链表头部地址给free_list&lt;/span&gt;
+        &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="n"&gt;free_list&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;fill_free_list&lt;/span&gt;&lt;span class="p"&gt;())&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="nb"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+            &lt;span class="c1"&gt;// 如果失败, 返回&lt;/span&gt;
+            &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="nb"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+
+    &lt;span class="c1"&gt;// 从free_list分出一个位置存放新的整数&lt;/span&gt;
+
+    &lt;span class="cm"&gt;/* Inline PyObject_New */&lt;/span&gt;
+    &lt;span class="c1"&gt;// 使用单向链表头位置&lt;/span&gt;
+    &lt;span class="n"&gt;v&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;free_list&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+    &lt;span class="c1"&gt;// free_list指向单向链表下一个位置&lt;/span&gt;
+    &lt;span class="n"&gt;free_list&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;PyIntObject&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="n"&gt;Py_TYPE&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;v&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+
+    &lt;span class="c1"&gt;// 初始化对象, 类型为PyInt_type, 值为ival&lt;/span&gt;
+    &lt;span class="n"&gt;PyObject_INIT&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;v&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;PyInt_Type&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="n"&gt;v&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ob_ival&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;ival&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+    &lt;span class="c1"&gt;// 返回&lt;/span&gt;
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;PyObject&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;v&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;注意这里的&lt;code&gt;Py_TYPE()&lt;/code&gt;方法, 在我们&lt;a href="http://www.wklken.me/posts/2014/08/05/python-source-object.html"&gt;第一篇文章&lt;/a&gt;里面有提到, 不知道的回去复习下对象的数据结构&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="c"&gt;#define Py_TYPE(ob)             (((PyObject*)(ob))-&amp;gt;ob_type)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;简而言之:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="mf"&gt;1.&lt;/span&gt; &lt;span class="err"&gt;先判断数值是否是小整数&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;是的话从小整数对象池里面直接返回&lt;/span&gt;
+&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;这个池固定大小&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;下一点讲&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="mf"&gt;2.&lt;/span&gt; &lt;span class="err"&gt;如果不是&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;从通用整数对象池里面取一个&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;初始化返回&lt;/span&gt;
+&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;如果这时候通用整数对象池还不存在或者已经满了&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;新建一个池加入维护&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt; &lt;span class="err"&gt;通用整数对象池后面讲&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;hr /&gt;
+&lt;h3&gt;小整数对象池&lt;/h3&gt;
+&lt;p&gt;先看定义&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="cp"&gt;#ifndef NSMALLPOSINTS&lt;/span&gt;
+&lt;span class="cp"&gt;#define NSMALLPOSINTS           257&lt;/span&gt;
+&lt;span class="cp"&gt;#endif&lt;/span&gt;
+
+&lt;span class="cp"&gt;#ifndef NSMALLNEGINTS&lt;/span&gt;
+&lt;span class="cp"&gt;#define NSMALLNEGINTS           5&lt;/span&gt;
+&lt;span class="cp"&gt;#endif&lt;/span&gt;
+
+&lt;span class="cp"&gt;#if NSMALLNEGINTS + NSMALLPOSINTS &amp;gt; 0&lt;/span&gt;
+&lt;span class="cm"&gt;/* References to small integers are saved in this array&lt;/span&gt;
+&lt;span class="cm"&gt;   so that they can be shared.&lt;/span&gt;
+&lt;span class="cm"&gt;   The integers that are saved are those in the range&lt;/span&gt;
+&lt;span class="cm"&gt;   -NSMALLNEGINTS (inclusive) to NSMALLPOSINTS (not inclusive).&lt;/span&gt;
+&lt;span class="cm"&gt;*/&lt;/span&gt;
+
+&lt;span class="k"&gt;static&lt;/span&gt; &lt;span class="n"&gt;PyIntObject&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;small_ints&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;NSMALLNEGINTS&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;NSMALLPOSINTS&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
+&lt;span class="cp"&gt;#endif&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;其实, 小整数对象池就是一个&lt;code&gt;PyIntObject指针&lt;/code&gt;数组(注意是指针数组), 大小=257+5=262, 范围是&lt;code&gt;[-5, 257)&lt;/code&gt; 注意左闭右开. 即这个数组包含了262个指向PyIntObject的指针.&lt;/p&gt;
+&lt;p&gt;结构&lt;/p&gt;
+&lt;p&gt;&lt;img alt="small_ints" src="/imgs/python-source/PyInt_smallints.png" /&gt;&lt;/p&gt;
+&lt;p&gt;创建整数时, 如果在[-5, 257)范围, 直接返回已经存在的整数对象指针, 所以我们看到开头的例子, id比较一个true/一个false&lt;/p&gt;
+&lt;p&gt;小整数对象池, 在一开始就初始化了, 其初始化代码&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="kt"&gt;int&lt;/span&gt;
+&lt;span class="nf"&gt;_PyInt_Init&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;void&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="n"&gt;PyIntObject&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;v&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;ival&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+    &lt;span class="c1"&gt;// 注意这里, free_list再次出现&lt;/span&gt;
+
+&lt;span class="cp"&gt;#if NSMALLNEGINTS + NSMALLPOSINTS &amp;gt; 0&lt;/span&gt;
+
+    &lt;span class="c1"&gt;// 循环, 逐一生成&lt;/span&gt;
+    &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;ival&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;NSMALLNEGINTS&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="n"&gt;ival&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="n"&gt;NSMALLPOSINTS&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="n"&gt;ival&lt;/span&gt;&lt;span class="o"&gt;++&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+          &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;!&lt;/span&gt;&lt;span class="n"&gt;free_list&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;free_list&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;fill_free_list&lt;/span&gt;&lt;span class="p"&gt;())&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="nb"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+                  &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+        &lt;span class="c1"&gt;// 注意这段代码, 和上面PyInt_FromLong那段代码一样的&lt;/span&gt;
+        &lt;span class="cm"&gt;/* PyObject_New is inlined */&lt;/span&gt;
+        &lt;span class="n"&gt;v&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;free_list&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="n"&gt;free_list&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;PyIntObject&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="n"&gt;Py_TYPE&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;v&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+        &lt;span class="n"&gt;PyObject_INIT&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;v&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;PyInt_Type&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+        &lt;span class="n"&gt;v&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ob_ival&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;ival&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+        &lt;span class="c1"&gt;// 放到数组里&lt;/span&gt;
+        &lt;span class="n"&gt;small_ints&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;ival&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;NSMALLNEGINTS&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;v&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="cp"&gt;#endif&lt;/span&gt;
+
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;代码很眼熟吧, 觉得不眼熟回上面看代码&lt;/p&gt;
+&lt;p&gt;结论&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="mf"&gt;1.&lt;/span&gt; &lt;span class="err"&gt;小整数对象池缓存&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;5&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;257&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="err"&gt;内的整数对象&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;数值在这个范围的整数对象有且只存在一个&lt;/span&gt;&lt;span class="p"&gt;...&lt;/span&gt;
+
+&lt;span class="mf"&gt;2.&lt;/span&gt; &lt;span class="err"&gt;小整数对象池&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;只是一个指针数组&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;其真正对象依赖通用整数对象池&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;hr /&gt;
+&lt;h3&gt;通用整数对象池1 - 基础结构PyIntBlock&lt;/h3&gt;
+&lt;p&gt;首先, 有个数据结构PyIntBlock&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="cp"&gt;#define BLOCK_SIZE      1000    &lt;/span&gt;&lt;span class="cm"&gt;/* 1K less typical malloc overhead */&lt;/span&gt;&lt;span class="cp"&gt;&lt;/span&gt;
+&lt;span class="cp"&gt;#define BHEAD_SIZE      8       &lt;/span&gt;&lt;span class="cm"&gt;/* Enough for a 64-bit pointer */&lt;/span&gt;&lt;span class="cp"&gt;&lt;/span&gt;
+&lt;span class="cp"&gt;#define N_INTOBJECTS    ((BLOCK_SIZE - BHEAD_SIZE) / sizeof(PyIntObject))&lt;/span&gt;
+
+
+&lt;span class="k"&gt;struct&lt;/span&gt; &lt;span class="n"&gt;_intblock&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="k"&gt;struct&lt;/span&gt; &lt;span class="n"&gt;_intblock&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;next&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;PyIntObject&lt;/span&gt; &lt;span class="n"&gt;objects&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;N_INTOBJECTS&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
+&lt;span class="p"&gt;};&lt;/span&gt;
+
+&lt;span class="k"&gt;typedef&lt;/span&gt; &lt;span class="k"&gt;struct&lt;/span&gt; &lt;span class="n"&gt;_intblock&lt;/span&gt; &lt;span class="n"&gt;PyIntBlock&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;回忆一下&lt;code&gt;PyIntObject&lt;/code&gt;结构(1个int, 1指针, 1个long), size=4+4+4(先这么算), N_INTOBJECTS = 82&lt;/p&gt;
+&lt;p&gt;结构&lt;/p&gt;
+&lt;p&gt;&lt;img alt="PyIntBlock" src="/imgs/python-source/PyIntBlock.png" /&gt;&lt;/p&gt;
+&lt;h3&gt;通用整数对象池2 - 创建过程及运行时结构&lt;/h3&gt;
+&lt;p&gt;有两个指针&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="cp"&gt;# 指向一个block&lt;/span&gt;
+&lt;span class="k"&gt;static&lt;/span&gt; &lt;span class="n"&gt;PyIntBlock&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;block_list&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+&lt;span class="cp"&gt;# 指向一个PyIntObject&lt;/span&gt;
+&lt;span class="k"&gt;static&lt;/span&gt; &lt;span class="n"&gt;PyIntObject&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;free_list&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;生成过程的定义&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="c1"&gt;// 初始化一个PyIntBlock&lt;/span&gt;
+&lt;span class="k"&gt;static&lt;/span&gt; &lt;span class="n"&gt;PyIntObject&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;
+&lt;span class="n"&gt;fill_free_list&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;void&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="n"&gt;PyIntObject&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;p&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;q&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="c1"&gt;// 建立一个新的block&lt;/span&gt;
+    &lt;span class="cm"&gt;/* Python&amp;#39;s object allocator isn&amp;#39;t appropriate for large blocks. */&lt;/span&gt;
+    &lt;span class="n"&gt;p&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;PyIntObject&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;PyMem_MALLOC&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;sizeof&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;PyIntBlock&lt;/span&gt;&lt;span class="p"&gt;));&lt;/span&gt;
+
+    &lt;span class="c1"&gt;// 建立失败(内存耗光了)&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;p&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="no"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;PyIntObject&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;PyErr_NoMemory&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+
+    &lt;span class="c1"&gt;// block_list指向新的PyIntBlock节点&lt;/span&gt;
+    &lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="n"&gt;PyIntBlock&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="n"&gt;p&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;next&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;block_list&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;block_list&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;PyIntBlock&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="n"&gt;p&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+    &lt;span class="cm"&gt;/* Link the int objects together, from rear to front, then return&lt;/span&gt;
+&lt;span class="cm"&gt;       the address of the last int object in the block. */&lt;/span&gt;
+
+    &lt;span class="c1"&gt;// p=block里面 PyIntObjects数组头地址, q是尾地址&lt;/span&gt;
+    &lt;span class="n"&gt;p&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="n"&gt;PyIntBlock&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="n"&gt;p&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;objects&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mh"&gt;0&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
+    &lt;span class="n"&gt;q&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;p&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="no"&gt;N_INTOBJECTS&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+    &lt;span class="c1"&gt;// 从尾部开始向首部移动, 利用对象里的ob_type指针(相当于使用这个字段, ob_type不作为原来的用途), 建立起一个单向链表&lt;/span&gt;
+    &lt;span class="c1"&gt;// 这个单向链表的头部是数组的最后一个&lt;/span&gt;
+    &lt;span class="k"&gt;while&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;--&lt;/span&gt;&lt;span class="n"&gt;q&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;p&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="n"&gt;Py_TYPE&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;q&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;struct&lt;/span&gt; &lt;span class="n"&gt;_typeobject&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)(&lt;/span&gt;&lt;span class="n"&gt;q&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mh"&gt;1&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="n"&gt;Py_TYPE&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;q&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="no"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="c1"&gt;// 单向链表最后一个元素的next指向null&lt;/span&gt;
+
+    &lt;span class="c1"&gt;// 返回单向链表的头地址!!!&lt;/span&gt;
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;p&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="no"&gt;N_INTOBJECTS&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="mh"&gt;1&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;新建第一个时, 只有一个&lt;/p&gt;
+&lt;p&gt;&lt;img alt="PyIntBlock" src="/imgs/python-source/PyIntBlock1.png" /&gt;&lt;/p&gt;
+&lt;p&gt;从里面拿整数时, 取&lt;code&gt;free_list&lt;/code&gt;指向的节点, 然后&lt;code&gt;free_list&lt;/code&gt;指向链表下一个节点&lt;/p&gt;
+&lt;p&gt;当一个block用完了之后, 即&lt;code&gt;free_list=NULL&lt;/code&gt;, 此时要新建另一个PyIntBlock&lt;/p&gt;
+&lt;p&gt;新建第二个&lt;/p&gt;
+&lt;p&gt;&lt;img alt="PyIntBlock" src="/imgs/python-source/PyIntBlock2.png" /&gt;&lt;/p&gt;
+&lt;h3&gt;通用整数对象池3 - 删除一个整数时&lt;/h3&gt;
+&lt;p&gt;定义&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="cp"&gt;#define PyInt_CheckExact(op) ((op)-&amp;gt;ob_type == &amp;amp;PyInt_Type)&lt;/span&gt;
+
+&lt;span class="k"&gt;static&lt;/span&gt; &lt;span class="kt"&gt;void&lt;/span&gt;
+&lt;span class="nf"&gt;int_dealloc&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;PyIntObject&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;v&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="c1"&gt;// 是整数类型, 将对象放入free_list单向链表头&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;PyInt_CheckExact&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;v&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="n"&gt;Py_TYPE&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;v&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;struct&lt;/span&gt; &lt;span class="n"&gt;_typeobject&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="n"&gt;free_list&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="n"&gt;free_list&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;v&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+    &lt;span class="k"&gt;else&lt;/span&gt;
+        &lt;span class="n"&gt;Py_TYPE&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;v&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;tp_free&lt;/span&gt;&lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="n"&gt;PyObject&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="n"&gt;v&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt; &lt;span class="c1"&gt;//不是整数类型, 对应类型析构&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;可以看到, 回收的时候, 把空间给放回到&lt;code&gt;free_list&lt;/code&gt;了, 后面接着用&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;block_list&lt;/code&gt;维护着所有&lt;code&gt;PyIntBlock&lt;/code&gt;列表, 查看源码注释可以看到&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;PyIntBlocks&lt;/span&gt; &lt;span class="n"&gt;are&lt;/span&gt; &lt;span class="n"&gt;never&lt;/span&gt; &lt;span class="n"&gt;returned&lt;/span&gt; &lt;span class="n"&gt;to&lt;/span&gt; &lt;span class="n"&gt;the&lt;/span&gt;
+ &lt;span class="n"&gt;system&lt;/span&gt; &lt;span class="n"&gt;before&lt;/span&gt; &lt;span class="n"&gt;shutdown&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;PyInt_Fini&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;即, &lt;code&gt;PyIntBlock&lt;/code&gt;申请的所有内存, 在Python结束之前, 都不会被释放&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="err"&gt;所以&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;使用&lt;/span&gt;&lt;span class="n"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;100000&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="err"&gt;运行后&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;虽然程序结束了&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;但是整数占用空间还在&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;
+
+&lt;span class="err"&gt;建议对大范围的序列生成使用&lt;/span&gt;&lt;span class="n"&gt;xrange&lt;/span&gt;
+
+&lt;span class="n"&gt;python3&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="err"&gt;不用担心这个问题&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;hr /&gt;
+&lt;p&gt;changelog&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="mi"&gt;2014&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;08&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mo"&gt;07&lt;/span&gt; &lt;span class="n"&gt;first&lt;/span&gt; &lt;span class="n"&gt;version&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Wed, 06 Aug 2014 00:00:00 +0800</pubDate><guid>tag:,2014-08-06:/posts/2014/08/06/python-source-int.html</guid><category>python</category></item><item><title>Python源码阅读-类型</title><link>//posts/2014/08/05/python-source-type.html</link><description>&lt;p&gt;这篇主要涉及Python对象的类型机制&lt;/p&gt;
 &lt;p&gt;有点绕, 一定要思维清晰的时候再看哦:)&lt;/p&gt;
 &lt;hr /&gt;
 &lt;p&gt;一个例子&lt;/p&gt;
