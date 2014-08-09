@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>wklken's blog</title><link>http://www.wklken.me/</link><description></description><atom:link href="http://www.wklken.me/tag/system/feed" rel="self"></atom:link><lastBuildDate>Mon, 09 Jun 2014 00:00:00 +0800</lastBuildDate><item><title>简单搜索系统组成总结</title><link>http://www.wklken.me/posts/2014/06/09/search-system.html</link><description>&lt;p&gt;最近在进行离职前交接工作了, 对之前做的一些东西也大概进行了下简单总结.&lt;/p&gt;
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>wklken's blog</title><link>http://www.wklken.me/</link><description></description><atom:link href="http://www.wklken.me/tag/system/feed" rel="self"></atom:link><lastBuildDate>Mon, 09 Jun 2014 00:00:00 +0800</lastBuildDate><item><title>简单搜索系统组成总结</title><link>http://www.wklken.me/posts/2014/06/09/search-system.html</link><description>&lt;html&gt;&lt;body&gt;&lt;p&gt;最近在进行离职前交接工作了, 对之前做的一些东西也大概进行了下简单总结.&lt;/p&gt;
 &lt;p&gt;今天整理了下, 搜索系统组成简要描述, 一些思想, 不涉及太多具体实现.&lt;/p&gt;
 &lt;p&gt;这套系统从开始设计到最终完成, 前前后后花了3个月的样子(计算所有时间投入), 也算是做得感觉比较完善的一套系统.&lt;/p&gt;
 &lt;p&gt;上线接近一年, 支持快玩游戏搜索业务(快玩盒子/快玩网站/移动端等), 系统每天百万级的搜索(峰值在250w左右, 应用层两台机器负载均衡, 单机核心层, 单机引擎), 很遗憾, 由于业务所限, 一直没有看到这套系统能支持的量上限, 即使在峰值, 核心层qps大概也才50左右, 预计搜索量到千万级应该没什么压力, 当然, 优化的余地还很多.&lt;/p&gt;
 &lt;p&gt;外面正在狂风骤雨, 开始吧&lt;/p&gt;
-&lt;hr /&gt;
+&lt;hr/&gt;
 &lt;h3&gt;目标&lt;/h3&gt;
 &lt;p&gt;当系统数据达到一定量时, 搜索就成为了除类目以外的第二大入口.&lt;/p&gt;
 &lt;ol&gt;
@@ -21,8 +21,6 @@
 &lt;span class="mf"&gt;3.2&lt;/span&gt; &lt;span class="err"&gt;查询缓存是否存在&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;存在直接返回缓存内容&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt; &lt;span class="err"&gt;此时&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;会记录搜索日志&lt;/span&gt;
 &lt;span class="mf"&gt;3.3&lt;/span&gt; &lt;span class="err"&gt;不存在缓存&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;调用解析输入&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;调用核心层接口&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
-
-
 &lt;/li&gt;
 &lt;li&gt;
 &lt;p&gt;核心层, 调用引擎接口, 获取搜索结果, 并整合信息, 返回应用层&lt;/p&gt;
@@ -31,7 +29,7 @@
 &lt;/ol&gt;
 &lt;h3&gt;系统结构图&lt;/h3&gt;
 &lt;p&gt;实现: java(solr)只需配置 + python(所有服务) + golang(suggestion)&lt;/p&gt;
-&lt;p&gt;&lt;img alt="search system" src="/imgs/system/search.png" /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img alt="search system" src="/imgs/system/search.png"/&gt;&lt;/p&gt;
 &lt;h3&gt;系统组成(简单描述)&lt;/h3&gt;
 &lt;blockquote&gt;
 &lt;p&gt;对外服务  &lt;/p&gt;
@@ -83,7 +81,7 @@
 &lt;/blockquote&gt;
 &lt;p&gt;对日志进行统计, 计算搜索pv/uv, 无结果率, 搜索关键词排行, 下拉提示点击率等等&lt;/p&gt;
 &lt;p&gt;用于关键性指标的统计, 方便针对性优化&lt;/p&gt;
-&lt;hr /&gt;
+&lt;hr/&gt;
 &lt;p&gt;接下去, 分块简要说明下&lt;/p&gt;
 &lt;h3&gt;搜索服务-数据层&lt;/h3&gt;
 &lt;p&gt;数据存储跟各自业务有关系, 信息录入渠道主要是运营录入或者抓取导入等, 存储使用&lt;code&gt;mysql/postgresql&lt;/code&gt;等数据库&lt;/p&gt;
@@ -107,8 +105,6 @@
 &lt;p&gt;主要是针对游戏名进行处理:(原词+拼音+拼音首字母)&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="err"&gt;植物大战僵尸&lt;/span&gt; &lt;span class="o"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="err"&gt;植物大战僵尸&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;zhiwudazhanjiangshi&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;zwdzjs&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
-
-
 &lt;p&gt;然后, 在内存中建立前缀树. 这里使用的是&lt;code&gt;double-arry-trie&lt;/code&gt;实现&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;double-array-trie&lt;/code&gt;文章: &lt;a href="http://en.wikipedia.org/wiki/Trie"&gt;What is Trie&lt;/a&gt; | &lt;a href="http://linux.thai.net/~thep/datrie/datrie.html"&gt;An Implementation of Double-Array Trie&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;用户输入query, 没发生一次变化, 发送请求到下拉提示服务, 首先会去命中缓存, 未命中, 进入trie树搜索前缀, 获取此前缀所有后缀, 即获取提示关键词集合, 排序获取权重最高的进行返回(是这个流程, 但实际上没那么简单, 要考虑性能).&lt;/p&gt;
@@ -132,7 +128,7 @@
 &lt;li&gt;报表数据: 不同平台不同渠道的每日pv/uv, 无结果率, 下拉提示点击率等&lt;/li&gt;
 &lt;li&gt;排行数据: 不同纬度下搜索排行, 用于反向作用于搜索引擎排序&lt;/li&gt;
 &lt;/ol&gt;
-&lt;hr /&gt;
+&lt;hr/&gt;
 &lt;h3&gt;一些坑&lt;/h3&gt;
 &lt;ol&gt;
 &lt;li&gt;系统使用的&lt;code&gt;memcached&lt;/code&gt;集群作为缓存, 遇到一些坑, 例如&lt;code&gt;key&lt;/code&gt;最大长度250,   &lt;code&gt;key&lt;/code&gt;不能包含空格和控制字符, 存储数据最大1M. 即, 默认对用户的输入不信任(看日志才知道有多少奇葩的搜索query). 切成redis或许会好一些.&lt;/li&gt;
@@ -140,7 +136,7 @@
 &lt;li&gt;需要对整体系统进行监控, 使用&lt;code&gt;sentry&lt;/code&gt;和&lt;code&gt;statsd&lt;/code&gt;, 可以实时监测到流量变化以及程序错误.&lt;/li&gt;
 &lt;li&gt;日志很重要, 要针对自己需要了解的指标以及需要统计分析的字段, 设计尽可能完整的日志记录.&lt;/li&gt;
 &lt;/ol&gt;
-&lt;hr /&gt;
+&lt;hr/&gt;
 &lt;h3&gt;一些感想&lt;/h3&gt;
 &lt;p&gt;需要确认整体目标, 然后建立关键性指标, 实现基础方案, 上线, 并持续地关注数据, 分析日志以及bad case, 然后进行优化, 观察指标变化. 记得系统最初的召回率84%, 后来一步步提升到了92%. 这是一个长期的, 不断优化的过程.&lt;/p&gt;
 &lt;p&gt;很多东西, 都需要自己一步步去摸索和尝试.&lt;/p&gt;
@@ -150,7 +146,7 @@
 &lt;/blockquote&gt;
 &lt;p&gt;系统总是跟随业务逐渐成长变化的, 很可惜, 业务夭折, 这个系统可能失去了在这里继续进化的可能. &lt;/p&gt;
 &lt;p&gt;希望提供一些可供大家借鉴的方法. That's all.&lt;/p&gt;
-&lt;hr /&gt;
+&lt;hr/&gt;
 &lt;p&gt;先这样吧&lt;/p&gt;
 &lt;p&gt;wklken&lt;/p&gt;
-&lt;p&gt;2014-06-09 于深圳&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Mon, 09 Jun 2014 00:00:00 +0800</pubDate><guid>tag:www.wklken.me,2014-06-09:posts/2014/06/09/search-system.html</guid><category>system</category></item></channel></rss>
+&lt;p&gt;2014-06-09 于深圳&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Mon, 09 Jun 2014 00:00:00 +0800</pubDate><guid>tag:www.wklken.me,2014-06-09:posts/2014/06/09/search-system.html</guid><category>system</category></item></channel></rss>

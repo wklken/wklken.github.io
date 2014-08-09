@@ -69,15 +69,13 @@
         <h1> [翻译]Python中yield的解释 </h1>
     </section>
     <section id="content">
-        <p>翻译</p>
+        <html><body><p>翻译</p>
 <p>来源于stackoverflow问答，原文链接 <a href="http://stackoverflow.com/questions/231767/the-python-yield-keyword-explained">Here</a></p>
 <p>SN上面看到的，顺手翻译下，第一次翻译，好多地方翻的不是很好 :)</p>
-<hr />
+<hr/>
 <p>问题:</p>
 <div class="codehilite"><pre><span class="n">Python</span><span class="err">中</span><span class="n">yield</span><span class="err">关键字的作用是什么？它做了什么？</span>
 </pre></div>
-
-
 <p>例如，我想理解以下代码</p>
 <div class="codehilite"><pre><span class="n">def</span> <span class="n">node</span><span class="p">.</span><span class="n">_get_child_candidates</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">distance</span><span class="p">,</span> <span class="n">min_dist</span><span class="p">,</span> <span class="n">max_dist</span><span class="p">)</span><span class="o">:</span>
     <span class="k">if</span> <span class="n">self</span><span class="p">.</span><span class="n">_leftchild</span> <span class="n">and</span> <span class="n">distance</span> <span class="o">-</span> <span class="n">max_dist</span> <span class="o">&lt;</span> <span class="n">self</span><span class="p">.</span><span class="n">_median</span><span class="o">:</span>
@@ -85,8 +83,6 @@
     <span class="k">if</span> <span class="n">self</span><span class="p">.</span><span class="n">_rightchild</span> <span class="n">and</span> <span class="n">distance</span> <span class="o">+</span> <span class="n">max_dist</span> <span class="o">&gt;=</span> <span class="n">self</span><span class="p">.</span><span class="n">_median</span><span class="o">:</span>
         <span class="n">yield</span> <span class="n">self</span><span class="p">.</span><span class="n">_rightchild</span>
 </pre></div>
-
-
 <p>下面是调用者</p>
 <div class="codehilite"><pre><span class="n">result</span><span class="p">,</span> <span class="n">candidates</span> <span class="o">=</span> <span class="n">list</span><span class="p">(),</span> <span class="p">[</span><span class="n">self</span><span class="p">]</span>
 <span class="k">while</span> <span class="n">candidates</span><span class="o">:</span>
@@ -97,11 +93,9 @@
     <span class="n">candidates</span><span class="p">.</span><span class="n">extend</span><span class="p">(</span><span class="n">node</span><span class="p">.</span><span class="n">_get_child_candidates</span><span class="p">(</span><span class="n">distance</span><span class="p">,</span> <span class="n">min_dist</span><span class="p">,</span> <span class="n">max_dist</span><span class="p">))</span>
 <span class="k">return</span> <span class="n">result</span>
 </pre></div>
-
-
 <p>在_get_child_candidates这个函数被调用时发生了什么？返回了一个列表？还是只返回了一个元素？然后又再次被调用？什么时候调用结束？</p>
 <p>这段代码的来源 Jochen Schulz (jrschulz), who made a great Python library for metric spaces. 完整源码链接: <a href="http://well-adjusted.de/~jrschulz/mspace/">here</a></p>
-<hr />
+<hr/>
 <p>要了解yield的作用，你必须先明白什么是生成器，在此之前，你需要了解什么是可迭代对象（可迭代序列）</p>
 <h2>迭代</h2>
 <p>你可以创建一个列表，然后逐一遍历，这就是迭代</p>
@@ -112,8 +106,6 @@
 <span class="mi">2</span>
 <span class="mi">3</span>
 </pre></div>
-
-
 <p>mylist是可迭代的对象，当你使用列表解析时，你创建一个列表,即一个可迭代对象</p>
 <div class="codehilite"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">mylist</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">*</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="n">in</span> <span class="n">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)]</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="k">for</span> <span class="n">i</span> <span class="n">in</span> <span class="n">mylist</span><span class="o">:</span>
@@ -122,8 +114,6 @@
 <span class="mi">1</span>
 <span class="mi">4</span>
 </pre></div>
-
-
 <p>任何你可用 "for... in..." 处理的都是可迭代对象：列表，字符串，文件....
 这些迭代对象非常便捷，因为你可以尽可能多地获取你想要的东西</p>
 <p>但，当你有大量数据并把所有值放到内存时，这种处理方式可能不总是你想要的
@@ -138,8 +128,6 @@
 <span class="mi">1</span>
 <span class="mi">4</span>
 </pre></div>
-
-
 <p>这和使用列表解析地唯一区别在于使用()替代了原来的[]</p>
 <p>注意，你不能执行for i in mygenerator第二次，因为每个生成器只能被使用一次: 计算0，并不保留结果和状态，接着计算1，然后计算4，逐一生成</p>
 <h2>yield</h2>
@@ -158,8 +146,6 @@
 <span class="mi">1</span>
 <span class="mi">4</span>
 </pre></div>
-
-
 <p>这个例子并没有什么实际作用,仅说明当你知道你的函数将产生大量仅被读取一次的数据时,使用生成器将是十分有效的做法</p>
 <p>要掌握yield,你必须明白 - 当你调用这个函数，函数中你书写的代码并没有执行。这个函数仅仅返回一个生成器对象</p>
 <p>这有些狡猾 :-)</p>
@@ -184,8 +170,6 @@
 
 <span class="cp"># 如果函数运行到这里，生成器空，该节点不存在左右节点</span>
 </pre></div>
-
-
 <p>调用者:</p>
 <div class="codehilite"><pre><span class="cp"># 创建一个空列表，一个包含当前候选对象引用的列表</span>
 <span class="n">result</span><span class="p">,</span> <span class="n">candidates</span> <span class="o">=</span> <span class="n">list</span><span class="p">(),</span> <span class="p">[</span><span class="n">self</span><span class="p">]</span>
@@ -209,8 +193,6 @@
 
 <span class="k">return</span> <span class="n">result</span>
 </pre></div>
-
-
 <p>这段代码包含几个灵活的部分:</p>
 <p>1.这个循环遍读取历候选列表,但过程中，候选列表不断扩展:-) </p>
 <p>这是一种遍历嵌套数据的简明方法，虽然有些危险，你或许会陷入死循环中</p>
@@ -223,8 +205,6 @@
 <span class="o">&gt;&gt;&gt;</span> <span class="n">print</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
 <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>
 </pre></div>
-
-
 <p>但是，在代码中，这个函数接受到一个生成器</p>
 <p>这样的做法好处是:</p>
 <p>1.你不需要重复读这些值</p>
@@ -234,28 +214,28 @@
 <p>这就是所谓的“鸭子类型”(duck typing), 这也是Python如此酷的原因之一, 但这是另一个问题了，对于这个问题......</p>
 <p>你可以在这里完成阅读，或者读一点点生成器的进阶用法:</p>
 <h4>控制一个生成器的消耗</h4>
-<div class="codehilite"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">class</span> <span class="n">Bank</span><span class="p">()</span><span class="o">:</span> <span class="err">#</span> <span class="n">let</span><span class="err">&#39;</span><span class="n">s</span> <span class="n">create</span> <span class="n">a</span> <span class="n">bank</span><span class="p">,</span> <span class="n">building</span> <span class="n">ATMs</span>
+<div class="codehilite"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">class</span> <span class="n">Bank</span><span class="p">()</span><span class="o">:</span> <span class="err">#</span> <span class="n">let</span><span class="err">'</span><span class="n">s</span> <span class="n">create</span> <span class="n">a</span> <span class="n">bank</span><span class="p">,</span> <span class="n">building</span> <span class="n">ATMs</span>
 <span class="p">...</span>    <span class="n">crisis</span> <span class="o">=</span> <span class="n">False</span>
 <span class="p">...</span>    <span class="n">def</span> <span class="n">create_atm</span><span class="p">(</span><span class="n">self</span><span class="p">)</span><span class="o">:</span>
 <span class="p">...</span>        <span class="k">while</span> <span class="n">not</span> <span class="n">self</span><span class="p">.</span><span class="n">crisis</span><span class="o">:</span>
-<span class="p">...</span>            <span class="n">yield</span> <span class="s">&quot;$100&quot;</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">hsbc</span> <span class="o">=</span> <span class="n">Bank</span><span class="p">()</span> <span class="err">#</span> <span class="n">when</span> <span class="n">everything</span><span class="err">&#39;</span><span class="n">s</span> <span class="n">ok</span> <span class="n">the</span> <span class="n">ATM</span> <span class="n">gives</span> <span class="n">you</span> <span class="n">as</span> <span class="n">much</span> <span class="n">as</span> <span class="n">you</span> <span class="n">want</span>
+<span class="p">...</span>            <span class="n">yield</span> <span class="s">"$100"</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">hsbc</span> <span class="o">=</span> <span class="n">Bank</span><span class="p">()</span> <span class="err">#</span> <span class="n">when</span> <span class="n">everything</span><span class="err">'</span><span class="n">s</span> <span class="n">ok</span> <span class="n">the</span> <span class="n">ATM</span> <span class="n">gives</span> <span class="n">you</span> <span class="n">as</span> <span class="n">much</span> <span class="n">as</span> <span class="n">you</span> <span class="n">want</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">corner_street_atm</span> <span class="o">=</span> <span class="n">hsbc</span><span class="p">.</span><span class="n">create_atm</span><span class="p">()</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">print</span><span class="p">(</span><span class="n">corner_street_atm</span><span class="p">.</span><span class="n">next</span><span class="p">())</span>
 <span class="err">$</span><span class="mi">100</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">print</span><span class="p">(</span><span class="n">corner_street_atm</span><span class="p">.</span><span class="n">next</span><span class="p">())</span>
 <span class="err">$</span><span class="mi">100</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">print</span><span class="p">([</span><span class="n">corner_street_atm</span><span class="p">.</span><span class="n">next</span><span class="p">()</span> <span class="k">for</span> <span class="n">cash</span> <span class="n">in</span> <span class="n">range</span><span class="p">(</span><span class="mi">5</span><span class="p">)])</span>
-<span class="p">[</span><span class="err">&#39;$</span><span class="mi">100</span><span class="err">&#39;</span><span class="p">,</span> <span class="err">&#39;$</span><span class="mi">100</span><span class="err">&#39;</span><span class="p">,</span> <span class="err">&#39;$</span><span class="mi">100</span><span class="err">&#39;</span><span class="p">,</span> <span class="err">&#39;$</span><span class="mi">100</span><span class="err">&#39;</span><span class="p">,</span> <span class="err">&#39;$</span><span class="mi">100</span><span class="err">&#39;</span><span class="p">]</span>
+<span class="p">[</span><span class="err">'$</span><span class="mi">100</span><span class="err">'</span><span class="p">,</span> <span class="err">'$</span><span class="mi">100</span><span class="err">'</span><span class="p">,</span> <span class="err">'$</span><span class="mi">100</span><span class="err">'</span><span class="p">,</span> <span class="err">'$</span><span class="mi">100</span><span class="err">'</span><span class="p">,</span> <span class="err">'$</span><span class="mi">100</span><span class="err">'</span><span class="p">]</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">hsbc</span><span class="p">.</span><span class="n">crisis</span> <span class="o">=</span> <span class="n">True</span> <span class="err">#</span> <span class="n">crisis</span> <span class="n">is</span> <span class="n">coming</span><span class="p">,</span> <span class="n">no</span> <span class="n">more</span> <span class="n">money</span><span class="o">!</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">print</span><span class="p">(</span><span class="n">corner_street_atm</span><span class="p">.</span><span class="n">next</span><span class="p">())</span>
-<span class="o">&lt;</span><span class="n">type</span> <span class="err">&#39;</span><span class="n">exceptions</span><span class="p">.</span><span class="n">StopIteration</span><span class="err">&#39;</span><span class="o">&gt;</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">wall_street_atm</span> <span class="o">=</span> <span class="n">hsbc</span><span class="p">.</span><span class="n">create_atm</span><span class="p">()</span> <span class="err">#</span> <span class="n">it</span><span class="err">&#39;</span><span class="n">s</span> <span class="n">even</span> <span class="nb">true</span> <span class="k">for</span> <span class="n">new</span> <span class="n">ATMs</span>
+<span class="o">&lt;</span><span class="n">type</span> <span class="err">'</span><span class="n">exceptions</span><span class="p">.</span><span class="n">StopIteration</span><span class="err">'</span><span class="o">&gt;</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">wall_street_atm</span> <span class="o">=</span> <span class="n">hsbc</span><span class="p">.</span><span class="n">create_atm</span><span class="p">()</span> <span class="err">#</span> <span class="n">it</span><span class="err">'</span><span class="n">s</span> <span class="n">even</span> <span class="nb">true</span> <span class="k">for</span> <span class="n">new</span> <span class="n">ATMs</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">print</span><span class="p">(</span><span class="n">wall_street_atm</span><span class="p">.</span><span class="n">next</span><span class="p">())</span>
-<span class="o">&lt;</span><span class="n">type</span> <span class="err">&#39;</span><span class="n">exceptions</span><span class="p">.</span><span class="n">StopIteration</span><span class="err">&#39;</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">type</span> <span class="err">'</span><span class="n">exceptions</span><span class="p">.</span><span class="n">StopIteration</span><span class="err">'</span><span class="o">&gt;</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">hsbc</span><span class="p">.</span><span class="n">crisis</span> <span class="o">=</span> <span class="n">False</span> <span class="err">#</span> <span class="n">trouble</span> <span class="n">is</span><span class="p">,</span> <span class="n">even</span> <span class="n">post</span><span class="o">-</span><span class="n">crisis</span> <span class="n">the</span> <span class="n">ATM</span> <span class="n">remains</span> <span class="n">empty</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">print</span><span class="p">(</span><span class="n">corner_street_atm</span><span class="p">.</span><span class="n">next</span><span class="p">())</span>
-<span class="o">&lt;</span><span class="n">type</span> <span class="err">&#39;</span><span class="n">exceptions</span><span class="p">.</span><span class="n">StopIteration</span><span class="err">&#39;</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">type</span> <span class="err">'</span><span class="n">exceptions</span><span class="p">.</span><span class="n">StopIteration</span><span class="err">'</span><span class="o">&gt;</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">brand_new_atm</span> <span class="o">=</span> <span class="n">hsbc</span><span class="p">.</span><span class="n">create_atm</span><span class="p">()</span> <span class="err">#</span> <span class="n">build</span> <span class="n">a</span> <span class="n">new</span> <span class="n">one</span> <span class="n">to</span> <span class="n">get</span> <span class="n">back</span> <span class="n">in</span> <span class="n">business</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="k">for</span> <span class="n">cash</span> <span class="n">in</span> <span class="n">brand_new_atm</span><span class="o">:</span>
 <span class="p">...</span>    <span class="n">print</span> <span class="n">cash</span>
@@ -270,8 +250,6 @@
 <span class="err">$</span><span class="mi">100</span>
 <span class="p">...</span>
 </pre></div>
-
-
 <p>这在很多场景都非常有用，例如控制资源的获取</p>
 <h2>Itertools</h2>
 <p>一个很好的工具</p>
@@ -310,13 +288,11 @@
 <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
 <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]</span>
 </pre></div>
-
-
 <h2>了解迭代器的内部机制</h2>
 <p>迭代过程包含可迭代对象(实现__iter__()方法) 和迭代器(实现__next__()方法)</p>
 <p>你可以获取一个迭代器的任何对象都是可迭代对象，迭代器可以让你迭代遍历一个可迭代对象(Iterators are objects that let you iterate on iterables.) [好拗口:]</p>
 <p>更多关于这个问题的 <a href="http://effbot.org/zone/python-for-statement.htm">how does the for loop work</a></p>
-<p>如果你喜欢这个回答，你也许会喜欢我关于 <a href="http://stackoverflow.com/questions/739654/how-can-i-make-a-chain-of-function-decorators-in-python#1594484">decorators</a> 和 <a href="http://stackoverflow.com/questions/100003/what-is-a-metaclass-in-python/6581949#6581949">metaclasses</a> 的解释</p>
+<p>如果你喜欢这个回答，你也许会喜欢我关于 <a href="http://stackoverflow.com/questions/739654/how-can-i-make-a-chain-of-function-decorators-in-python#1594484">decorators</a> 和 <a href="http://stackoverflow.com/questions/100003/what-is-a-metaclass-in-python/6581949#6581949">metaclasses</a> 的解释</p></body></html>
     </section>
 
     <section id="copyright">

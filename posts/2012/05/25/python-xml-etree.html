@@ -69,7 +69,7 @@
         <h1> Python修改xml任意内容[xml.etree.ElementTree] </h1>
     </section>
     <section id="content">
-        <p>使用库 <a href="http://docs.python.org/library/xml.etree.elementtree.html">xml.etree.ElementTree</a></p>
+        <html><body><p>使用库 <a href="http://docs.python.org/library/xml.etree.elementtree.html">xml.etree.ElementTree</a></p>
 <p>代码托管位置 <a href="https://github.com/wklken/pytools">github-pytools</a></p>
 <h3>需求</h3>
 <p>在实际应用中，需要对xml配置文件进行实时修改，</p>
@@ -77,32 +77,30 @@
 <p>2.增加，删除，修改某个节点下的某些属性</p>
 <p>3.增加，删除，修改某些节点的文本</p>
 <h3>使用xml文档</h3>
-<div class="codehilite"><pre><span class="cp">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span>
+<div class="codehilite"><pre><span class="cp">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span>
 <span class="nt">&lt;framework&gt;</span>
     <span class="nt">&lt;processers&gt;</span>
-        <span class="nt">&lt;processer</span> <span class="na">name=</span><span class="s">&quot;AProcesser&quot;</span> <span class="na">file=</span><span class="s">&quot;lib64/A.so&quot;</span>
-            <span class="na">path=</span><span class="s">&quot;/tmp&quot;</span><span class="nt">&gt;</span>
+        <span class="nt">&lt;processer</span> <span class="na">name=</span><span class="s">"AProcesser"</span> <span class="na">file=</span><span class="s">"lib64/A.so"</span>
+            <span class="na">path=</span><span class="s">"/tmp"</span><span class="nt">&gt;</span>
         <span class="nt">&lt;/processer&gt;</span>
-        <span class="nt">&lt;processer</span> <span class="na">name=</span><span class="s">&quot;BProcesser&quot;</span> <span class="na">file=</span><span class="s">&quot;lib64/B.so&quot;</span> <span class="na">value=</span><span class="s">&quot;fordelete&quot;</span><span class="nt">&gt;</span>
+        <span class="nt">&lt;processer</span> <span class="na">name=</span><span class="s">"BProcesser"</span> <span class="na">file=</span><span class="s">"lib64/B.so"</span> <span class="na">value=</span><span class="s">"fordelete"</span><span class="nt">&gt;</span>
         <span class="nt">&lt;/processer&gt;</span>
-        <span class="nt">&lt;processer</span> <span class="na">name=</span><span class="s">&quot;BProcesser&quot;</span> <span class="na">file=</span><span class="s">&quot;lib64/B.so2222222&quot;</span><span class="nt">/&gt;</span>
+        <span class="nt">&lt;processer</span> <span class="na">name=</span><span class="s">"BProcesser"</span> <span class="na">file=</span><span class="s">"lib64/B.so2222222"</span><span class="nt">/&gt;</span>
 
         <span class="nt">&lt;services&gt;</span>
-            <span class="nt">&lt;service</span> <span class="na">name=</span><span class="s">&quot;search&quot;</span> <span class="na">prefix=</span><span class="s">&quot;/bin/search?&quot;</span>
-                <span class="na">output_formatter=</span><span class="s">&quot;OutPutFormatter:service_inc&quot;</span><span class="nt">&gt;</span>
+            <span class="nt">&lt;service</span> <span class="na">name=</span><span class="s">"search"</span> <span class="na">prefix=</span><span class="s">"/bin/search?"</span>
+                <span class="na">output_formatter=</span><span class="s">"OutPutFormatter:service_inc"</span><span class="nt">&gt;</span>
 
-                <span class="nt">&lt;chain</span> <span class="na">sequency=</span><span class="s">&quot;chain1&quot;</span><span class="nt">/&gt;</span>
-                <span class="nt">&lt;chain</span> <span class="na">sequency=</span><span class="s">&quot;chain2&quot;</span><span class="nt">&gt;&lt;/chain&gt;</span>
+                <span class="nt">&lt;chain</span> <span class="na">sequency=</span><span class="s">"chain1"</span><span class="nt">/&gt;</span>
+                <span class="nt">&lt;chain</span> <span class="na">sequency=</span><span class="s">"chain2"</span><span class="nt">&gt;&lt;/chain&gt;</span>
             <span class="nt">&lt;/service&gt;</span>
-            <span class="nt">&lt;service</span> <span class="na">name=</span><span class="s">&quot;update&quot;</span> <span class="na">prefix=</span><span class="s">&quot;/bin/update?&quot;</span><span class="nt">&gt;</span>
-                <span class="nt">&lt;chain</span> <span class="na">sequency=</span><span class="s">&quot;chain3&quot;</span> <span class="na">value=</span><span class="s">&quot;fordelete&quot;</span><span class="nt">/&gt;</span>
+            <span class="nt">&lt;service</span> <span class="na">name=</span><span class="s">"update"</span> <span class="na">prefix=</span><span class="s">"/bin/update?"</span><span class="nt">&gt;</span>
+                <span class="nt">&lt;chain</span> <span class="na">sequency=</span><span class="s">"chain3"</span> <span class="na">value=</span><span class="s">"fordelete"</span><span class="nt">/&gt;</span>
             <span class="nt">&lt;/service&gt;</span>
         <span class="nt">&lt;/services&gt;</span>
     <span class="nt">&lt;/processers&gt;</span>
 <span class="nt">&lt;/framework&gt;</span>
 </pre></div>
-
-
 <h3>实现思想</h3>
 <p>使用ElementTree，先将文件读入，解析成树，之后，根据路径，可以定位到树的每个节点，再对节点进行修改，最后直接将其输出</p>
 <h3>实现代码</h3>
@@ -115,23 +113,23 @@
 <span class="kn">from</span> <span class="nn">xml.etree.ElementTree</span> <span class="kn">import</span> <span class="n">ElementTree</span><span class="p">,</span><span class="n">Element</span>
 
 <span class="k">def</span> <span class="nf">read_xml</span><span class="p">(</span><span class="n">in_path</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;读取并解析xml文件</span>
+    <span class="sd">'''读取并解析xml文件</span>
 <span class="sd">       in_path: xml路径</span>
-<span class="sd">       return: ElementTree&#39;&#39;&#39;</span>
+<span class="sd">       return: ElementTree'''</span>
     <span class="n">tree</span> <span class="o">=</span> <span class="n">ElementTree</span><span class="p">()</span>
     <span class="n">tree</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">in_path</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">tree</span>
 
 <span class="k">def</span> <span class="nf">write_xml</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="n">out_path</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;将xml文件写出</span>
+    <span class="sd">'''将xml文件写出</span>
 <span class="sd">       tree: xml树</span>
-<span class="sd">       out_path: 写出路径&#39;&#39;&#39;</span>
-    <span class="n">tree</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">out_path</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s">&quot;utf-8&quot;</span><span class="p">,</span><span class="n">xml_declaration</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="sd">       out_path: 写出路径'''</span>
+    <span class="n">tree</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">out_path</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s">"utf-8"</span><span class="p">,</span><span class="n">xml_declaration</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 
 <span class="k">def</span> <span class="nf">if_match</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">kv_map</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;判断某个节点是否包含所有传入参数属性</span>
+    <span class="sd">'''判断某个节点是否包含所有传入参数属性</span>
 <span class="sd">       node: 节点</span>
-<span class="sd">       kv_map: 属性及属性值组成的map&#39;&#39;&#39;</span>
+<span class="sd">       kv_map: 属性及属性值组成的map'''</span>
     <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">kv_map</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="o">!=</span> <span class="n">kv_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">False</span>
@@ -139,15 +137,15 @@
 
 <span class="c">#---------------search -----</span>
 <span class="k">def</span> <span class="nf">find_nodes</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;查找某个路径匹配的所有节点</span>
+    <span class="sd">'''查找某个路径匹配的所有节点</span>
 <span class="sd">       tree: xml树</span>
-<span class="sd">       path: 节点路径&#39;&#39;&#39;</span>
+<span class="sd">       path: 节点路径'''</span>
     <span class="k">return</span> <span class="n">tree</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
 
 <span class="k">def</span> <span class="nf">get_node_by_keyvalue</span><span class="p">(</span><span class="n">nodelist</span><span class="p">,</span> <span class="n">kv_map</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;根据属性及属性值定位符合的节点，返回节点</span>
+    <span class="sd">'''根据属性及属性值定位符合的节点，返回节点</span>
 <span class="sd">       nodelist: 节点列表</span>
-<span class="sd">       kv_map: 匹配属性及属性值map&#39;&#39;&#39;</span>
+<span class="sd">       kv_map: 匹配属性及属性值map'''</span>
     <span class="n">result_nodes</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">nodelist</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">if_match</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">kv_map</span><span class="p">):</span>
@@ -156,9 +154,9 @@
 
 <span class="c">#---------------change -----</span>
 <span class="k">def</span> <span class="nf">change_node_properties</span><span class="p">(</span><span class="n">nodelist</span><span class="p">,</span> <span class="n">kv_map</span><span class="p">,</span> <span class="n">is_delete</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;修改/增加 /删除 节点的属性及属性值</span>
+    <span class="sd">'''修改/增加 /删除 节点的属性及属性值</span>
 <span class="sd">       nodelist: 节点列表</span>
-<span class="sd">       kv_map:属性及属性值map&#39;&#39;&#39;</span>
+<span class="sd">       kv_map:属性及属性值map'''</span>
     <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">nodelist</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">kv_map</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">is_delete</span><span class="p">:</span>
@@ -168,112 +166,108 @@
                 <span class="n">node</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">kv_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
 
 <span class="k">def</span> <span class="nf">change_node_text</span><span class="p">(</span><span class="n">nodelist</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">is_add</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">is_delete</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;改变/增加/删除一个节点的文本</span>
+    <span class="sd">'''改变/增加/删除一个节点的文本</span>
 <span class="sd">       nodelist:节点列表</span>
-<span class="sd">       text : 更新后的文本&#39;&#39;&#39;</span>
+<span class="sd">       text : 更新后的文本'''</span>
     <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">nodelist</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">is_add</span><span class="p">:</span>
             <span class="n">node</span><span class="o">.</span><span class="n">text</span> <span class="o">+=</span> <span class="n">text</span>
         <span class="k">elif</span> <span class="n">is_delete</span><span class="p">:</span>
-            <span class="n">node</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+            <span class="n">node</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="s">""</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">node</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">text</span>
 
 <span class="k">def</span> <span class="nf">create_node</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="n">property_map</span><span class="p">,</span> <span class="n">content</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;新造一个节点</span>
+    <span class="sd">'''新造一个节点</span>
 <span class="sd">       tag:节点标签</span>
 <span class="sd">       property_map:属性及属性值map</span>
 <span class="sd">       content: 节点闭合标签里的文本内容</span>
-<span class="sd">       return 新节点&#39;&#39;&#39;</span>
+<span class="sd">       return 新节点'''</span>
     <span class="n">element</span> <span class="o">=</span> <span class="n">Element</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="n">property_map</span><span class="p">)</span>
     <span class="n">element</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">content</span>
     <span class="k">return</span> <span class="n">element</span>
 
 <span class="k">def</span> <span class="nf">add_child_node</span><span class="p">(</span><span class="n">nodelist</span><span class="p">,</span> <span class="n">element</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;给一个节点添加子节点</span>
+    <span class="sd">'''给一个节点添加子节点</span>
 <span class="sd">       nodelist: 节点列表</span>
-<span class="sd">       element: 子节点&#39;&#39;&#39;</span>
+<span class="sd">       element: 子节点'''</span>
     <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">nodelist</span><span class="p">:</span>
         <span class="n">node</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
 
 <span class="k">def</span> <span class="nf">del_node_by_tagkeyvalue</span><span class="p">(</span><span class="n">nodelist</span><span class="p">,</span> <span class="n">tag</span><span class="p">,</span> <span class="n">kv_map</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;同过属性及属性值定位一个节点，并删除之</span>
+    <span class="sd">'''同过属性及属性值定位一个节点，并删除之</span>
 <span class="sd">       nodelist: 父节点列表</span>
 <span class="sd">       tag:子节点标签</span>
-<span class="sd">       kv_map: 属性及属性值列表&#39;&#39;&#39;</span>
+<span class="sd">       kv_map: 属性及属性值列表'''</span>
     <span class="k">for</span> <span class="n">parent_node</span> <span class="ow">in</span> <span class="n">nodelist</span><span class="p">:</span>
         <span class="n">children</span> <span class="o">=</span> <span class="n">parent_node</span><span class="o">.</span><span class="n">getchildren</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">children</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">child</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="n">tag</span> <span class="ow">and</span> <span class="n">if_match</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="n">kv_map</span><span class="p">):</span>
                 <span class="n">parent_node</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">child</span><span class="p">)</span>
 
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">"__main__"</span><span class="p">:</span>
     <span class="c">#1. 读取xml文件</span>
-    <span class="n">tree</span> <span class="o">=</span> <span class="n">read_xml</span><span class="p">(</span><span class="s">&quot;./test.xml&quot;</span><span class="p">)</span>
+    <span class="n">tree</span> <span class="o">=</span> <span class="n">read_xml</span><span class="p">(</span><span class="s">"./test.xml"</span><span class="p">)</span>
 
     <span class="c">#2. 属性修改</span>
       <span class="c">#A. 找到父节点</span>
-    <span class="n">nodes</span> <span class="o">=</span> <span class="n">find_nodes</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="s">&quot;processers/processer&quot;</span><span class="p">)</span>
+    <span class="n">nodes</span> <span class="o">=</span> <span class="n">find_nodes</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="s">"processers/processer"</span><span class="p">)</span>
       <span class="c">#B. 通过属性准确定位子节点</span>
-    <span class="n">result_nodes</span> <span class="o">=</span> <span class="n">get_node_by_keyvalue</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="p">{</span><span class="s">&quot;name&quot;</span><span class="p">:</span><span class="s">&quot;BProcesser&quot;</span><span class="p">})</span>
+    <span class="n">result_nodes</span> <span class="o">=</span> <span class="n">get_node_by_keyvalue</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="p">{</span><span class="s">"name"</span><span class="p">:</span><span class="s">"BProcesser"</span><span class="p">})</span>
       <span class="c">#C. 修改节点属性</span>
-    <span class="n">change_node_properties</span><span class="p">(</span><span class="n">result_nodes</span><span class="p">,</span> <span class="p">{</span><span class="s">&quot;age&quot;</span><span class="p">:</span> <span class="s">&quot;1&quot;</span><span class="p">})</span>
+    <span class="n">change_node_properties</span><span class="p">(</span><span class="n">result_nodes</span><span class="p">,</span> <span class="p">{</span><span class="s">"age"</span><span class="p">:</span> <span class="s">"1"</span><span class="p">})</span>
       <span class="c">#D. 删除节点属性</span>
-    <span class="n">change_node_properties</span><span class="p">(</span><span class="n">result_nodes</span><span class="p">,</span> <span class="p">{</span><span class="s">&quot;value&quot;</span><span class="p">:</span><span class="s">&quot;&quot;</span><span class="p">},</span> <span class="bp">True</span><span class="p">)</span>
+    <span class="n">change_node_properties</span><span class="p">(</span><span class="n">result_nodes</span><span class="p">,</span> <span class="p">{</span><span class="s">"value"</span><span class="p">:</span><span class="s">""</span><span class="p">},</span> <span class="bp">True</span><span class="p">)</span>
 
     <span class="c">#3. 节点修改</span>
       <span class="c">#A.新建节点</span>
-    <span class="n">a</span> <span class="o">=</span> <span class="n">create_node</span><span class="p">(</span><span class="s">&quot;person&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s">&quot;age&quot;</span><span class="p">:</span><span class="s">&quot;15&quot;</span><span class="p">,</span><span class="s">&quot;money&quot;</span><span class="p">:</span><span class="s">&quot;200000&quot;</span><span class="p">},</span> <span class="s">&quot;this is the firest content&quot;</span><span class="p">)</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">create_node</span><span class="p">(</span><span class="s">"person"</span><span class="p">,</span> <span class="p">{</span><span class="s">"age"</span><span class="p">:</span><span class="s">"15"</span><span class="p">,</span><span class="s">"money"</span><span class="p">:</span><span class="s">"200000"</span><span class="p">},</span> <span class="s">"this is the firest content"</span><span class="p">)</span>
       <span class="c">#B.插入到父节点之下</span>
     <span class="n">add_child_node</span><span class="p">(</span><span class="n">result_nodes</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span>
 
     <span class="c">#4. 删除节点</span>
        <span class="c">#定位父节点</span>
-    <span class="n">del_parent_nodes</span> <span class="o">=</span> <span class="n">find_nodes</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="s">&quot;processers/services/service&quot;</span><span class="p">)</span>
+    <span class="n">del_parent_nodes</span> <span class="o">=</span> <span class="n">find_nodes</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="s">"processers/services/service"</span><span class="p">)</span>
        <span class="c">#准确定位子节点并删除之</span>
-    <span class="n">target_del_node</span> <span class="o">=</span> <span class="n">del_node_by_tagkeyvalue</span><span class="p">(</span><span class="n">del_parent_nodes</span><span class="p">,</span> <span class="s">&quot;chain&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s">&quot;sequency&quot;</span> <span class="p">:</span> <span class="s">&quot;chain1&quot;</span><span class="p">})</span>
+    <span class="n">target_del_node</span> <span class="o">=</span> <span class="n">del_node_by_tagkeyvalue</span><span class="p">(</span><span class="n">del_parent_nodes</span><span class="p">,</span> <span class="s">"chain"</span><span class="p">,</span> <span class="p">{</span><span class="s">"sequency"</span> <span class="p">:</span> <span class="s">"chain1"</span><span class="p">})</span>
 
     <span class="c">#5. 修改节点文本</span>
        <span class="c">#定位节点</span>
-    <span class="n">text_nodes</span> <span class="o">=</span> <span class="n">get_node_by_keyvalue</span><span class="p">(</span><span class="n">find_nodes</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="s">&quot;processers/services/service/chain&quot;</span><span class="p">),</span> <span class="p">{</span><span class="s">&quot;sequency&quot;</span><span class="p">:</span><span class="s">&quot;chain3&quot;</span><span class="p">})</span>
-    <span class="n">change_node_text</span><span class="p">(</span><span class="n">text_nodes</span><span class="p">,</span> <span class="s">&quot;new text&quot;</span><span class="p">)</span>
+    <span class="n">text_nodes</span> <span class="o">=</span> <span class="n">get_node_by_keyvalue</span><span class="p">(</span><span class="n">find_nodes</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="s">"processers/services/service/chain"</span><span class="p">),</span> <span class="p">{</span><span class="s">"sequency"</span><span class="p">:</span><span class="s">"chain3"</span><span class="p">})</span>
+    <span class="n">change_node_text</span><span class="p">(</span><span class="n">text_nodes</span><span class="p">,</span> <span class="s">"new text"</span><span class="p">)</span>
 
     <span class="c">#6. 输出到结果文件</span>
-    <span class="n">write_xml</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="s">&quot;./out.xml&quot;</span><span class="p">)</span>
+    <span class="n">write_xml</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="s">"./out.xml"</span><span class="p">)</span>
 </pre></div>
-
-
 <h3>修改后的结果</h3>
-<div class="codehilite"><pre><span class="cp">&lt;?xml version=&#39;1.0&#39; encoding=&#39;utf-8&#39;?&gt;</span>
+<div class="codehilite"><pre><span class="cp">&lt;?xml version='1.0' encoding='utf-8'?&gt;</span>
 <span class="nt">&lt;framework&gt;</span>
     <span class="nt">&lt;processers&gt;</span>
-        <span class="nt">&lt;processer</span> <span class="na">file=</span><span class="s">&quot;lib64/A.so&quot;</span> <span class="na">name=</span><span class="s">&quot;AProcesser&quot;</span> <span class="na">path=</span><span class="s">&quot;/tmp&quot;</span><span class="nt">&gt;</span>
+        <span class="nt">&lt;processer</span> <span class="na">file=</span><span class="s">"lib64/A.so"</span> <span class="na">name=</span><span class="s">"AProcesser"</span> <span class="na">path=</span><span class="s">"/tmp"</span><span class="nt">&gt;</span>
         <span class="nt">&lt;/processer&gt;</span>
-        <span class="nt">&lt;processer</span> <span class="na">age=</span><span class="s">&quot;1&quot;</span> <span class="na">file=</span><span class="s">&quot;lib64/B.so&quot;</span> <span class="na">name=</span><span class="s">&quot;BProcesser&quot;</span><span class="nt">&gt;</span>
-            <span class="nt">&lt;person</span> <span class="na">age=</span><span class="s">&quot;15&quot;</span> <span class="na">money=</span><span class="s">&quot;200000&quot;</span><span class="nt">&gt;</span>this is the firest content<span class="nt">&lt;/person&gt;</span>
+        <span class="nt">&lt;processer</span> <span class="na">age=</span><span class="s">"1"</span> <span class="na">file=</span><span class="s">"lib64/B.so"</span> <span class="na">name=</span><span class="s">"BProcesser"</span><span class="nt">&gt;</span>
+            <span class="nt">&lt;person</span> <span class="na">age=</span><span class="s">"15"</span> <span class="na">money=</span><span class="s">"200000"</span><span class="nt">&gt;</span>this is the firest content<span class="nt">&lt;/person&gt;</span>
         <span class="nt">&lt;/processer&gt;</span>
-        <span class="nt">&lt;processer</span> <span class="na">age=</span><span class="s">&quot;1&quot;</span> <span class="na">file=</span><span class="s">&quot;lib64/B.so2222222&quot;</span> <span class="na">name=</span><span class="s">&quot;BProcesser&quot;</span><span class="nt">&gt;</span>
-            <span class="nt">&lt;person</span> <span class="na">age=</span><span class="s">&quot;15&quot;</span> <span class="na">money=</span><span class="s">&quot;200000&quot;</span><span class="nt">&gt;</span>this is the firest content<span class="nt">&lt;/person&gt;</span>
+        <span class="nt">&lt;processer</span> <span class="na">age=</span><span class="s">"1"</span> <span class="na">file=</span><span class="s">"lib64/B.so2222222"</span> <span class="na">name=</span><span class="s">"BProcesser"</span><span class="nt">&gt;</span>
+            <span class="nt">&lt;person</span> <span class="na">age=</span><span class="s">"15"</span> <span class="na">money=</span><span class="s">"200000"</span><span class="nt">&gt;</span>this is the firest content<span class="nt">&lt;/person&gt;</span>
         <span class="nt">&lt;/processer&gt;</span>
 
         <span class="nt">&lt;services&gt;</span>
-            <span class="nt">&lt;service</span> <span class="na">name=</span><span class="s">&quot;search&quot;</span> <span class="na">output_formatter=</span><span class="s">&quot;OutPutFormatter:service_inc&quot;</span>
-                <span class="na">prefix=</span><span class="s">&quot;/bin/search?&quot;</span><span class="nt">&gt;</span>
+            <span class="nt">&lt;service</span> <span class="na">name=</span><span class="s">"search"</span> <span class="na">output_formatter=</span><span class="s">"OutPutFormatter:service_inc"</span>
+                <span class="na">prefix=</span><span class="s">"/bin/search?"</span><span class="nt">&gt;</span>
 
-                <span class="nt">&lt;chain</span> <span class="na">sequency=</span><span class="s">&quot;chain2&quot;</span> <span class="nt">/&gt;</span>
+                <span class="nt">&lt;chain</span> <span class="na">sequency=</span><span class="s">"chain2"</span> <span class="nt">/&gt;</span>
             <span class="nt">&lt;/service&gt;</span>
-            <span class="nt">&lt;service</span> <span class="na">name=</span><span class="s">&quot;update&quot;</span> <span class="na">prefix=</span><span class="s">&quot;/bin/update?&quot;</span><span class="nt">&gt;</span>
-                <span class="nt">&lt;chain</span> <span class="na">sequency=</span><span class="s">&quot;chain3&quot;</span> <span class="na">value=</span><span class="s">&quot;fordelete&quot;</span><span class="nt">&gt;</span>new text<span class="nt">&lt;/chain&gt;</span>
+            <span class="nt">&lt;service</span> <span class="na">name=</span><span class="s">"update"</span> <span class="na">prefix=</span><span class="s">"/bin/update?"</span><span class="nt">&gt;</span>
+                <span class="nt">&lt;chain</span> <span class="na">sequency=</span><span class="s">"chain3"</span> <span class="na">value=</span><span class="s">"fordelete"</span><span class="nt">&gt;</span>new text<span class="nt">&lt;/chain&gt;</span>
             <span class="nt">&lt;/service&gt;</span>
         <span class="nt">&lt;/services&gt;</span>
     <span class="nt">&lt;/processers&gt;</span>
 <span class="nt">&lt;/framework&gt;</span>
 </pre></div>
-
-
 <p>The end!</p>
 <p>wklken</p>
-<p>2012-05-25</p>
+<p>2012-05-25</p></body></html>
     </section>
 
     <section id="copyright">
