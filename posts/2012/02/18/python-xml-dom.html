@@ -69,7 +69,7 @@
         <h1> Python解析xml[xml.dom] </h1>
     </section>
     <section id="content">
-        <html><body><p>用到的包：xml.dom.minidom <a href="http://docs.python.org/2/library/xml.dom.minidom.html">文档</a></p>
+        <p>用到的包：xml.dom.minidom <a href="http://docs.python.org/2/library/xml.dom.minidom.html">文档</a></p>
 <p>代码托管位置 <a href="https://github.com/wklken/pytools">github-pytools</a></p>
 <h3>需求</h3>
 <p>有一个表，里面数据量比较大，每天一更新，其字段可以通过xml配置文件进行配置，即，可能每次建表的字段不一样。</p>
@@ -79,9 +79,9 @@
 <p>上游读取到对应的数据</p>
 <p>入库这一步，先把原表删除，根据配置建新表</p>
 <h3>XML文件</h3>
-<div class="codehilite"><pre><span class="cp">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span>
+<div class="codehilite"><pre><span class="cp">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span>
 <span class="c">&lt;!-- 表名 ,数据库名   可灵活配置插入哪个库哪个表 --&gt;</span>
-<span class="nt">&lt;table</span> <span class="na">name=</span><span class="s">"top_query"</span> <span class="na">db_name=</span><span class="s">"evaluting_sys"</span><span class="nt">&gt;</span>
+<span class="nt">&lt;table</span> <span class="na">name=</span><span class="s">&quot;top_query&quot;</span> <span class="na">db_name=</span><span class="s">&quot;evaluting_sys&quot;</span><span class="nt">&gt;</span>
 <span class="c">&lt;!-- 非业务主键，自增长,可配名，其他 INTEGER UNSIGNED AUTO_INCREMENT  --&gt;</span>
 <span class="nt">&lt;primary_key&gt;</span>
 <span class="nt">&lt;name&gt;</span>id<span class="nt">&lt;/name&gt;</span>
@@ -108,6 +108,8 @@
 <span class="c">&lt;!-- 字段配置结束 --&gt;</span>
 <span class="nt">&lt;/table&gt;</span>
 </pre></div>
+
+
 <h3>处理脚本</h3>
 <div class="codehilite"><pre><span class="c">#!/usr/bin/python</span>
 <span class="c"># -*- coding:utf-8 -*-</span>
@@ -124,58 +126,60 @@
     <span class="n">content</span> <span class="o">=</span> <span class="p">{}</span>
 
     <span class="n">root</span> <span class="o">=</span> <span class="n">minidom</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">xml_file_path</span><span class="p">)</span>
-    <span class="n">table</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s">"table"</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">table</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s">&quot;table&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 
     <span class="c">#read dbname and table name.</span>
-    <span class="n">table_name</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s">"name"</span><span class="p">)</span>
-    <span class="n">db_name</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s">"db_name"</span><span class="p">)</span>
+    <span class="n">table_name</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s">&quot;name&quot;</span><span class="p">)</span>
+    <span class="n">db_name</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">getAttribute</span><span class="p">(</span><span class="s">&quot;db_name&quot;</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">table_name</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">db_name</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="n">db_sql</span> <span class="o">=</span> <span class="s">"create database if not exists `"</span> <span class="o">+</span> <span class="n">db_name</span> <span class="o">+</span><span class="s">"`; use "</span> <span class="o">+</span> <span class="n">db_name</span> <span class="o">+</span> <span class="s">";"</span>
-        <span class="n">table_drop_sql</span> <span class="o">=</span> <span class="s">"drop "</span> <span class="o">+</span> <span class="n">table_name</span> <span class="o">+</span> <span class="s">" if exists "</span> <span class="o">+</span> <span class="n">table_name</span> <span class="o">+</span> <span class="s">";"</span>
-        <span class="n">content</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s">"db_sql"</span> <span class="p">:</span> <span class="n">db_sql</span><span class="p">})</span>
-        <span class="n">content</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s">"table_sql"</span> <span class="p">:</span> <span class="n">table_drop_sql</span> <span class="p">})</span>
+        <span class="n">db_sql</span> <span class="o">=</span> <span class="s">&quot;create database if not exists `&quot;</span> <span class="o">+</span> <span class="n">db_name</span> <span class="o">+</span><span class="s">&quot;`; use &quot;</span> <span class="o">+</span> <span class="n">db_name</span> <span class="o">+</span> <span class="s">&quot;;&quot;</span>
+        <span class="n">table_drop_sql</span> <span class="o">=</span> <span class="s">&quot;drop &quot;</span> <span class="o">+</span> <span class="n">table_name</span> <span class="o">+</span> <span class="s">&quot; if exists &quot;</span> <span class="o">+</span> <span class="n">table_name</span> <span class="o">+</span> <span class="s">&quot;;&quot;</span>
+        <span class="n">content</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s">&quot;db_sql&quot;</span> <span class="p">:</span> <span class="n">db_sql</span><span class="p">})</span>
+        <span class="n">content</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s">&quot;table_sql&quot;</span> <span class="p">:</span> <span class="n">table_drop_sql</span> <span class="p">})</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">print</span> <span class="s">"Error:attribute is not define well!  db_name="</span> <span class="o">+</span> <span class="n">db_name</span> <span class="o">+</span> <span class="s">" ;table_name="</span> <span class="o">+</span> <span class="n">table_name</span>
+        <span class="k">print</span> <span class="s">&quot;Error:attribute is not define well!  db_name=&quot;</span> <span class="o">+</span> <span class="n">db_name</span> <span class="o">+</span> <span class="s">&quot; ;table_name=&quot;</span> <span class="o">+</span> <span class="n">table_name</span>
         <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
     <span class="c">#print table_name, db_name</span>
 
-    <span class="n">table_create_sql</span> <span class="o">=</span> <span class="s">"create table "</span> <span class="o">+</span> <span class="n">table_name</span> <span class="o">+</span><span class="s">"("</span>
+    <span class="n">table_create_sql</span> <span class="o">=</span> <span class="s">&quot;create table &quot;</span> <span class="o">+</span> <span class="n">table_name</span> <span class="o">+</span><span class="s">&quot;(&quot;</span>
 
     <span class="c">#read primary cell</span>
-    <span class="n">primary_key</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s">"primary_key"</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="n">primary_key_name</span> <span class="o">=</span> <span class="n">primary_key</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s">"name"</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">childNodes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">nodeValue</span>
+    <span class="n">primary_key</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s">&quot;primary_key&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">primary_key_name</span> <span class="o">=</span> <span class="n">primary_key</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s">&quot;name&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">childNodes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">nodeValue</span>
 
-    <span class="n">table_create_sql</span> <span class="o">+=</span> <span class="n">primary_key_name</span> <span class="o">+</span> <span class="s">" INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,"</span>
+    <span class="n">table_create_sql</span> <span class="o">+=</span> <span class="n">primary_key_name</span> <span class="o">+</span> <span class="s">&quot; INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,&quot;</span>
 
     <span class="c">#print primary_key.toxml()</span>
     <span class="c">#read ordernary field</span>
-    <span class="n">fields</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s">"field"</span><span class="p">)</span>
+    <span class="n">fields</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s">&quot;field&quot;</span><span class="p">)</span>
     <span class="n">f_index</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">:</span>
         <span class="n">f_index</span> <span class="o">+=</span> <span class="mi">1</span>
-        <span class="n">name</span> <span class="o">=</span> <span class="n">field</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s">"name"</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">childNodes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">nodeValue</span>
-        <span class="nb">type</span> <span class="o">=</span> <span class="n">field</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s">"type"</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">childNodes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">nodeValue</span>
-        <span class="n">table_create_sql</span> <span class="o">+=</span> <span class="n">name</span> <span class="o">+</span> <span class="s">" "</span> <span class="o">+</span> <span class="nb">type</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">field</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s">&quot;name&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">childNodes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">nodeValue</span>
+        <span class="nb">type</span> <span class="o">=</span> <span class="n">field</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s">&quot;type&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">childNodes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">nodeValue</span>
+        <span class="n">table_create_sql</span> <span class="o">+=</span> <span class="n">name</span> <span class="o">+</span> <span class="s">&quot; &quot;</span> <span class="o">+</span> <span class="nb">type</span>
         <span class="k">if</span> <span class="n">f_index</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">fields</span><span class="p">):</span>
-        <span class="n">table_create_sql</span> <span class="o">+=</span> <span class="s">","</span>
-        <span class="n">is_index</span> <span class="o">=</span> <span class="n">field</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s">"is_index"</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">childNodes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">nodeValue</span>
+        <span class="n">table_create_sql</span> <span class="o">+=</span> <span class="s">&quot;,&quot;</span>
+        <span class="n">is_index</span> <span class="o">=</span> <span class="n">field</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s">&quot;is_index&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">childNodes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">nodeValue</span>
 
-    <span class="n">table_create_sql</span> <span class="o">+=</span> <span class="s">");"</span>
-    <span class="n">content</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s">"table_create_sql"</span> <span class="p">:</span> <span class="n">table_create_sql</span><span class="p">})</span>
+    <span class="n">table_create_sql</span> <span class="o">+=</span> <span class="s">&quot;);&quot;</span>
+    <span class="n">content</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s">&quot;table_create_sql&quot;</span> <span class="p">:</span> <span class="n">table_create_sql</span><span class="p">})</span>
     <span class="c">#character set latin1 collate latin1_danish_ci;</span>
     <span class="k">print</span> <span class="n">content</span>
 
 
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">"__main__"</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span>
 <span class="n">read_dbconfig_xml</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
 </pre></div>
+
+
 <h3>涉及方法</h3>
 <p>root = minidom.parse(xml_file_path)  获取dom对象</p>
 <p>root.getElementsByTagName("table")  根据tag获取节点列表</p>
 <p>table.getAttribute("name")  获取属性</p>
 <p>primary_key.getElementsByTagName("name")[0].childNodes[0].nodeValue  获取子节点的值（<name>id</name>  得到id）</p>
-<p>2012-02-18</p></body></html>
+<p>2012-02-18</p>
     </section>
 
     <section id="copyright">

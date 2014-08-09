@@ -69,7 +69,7 @@
         <h1> Python源码阅读-对象 </h1>
     </section>
     <section id="content">
-        <html><body><p>结束休息期, 开始准备面试事宜了, 发现要准备的东西好多(╯‵□′)╯︵┻━┻,  顺手整理下Python源码阅读笔记(力争在写完前找到工作)</p>
+        <p>结束休息期, 开始准备面试事宜了, 发现要准备的东西好多(╯‵□′)╯︵┻━┻,  顺手整理下Python源码阅读笔记(力争在写完前找到工作)</p>
 <p>参考内容: Python源码 + <code>&lt;&lt;Python源码剖析&gt;&gt;</code></p>
 <p>用<code>源代码+说明+图解</code>的方式, 尽量说明白吧, 有一份注释在github上</p>
 <p>内容:</p>
@@ -78,9 +78,11 @@
 <span class="o">-&gt;</span> <span class="err">虚拟机相关</span><span class="p">(</span><span class="err">编译及执行</span><span class="p">)</span>
 <span class="o">-&gt;</span> <span class="err">内存管理</span><span class="o">/</span><span class="err">动态加载</span><span class="o">/</span><span class="err">多线程等</span>
 </pre></div>
+
+
 <p>PS: 画图的话google doc很好用</p>
 <p>好的, 第一篇开始</p>
-<hr/>
+<hr />
 <blockquote>
 <p>一切皆为对象</p>
 </blockquote>
@@ -97,6 +99,8 @@
     <span class="n">Py_ssize_t</span> <span class="n">ob_refcnt</span><span class="p">;</span>               \
     <span class="k">struct</span> <span class="n">_typeobject</span> <span class="o">*</span><span class="n">ob_type</span><span class="p">;</span>
 </pre></div>
+
+
 <p>说明</p>
 <div class="codehilite"><pre><span class="mf">1.</span> <span class="n">_PyObject_HEAD_EXTRA</span>
 <span class="err">先忽略</span><span class="p">,</span> <span class="err">双向链表结构</span><span class="p">,</span> <span class="err">后面垃圾回收再说</span>
@@ -109,18 +113,24 @@
 <span class="o">*</span><span class="n">ob_type</span> <span class="err">指向类型对象的指针</span><span class="p">(</span><span class="err">指向</span><span class="n">_typeobject</span><span class="err">结构体</span><span class="p">)</span>
 <span class="err">决定了这个对象的类型</span><span class="o">!</span>
 </pre></div>
+
+
 <h3>PyObject</h3>
 <p>定义</p>
 <div class="codehilite"><pre> <span class="k">typedef</span> <span class="k">struct</span> <span class="n">_object</span> <span class="p">{</span>
      <span class="n">PyObject_HEAD</span>
  <span class="p">}</span> <span class="n">PyObject</span><span class="p">;</span>
 </pre></div>
+
+
 <p>说明</p>
 <div class="codehilite"><pre> <span class="mf">1.</span> <span class="err">依赖关系</span>
  <span class="n">PyObject</span> <span class="o">-&gt;</span> <span class="n">PyObject_HEAD</span>
 </pre></div>
+
+
 <p>结构</p>
-<p><img alt="PyObject" src="/imgs/python-source/PyObject.png"/></p>
+<p><img alt="PyObject" src="/imgs/python-source/PyObject.png" /></p>
 <h3>PyVarObject</h3>
 <p>定义</p>
 <div class="codehilite"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>
@@ -131,6 +141,8 @@
 <span class="cp">  PyObject_HEAD                       \</span>
 <span class="cp">  Py_ssize_t ob_size; </span><span class="cm">/* Number of items in variable part */</span><span class="cp"></span>
 </pre></div>
+
+
 <p>说明</p>
 <div class="codehilite"><pre> <span class="mf">1.</span> <span class="err">依赖关系</span>
  <span class="n">PyVarObject</span> <span class="o">-&gt;</span> <span class="n">PyObject_VAR_HEAD</span> <span class="o">-&gt;</span> <span class="n">PyObject_HEAD</span>
@@ -138,8 +150,10 @@
  <span class="mf">2.</span><span class="n">Py_ssize_t</span> <span class="n">ob_size</span>
  <span class="n">ob_size</span><span class="p">,</span> <span class="err">变长对象容纳的元素个数</span>
 </pre></div>
+
+
 <p>结构</p>
-<p><img alt="PyVarObject" src="/imgs/python-source/PyVarObject.png"/></p>
+<p><img alt="PyVarObject" src="/imgs/python-source/PyVarObject.png" /></p>
 <h3>几个方法</h3>
 <p>跟对象相关的方法</p>
 <div class="codehilite"><pre><span class="cp">#define Py_REFCNT(ob)           (((PyObject*)(ob))-&gt;ob_refcnt)</span>
@@ -151,6 +165,8 @@
 <span class="cp">#define Py_SIZE(ob)             (((PyVarObject*)(ob))-&gt;ob_size)</span>
 <span class="err">读取元素个数</span><span class="p">(</span><span class="n">len</span><span class="p">)</span>
 </pre></div>
+
+
 <p>跟引用计数相关的方法</p>
 <div class="codehilite"><pre><span class="n">Py_INCREF</span><span class="p">(</span><span class="n">op</span><span class="p">)</span>  <span class="err">增加对象引用计数</span>
 
@@ -158,10 +174,12 @@
 
 <span class="n">_Py_Dealloc</span><span class="p">(</span><span class="n">op</span><span class="p">)</span> <span class="err">调用对应类型的</span> <span class="n">tp_dealloc</span> <span class="err">方法</span><span class="p">(</span><span class="err">每种类型回收行为不一样的</span><span class="p">,</span> <span class="err">各种缓存池机制</span><span class="p">,</span> <span class="err">后面看</span><span class="p">)</span>
 </pre></div>
-<hr/>
+
+
+<hr />
 <p>changelog:</p>
 <div class="codehilite"><pre><span class="mi">2013</span><span class="o">-</span><span class="mi">08</span><span class="o">-</span><span class="mo">05</span> <span class="n">first</span> <span class="n">version</span>
-</pre></div></body></html>
+</pre></div>
     </section>
 
     <section id="copyright">
