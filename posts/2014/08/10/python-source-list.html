@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--[if IE 8]> <html class="no-js lt-ie9" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
+
+<head>
+    <meta name="google-site-verification" content="SzE6WCs23qFevgBzRIuG9vcfLU0lW_Vd5hFT-cJOLBE" />
+    <title>Python 源码阅读 - list</title>
+    <meta charset="utf-8" />
+    <meta name="description" content="">
+    <meta name="keywords" content="" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+        <link rel="shortcut icon" href="/favicon.ico"/>
+        <link rel="stylesheet" href="http://www.wklken.me/theme/css/styles.css" media="all" />
+        <link rel="stylesheet" href="http://www.wklken.me/theme/css/tab.css" media="all" />
+
+        <link rel="stylesheet" href="http://www.wklken.me/theme/css/font-awesome.min.css">
+        <!--[if IE 7]>
+            <link rel="stylesheet" href="http://www.wklken.me/theme/css/font-awesome-ie7.min.css">
+        <![endif]-->
+
+        <link href="http://www.wklken.me/" type="application/atom+xml" rel="alternate" title="wklken's blog ATOM Feed" />
+        <link href="http://www.wklken.me/feed.xml" type="application/atom+xml" rel="alternate" title="wklken's blog RSS Feed" />
+
+</head>
+
+<body id="index" class="home">
+    <div id="page" class="row">
+        <div class="large-8 large-centered columns">
+
+        <header id="header">
+            <div class="constraint">
+                <div class="o">
+                    <a href="/"><h1 class="banner">Wklken <span class="blue"> Python</span></h1></a>
+
+                <div class="social">
+                            <a href="https://github.com/wklken" target='_blank'><i class="icon-github-sign icon-2x"></i></a>
+                            <a href="http://weibo.com/wklken" target='_blank'><i class="icon-weibo icon-2x"></i></a>
+                            <a href="mailto:wklken@yeah.net"><i class="icon-envelope icon-2x"></i></a>
+                            <a href="http://www.wklken.me/feed.xml" target='_blank'><i class="icon-rss-sign icon-2x"></i></a>
+                </div>
+                <div class="nav">
+                            <a href="/">首页</a>
+                            <a href="/categories.html">分类</a>
+                            <a href="/archives.html">归档</a>
+                            <a href="/pages/projects.html">项目</a>
+                            <a href="/pages/tools.html">工具</a>
+                            <a href="/pages/books.html">书单</a>
+                            <a href="/pages/aboutme.html">关于</a>
+
+                </div>
+
+                </div>
+            </div>
+        </header><!-- /#banner -->
+
+        <section id="main">
+
+<article id="article">
+    <section id="header">
+        <!--
+        <div class="meta">2014年08月10日</div>
+        <h1 id="title"> Python 源码阅读 - list </h1>
+        -->
+        <div class="meta"> &nbsp; </div>
+        <h1> Python 源码阅读 - list </h1>
+    </section>
+    <section id="content">
+        <p>还剩 tuple 和 dict就把几个基本类型写完了, 然后歇歇先找工作&gt;_&lt;</p>
+<hr />
+<p>源码位置 <a href="https://github.com/wklken/Python-2.7.8/blob/master/Include/listobject.h">Include/intobject.h</a> |
+         <a href="https://github.com/wklken/Python-2.7.8/blob/master/Objects/listobject.c">Objects/intobject.c</a></p>
+<hr />
+<h1>定义</h1>
+<div class="codehilite"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">PyObject_VAR_HEAD</span>
+
+    <span class="n">PyObject</span> <span class="o">**</span><span class="n">ob_item</span><span class="p">;</span>
+
+    <span class="n">Py_ssize_t</span> <span class="n">allocated</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">PyListObject</span><span class="p">;</span>
+</pre></div>
+
+
+<p>说明</p>
+<div class="codehilite"><pre><span class="mf">1.</span> <span class="n">PyObject_VAR_HEAD</span>
+<span class="n">PyListObject</span><span class="err">是变长对象</span>
+
+<span class="mf">2.</span> <span class="n">PyObject</span> <span class="o">**</span><span class="n">ob_item</span><span class="p">;</span>
+<span class="err">指向列表元素的指针数组</span><span class="p">,</span> <span class="n">list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="err">即</span> <span class="n">ob_item</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="mf">3.</span> <span class="n">Py_ssize_t</span> <span class="n">allocated</span><span class="p">;</span>
+<span class="n">allocated</span><span class="err">列表分配的空间</span><span class="p">,</span> <span class="n">ob_size</span><span class="err">为已使用的空间</span>
+
+<span class="err">等式</span><span class="o">:</span>
+
+    <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">ob_size</span> <span class="o">&lt;=</span> <span class="n">allocated</span>
+    <span class="n">len</span><span class="p">(</span><span class="n">list</span><span class="p">)</span> <span class="o">==</span> <span class="n">ob_size</span>
+    <span class="n">ob_item</span> <span class="o">==</span> <span class="nb">NULL</span> <span class="n">implies</span> <span class="n">ob_size</span> <span class="o">==</span> <span class="n">allocated</span> <span class="o">==</span> <span class="mi">0</span>
+</pre></div>
+
+
+<p>结构</p>
+<p><img alt="PyListObject" src="/imgs/python-source/PyListObject.png" /></p>
+<h1>构造</h1>
+<p>只有一个方法</p>
+<p>定义如下</p>
+<div class="codehilite"><pre><span class="n">PyObject</span> <span class="o">*</span>
+<span class="nf">PyList_New</span><span class="p">(</span><span class="n">Py_ssize_t</span> <span class="n">size</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="n">PyListObject</span> <span class="o">*</span><span class="n">op</span><span class="p">;</span>
+    <span class="kt">size_t</span> <span class="n">nbytes</span><span class="p">;</span>
+<span class="cp">#ifdef SHOW_ALLOC_COUNT</span>
+    <span class="k">static</span> <span class="kt">int</span> <span class="n">initialized</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">initialized</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">Py_AtExit</span><span class="p">(</span><span class="n">show_alloc</span><span class="p">);</span>
+        <span class="n">initialized</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="cp">#endif</span>
+
+    <span class="c1">// 大小为负数, return</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">size</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">PyErr_BadInternalCall</span><span class="p">();</span>
+        <span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="c1">// 如果大小超过, 报错</span>
+    <span class="cm">/* Check for overflow without an actual overflow,</span>
+<span class="cm">     *  which can cause compiler to optimise out */</span>
+    <span class="k">if</span> <span class="p">((</span><span class="kt">size_t</span><span class="p">)</span><span class="n">size</span> <span class="o">&gt;</span> <span class="n">PY_SIZE_MAX</span> <span class="o">/</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">PyErr_NoMemory</span><span class="p">();</span>
+
+    <span class="c1">// 计算需要的字节数(PyObject指针数组)</span>
+    <span class="n">nbytes</span> <span class="o">=</span> <span class="n">size</span> <span class="o">*</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="p">);</span>
+
+    <span class="c1">// 如果缓冲池非空, 从缓冲池取</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">numfree</span><span class="p">)</span> <span class="p">{</span>
+        <span class="c1">// 取缓冲池数组最后一个对象</span>
+        <span class="n">numfree</span><span class="o">--</span><span class="p">;</span>
+        <span class="n">op</span> <span class="o">=</span> <span class="n">free_list</span><span class="p">[</span><span class="n">numfree</span><span class="p">];</span>
+
+        <span class="c1">// set refcnt=1</span>
+        <span class="n">_Py_NewReference</span><span class="p">((</span><span class="n">PyObject</span> <span class="o">*</span><span class="p">)</span><span class="n">op</span><span class="p">);</span>
+<span class="cp">#ifdef SHOW_ALLOC_COUNT</span>
+        <span class="n">count_reuse</span><span class="o">++</span><span class="p">;</span>
+<span class="cp">#endif</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+
+        <span class="c1">// GC_New分配内存空间</span>
+        <span class="n">op</span> <span class="o">=</span> <span class="n">PyObject_GC_New</span><span class="p">(</span><span class="n">PyListObject</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">PyList_Type</span><span class="p">);</span>
+
+        <span class="c1">// 分配失败</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">op</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span>
+            <span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span>
+<span class="cp">#ifdef SHOW_ALLOC_COUNT</span>
+        <span class="n">count_alloc</span><span class="o">++</span><span class="p">;</span>
+<span class="cp">#endif</span>
+    <span class="p">}</span>
+
+    <span class="c1">// 确定ob_item列表元素指针的值</span>
+    <span class="c1">// 若大小&lt;=0</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">size</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">op</span><span class="o">-&gt;</span><span class="n">ob_item</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+    <span class="k">else</span> <span class="p">{</span>
+        <span class="c1">// 分配内存</span>
+        <span class="n">op</span><span class="o">-&gt;</span><span class="n">ob_item</span> <span class="o">=</span> <span class="p">(</span><span class="n">PyObject</span> <span class="o">**</span><span class="p">)</span> <span class="n">PyMem_MALLOC</span><span class="p">(</span><span class="n">nbytes</span><span class="p">);</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">op</span><span class="o">-&gt;</span><span class="n">ob_item</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>
+            <span class="n">Py_DECREF</span><span class="p">(</span><span class="n">op</span><span class="p">);</span>
+            <span class="k">return</span> <span class="n">PyErr_NoMemory</span><span class="p">();</span>
+        <span class="p">}</span>
+
+        <span class="c1">// 初始化, 填充</span>
+        <span class="n">memset</span><span class="p">(</span><span class="n">op</span><span class="o">-&gt;</span><span class="n">ob_item</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">nbytes</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="c1">// ob_size = size</span>
+    <span class="n">Py_SIZE</span><span class="p">(</span><span class="n">op</span><span class="p">)</span> <span class="o">=</span> <span class="n">size</span><span class="p">;</span>
+    <span class="c1">// allocated</span>
+    <span class="n">op</span><span class="o">-&gt;</span><span class="n">allocated</span> <span class="o">=</span> <span class="n">size</span><span class="p">;</span>
+
+    <span class="c1">// gc用</span>
+    <span class="n">_PyObject_GC_TRACK</span><span class="p">(</span><span class="n">op</span><span class="p">);</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="p">)</span> <span class="n">op</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>简化步骤</p>
+<div class="codehilite"><pre><span class="mf">1.</span> <span class="err">判断列表缓冲池是否为空</span><span class="p">,</span> <span class="err">是的话从缓冲池取</span><span class="p">(</span><span class="err">复用</span><span class="p">)</span>
+<span class="mf">2.</span> <span class="err">否则</span><span class="p">,</span> <span class="err">从内存中分配空间</span>
+<span class="mf">3.</span> <span class="err">然后初始化数据</span>
+</pre></div>
+
+
+<p>结论</p>
+<div class="codehilite"><pre><span class="n">Py_SIZE</span><span class="p">(</span><span class="n">op</span><span class="p">)</span> <span class="o">=</span> <span class="n">size</span><span class="p">;</span>
+<span class="n">op</span><span class="o">-&gt;</span><span class="n">allocated</span> <span class="o">=</span> <span class="n">size</span><span class="p">;</span>
+<span class="err">第一次生成</span><span class="n">list</span><span class="p">,</span> <span class="err">其</span><span class="n">allocated</span> <span class="o">=</span> <span class="n">ob_size</span>
+</pre></div>
+
+
+<h1>list_resize</h1>
+<p>同时注意list_resize方法</p>
+<div class="codehilite"><pre><span class="n">extends</span><span class="err">方法</span><span class="p">,</span> <span class="n">list_resize</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">m</span> <span class="o">+</span> <span class="n">n</span><span class="p">)</span>
+<span class="n">pop</span><span class="err">方法</span><span class="p">,</span>  <span class="n">list_resize</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">Py_SIZE</span><span class="p">(</span><span class="n">self</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">append</span><span class="err">方法</span><span class="p">,</span> <span class="n">list_resize</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">n</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+
+
+<p>其定义</p>
+<div class="codehilite"><pre><span class="n">list_resize</span><span class="p">(</span><span class="n">PyListObject</span> <span class="o">*</span><span class="n">self</span><span class="p">,</span> <span class="n">Py_ssize_t</span> <span class="n">newsize</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="p">...........</span>
+
+  <span class="c1">// 如果   allocated/2 &lt;= newsize &lt;= allocated</span>
+  <span class="c1">// 直接修改ob_size</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">allocated</span> <span class="o">&gt;=</span> <span class="n">newsize</span> <span class="o">&amp;&amp;</span> <span class="n">newsize</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="n">allocated</span> <span class="o">&gt;&gt;</span> <span class="mi">1</span><span class="p">))</span> <span class="p">{</span>
+      <span class="n">assert</span><span class="p">(</span><span class="n">self</span><span class="o">-&gt;</span><span class="n">ob_item</span> <span class="o">!=</span> <span class="nb">NULL</span> <span class="o">||</span> <span class="n">newsize</span> <span class="o">==</span> <span class="mi">0</span><span class="p">);</span>
+      <span class="n">Py_SIZE</span><span class="p">(</span><span class="n">self</span><span class="p">)</span> <span class="o">=</span> <span class="n">newsize</span><span class="p">;</span>
+      <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="p">}</span>
+
+
+  <span class="c1">//否则</span>
+
+  <span class="n">new_allocated</span> <span class="o">=</span> <span class="p">(</span><span class="n">newsize</span> <span class="o">&gt;&gt;</span> <span class="mi">3</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">newsize</span> <span class="o">&lt;</span> <span class="mi">9</span> <span class="o">?</span> <span class="mi">3</span> <span class="o">:</span> <span class="mi">6</span><span class="p">);</span>
+  <span class="n">new_allocated</span> <span class="o">+=</span> <span class="n">newsize</span><span class="p">;</span>
+
+  <span class="p">.............</span>
+
+  <span class="n">Py_SIZE</span><span class="p">(</span><span class="n">self</span><span class="p">)</span> <span class="o">=</span> <span class="n">newsize</span><span class="p">;</span>
+  <span class="n">self</span><span class="o">-&gt;</span><span class="n">allocated</span> <span class="o">=</span> <span class="n">new_allocated</span><span class="p">;</span>
+
+<span class="p">}</span>
+</pre></div>
+
+
+<p>即</p>
+<div class="codehilite"><pre><span class="k">if</span> <span class="n">allocated</span><span class="o">/</span><span class="mi">2</span> <span class="o">&lt;=</span> <span class="n">newsize</span> <span class="o">&lt;=</span> <span class="n">allocated</span>
+
+    <span class="n">allocated</span> <span class="err">不变</span>
+    <span class="n">ob_size</span> <span class="o">=</span> <span class="n">newsize</span>
+
+<span class="k">else</span>
+
+    <span class="n">allocated</span> <span class="o">=</span>  <span class="n">newsize</span> <span class="o">+</span>   <span class="p">((</span><span class="n">newsize</span> <span class="o">&gt;&gt;</span> <span class="mi">3</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">newsize</span> <span class="o">&lt;</span> <span class="mi">9</span> <span class="o">?</span> <span class="mi">3</span> <span class="o">:</span> <span class="mi">6</span><span class="p">))</span>
+    <span class="n">ob_size</span> <span class="o">=</span> <span class="n">newsize</span>
+</pre></div>
+
+
+<h1>回收和PyListObject对象缓冲池</h1>
+<p>看下缓冲池相关的定义</p>
+<div class="codehilite"><pre><span class="cm">/* Empty list reuse scheme to save calls to malloc and free */</span>
+<span class="p">#</span><span class="n">ifndef</span> <span class="n">PyList_MAXFREELIST</span>
+<span class="p">#</span><span class="n">define</span> <span class="n">PyList_MAXFREELIST</span> <span class="mh">80</span>
+<span class="p">#</span><span class="n">endif</span>
+
+<span class="c1">// 80个</span>
+<span class="k">static</span> <span class="n">PyListObject</span> <span class="o">*</span><span class="n">free_list</span><span class="p">[</span><span class="n">PyList_MAXFREELIST</span><span class="p">];</span>
+
+<span class="k">static</span> <span class="k">int</span> <span class="n">numfree</span> <span class="o">=</span> <span class="mh">0</span><span class="p">;</span>
+</pre></div>
+
+
+<p>我们先看下list_dealloc的定义</p>
+<div class="codehilite"><pre><span class="k">static</span> <span class="kt">void</span>
+<span class="nf">list_dealloc</span><span class="p">(</span><span class="n">PyListObject</span> <span class="o">*</span><span class="n">op</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="n">Py_ssize_t</span> <span class="n">i</span><span class="p">;</span>
+    <span class="n">PyObject_GC_UnTrack</span><span class="p">(</span><span class="n">op</span><span class="p">);</span>
+    <span class="n">Py_TRASHCAN_SAFE_BEGIN</span><span class="p">(</span><span class="n">op</span><span class="p">)</span>
+
+    <span class="c1">// 遍历ob_item, 释放所有类表内元素空间</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">op</span><span class="o">-&gt;</span><span class="n">ob_item</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>
+        <span class="cm">/* Do it backwards, for Christian Tismer.</span>
+<span class="cm">           There&#39;s a simple test case where somehow this reduces</span>
+<span class="cm">           thrashing when a *very* large list is created and</span>
+<span class="cm">           immediately deleted. */</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="n">Py_SIZE</span><span class="p">(</span><span class="n">op</span><span class="p">);</span>
+        <span class="k">while</span> <span class="p">(</span><span class="o">--</span><span class="n">i</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+            <span class="n">Py_XDECREF</span><span class="p">(</span><span class="n">op</span><span class="o">-&gt;</span><span class="n">ob_item</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+        <span class="p">}</span>
+        <span class="n">PyMem_FREE</span><span class="p">(</span><span class="n">op</span><span class="o">-&gt;</span><span class="n">ob_item</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="c1">// 如果free_list还没满, PyListObject加入到列表中</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">numfree</span> <span class="o">&lt;</span> <span class="n">PyList_MAXFREELIST</span> <span class="o">&amp;&amp;</span> <span class="n">PyList_CheckExact</span><span class="p">(</span><span class="n">op</span><span class="p">))</span>
+        <span class="n">free_list</span><span class="p">[</span><span class="n">numfree</span><span class="o">++</span><span class="p">]</span> <span class="o">=</span> <span class="n">op</span><span class="p">;</span>
+    <span class="k">else</span>
+        <span class="c1">// 否则回收</span>
+        <span class="n">Py_TYPE</span><span class="p">(</span><span class="n">op</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">tp_free</span><span class="p">((</span><span class="n">PyObject</span> <span class="o">*</span><span class="p">)</span><span class="n">op</span><span class="p">);</span>
+
+    <span class="n">Py_TRASHCAN_SAFE_END</span><span class="p">(</span><span class="n">op</span><span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>即</p>
+<div class="codehilite"><pre><span class="err">对一个列表对象</span><span class="n">PyListObject</span><span class="p">,</span> <span class="err">回收时</span><span class="p">,</span> <span class="n">ob_item</span><span class="err">会被回收</span><span class="p">,</span> <span class="err">其每个元素指向的对象引用</span><span class="o">-</span><span class="mf">1.</span>
+<span class="err">但是</span><span class="n">PyListObject</span><span class="err">对象本身</span><span class="p">,</span> <span class="err">如果缓冲池未满</span><span class="p">,</span> <span class="err">会被放入缓冲池</span><span class="p">,</span> <span class="err">复用</span>
+</pre></div>
+
+
+<p>缓冲池结构</p>
+<p><img alt="PyListObjectPool" src="/imgs/python-source/PyListObjectPool.png" /></p>
+<h1>List的操作过程</h1>
+<h3>插入</h3>
+<div class="codehilite"><pre><span class="mf">1.</span> <span class="n">resize</span> <span class="n">n</span><span class="o">+</span><span class="mi">1</span>
+<span class="mf">2.</span> <span class="err">确定插入点</span>
+<span class="mf">3.</span> <span class="err">插入点后所有元素后移</span>
+<span class="mf">4.</span> <span class="err">执行插入</span>
+</pre></div>
+
+
+<p>示例</p>
+<div class="codehilite"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">a</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">a</span><span class="p">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">9</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">a</span>
+<span class="p">[</span><span class="mi">9</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
+</pre></div>
+
+
+<h3>append</h3>
+<div class="codehilite"><pre><span class="mf">1.</span> <span class="n">resize</span> <span class="n">n</span><span class="o">+</span><span class="mi">1</span>
+<span class="mf">2.</span> <span class="err">放入最后一个位置</span><span class="p">(</span><span class="n">ob_size</span><span class="p">)</span>
+</pre></div>
+
+
+<p>示例</p>
+<div class="codehilite"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">a</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">a</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">a</span>
+<span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>
+</pre></div>
+
+
+<h3>extend</h3>
+<div class="codehilite"><pre><span class="mf">1.</span> <span class="err">计算两个</span><span class="n">list</span><span class="err">大小</span> <span class="n">m</span> <span class="n">n</span>
+<span class="mf">2.</span> <span class="n">resize</span> <span class="n">m</span><span class="o">+</span><span class="n">n</span><span class="p">(</span><span class="err">此时本身被复制</span><span class="p">)</span>
+<span class="mf">3.</span> <span class="err">遍历长度为</span><span class="n">n</span><span class="err">的数组</span><span class="p">,</span> <span class="err">从</span><span class="n">ob_item</span><span class="o">+</span><span class="n">m</span><span class="err">的位置开始加入</span>
+</pre></div>
+
+
+<p>示例</p>
+<div class="codehilite"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">m</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">n</span> <span class="o">=</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">]</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">m</span><span class="p">.</span><span class="n">extend</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">m</span>
+<span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">]</span>
+</pre></div>
+
+
+<h3>删除</h3>
+<div class="codehilite"><pre><span class="mf">1.</span> <span class="err">找到要删除元素位置</span>
+<span class="mf">2.</span> <span class="err">删除之</span><span class="p">,</span> <span class="err">后面元素前移</span>
+</pre></div>
+
+
+<p>示例</p>
+<div class="codehilite"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">a</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">a</span><span class="p">.</span><span class="n">remove</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">a</span>
+<span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+</pre></div>
+
+
+<hr />
+<p>changelog</p>
+<div class="codehilite"><pre><span class="mi">2014</span><span class="o">-</span><span class="mi">08</span><span class="o">-</span><span class="mi">10</span> <span class="n">first</span> <span class="n">version</span>
+</pre></div>
+    </section>
+
+    <section id="copyright">
+        <div class="copyright">
+            版权声明：自由转载-非商用-非衍生-保持署名 | <a href="http://creativecommons.org/licenses/by-nc-nd/3.0/deed.zh" target="_blank" >Creative Commons BY-NC-ND 3.0</a>
+        </div>
+    </section>
+
+
+    <section id="neighbors">
+        <div>
+                        <a class="left" href="http://www.wklken.me/posts/2014/08/08/python-source-string.html">
+                            上一篇:  Python 源码阅读 - string
+                        </a>
+        </div>
+    </section>
+
+    <section id="comments">
+
+        <div class="comments">
+            <h2>Comments!</h2>
+            <div id="disqus_thread"></div>
+            <script type="text/javascript">
+                var disqus_identifier = "posts/2014/08/10/python-source-list.html";
+                (function() {
+                var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                dsq.src = 'http://wklken.disqus.com/embed.js';
+                (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                })();
+            </script>
+            </div>
+    </section>
+
+</article>
+        </section><!--end #main-->
+
+            <footer class="row">
+                <div class="large-12 columns">
+                    <p>
+                            Copyright © 2014 wklken <br>
+                            Hosted on <a href="https://www.digitalocean.com/?refcode=8ee73f2c47ce"> digitalocean </a>. Powered by <a href="http://alexis.notmyidea.org/pelican/">pelican</a>. Social Icons by <a href="http://fortawesome.github.io/Font-Awesome/">Font-Awesome</a>.
+                    </p>
+                </div>
+            </footer>
+
+            </div>
+        </div>
+
+        <section id="extras" class="body">
+        </section><!-- /#extras -->
+
+    <script type="text/javascript">
+    var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+    document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+    </script>
+    <script type="text/javascript">
+    try {
+        var pageTracker = _gat._getTracker("UA-42275748-1");
+    pageTracker._trackPageview();
+    } catch(err) {}</script>
+
+
+
+</body>
+<script src="http://apps.bdimg.com/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="http://apps.bdimg.com/libs/jquery-scrollUp/2.1.0/jquery.scrollUp.min.js"></script>
+<script>
+    $(function(){
+        $.scrollUp();
+    });
+</script>
+
+
+
+
+</html>
