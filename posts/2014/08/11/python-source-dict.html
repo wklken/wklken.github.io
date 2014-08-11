@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--[if IE 8]> <html class="no-js lt-ie9" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
+
+<head>
+    <meta name="google-site-verification" content="SzE6WCs23qFevgBzRIuG9vcfLU0lW_Vd5hFT-cJOLBE" />
+    <title>Python 源码阅读 - dict</title>
+    <meta charset="utf-8" />
+    <meta name="description" content="">
+    <meta name="keywords" content="" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+        <link rel="shortcut icon" href="/favicon.ico"/>
+        <link rel="stylesheet" href="http://www.wklken.me/theme/css/styles.css" media="all" />
+        <link rel="stylesheet" href="http://www.wklken.me/theme/css/tab.css" media="all" />
+
+        <link rel="stylesheet" href="http://www.wklken.me/theme/css/font-awesome.min.css">
+        <!--[if IE 7]>
+            <link rel="stylesheet" href="http://www.wklken.me/theme/css/font-awesome-ie7.min.css">
+        <![endif]-->
+
+        <link href="http://www.wklken.me/" type="application/atom+xml" rel="alternate" title="wklken's blog ATOM Feed" />
+        <link href="http://www.wklken.me/feed.xml" type="application/atom+xml" rel="alternate" title="wklken's blog RSS Feed" />
+
+</head>
+
+<body id="index" class="home">
+    <div id="page" class="row">
+        <div class="large-8 large-centered columns">
+
+        <header id="header">
+            <div class="constraint">
+                <div class="o">
+                    <a href="/"><h1 class="banner">Wklken <span class="blue"> Python</span></h1></a>
+
+                <div class="social">
+                            <a href="https://github.com/wklken" target='_blank'><i class="icon-github-sign icon-2x"></i></a>
+                            <a href="http://weibo.com/wklken" target='_blank'><i class="icon-weibo icon-2x"></i></a>
+                            <a href="mailto:wklken@yeah.net"><i class="icon-envelope icon-2x"></i></a>
+                            <a href="http://www.wklken.me/feed.xml" target='_blank'><i class="icon-rss-sign icon-2x"></i></a>
+                </div>
+                <div class="nav">
+                            <a href="/">首页</a>
+                            <a href="/categories.html">分类</a>
+                            <a href="/archives.html">归档</a>
+                            <a href="/pages/projects.html">项目</a>
+                            <a href="/pages/tools.html">工具</a>
+                            <a href="/pages/books.html">书单</a>
+                            <a href="/pages/aboutme.html">关于</a>
+
+                </div>
+
+                </div>
+            </div>
+        </header><!-- /#banner -->
+
+        <section id="main">
+
+<article id="article">
+    <section id="header">
+        <!--
+        <div class="meta">2014年08月11日</div>
+        <h1 id="title"> Python 源码阅读 - dict </h1>
+        -->
+        <div class="meta"> &nbsp; </div>
+        <h1> Python 源码阅读 - dict </h1>
+    </section>
+    <section id="content">
+        <p>基本类型实现的最后一篇, 先告一段落, 专心找工作去......搞定工作后再开始扫后面的</p>
+<hr />
+<p>源码位置 <a href="https://github.com/wklken/Python-2.7.8/blob/master/Include/dictobject.h">Include/dictobject.h</a> |
+         <a href="https://github.com/wklken/Python-2.7.8/blob/master/Objects/dictobject.c">Objects/dictobject.c</a></p>
+<hr />
+<h1>PyDictObject的存储策略</h1>
+<div class="codehilite"><pre><span class="mf">1.</span> <span class="err">使用散列表进行存储</span>
+
+<span class="mf">2.</span> <span class="err">使用开放定址法处理冲突</span>
+
+    <span class="mf">2.1</span> <span class="err">插入</span><span class="p">,</span> <span class="err">发生冲突</span><span class="p">,</span> <span class="err">通过二次探测算法</span><span class="p">,</span> <span class="err">寻找下一个位置</span><span class="p">,</span> <span class="err">直到找到可用位置</span><span class="p">,</span> <span class="err">放入</span><span class="p">(</span><span class="err">形成一条冲突探测链</span><span class="p">)</span>
+
+    <span class="mf">2.2</span> <span class="err">查找</span><span class="p">,</span> <span class="err">需要遍历冲突探测链</span>
+
+    <span class="mf">2.3</span> <span class="err">删除</span><span class="p">,</span> <span class="err">如果对象在探测链上</span><span class="p">,</span> <span class="err">不能直接删除</span><span class="p">,</span> <span class="err">否则会破坏整个结构</span><span class="p">(</span><span class="err">所以不是真的删</span><span class="p">)</span>
+</pre></div>
+
+
+<p>关于 hash表的 <a href="http://zh.wikipedia.org/wiki/%E5%93%88%E5%B8%8C%E8%A1%A8">wiki</a></p>
+<hr />
+<h1>基本键值PyDictEntry</h1>
+<div class="codehilite"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">Py_ssize_t</span> <span class="n">me_hash</span><span class="p">;</span>
+    <span class="n">PyObject</span> <span class="o">*</span><span class="n">me_key</span><span class="p">;</span>
+    <span class="n">PyObject</span> <span class="o">*</span><span class="n">me_value</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">PyDictEntry</span><span class="p">;</span>
+</pre></div>
+
+
+<p>说明</p>
+<div class="codehilite"><pre><span class="mf">1.</span> <span class="n">PyDictEntry</span> <span class="err">用于存储键值对信息</span>
+
+<span class="mf">2.</span> <span class="n">Py_ssize_t</span> <span class="n">me_hash</span>
+<span class="err">存储了</span><span class="n">me_key</span><span class="err">计算得到的</span><span class="n">hash</span><span class="err">值</span><span class="p">,</span> <span class="err">不重复计算</span>
+</pre></div>
+
+
+<p>结构</p>
+<p><img alt="PyDictEntry" src="/imgs/python-source/PyDictEntry.png" /></p>
+<p>PyDictEntry的三个状态(图片引自-Python源码剖析)</p>
+<p><img alt="PyDictEntryState" src="/imgs/python-source/PyDictEntryState.png" /></p>
+<hr />
+<h1>PyDictObject定义</h1>
+<p>定义</p>
+<div class="codehilite"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="n">_dictobject</span> <span class="n">PyDictObject</span><span class="p">;</span>
+<span class="k">struct</span> <span class="n">_dictobject</span> <span class="p">{</span>
+    <span class="n">PyObject_HEAD</span>
+
+    <span class="n">Py_ssize_t</span> <span class="n">ma_fill</span><span class="p">;</span>
+    <span class="n">Py_ssize_t</span> <span class="n">ma_used</span><span class="p">;</span>
+    <span class="n">Py_ssize_t</span> <span class="n">ma_mask</span><span class="p">;</span>
+
+    <span class="n">PyDictEntry</span> <span class="o">*</span><span class="n">ma_table</span><span class="p">;</span>
+    <span class="n">PyDictEntry</span> <span class="o">*</span><span class="p">(</span><span class="o">*</span><span class="n">ma_lookup</span><span class="p">)(</span><span class="n">PyDictObject</span> <span class="o">*</span><span class="n">mp</span><span class="p">,</span> <span class="n">PyObject</span> <span class="o">*</span><span class="n">key</span><span class="p">,</span> <span class="kt">long</span> <span class="n">hash</span><span class="p">);</span>
+    <span class="n">PyDictEntry</span> <span class="n">ma_smalltable</span><span class="p">[</span><span class="n">PyDict_MINSIZE</span><span class="p">];</span>
+<span class="p">};</span>
+</pre></div>
+
+
+<p>说明</p>
+<div class="codehilite"><pre><span class="mf">1.</span> <span class="n">PyObject_HEAD</span>
+<span class="err">反而声明为定长对象</span><span class="p">,</span> <span class="err">因为</span><span class="n">ob_size</span><span class="err">在这里用不上</span><span class="p">,</span> <span class="err">使用</span><span class="n">ma_fill</span><span class="err">和</span><span class="n">ma_used</span><span class="err">计数</span>
+
+<span class="mf">2.</span> <span class="n">Py_ssize_t</span> <span class="n">ma_fill</span><span class="p">;</span>
+   <span class="n">Py_ssize_t</span> <span class="n">ma_used</span><span class="p">;</span>
+
+    <span class="n">ma_fill</span> <span class="o">=</span> <span class="err">#</span> <span class="n">Active</span> <span class="o">+</span> <span class="err">#</span> <span class="n">Dummy</span>
+    <span class="n">ma_used</span> <span class="o">=</span> <span class="err">#</span> <span class="n">Active</span>
+
+<span class="mf">3.</span> <span class="n">Py_ssize_t</span> <span class="n">ma_mask</span><span class="p">;</span>
+<span class="err">散列表</span><span class="n">entry</span><span class="err">容量</span> <span class="o">=</span> <span class="n">ma_mask</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="err">初始值</span><span class="n">ma_mask</span> <span class="o">=</span> <span class="n">PyDict_MINSIZE</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">=</span> <span class="mi">7</span>
+
+    <span class="n">ma_mask</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">=</span> <span class="err">#</span> <span class="n">Unused</span> <span class="o">+</span> <span class="err">#</span> <span class="n">Active</span> <span class="o">+</span> <span class="err">#</span> <span class="n">Dummy</span>
+
+<span class="mf">4.</span> <span class="n">PyDictEntry</span> <span class="o">*</span><span class="n">ma_table</span><span class="p">;</span>
+<span class="err">指向散列表内存</span><span class="p">,</span> <span class="err">如果是小的</span><span class="n">dict</span><span class="p">(</span><span class="n">entry</span><span class="err">数量</span><span class="o">&lt;=</span><span class="mi">8</span><span class="p">).</span> <span class="err">指向</span><span class="n">ma_smalltable</span><span class="err">数组</span>
+
+<span class="mf">5.</span> <span class="n">ma_lookup</span>
+<span class="err">搜索函数</span>
+
+<span class="mf">6.</span> <span class="n">PyDictEntry</span> <span class="n">ma_smalltable</span><span class="p">[</span><span class="n">PyDict_MINSIZE</span><span class="p">];</span>
+<span class="err">小</span><span class="n">dict</span><span class="p">,</span> <span class="err">大小</span><span class="mi">8</span><span class="p">,</span> <span class="err">小于</span><span class="mi">8</span><span class="err">个键值对的字典会直接存放在这里</span><span class="p">,</span> <span class="err">超出后再从内存分配空间</span>
+</pre></div>
+
+
+<p>结构</p>
+<p><img alt="PyDictObject" src="/imgs/python-source/PyDictObject.png" /></p>
+<p>结论</p>
+<div class="codehilite"><pre><span class="mf">1.</span> <span class="n">PyDictObject</span><span class="err">在生命周期内</span><span class="p">,</span> <span class="err">需要维护</span><span class="n">ma_fill</span><span class="o">/</span><span class="n">ma_used</span><span class="o">/</span><span class="n">ma_mask</span> <span class="err">三个计数值</span>
+
+<span class="mf">2.</span> <span class="err">初始化创建是</span><span class="n">ma_smalltable</span><span class="p">,</span> <span class="err">超过大小后</span><span class="p">,</span> <span class="err">会使用外部分配的空间</span>
+</pre></div>
+
+
+<h1>构造过程</h1>
+<p>定义</p>
+<div class="codehilite"><pre><span class="n">PyObject</span> <span class="o">*</span>
+<span class="nf">PyDict_New</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">register</span> <span class="n">PyDictObject</span> <span class="o">*</span><span class="n">mp</span><span class="p">;</span>
+
+    <span class="c1">// 初始化dummy</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">dummy</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">dummy</span> <span class="o">=</span> <span class="n">PyString_FromString</span><span class="p">(</span><span class="s">&quot;&lt;dummy key&gt;&quot;</span><span class="p">);</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">dummy</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span>
+            <span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span>
+
+    <span class="c1">// 暂时忽略</span>
+<span class="cp">#ifdef SHOW_CONVERSION_COUNTS</span>
+        <span class="n">Py_AtExit</span><span class="p">(</span><span class="n">show_counts</span><span class="p">);</span>
+<span class="cp">#endif</span>
+<span class="cp">#ifdef SHOW_ALLOC_COUNT</span>
+        <span class="n">Py_AtExit</span><span class="p">(</span><span class="n">show_alloc</span><span class="p">);</span>
+<span class="cp">#endif</span>
+<span class="cp">#ifdef SHOW_TRACK_COUNT</span>
+        <span class="n">Py_AtExit</span><span class="p">(</span><span class="n">show_track</span><span class="p">);</span>
+<span class="cp">#endif</span>
+    <span class="p">}</span>
+
+    <span class="c1">// 如果PyDictObject缓冲池可用</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">numfree</span><span class="p">)</span> <span class="p">{</span>
+        <span class="c1">// 取缓冲池最后一个可用对象</span>
+        <span class="n">mp</span> <span class="o">=</span> <span class="n">free_list</span><span class="p">[</span><span class="o">--</span><span class="n">numfree</span><span class="p">];</span>
+
+        <span class="n">assert</span> <span class="p">(</span><span class="n">mp</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">);</span>
+        <span class="n">assert</span> <span class="p">(</span><span class="n">Py_TYPE</span><span class="p">(</span><span class="n">mp</span><span class="p">)</span> <span class="o">==</span> <span class="o">&amp;</span><span class="n">PyDict_Type</span><span class="p">);</span>
+        <span class="n">_Py_NewReference</span><span class="p">((</span><span class="n">PyObject</span> <span class="o">*</span><span class="p">)</span><span class="n">mp</span><span class="p">);</span>
+
+        <span class="c1">// 初始化</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">mp</span><span class="o">-&gt;</span><span class="n">ma_fill</span><span class="p">)</span> <span class="p">{</span>
+            <span class="c1">// 1. 清空 ma_smalltable</span>
+            <span class="c1">// 2. ma_used = ma_fill = 0</span>
+            <span class="c1">// 3. ma_table -&gt; ma_smalltable</span>
+            <span class="c1">// 4. ma_mask = PyDict_MINSIZE - 1 = 7</span>
+            <span class="n">EMPTY_TO_MINSIZE</span><span class="p">(</span><span class="n">mp</span><span class="p">);</span>
+        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+            <span class="c1">// 1. ma_table -&gt; ma_smalltable</span>
+            <span class="c1">// 2. ma_mask = PyDict_MINSIZE - 1 = 7</span>
+            <span class="n">INIT_NONZERO_DICT_SLOTS</span><span class="p">(</span><span class="n">mp</span><span class="p">);</span>
+        <span class="p">}</span>
+
+        <span class="n">assert</span> <span class="p">(</span><span class="n">mp</span><span class="o">-&gt;</span><span class="n">ma_used</span> <span class="o">==</span> <span class="mi">0</span><span class="p">);</span>
+        <span class="n">assert</span> <span class="p">(</span><span class="n">mp</span><span class="o">-&gt;</span><span class="n">ma_table</span> <span class="o">==</span> <span class="n">mp</span><span class="o">-&gt;</span><span class="n">ma_smalltable</span><span class="p">);</span>
+        <span class="n">assert</span> <span class="p">(</span><span class="n">mp</span><span class="o">-&gt;</span><span class="n">ma_mask</span> <span class="o">==</span> <span class="n">PyDict_MINSIZE</span> <span class="o">-</span> <span class="mi">1</span><span class="p">);</span>
+<span class="cp">#ifdef SHOW_ALLOC_COUNT</span>
+        <span class="n">count_reuse</span><span class="o">++</span><span class="p">;</span>
+<span class="cp">#endif</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="c1">// 创建一个</span>
+        <span class="n">mp</span> <span class="o">=</span> <span class="n">PyObject_GC_New</span><span class="p">(</span><span class="n">PyDictObject</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">PyDict_Type</span><span class="p">);</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">mp</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span>
+            <span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span>
+        <span class="c1">// 初始化 1/2/3/4</span>
+        <span class="n">EMPTY_TO_MINSIZE</span><span class="p">(</span><span class="n">mp</span><span class="p">);</span>
+
+<span class="cp">#ifdef SHOW_ALLOC_COUNT</span>
+        <span class="n">count_alloc</span><span class="o">++</span><span class="p">;</span>
+<span class="cp">#endif</span>
+    <span class="p">}</span>
+
+    <span class="c1">// 搜索方法, 关注这个</span>
+    <span class="n">mp</span><span class="o">-&gt;</span><span class="n">ma_lookup</span> <span class="o">=</span> <span class="n">lookdict_string</span><span class="p">;</span>
+
+<span class="cp">#ifdef SHOW_TRACK_COUNT</span>
+    <span class="n">count_untracked</span><span class="o">++</span><span class="p">;</span>
+<span class="cp">#endif</span>
+<span class="cp">#ifdef SHOW_CONVERSION_COUNTS</span>
+    <span class="o">++</span><span class="n">created</span><span class="p">;</span>
+<span class="cp">#endif</span>
+
+    <span class="c1">// 返回</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="p">)</span><span class="n">mp</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>简化步骤</p>
+<div class="codehilite"><pre><span class="mf">1.</span> <span class="err">如果</span><span class="n">PyDictObject</span><span class="err">对象缓冲池有</span><span class="p">,</span> <span class="err">从里面直接取</span><span class="p">,</span> <span class="err">初始化</span>
+
+<span class="mf">2.</span> <span class="err">否则</span><span class="p">,</span> <span class="err">创建一个</span><span class="p">,</span> <span class="err">初始化</span>
+
+<span class="mf">3.</span> <span class="err">关联搜索方法</span><span class="n">lookdict_string</span>
+
+<span class="mf">4.</span> <span class="err">返回</span>
+</pre></div>
+
+
+<p>结论</p>
+<div class="codehilite"><pre><span class="mf">1.</span> <span class="err">关注对象缓冲池</span>
+
+<span class="mf">2.</span> <span class="err">关注</span><span class="n">lookdict_string</span>
+</pre></div>
+
+
+<h1>销毁过程</h1>
+<p>方法定义</p>
+<div class="codehilite"><pre><span class="k">static</span> <span class="kt">void</span>
+<span class="nf">dict_dealloc</span><span class="p">(</span><span class="k">register</span> <span class="n">PyDictObject</span> <span class="o">*</span><span class="n">mp</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">register</span> <span class="n">PyDictEntry</span> <span class="o">*</span><span class="n">ep</span><span class="p">;</span>
+    <span class="n">Py_ssize_t</span> <span class="n">fill</span> <span class="o">=</span> <span class="n">mp</span><span class="o">-&gt;</span><span class="n">ma_fill</span><span class="p">;</span>
+    <span class="n">PyObject_GC_UnTrack</span><span class="p">(</span><span class="n">mp</span><span class="p">);</span>
+    <span class="n">Py_TRASHCAN_SAFE_BEGIN</span><span class="p">(</span><span class="n">mp</span><span class="p">)</span>
+
+    <span class="c1">// 遍历销毁ma_table中元素 (ma_table可能指向small_table 或 外部)</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">ep</span> <span class="o">=</span> <span class="n">mp</span><span class="o">-&gt;</span><span class="n">ma_table</span><span class="p">;</span> <span class="n">fill</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">;</span> <span class="n">ep</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">ep</span><span class="o">-&gt;</span><span class="n">me_key</span><span class="p">)</span> <span class="p">{</span>
+            <span class="o">--</span><span class="n">fill</span><span class="p">;</span>
+            <span class="n">Py_DECREF</span><span class="p">(</span><span class="n">ep</span><span class="o">-&gt;</span><span class="n">me_key</span><span class="p">);</span>
+            <span class="n">Py_XDECREF</span><span class="p">(</span><span class="n">ep</span><span class="o">-&gt;</span><span class="n">me_value</span><span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="c1">// 如果指向外部, 销毁整个(上面一步只销毁内部元素)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">mp</span><span class="o">-&gt;</span><span class="n">ma_table</span> <span class="o">!=</span> <span class="n">mp</span><span class="o">-&gt;</span><span class="n">ma_smalltable</span><span class="p">)</span>
+        <span class="n">PyMem_DEL</span><span class="p">(</span><span class="n">mp</span><span class="o">-&gt;</span><span class="n">ma_table</span><span class="p">);</span>
+
+    <span class="c1">// 如果对象缓冲池未满且是PyDict_Type, 放入</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">numfree</span> <span class="o">&lt;</span> <span class="n">PyDict_MAXFREELIST</span> <span class="o">&amp;&amp;</span> <span class="n">Py_TYPE</span><span class="p">(</span><span class="n">mp</span><span class="p">)</span> <span class="o">==</span> <span class="o">&amp;</span><span class="n">PyDict_Type</span><span class="p">)</span>
+        <span class="n">free_list</span><span class="p">[</span><span class="n">numfree</span><span class="o">++</span><span class="p">]</span> <span class="o">=</span> <span class="n">mp</span><span class="p">;</span>
+    <span class="k">else</span>
+        <span class="c1">// 否则回收</span>
+        <span class="n">Py_TYPE</span><span class="p">(</span><span class="n">mp</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">tp_free</span><span class="p">((</span><span class="n">PyObject</span> <span class="o">*</span><span class="p">)</span><span class="n">mp</span><span class="p">);</span>
+    <span class="n">Py_TRASHCAN_SAFE_END</span><span class="p">(</span><span class="n">mp</span><span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<hr />
+<h1>PyDictObject对象缓冲池</h1>
+<p>定义</p>
+<div class="codehilite"><pre><span class="cp">#ifndef PyDict_MAXFREELIST</span>
+<span class="cp">#define PyDict_MAXFREELIST 80</span>
+<span class="cp">#endif</span>
+
+<span class="k">static</span> <span class="n">PyDictObject</span> <span class="o">*</span><span class="n">free_list</span><span class="p">[</span><span class="n">PyDict_MAXFREELIST</span><span class="p">];</span>
+<span class="k">static</span> <span class="kt">int</span> <span class="n">numfree</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</pre></div>
+
+
+<p>对象缓冲池的结构(跟PyListObject对象缓冲池结构基本一样)</p>
+<p><img alt="PyDictObjectPool" src="/imgs/python-source/PyDictObjectPool.png" /></p>
+<p>结论</p>
+<div class="codehilite"><pre><span class="mf">1.</span> <span class="err">最多会缓存</span><span class="mi">80</span><span class="err">个对象</span>
+
+<span class="mf">2.</span> <span class="err">只缓存</span> <span class="n">PyDictObject</span> <span class="err">本身</span><span class="p">,</span> <span class="err">其</span><span class="n">PyDictEntry</span><span class="err">全部会被回收</span>
+
+<span class="mf">3.</span> <span class="err">缓存对象进去</span><span class="p">,</span> <span class="err">旧有的值没有变化</span><span class="p">,</span> <span class="err">取出来用的时候初始化时才改变</span>
+</pre></div>
+
+
+<hr />
+<h1>Dict 操作</h1>
+<p>查找/插入/resize/删除, 下个版本补</p>
+<hr />
+<p>changelog</p>
+<div class="codehilite"><pre><span class="mi">2014</span><span class="o">-</span><span class="mi">08</span><span class="o">-</span><span class="mi">11</span> <span class="n">first</span> <span class="n">version</span>
+</pre></div>
+    </section>
+
+    <section id="copyright">
+        <div class="copyright">
+            版权声明：自由转载-非商用-非衍生-保持署名 | <a href="http://creativecommons.org/licenses/by-nc-nd/3.0/deed.zh" target="_blank" >Creative Commons BY-NC-ND 3.0</a>
+        </div>
+    </section>
+
+
+    <section id="neighbors">
+        <div>
+                        <a class="left" href="http://www.wklken.me/posts/2014/08/10/python-source-tuple.html">
+                            上一篇:  Python 源码阅读 - tuple
+                        </a>
+        </div>
+    </section>
+
+    <section id="comments">
+
+        <div class="comments">
+            <h2>Comments!</h2>
+            <div id="disqus_thread"></div>
+            <script type="text/javascript">
+                var disqus_identifier = "posts/2014/08/11/python-source-dict.html";
+                (function() {
+                var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                dsq.src = 'http://wklken.disqus.com/embed.js';
+                (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                })();
+            </script>
+            </div>
+    </section>
+
+</article>
+        </section><!--end #main-->
+
+            <footer class="row">
+                <div class="large-12 columns">
+                    <p>
+                            Copyright © 2014 wklken <br>
+                            Hosted on <a href="https://www.digitalocean.com/?refcode=8ee73f2c47ce"> digitalocean </a>. Powered by <a href="http://alexis.notmyidea.org/pelican/">pelican</a>. Social Icons by <a href="http://fortawesome.github.io/Font-Awesome/">Font-Awesome</a>.
+                    </p>
+                </div>
+            </footer>
+
+            </div>
+        </div>
+
+        <section id="extras" class="body">
+        </section><!-- /#extras -->
+
+    <script type="text/javascript">
+    var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+    document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+    </script>
+    <script type="text/javascript">
+    try {
+        var pageTracker = _gat._getTracker("UA-42275748-1");
+    pageTracker._trackPageview();
+    } catch(err) {}</script>
+
+
+
+</body>
+<script src="http://apps.bdimg.com/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="http://apps.bdimg.com/libs/jquery-scrollUp/2.1.0/jquery.scrollUp.min.js"></script>
+<script>
+    $(function(){
+        $.scrollUp();
+    });
+</script>
+
+
+
+
+</html>

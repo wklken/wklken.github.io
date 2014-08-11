@@ -1,5 +1,262 @@
 <?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>wklken's blog</title><link>http://www.wklken.me/</link><description></description><atom:link href="http://www.wklken.me/category/python/feed" rel="self"></atom:link><lastBuildDate>Sun, 10 Aug 2014 17:10:00 +0800</lastBuildDate><item><title>Python 源码阅读 - tuple</title><link>http://www.wklken.me/posts/2014/08/10/python-source-tuple.html</link><description>&lt;p&gt;还差一篇......写完写简历&amp;gt;_&amp;lt;#&lt;/p&gt;
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>wklken's blog</title><link>http://www.wklken.me/</link><description></description><atom:link href="http://www.wklken.me/category/python/feed" rel="self"></atom:link><lastBuildDate>Mon, 11 Aug 2014 00:00:00 +0800</lastBuildDate><item><title>Python 源码阅读 - dict</title><link>http://www.wklken.me/posts/2014/08/11/python-source-dict.html</link><description>&lt;p&gt;基本类型实现的最后一篇, 先告一段落, 专心找工作去......搞定工作后再开始扫后面的&lt;/p&gt;
+&lt;hr /&gt;
+&lt;p&gt;源码位置 &lt;a href="https://github.com/wklken/Python-2.7.8/blob/master/Include/dictobject.h"&gt;Include/dictobject.h&lt;/a&gt; |
+         &lt;a href="https://github.com/wklken/Python-2.7.8/blob/master/Objects/dictobject.c"&gt;Objects/dictobject.c&lt;/a&gt;&lt;/p&gt;
+&lt;hr /&gt;
+&lt;h1&gt;PyDictObject的存储策略&lt;/h1&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="mf"&gt;1.&lt;/span&gt; &lt;span class="err"&gt;使用散列表进行存储&lt;/span&gt;
+
+&lt;span class="mf"&gt;2.&lt;/span&gt; &lt;span class="err"&gt;使用开放定址法处理冲突&lt;/span&gt;
+
+    &lt;span class="mf"&gt;2.1&lt;/span&gt; &lt;span class="err"&gt;插入&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;发生冲突&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;通过二次探测算法&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;寻找下一个位置&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;直到找到可用位置&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;放入&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;形成一条冲突探测链&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+    &lt;span class="mf"&gt;2.2&lt;/span&gt; &lt;span class="err"&gt;查找&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;需要遍历冲突探测链&lt;/span&gt;
+
+    &lt;span class="mf"&gt;2.3&lt;/span&gt; &lt;span class="err"&gt;删除&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;如果对象在探测链上&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;不能直接删除&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;否则会破坏整个结构&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;所以不是真的删&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;关于 hash表的 &lt;a href="http://zh.wikipedia.org/wiki/%E5%93%88%E5%B8%8C%E8%A1%A8"&gt;wiki&lt;/a&gt;&lt;/p&gt;
+&lt;hr /&gt;
+&lt;h1&gt;基本键值PyDictEntry&lt;/h1&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="k"&gt;typedef&lt;/span&gt; &lt;span class="k"&gt;struct&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="n"&gt;Py_ssize_t&lt;/span&gt; &lt;span class="n"&gt;me_hash&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;PyObject&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;me_key&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;PyObject&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;me_value&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="n"&gt;PyDictEntry&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;说明&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="mf"&gt;1.&lt;/span&gt; &lt;span class="n"&gt;PyDictEntry&lt;/span&gt; &lt;span class="err"&gt;用于存储键值对信息&lt;/span&gt;
+
+&lt;span class="mf"&gt;2.&lt;/span&gt; &lt;span class="n"&gt;Py_ssize_t&lt;/span&gt; &lt;span class="n"&gt;me_hash&lt;/span&gt;
+&lt;span class="err"&gt;存储了&lt;/span&gt;&lt;span class="n"&gt;me_key&lt;/span&gt;&lt;span class="err"&gt;计算得到的&lt;/span&gt;&lt;span class="n"&gt;hash&lt;/span&gt;&lt;span class="err"&gt;值&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;不重复计算&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;结构&lt;/p&gt;
+&lt;p&gt;&lt;img alt="PyDictEntry" src="/imgs/python-source/PyDictEntry.png" /&gt;&lt;/p&gt;
+&lt;p&gt;PyDictEntry的三个状态(图片引自-Python源码剖析)&lt;/p&gt;
+&lt;p&gt;&lt;img alt="PyDictEntryState" src="/imgs/python-source/PyDictEntryState.png" /&gt;&lt;/p&gt;
+&lt;hr /&gt;
+&lt;h1&gt;PyDictObject定义&lt;/h1&gt;
+&lt;p&gt;定义&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="k"&gt;typedef&lt;/span&gt; &lt;span class="k"&gt;struct&lt;/span&gt; &lt;span class="n"&gt;_dictobject&lt;/span&gt; &lt;span class="n"&gt;PyDictObject&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="k"&gt;struct&lt;/span&gt; &lt;span class="n"&gt;_dictobject&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="n"&gt;PyObject_HEAD&lt;/span&gt;
+
+    &lt;span class="n"&gt;Py_ssize_t&lt;/span&gt; &lt;span class="n"&gt;ma_fill&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;Py_ssize_t&lt;/span&gt; &lt;span class="n"&gt;ma_used&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;Py_ssize_t&lt;/span&gt; &lt;span class="n"&gt;ma_mask&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+    &lt;span class="n"&gt;PyDictEntry&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;ma_table&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;PyDictEntry&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;ma_lookup&lt;/span&gt;&lt;span class="p"&gt;)(&lt;/span&gt;&lt;span class="n"&gt;PyDictObject&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;mp&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;PyObject&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;key&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="kt"&gt;long&lt;/span&gt; &lt;span class="n"&gt;hash&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="n"&gt;PyDictEntry&lt;/span&gt; &lt;span class="n"&gt;ma_smalltable&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;PyDict_MINSIZE&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
+&lt;span class="p"&gt;};&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;说明&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="mf"&gt;1.&lt;/span&gt; &lt;span class="n"&gt;PyObject_HEAD&lt;/span&gt;
+&lt;span class="err"&gt;反而声明为定长对象&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;因为&lt;/span&gt;&lt;span class="n"&gt;ob_size&lt;/span&gt;&lt;span class="err"&gt;在这里用不上&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;使用&lt;/span&gt;&lt;span class="n"&gt;ma_fill&lt;/span&gt;&lt;span class="err"&gt;和&lt;/span&gt;&lt;span class="n"&gt;ma_used&lt;/span&gt;&lt;span class="err"&gt;计数&lt;/span&gt;
+
+&lt;span class="mf"&gt;2.&lt;/span&gt; &lt;span class="n"&gt;Py_ssize_t&lt;/span&gt; &lt;span class="n"&gt;ma_fill&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+   &lt;span class="n"&gt;Py_ssize_t&lt;/span&gt; &lt;span class="n"&gt;ma_used&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+    &lt;span class="n"&gt;ma_fill&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="err"&gt;#&lt;/span&gt; &lt;span class="n"&gt;Active&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="err"&gt;#&lt;/span&gt; &lt;span class="n"&gt;Dummy&lt;/span&gt;
+    &lt;span class="n"&gt;ma_used&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="err"&gt;#&lt;/span&gt; &lt;span class="n"&gt;Active&lt;/span&gt;
+
+&lt;span class="mf"&gt;3.&lt;/span&gt; &lt;span class="n"&gt;Py_ssize_t&lt;/span&gt; &lt;span class="n"&gt;ma_mask&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="err"&gt;散列表&lt;/span&gt;&lt;span class="n"&gt;entry&lt;/span&gt;&lt;span class="err"&gt;容量&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;ma_mask&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;初始值&lt;/span&gt;&lt;span class="n"&gt;ma_mask&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;PyDict_MINSIZE&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;7&lt;/span&gt;
+
+    &lt;span class="n"&gt;ma_mask&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="err"&gt;#&lt;/span&gt; &lt;span class="n"&gt;Unused&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="err"&gt;#&lt;/span&gt; &lt;span class="n"&gt;Active&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="err"&gt;#&lt;/span&gt; &lt;span class="n"&gt;Dummy&lt;/span&gt;
+
+&lt;span class="mf"&gt;4.&lt;/span&gt; &lt;span class="n"&gt;PyDictEntry&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;ma_table&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="err"&gt;指向散列表内存&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;如果是小的&lt;/span&gt;&lt;span class="n"&gt;dict&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;entry&lt;/span&gt;&lt;span class="err"&gt;数量&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;=&lt;/span&gt;&lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt; &lt;span class="err"&gt;指向&lt;/span&gt;&lt;span class="n"&gt;ma_smalltable&lt;/span&gt;&lt;span class="err"&gt;数组&lt;/span&gt;
+
+&lt;span class="mf"&gt;5.&lt;/span&gt; &lt;span class="n"&gt;ma_lookup&lt;/span&gt;
+&lt;span class="err"&gt;搜索函数&lt;/span&gt;
+
+&lt;span class="mf"&gt;6.&lt;/span&gt; &lt;span class="n"&gt;PyDictEntry&lt;/span&gt; &lt;span class="n"&gt;ma_smalltable&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;PyDict_MINSIZE&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
+&lt;span class="err"&gt;小&lt;/span&gt;&lt;span class="n"&gt;dict&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;大小&lt;/span&gt;&lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;小于&lt;/span&gt;&lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="err"&gt;个键值对的字典会直接存放在这里&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;超出后再从内存分配空间&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;结构&lt;/p&gt;
+&lt;p&gt;&lt;img alt="PyDictObject" src="/imgs/python-source/PyDictObject.png" /&gt;&lt;/p&gt;
+&lt;p&gt;结论&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="mf"&gt;1.&lt;/span&gt; &lt;span class="n"&gt;PyDictObject&lt;/span&gt;&lt;span class="err"&gt;在生命周期内&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;需要维护&lt;/span&gt;&lt;span class="n"&gt;ma_fill&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;ma_used&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;ma_mask&lt;/span&gt; &lt;span class="err"&gt;三个计数值&lt;/span&gt;
+
+&lt;span class="mf"&gt;2.&lt;/span&gt; &lt;span class="err"&gt;初始化创建是&lt;/span&gt;&lt;span class="n"&gt;ma_smalltable&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;超过大小后&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;会使用外部分配的空间&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h1&gt;构造过程&lt;/h1&gt;
+&lt;p&gt;定义&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;PyObject&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;
+&lt;span class="nf"&gt;PyDict_New&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;void&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="k"&gt;register&lt;/span&gt; &lt;span class="n"&gt;PyDictObject&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;mp&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+    &lt;span class="c1"&gt;// 初始化dummy&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;dummy&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="nb"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="n"&gt;dummy&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;PyString_FromString&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;&amp;lt;dummy key&amp;gt;&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+        &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;dummy&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="nb"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+            &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="nb"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+    &lt;span class="c1"&gt;// 暂时忽略&lt;/span&gt;
+&lt;span class="cp"&gt;#ifdef SHOW_CONVERSION_COUNTS&lt;/span&gt;
+        &lt;span class="n"&gt;Py_AtExit&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;show_counts&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="cp"&gt;#endif&lt;/span&gt;
+&lt;span class="cp"&gt;#ifdef SHOW_ALLOC_COUNT&lt;/span&gt;
+        &lt;span class="n"&gt;Py_AtExit&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;show_alloc&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="cp"&gt;#endif&lt;/span&gt;
+&lt;span class="cp"&gt;#ifdef SHOW_TRACK_COUNT&lt;/span&gt;
+        &lt;span class="n"&gt;Py_AtExit&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;show_track&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="cp"&gt;#endif&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+
+    &lt;span class="c1"&gt;// 如果PyDictObject缓冲池可用&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;numfree&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="c1"&gt;// 取缓冲池最后一个可用对象&lt;/span&gt;
+        &lt;span class="n"&gt;mp&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;free_list&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="o"&gt;--&lt;/span&gt;&lt;span class="n"&gt;numfree&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
+
+        &lt;span class="n"&gt;assert&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;mp&lt;/span&gt; &lt;span class="o"&gt;!=&lt;/span&gt; &lt;span class="nb"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+        &lt;span class="n"&gt;assert&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;Py_TYPE&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;mp&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;PyDict_Type&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+        &lt;span class="n"&gt;_Py_NewReference&lt;/span&gt;&lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="n"&gt;PyObject&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="n"&gt;mp&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+
+        &lt;span class="c1"&gt;// 初始化&lt;/span&gt;
+        &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;mp&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ma_fill&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+            &lt;span class="c1"&gt;// 1. 清空 ma_smalltable&lt;/span&gt;
+            &lt;span class="c1"&gt;// 2. ma_used = ma_fill = 0&lt;/span&gt;
+            &lt;span class="c1"&gt;// 3. ma_table -&amp;gt; ma_smalltable&lt;/span&gt;
+            &lt;span class="c1"&gt;// 4. ma_mask = PyDict_MINSIZE - 1 = 7&lt;/span&gt;
+            &lt;span class="n"&gt;EMPTY_TO_MINSIZE&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;mp&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+        &lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="k"&gt;else&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+            &lt;span class="c1"&gt;// 1. ma_table -&amp;gt; ma_smalltable&lt;/span&gt;
+            &lt;span class="c1"&gt;// 2. ma_mask = PyDict_MINSIZE - 1 = 7&lt;/span&gt;
+            &lt;span class="n"&gt;INIT_NONZERO_DICT_SLOTS&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;mp&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+        &lt;span class="p"&gt;}&lt;/span&gt;
+
+        &lt;span class="n"&gt;assert&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;mp&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ma_used&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+        &lt;span class="n"&gt;assert&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;mp&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ma_table&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="n"&gt;mp&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ma_smalltable&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+        &lt;span class="n"&gt;assert&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;mp&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ma_mask&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="n"&gt;PyDict_MINSIZE&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="cp"&gt;#ifdef SHOW_ALLOC_COUNT&lt;/span&gt;
+        &lt;span class="n"&gt;count_reuse&lt;/span&gt;&lt;span class="o"&gt;++&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="cp"&gt;#endif&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="k"&gt;else&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="c1"&gt;// 创建一个&lt;/span&gt;
+        &lt;span class="n"&gt;mp&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;PyObject_GC_New&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;PyDictObject&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;PyDict_Type&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+        &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;mp&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="nb"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+            &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="nb"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="c1"&gt;// 初始化 1/2/3/4&lt;/span&gt;
+        &lt;span class="n"&gt;EMPTY_TO_MINSIZE&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;mp&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+
+&lt;span class="cp"&gt;#ifdef SHOW_ALLOC_COUNT&lt;/span&gt;
+        &lt;span class="n"&gt;count_alloc&lt;/span&gt;&lt;span class="o"&gt;++&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="cp"&gt;#endif&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+
+    &lt;span class="c1"&gt;// 搜索方法, 关注这个&lt;/span&gt;
+    &lt;span class="n"&gt;mp&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ma_lookup&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;lookdict_string&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+&lt;span class="cp"&gt;#ifdef SHOW_TRACK_COUNT&lt;/span&gt;
+    &lt;span class="n"&gt;count_untracked&lt;/span&gt;&lt;span class="o"&gt;++&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="cp"&gt;#endif&lt;/span&gt;
+&lt;span class="cp"&gt;#ifdef SHOW_CONVERSION_COUNTS&lt;/span&gt;
+    &lt;span class="o"&gt;++&lt;/span&gt;&lt;span class="n"&gt;created&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="cp"&gt;#endif&lt;/span&gt;
+
+    &lt;span class="c1"&gt;// 返回&lt;/span&gt;
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;PyObject&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="n"&gt;mp&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;简化步骤&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="mf"&gt;1.&lt;/span&gt; &lt;span class="err"&gt;如果&lt;/span&gt;&lt;span class="n"&gt;PyDictObject&lt;/span&gt;&lt;span class="err"&gt;对象缓冲池有&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;从里面直接取&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;初始化&lt;/span&gt;
+
+&lt;span class="mf"&gt;2.&lt;/span&gt; &lt;span class="err"&gt;否则&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;创建一个&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;初始化&lt;/span&gt;
+
+&lt;span class="mf"&gt;3.&lt;/span&gt; &lt;span class="err"&gt;关联搜索方法&lt;/span&gt;&lt;span class="n"&gt;lookdict_string&lt;/span&gt;
+
+&lt;span class="mf"&gt;4.&lt;/span&gt; &lt;span class="err"&gt;返回&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;结论&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="mf"&gt;1.&lt;/span&gt; &lt;span class="err"&gt;关注对象缓冲池&lt;/span&gt;
+
+&lt;span class="mf"&gt;2.&lt;/span&gt; &lt;span class="err"&gt;关注&lt;/span&gt;&lt;span class="n"&gt;lookdict_string&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h1&gt;销毁过程&lt;/h1&gt;
+&lt;p&gt;方法定义&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="k"&gt;static&lt;/span&gt; &lt;span class="kt"&gt;void&lt;/span&gt;
+&lt;span class="nf"&gt;dict_dealloc&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;register&lt;/span&gt; &lt;span class="n"&gt;PyDictObject&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;mp&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="k"&gt;register&lt;/span&gt; &lt;span class="n"&gt;PyDictEntry&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;ep&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;Py_ssize_t&lt;/span&gt; &lt;span class="n"&gt;fill&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;mp&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ma_fill&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;PyObject_GC_UnTrack&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;mp&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="n"&gt;Py_TRASHCAN_SAFE_BEGIN&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;mp&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+    &lt;span class="c1"&gt;// 遍历销毁ma_table中元素 (ma_table可能指向small_table 或 外部)&lt;/span&gt;
+    &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;ep&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;mp&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ma_table&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="n"&gt;fill&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="n"&gt;ep&lt;/span&gt;&lt;span class="o"&gt;++&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;ep&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;me_key&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+            &lt;span class="o"&gt;--&lt;/span&gt;&lt;span class="n"&gt;fill&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+            &lt;span class="n"&gt;Py_DECREF&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;ep&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;me_key&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+            &lt;span class="n"&gt;Py_XDECREF&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;ep&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;me_value&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+        &lt;span class="p"&gt;}&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+
+    &lt;span class="c1"&gt;// 如果指向外部, 销毁整个(上面一步只销毁内部元素)&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;mp&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ma_table&lt;/span&gt; &lt;span class="o"&gt;!=&lt;/span&gt; &lt;span class="n"&gt;mp&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ma_smalltable&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="n"&gt;PyMem_DEL&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;mp&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ma_table&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+
+    &lt;span class="c1"&gt;// 如果对象缓冲池未满且是PyDict_Type, 放入&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;numfree&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="n"&gt;PyDict_MAXFREELIST&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="n"&gt;Py_TYPE&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;mp&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;PyDict_Type&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="n"&gt;free_list&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;numfree&lt;/span&gt;&lt;span class="o"&gt;++&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;mp&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="k"&gt;else&lt;/span&gt;
+        &lt;span class="c1"&gt;// 否则回收&lt;/span&gt;
+        &lt;span class="n"&gt;Py_TYPE&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;mp&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;tp_free&lt;/span&gt;&lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="n"&gt;PyObject&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="n"&gt;mp&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="n"&gt;Py_TRASHCAN_SAFE_END&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;mp&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;hr /&gt;
+&lt;h1&gt;PyDictObject对象缓冲池&lt;/h1&gt;
+&lt;p&gt;定义&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="cp"&gt;#ifndef PyDict_MAXFREELIST&lt;/span&gt;
+&lt;span class="cp"&gt;#define PyDict_MAXFREELIST 80&lt;/span&gt;
+&lt;span class="cp"&gt;#endif&lt;/span&gt;
+
+&lt;span class="k"&gt;static&lt;/span&gt; &lt;span class="n"&gt;PyDictObject&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;free_list&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;PyDict_MAXFREELIST&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
+&lt;span class="k"&gt;static&lt;/span&gt; &lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;numfree&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;对象缓冲池的结构(跟PyListObject对象缓冲池结构基本一样)&lt;/p&gt;
+&lt;p&gt;&lt;img alt="PyDictObjectPool" src="/imgs/python-source/PyDictObjectPool.png" /&gt;&lt;/p&gt;
+&lt;p&gt;结论&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="mf"&gt;1.&lt;/span&gt; &lt;span class="err"&gt;最多会缓存&lt;/span&gt;&lt;span class="mi"&gt;80&lt;/span&gt;&lt;span class="err"&gt;个对象&lt;/span&gt;
+
+&lt;span class="mf"&gt;2.&lt;/span&gt; &lt;span class="err"&gt;只缓存&lt;/span&gt; &lt;span class="n"&gt;PyDictObject&lt;/span&gt; &lt;span class="err"&gt;本身&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;其&lt;/span&gt;&lt;span class="n"&gt;PyDictEntry&lt;/span&gt;&lt;span class="err"&gt;全部会被回收&lt;/span&gt;
+
+&lt;span class="mf"&gt;3.&lt;/span&gt; &lt;span class="err"&gt;缓存对象进去&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;旧有的值没有变化&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;取出来用的时候初始化时才改变&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;hr /&gt;
+&lt;h1&gt;Dict 操作&lt;/h1&gt;
+&lt;p&gt;查找/插入/resize/删除, 下个版本补&lt;/p&gt;
+&lt;hr /&gt;
+&lt;p&gt;changelog&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="mi"&gt;2014&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;08&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;11&lt;/span&gt; &lt;span class="n"&gt;first&lt;/span&gt; &lt;span class="n"&gt;version&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Mon, 11 Aug 2014 00:00:00 +0800</pubDate><guid>tag:www.wklken.me,2014-08-11:posts/2014/08/11/python-source-dict.html</guid><category>python</category></item><item><title>Python 源码阅读 - tuple</title><link>http://www.wklken.me/posts/2014/08/10/python-source-tuple.html</link><description>&lt;p&gt;还差一篇......写完写简历&amp;gt;_&amp;lt;#&lt;/p&gt;
 &lt;hr /&gt;
 &lt;p&gt;示例&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;a&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;()&lt;/span&gt;
