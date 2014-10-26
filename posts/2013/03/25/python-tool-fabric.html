@@ -151,11 +151,11 @@
 
 <h3>执行本机操作</h3>
 <p>简单的本地操作:</p>
-<div class="codehilite"><pre><span class="kn">from</span> <span class="nn">fabric.api</span> <span class="kn">import</span> <span class="n">local</span>
+<div class="codehilite"><pre><span class="kn">from</span> <span class="nn">fabric.api</span> <span class="kn">import</span> <span class="n">local</span><span class="p">,</span> <span class="n">lcd</span>
 
 <span class="k">def</span> <span class="nf">lsfab</span><span class="p">():</span>
-    <span class="n">local</span><span class="p">(</span><span class="s">&#39;cd ~/tmp/fab&#39;</span><span class="p">)</span>
-    <span class="n">local</span><span class="p">(</span><span class="s">&#39;ls&#39;</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">lcd</span><span class="p">(</span><span class="s">&#39;~/tmp/fab&#39;</span><span class="p">):</span>
+        <span class="n">local</span><span class="p">(</span><span class="s">&#39;ls&#39;</span><span class="p">)</span>
 </pre></div>
 
 
@@ -184,12 +184,12 @@
 
 
 <p>也就是说，这几个命令你每天都要手动敲一次，所谓daily job，就是每天都要重复的，机械化的工作，让我们看看用fabric怎么实现一键搞定：(其实用shell脚本可以直接搞定，但是fab的优势不是在这里，这里主要位后面本地+远端操作做准备，毕竟两个地方的操作写一种脚本便于维护)</p>
-<div class="codehilite"><pre><span class="kn">from</span> <span class="nn">fabric.api</span> <span class="kn">import</span> <span class="n">local</span>
+<div class="codehilite"><pre><span class="kn">from</span> <span class="nn">fabric.api</span> <span class="kn">import</span> <span class="n">local</span><span class="p">,</span> <span class="n">lcd</span>
 
 <span class="k">def</span> <span class="nf">setting_ci</span><span class="p">():</span>
-    <span class="n">local</span><span class="p">(</span><span class="s">&quot;cd /home/project/test/conf/&quot;</span><span class="p">)</span>
-    <span class="n">local</span><span class="p">(</span><span class="s">&quot;git add settings.py&quot;</span><span class="p">)</span>
-    <span class="c">#后面你懂的，懒得敲了…..</span>
+    <span class="k">with</span> <span class="n">lcd</span><span class="p">(</span><span class="s">&#39;/home/project/test/conf/&#39;</span><span class="p">):</span>
+        <span class="n">local</span><span class="p">(</span><span class="s">&quot;git add settings.py&quot;</span><span class="p">)</span>
+        <span class="c">#后面你懂的，懒得敲了…..</span>
 </pre></div>
 
 
@@ -316,14 +316,14 @@
 
 <span class="err">或者</span>
 <span class="n">env</span><span class="o">.</span><span class="n">roledefs</span> <span class="o">=</span> <span class="p">{</span>
-<span class="s">&#39;testserver&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;host1&#39;</span><span class="p">,</span> <span class="s">&#39;host2&#39;</span><span class="p">],</span>
-<span class="s">&#39;realserver&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;host3&#39;</span><span class="p">,</span> <span class="p">]</span>
+<span class="s">&#39;testserver&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;host1:22&#39;</span><span class="p">,</span> <span class="s">&#39;host2:22&#39;</span><span class="p">],</span>
+<span class="s">&#39;realserver&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;host3:22&#39;</span><span class="p">,</span> <span class="p">]</span>
 <span class="p">}</span>
 <span class="c"># 注意: 要使env.passwords生效, host格式必须是  user@ip:port 端口号一定要显式写出来,即使是使用的默认22端口</span>
 <span class="n">env</span><span class="o">.</span><span class="n">passwords</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s">&#39;host1&#39;</span><span class="p">:</span> <span class="s">&quot;pwdofhost1&quot;</span><span class="p">,</span>
-    <span class="s">&#39;host2&#39;</span><span class="p">:</span> <span class="s">&quot;pwdofhost2&quot;</span><span class="p">,</span>
-    <span class="s">&#39;host3&#39;</span><span class="p">:</span> <span class="s">&quot;pwdofhost3&quot;</span><span class="p">,</span>
+    <span class="s">&#39;host1:22&#39;</span><span class="p">:</span> <span class="s">&quot;pwdofhost1&quot;</span><span class="p">,</span>
+    <span class="s">&#39;host2:22&#39;</span><span class="p">:</span> <span class="s">&quot;pwdofhost2&quot;</span><span class="p">,</span>
+    <span class="s">&#39;host3:22&#39;</span><span class="p">:</span> <span class="s">&quot;pwdofhost3&quot;</span><span class="p">,</span>
 <span class="p">}</span>
 </pre></div>
 
@@ -347,6 +347,12 @@
 <span class="err">状态确认及错误处理</span>
 
 <span class="err">更复杂的操作</span>
+</pre></div>
+
+
+<hr />
+<p>update log</p>
+<div class="codehilite"><pre><span class="mi">2014</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="mi">26</span> <span class="n">fix</span> <span class="n">error</span> <span class="n">of</span> <span class="n">local</span><span class="o">/</span><span class="n">lcd</span>
 </pre></div>
 
 
