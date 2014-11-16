@@ -1,5 +1,312 @@
 <?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>wklken's blog</title><link>http://www.wklken.me/</link><description></description><atom:link href="http://www.wklken.me/category/system/feed" rel="self"></atom:link><lastBuildDate>Mon, 09 Jun 2014 00:00:00 +0800</lastBuildDate><item><title>简单搜索系统组成总结</title><link>http://www.wklken.me/posts/2014/06/09/search-system.html</link><description>&lt;p&gt;最近在进行离职前交接工作了, 对之前做的一些东西也大概进行了下简单总结.&lt;/p&gt;
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>wklken's blog</title><link>http://www.wklken.me/</link><description></description><atom:link href="http://www.wklken.me/category/system/feed" rel="self"></atom:link><lastBuildDate>Sun, 16 Nov 2014 20:58:00 +0800</lastBuildDate><item><title>基于 PostgreSQL 的数据统计系统</title><link>http://www.wklken.me/posts/2014/11/16/unit-statistics-system.html</link><description>&lt;p&gt;看到标题就知道我要写什么了, 这是之前一个项目的小结吧, 自己对统计的一些认识和看法.&lt;/p&gt;
+&lt;p&gt;当时从前到后, 包括技术选型, 花了接近一个月的时间, 也在生产上用了两三个月, 一致在持续维护, 做完图表配置化已然接近完工, 无奈后来离开了, 不过目前应该还在运转&lt;/p&gt;
+&lt;p&gt;至于源代码, 暂时不考虑开源, 太渣(其中在看了几天js情况下, 自己撸了1000行js的前端框架, 质量堪忧), 全套用python实现.&lt;/p&gt;
+&lt;p&gt;提供一种快速实现运营统计需求的思路.&lt;/p&gt;
+&lt;hr /&gt;
+&lt;h3&gt;一. 场景&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;统计&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;所谓统计, 抽象出来就是计数而已(还有各个计数之间的算术运算). 再具体一些, 根据不同维度进行计数.&lt;/p&gt;
+&lt;p&gt;而统计后台, 无外乎数据的输入, 处理, 及输出.&lt;/p&gt;
+&lt;p&gt;对于实时性, 一般会以天为单位进行统计.&lt;/p&gt;
+&lt;p&gt;而在具体业务场景下, 需要计数的数据来源于各个项目和同一个项目的不同机器(分布式部署), 就需要考虑, 如何将日志进行汇聚, 如何更为便捷地进行处理, 存储, 以及展现.&lt;/p&gt;
+&lt;p&gt;其中要考虑, 需求是不断在变化的, 如何将成本降到最低?&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;以往的统计方式:&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="err"&gt;分析统计需求&lt;/span&gt; &lt;span class="o"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="err"&gt;修改项目记录日志内容和格式&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;到磁盘&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="err"&gt;自行将日志汇总到一台机器&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;rsync&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;crontab&lt;/span&gt;&lt;span class="err"&gt;脚本分析日志&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;要删或备份历史数据&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="err"&gt;新建&lt;/span&gt;&lt;span class="n"&gt;db&lt;/span&gt;&lt;span class="err"&gt;表&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;存储统计结果&lt;/span&gt; &lt;span class="o"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="err"&gt;写管理后台&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;查询统计结果&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;最繁琐&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="err"&gt;处理分页&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="err"&gt;图表等&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;虽然每次耗时或许并不会太长(0.5-2d, 视需求大小), 但对于不同项目和需求变更, 这些工作都是纯体力毫无技术含量的枯燥工作, 可以说是无意义的资源浪费.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;新的方式&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="err"&gt;分析统计需求&lt;/span&gt; &lt;span class="o"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="err"&gt;确认日志内容和格式&lt;/span&gt;  &lt;span class="o"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="err"&gt;统计后台配置输入&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="err"&gt;处理&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="err"&gt;输出逻辑&lt;/span&gt; &lt;span class="o"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="err"&gt;查看结果&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;说白了就是, 处理统计需求变成了 &lt;code&gt;写sql&lt;/code&gt; + &lt;code&gt;配置&lt;/code&gt;&lt;/p&gt;
+&lt;hr /&gt;
+&lt;h3&gt;二. 处理思路&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;大体思路如下(从后往前):&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="mf"&gt;1.&lt;/span&gt; &lt;span class="err"&gt;将日志进行汇总&lt;/span&gt;
+&lt;span class="mf"&gt;2.&lt;/span&gt; &lt;span class="err"&gt;日志格式一致化&lt;/span&gt;
+&lt;span class="mf"&gt;3.&lt;/span&gt; &lt;span class="err"&gt;将日志导入到一个容器中&lt;/span&gt;
+&lt;span class="mf"&gt;4.&lt;/span&gt; &lt;span class="err"&gt;便捷地通过容器进行计算&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;计数&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="mf"&gt;5.&lt;/span&gt; &lt;span class="err"&gt;统计结果进行统一存储&lt;/span&gt;
+&lt;span class="mf"&gt;6.&lt;/span&gt; &lt;span class="err"&gt;提供统一的查询接口&lt;/span&gt;
+&lt;span class="mf"&gt;7.&lt;/span&gt; &lt;span class="err"&gt;提供前端框架组件&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;可以通过配置调用统一查询接口&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;并对数据进行分页及图表化&lt;/span&gt;
+&lt;span class="mf"&gt;8.&lt;/span&gt; &lt;span class="err"&gt;提供配置入口&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;可以配置日志入口&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;处理逻辑&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;展现逻辑&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt; &lt;span class="err"&gt;即完全地配置化&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;ul&gt;
+&lt;li&gt;需要统一的地方:&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="err"&gt;日志格式&lt;/span&gt;
+&lt;span class="err"&gt;容器存储&lt;/span&gt;
+&lt;span class="err"&gt;报告存储&lt;/span&gt;
+&lt;span class="err"&gt;查询接口&lt;/span&gt;
+&lt;span class="err"&gt;前端组件&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;ul&gt;
+&lt;li&gt;系统成型后&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="err"&gt;增加&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="err"&gt;修改统计需求&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="err"&gt;只需要在后台配置数据来源&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;日志&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="err"&gt;处理逻辑&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;一段&lt;/span&gt; &lt;span class="n"&gt;sql&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="err"&gt;展示逻辑&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;一段前端&lt;/span&gt; &lt;span class="n"&gt;json&lt;/span&gt;&lt;span class="err"&gt;配置&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="err"&gt;就可以实现图标&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;hr /&gt;
+&lt;h3&gt;三. 具体&lt;/h3&gt;
+&lt;h3&gt;0. 基本架构&lt;/h3&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;             &lt;span class="o"&gt;----------------------------------------------&lt;/span&gt;
+            &lt;span class="o"&gt;|&lt;/span&gt;      &lt;span class="err"&gt;日志&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;UniteStats&lt;/span&gt; &lt;span class="n"&gt;or&lt;/span&gt; &lt;span class="n"&gt;ApplicationLogs&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;     &lt;span class="o"&gt;|&lt;/span&gt;
+             &lt;span class="o"&gt;----------------------------------------------&lt;/span&gt;
+                              &lt;span class="o"&gt;||&lt;/span&gt;
+                 &lt;span class="o"&gt;---------------------------&lt;/span&gt;
+                &lt;span class="o"&gt;|&lt;/span&gt;        &lt;span class="n"&gt;load&lt;/span&gt;&lt;span class="err"&gt;处理程序&lt;/span&gt;        &lt;span class="o"&gt;|&lt;/span&gt;
+                 &lt;span class="o"&gt;---------------------------&lt;/span&gt;
+                              &lt;span class="o"&gt;||&lt;/span&gt;
+                &lt;span class="n"&gt;___________________________&lt;/span&gt;
+               &lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="err"&gt;存储容器&lt;/span&gt;&lt;span class="o"&gt;--&lt;/span&gt;&lt;span class="err"&gt;计算容器&lt;/span&gt;           &lt;span class="o"&gt;|&lt;/span&gt;
+               &lt;span class="o"&gt;|&lt;/span&gt;                          &lt;span class="o"&gt;|&lt;/span&gt;
+               &lt;span class="o"&gt;|&lt;/span&gt;  &lt;span class="n"&gt;Container&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;Postgresql&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;   &lt;span class="o"&gt;|&lt;/span&gt;   &lt;span class="c1"&gt;//json - sql - 聚集函数&lt;/span&gt;
+               &lt;span class="o"&gt;|&lt;/span&gt;                          &lt;span class="o"&gt;|&lt;/span&gt;
+               &lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="n"&gt;___________________________&lt;/span&gt;
+                             &lt;span class="o"&gt;||&lt;/span&gt;
+            &lt;span class="o"&gt;--------------------------------------&lt;/span&gt;
+           &lt;span class="o"&gt;|&lt;/span&gt;        &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="err"&gt;自定义统计脚本&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="err"&gt;查询逻辑及报告表&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;  &lt;span class="o"&gt;|&lt;/span&gt;
+            &lt;span class="o"&gt;--------------------------------------&lt;/span&gt;
+                             &lt;span class="o"&gt;||&lt;/span&gt;
+            &lt;span class="o"&gt;---------------------------------------&lt;/span&gt;
+           &lt;span class="o"&gt;|&lt;/span&gt;            &lt;span class="err"&gt;统计报告&lt;/span&gt;                    &lt;span class="o"&gt;|&lt;/span&gt;
+            &lt;span class="o"&gt;---------------------------------------&lt;/span&gt;
+                            &lt;span class="o"&gt;||&lt;/span&gt;
+            &lt;span class="o"&gt;---------------------------------------&lt;/span&gt;
+           &lt;span class="o"&gt;|&lt;/span&gt;            &lt;span class="err"&gt;统一查询接口&lt;/span&gt;                &lt;span class="o"&gt;|&lt;/span&gt;
+            &lt;span class="o"&gt;---------------------------------------&lt;/span&gt;
+                            &lt;span class="o"&gt;||&lt;/span&gt;
+             &lt;span class="o"&gt;------------------------------------&lt;/span&gt;
+            &lt;span class="o"&gt;|&lt;/span&gt;      &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="err"&gt;自定义前端&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="err"&gt;使用统一库&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="err"&gt;配置生成&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;   &lt;span class="o"&gt;|&lt;/span&gt;
+             &lt;span class="o"&gt;------------------------------------&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;1. 日志格式&lt;/h3&gt;
+&lt;p&gt;日志, 即文本.&lt;/p&gt;
+&lt;p&gt;但是文本存在各种格式, 例如常见的’\t’分隔的列, csv, json, xml等等.&lt;/p&gt;
+&lt;p&gt;这里的要求是: 一定要满足自描述, 易读(人), 易处理(生成和解析).&lt;/p&gt;
+&lt;p&gt;最终选择了&lt;code&gt;json&lt;/code&gt;. 将原先无结构数据转成半结构化数据.&lt;/p&gt;
+&lt;p&gt;原因之一, &lt;code&gt;容器&lt;/code&gt;对半结构化的数据支持已经非常完善了, 例如postgresql, mongodb等, 对于后续计算很重要.&lt;/p&gt;
+&lt;p&gt;原因之二, 作为一个统一的平台, 我只在乎数据是一份日志, 但是不在乎, 日志里存了些什么, 每个字段的意义, 这些只有平台的使用者需要知道. 否则带来很大一个问题是, 对于使用者在新增或变更一份日志格式时, 需要明确告诉系统这份日志各个字段是什么(名称和类型), 复杂化了&lt;/p&gt;
+&lt;p&gt;到这里, 我们统一了日志的格式, 记录为json, 每条记录一行.&lt;/p&gt;
+&lt;h3&gt;2. 日志收集汇总&lt;/h3&gt;
+&lt;p&gt;目的: 将日志汇总到同一台机器上, 便于统一处理&lt;/p&gt;
+&lt;p&gt;命名规则: &lt;code&gt;$THE_LOG_PATH/{projectName}/{projectName}_{moduleName}_{ip}_{yyMMdd}.log&lt;/code&gt; (示例)&lt;/p&gt;
+&lt;p&gt;日志汇总的方案有很多:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;scp&lt;/span&gt;
+&lt;span class="n"&gt;rsync&lt;/span&gt;
+&lt;span class="n"&gt;nfs&lt;/span&gt;
+&lt;span class="n"&gt;logstash&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;最终的处理方案: 数据量小, 同一个机房, 使用NFS将日志汇总到目录, 不同机房, 使用rsync进行汇总. 如果数据量大, 可以考虑使用logstash, 直接将日志经过节点处理实时写到一台机器上(就不要分别记录到各自磁盘了).&lt;/p&gt;
+&lt;p&gt;扩展: 使用多台机器, 只要保证最终导入同一个库即可.(同一个项目, 同一天存在一张表, 不同机器的日志导入之)&lt;/p&gt;
+&lt;p&gt;到这里, 我们将所有json格式的日志汇集到了一起&lt;/p&gt;
+&lt;h3&gt;3. 导入容器处理&lt;/h3&gt;
+&lt;p&gt;目前每个项目的日志格式是,&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="n"&gt;projectName&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="n"&gt;projectName&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="n"&gt;_&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="n"&gt;moduleName&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="n"&gt;_&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="n"&gt;ip&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="n"&gt;_&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="n"&gt;yyMMdd&lt;/span&gt;&lt;span class="p"&gt;}.&lt;/span&gt;&lt;span class="n"&gt;log&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;我们会将同一个项目, 可能来自不同机器的日志导入同一张表&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="n"&gt;projectName&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="n"&gt;projectName&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="n"&gt;_&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="n"&gt;moduleName&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="n"&gt;_&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;_&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="n"&gt;yyMMdd&lt;/span&gt;&lt;span class="p"&gt;}.&lt;/span&gt;&lt;span class="n"&gt;log&lt;/span&gt;
+&lt;span class="o"&gt;=&amp;gt;&lt;/span&gt;
+&lt;span class="nl"&gt;table:&lt;/span&gt; &lt;span class="n"&gt;projectName_moduleName_yyMMdd&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;处理方式: 批量入库, 并且清理保留日期外的表&lt;/p&gt;
+&lt;p&gt;建议使用批量导入的方式, 速度杠杠的. Postgresql请使用copy命令&lt;/p&gt;
+&lt;h3&gt;4. 容器&lt;/h3&gt;
+&lt;p&gt;一个计算容器, 仅此而已&lt;/p&gt;
+&lt;p&gt;技术选型时, 考虑过Mysql/Mongdb/Redis/MariaDB/OrientDB/CouchDB/RethinkDB等等, 最终敲定使用postgresql, 无它, 对json的完美支持, 满足业务: 一定的数据量, 足够简单的统计方式, 足够稳定, 简单易运维等&lt;/p&gt;
+&lt;p&gt;提下&lt;code&gt;redis&lt;/code&gt;, 当时做了整套的&lt;code&gt;redis&lt;/code&gt;方案(接口文档都明确完了就差写代码了), 但是后来毙掉了. (典型的拿着锤子满世界都是钉子的案例). 思想是: 流式日志处理, 根据业务需求使用redis counter, 主从, 后台从redis直接取counter进行展示. 脑洞很大, 可以搞定实时/非实时情况, 还可以顺带把各类业务中的counter需求给做了, 以及更为灵活的展现方式, 但是学习成本较高, 对每个写统计的人要求较高(素质, 具备正确的统计思维, 否则会悲剧掉). 再加上业务本身要求实时性并不高, 所以废弃.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;MySql&lt;/code&gt; 对 &lt;code&gt;json&lt;/code&gt; 的支持, 相对于 postgresql 而言逊色太多了, 对&lt;code&gt;json&lt;/code&gt;格式存在限制(多层复杂嵌套的情况)&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;Mongodb&lt;/code&gt; 虽然对&lt;code&gt;json&lt;/code&gt;支持不错, 但是对于数据量较大的情况支持并不好, 并且查询以及运维都会带来一定困难, 对于使用者有一定学习成本&lt;/p&gt;
+&lt;p&gt;PostGresql作为容器的好处:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="mf"&gt;1.&lt;/span&gt; &lt;span class="err"&gt;支持的数据量&lt;/span&gt;
+&lt;span class="mf"&gt;2.&lt;/span&gt; &lt;span class="err"&gt;查询简单，支持&lt;/span&gt;&lt;span class="n"&gt;json&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;所有&lt;/span&gt;&lt;span class="n"&gt;sql&lt;/span&gt;&lt;span class="err"&gt;查询，&lt;/span&gt;&lt;span class="n"&gt;group&lt;/span&gt; &lt;span class="n"&gt;by&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;order&lt;/span&gt; &lt;span class="n"&gt;by&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="err"&gt;嵌套子查询，聚集等&lt;/span&gt;
+&lt;span class="mf"&gt;3.&lt;/span&gt; &lt;span class="err"&gt;各种聚集、统计函数均可用，搞定基本统计查询无障碍（再复杂的都可以）&lt;/span&gt;
+&lt;span class="mf"&gt;4.&lt;/span&gt; &lt;span class="err"&gt;运维简单&lt;/span&gt;
+&lt;span class="mf"&gt;5.&lt;/span&gt; &lt;span class="err"&gt;对于开发而言几乎没有学习成本&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;会&lt;/span&gt;&lt;span class="n"&gt;sql&lt;/span&gt;&lt;span class="err"&gt;再学习下&lt;/span&gt;&lt;span class="n"&gt;postgresql&lt;/span&gt;&lt;span class="err"&gt;的&lt;/span&gt;&lt;span class="n"&gt;json&lt;/span&gt;&lt;span class="err"&gt;查询&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;示例:
+假设搜索日志:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="err"&gt;‘&lt;/span&gt;&lt;span class="n"&gt;ip&lt;/span&gt;&lt;span class="err"&gt;’&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="err"&gt;‘&lt;/span&gt;&lt;span class="mf"&gt;127.0.0.1&lt;/span&gt;&lt;span class="err"&gt;’&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="err"&gt;‘&lt;/span&gt;&lt;span class="n"&gt;keyword&lt;/span&gt;&lt;span class="err"&gt;’&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="err"&gt;‘&lt;/span&gt;&lt;span class="n"&gt;test&lt;/span&gt;&lt;span class="err"&gt;’&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+ &lt;span class="err"&gt;‘&lt;/span&gt;&lt;span class="n"&gt;result_count&lt;/span&gt;&lt;span class="err"&gt;’&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="err"&gt;‘&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="err"&gt;’&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;统计 pv&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;select&lt;/span&gt; &lt;span class="n"&gt;count&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;ip&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;from&lt;/span&gt; &lt;span class="n"&gt;search_20141101&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;统计 uv&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;select&lt;/span&gt; &lt;span class="n"&gt;count&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;DISTINCT&lt;/span&gt; &lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&amp;gt;&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;ip&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;from&lt;/span&gt; &lt;span class="n"&gt;search_20141101&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;无结果数&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;select&lt;/span&gt; &lt;span class="n"&gt;count&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;from&lt;/span&gt; &lt;span class="n"&gt;search_20141101&lt;/span&gt; &lt;span class="n"&gt;where&lt;/span&gt; &lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&amp;gt;&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;result_count&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="sc"&gt;&amp;#39;0&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;搜索热词排行榜&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;select&lt;/span&gt; &lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&amp;gt;&lt;/span&gt;&lt;span class="err"&gt;’&lt;/span&gt;&lt;span class="n"&gt;keyword&lt;/span&gt;&lt;span class="err"&gt;’&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;count&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;from&lt;/span&gt; &lt;span class="n"&gt;search_20141101&lt;/span&gt;
+&lt;span class="n"&gt;where&lt;/span&gt; &lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&amp;gt;&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;result_count&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt; &lt;span class="o"&gt;!=&lt;/span&gt; &lt;span class="sc"&gt;&amp;#39;0&amp;#39;&lt;/span&gt;
+&lt;span class="n"&gt;group&lt;/span&gt; &lt;span class="n"&gt;by&lt;/span&gt; &lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&amp;gt;&lt;/span&gt;&lt;span class="err"&gt;’&lt;/span&gt;&lt;span class="n"&gt;keyword&lt;/span&gt;&lt;span class="err"&gt;’&lt;/span&gt;
+&lt;span class="n"&gt;order&lt;/span&gt; &lt;span class="n"&gt;by&lt;/span&gt; &lt;span class="n"&gt;count&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;desc&lt;/span&gt;
+&lt;span class="n"&gt;limit&lt;/span&gt; &lt;span class="mi"&gt;100&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;5. 批处理&lt;/h3&gt;
+&lt;p&gt;这里要做的事情, 需要有一个管理后台, 让开发可以配置上传自己的处理脚本, 设定脚本执行时间, 执行参数(处理日期/报告表名), 甚至是执行依赖.&lt;/p&gt;
+&lt;p&gt;这里需要形成一个约定&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="err"&gt;报告表名&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;projectName_statsModuleName&lt;/span&gt;
+&lt;span class="err"&gt;报告表一些字段名&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;因为统一查询接口需要用到&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="err"&gt;日期&lt;/span&gt; &lt;span class="n"&gt;date&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;span class="err"&gt;其他约定字段&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;每天, 系统会扫描并调度任务, 执行, 处理得到统计结果, 存入报告表.&lt;/p&gt;
+&lt;p&gt;到这里, 我们每天的统计结果都存入到了报告表中&lt;/p&gt;
+&lt;h3&gt;6. 输出&lt;/h3&gt;
+&lt;p&gt;报告表, 是以时间为维度的, 每条记录带有日期, 每条记录细化到要统计到的精确维度.(具体表现是一个维度会多一列字段), 原则是, 需求分析时充分考虑当前及后续可能的统计需求(要预见还是蛮容易的), 直接将统计维度最细化.&lt;/p&gt;
+&lt;p&gt;当然, 如果无法最细化, 后面存在变更, 可以修改统计脚本, 根据情况对历史数据进行重新统计.&lt;/p&gt;
+&lt;h3&gt;7. 统一查询层&lt;/h3&gt;
+&lt;p&gt;一层通用的接口, 支持传入表名, 条件, 需要结果字段, 格式等, 可以对系统中各类报告表进行各种形式的查询, 获取统计结果.&lt;/p&gt;
+&lt;h3&gt;8. 前端框架及展现&lt;/h3&gt;
+&lt;p&gt;是一整套的js款干啊&lt;/p&gt;
+&lt;p&gt;分成几块&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;生成查询表单: 模块化组件, 通过json配置, 自动生成统计查询的表单, 支持各类维度&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;配置示例:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="c1"&gt;// 产生条件html&lt;/span&gt;
+    &lt;span class="k"&gt;var&lt;/span&gt; &lt;span class="n"&gt;condition_configs&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="nl"&gt;title:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;频道访问统计摘要&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+        &lt;span class="nl"&gt;conditions:&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;
+                &lt;span class="p"&gt;{&lt;/span&gt;
+                    &lt;span class="k"&gt;type&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;date_begin_to_end&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="c1"&gt;//开始结束日期选择框&lt;/span&gt;
+                &lt;span class="p"&gt;},&lt;/span&gt;
+                &lt;span class="p"&gt;{&lt;/span&gt;
+                    &lt;span class="k"&gt;type&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;select&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;   &lt;span class="c1"&gt;//下拉框&lt;/span&gt;
+                    &lt;span class="nl"&gt;label:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;频道&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                    &lt;span class="nl"&gt;id:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;channel&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                    &lt;span class="nl"&gt;options:&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;
+                        &lt;span class="p"&gt;{&lt;/span&gt;
+                            &lt;span class="nl"&gt;text:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;所有&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                            &lt;span class="nl"&gt;value:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                        &lt;span class="p"&gt;},&lt;/span&gt;
+                        &lt;span class="p"&gt;{&lt;/span&gt;
+                            &lt;span class="nl"&gt;text:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;快速访问&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                            &lt;span class="nl"&gt;value:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;quickaccess&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                        &lt;span class="p"&gt;},&lt;/span&gt;
+
+                    &lt;span class="p"&gt;]&lt;/span&gt;
+                &lt;span class="p"&gt;},&lt;/span&gt;
+                &lt;span class="p"&gt;{&lt;/span&gt;
+                    &lt;span class="k"&gt;type&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;version&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="c1"&gt;//文档框&lt;/span&gt;
+                &lt;span class="p"&gt;},&lt;/span&gt;
+        &lt;span class="p"&gt;]&lt;/span&gt;
+    &lt;span class="p"&gt;};&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;就会自动生成表单&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;begin_date&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
+&lt;span class="n"&gt;end_date&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
+&lt;span class="n"&gt;channel&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
+&lt;span class="n"&gt;version&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;组合查询条件: 表单提交时, 根据json配置, 将表单内容/字段/值/表等, 拼接成统一查询层接口需要的请求串&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;查询后数据处理: 将查询后的结果, 根据json配置, 进行转化和展现, 并图表化.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;一个配置示例:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="err"&gt;一般文本&lt;/span&gt;
+&lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;column&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;date&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;name&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="err"&gt;&amp;#39;日期&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;type&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;text&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;span class="p"&gt;},&lt;/span&gt;
+
+&lt;span class="err"&gt;百分比&lt;/span&gt; &lt;span class="err"&gt;$后面跟的是&lt;/span&gt;&lt;span class="n"&gt;sql&lt;/span&gt;&lt;span class="err"&gt;查询结果列名&lt;/span&gt;
+&lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;column&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;uninstall_ratio&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;name&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="err"&gt;&amp;#39;卸载率&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;type&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;ratio&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;value&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="err"&gt;&amp;#39;$&lt;/span&gt;&lt;span class="n"&gt;uninstall_pv&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;install_pv&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;
+&lt;span class="p"&gt;},&lt;/span&gt;
+
+&lt;span class="err"&gt;公式计算&lt;/span&gt;
+&lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;column&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;the_qvod_link_pv&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;name&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="err"&gt;&amp;#39;导入链接数&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;type&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;calculate&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;value&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="err"&gt;&amp;#39;$&lt;/span&gt;&lt;span class="n"&gt;qvod_link_pv&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;qvod_start_pv&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;
+&lt;span class="p"&gt;},&lt;/span&gt;
+
+&lt;span class="err"&gt;列值翻译&lt;/span&gt;
+&lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;column&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;channel&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;name&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="err"&gt;&amp;#39;渠道&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;type&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;text&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;translation&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="s"&gt;&amp;quot;all&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;all&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+        &lt;span class="s"&gt;&amp;quot;player&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;播放器&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+        &lt;span class="s"&gt;&amp;quot;zx&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;资讯&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+        &lt;span class="s"&gt;&amp;quot;other&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;其他导入&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="p"&gt;},&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;9. 图表&lt;/h3&gt;
+&lt;p&gt;使用百度 &lt;a href="http://echarts.baidu.com/"&gt;echats&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;可以根据配置, 将统一查询层的接口返回数据直接灌入echats, 生成表单&lt;/p&gt;
+&lt;h3&gt;10. 过程日志及监控&lt;/h3&gt;
+&lt;p&gt;需要一组管理表, 进行任务配置/调度/执行/执行结果, 整个过程中的操作可以配置和查看, 用于监控.&lt;/p&gt;
+&lt;hr /&gt;
+&lt;h3&gt;四. 小结&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;It’s Simple, but it works.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;数据情况, 当时大概每天 10G 日志 load 到库(处理前&amp;gt;10G), 每天日志数据大概是五千万条, 具体业务上了大概40个的样子, 每天30分钟左右处理完. 对于开发的改进是, 将原先0.5-2d的工作, 缩减到了1-2小时, 对生产力的提升较为显著.(对于日志数多且单一日志量较小的情况处理尤为便捷)&lt;/p&gt;
+&lt;p&gt;适用范围: 对于一般团队应该足够了(流量百万级别), 每个项目每天3-5百万访问量, 日志数据10-20G, 当然, 一直没机会测试上限, 不过只要PostGresql能抗住, 量再大些应该也ok.(可以考虑上elasticsearch)&lt;/p&gt;
+&lt;p&gt;以上思路, 仅供借鉴:) 就这样吧&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sun, 16 Nov 2014 20:58:00 +0800</pubDate><guid>tag:www.wklken.me,2014-11-16:posts/2014/11/16/unit-statistics-system.html</guid><category>system</category></item><item><title>简单搜索系统组成总结</title><link>http://www.wklken.me/posts/2014/06/09/search-system.html</link><description>&lt;p&gt;最近在进行离职前交接工作了, 对之前做的一些东西也大概进行了下简单总结.&lt;/p&gt;
 &lt;p&gt;今天整理了下, 搜索系统组成简要描述, 一些思想, 不涉及太多具体实现.&lt;/p&gt;
 &lt;p&gt;这套系统从开始设计到最终完成, 前前后后花了3个月的样子(计算所有时间投入), 也算是做得感觉比较完善的一套系统.&lt;/p&gt;
 &lt;p&gt;上线接近一年, 支持快玩游戏搜索业务(快玩盒子/快玩网站/移动端等), 系统每天百万级的搜索(峰值在250w左右, 应用层两台机器负载均衡, 单机核心层, 单机引擎), 很遗憾, 由于业务所限, 一直没有看到这套系统能支持的量上限, 即使在峰值, 核心层qps大概也才50左右, 预计搜索量到千万级应该没什么压力, 当然, 优化的余地还很多.&lt;/p&gt;
