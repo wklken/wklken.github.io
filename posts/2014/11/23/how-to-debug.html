@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--[if IE 8]> <html class="no-js lt-ie9" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
+
+<head>
+    <meta name="google-site-verification" content="SzE6WCs23qFevgBzRIuG9vcfLU0lW_Vd5hFT-cJOLBE" />
+    <title>关于调试代码de那些事</title>
+    <meta charset="utf-8" />
+    <meta name="description" content="">
+    <meta name="keywords" content="" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+        <link rel="shortcut icon" href="/favicon.ico"/>
+        <link rel="stylesheet" href="/theme/css/styles.css" media="all" />
+        <link rel="stylesheet" href="/theme/css/tab.min.css" media="all" />
+        <link rel="stylesheet" href="/theme/css/jquery-ui.min.css" media="all" />
+
+        <link rel="stylesheet" href="http://apps.bdimg.com/libs/fontawesome/4.2.0/css/font-awesome.min.css">
+        <!--[if IE 7]>
+            <link rel="stylesheet" href="/theme/css/font-awesome-ie7.min.css">
+        <![endif]-->
+
+        <link href="/" type="application/atom+xml" rel="alternate" title="wklken's blog ATOM Feed" />
+        <link href="/feed.xml" type="application/atom+xml" rel="alternate" title="wklken's blog RSS Feed" />
+
+</head>
+
+<body id="index" class="home">
+    <div id="page" class="row">
+        <div class="large-8 large-centered columns">
+
+        <header id="header">
+            <div class="constraint">
+                <div class="o">
+                    <a href="/"><h1 class="banner">Wklken <span class="blue"> Python</span></h1></a>
+
+                <div class="social">
+                            <a href="https://github.com/wklken" target='_blank'><i class="icon-github-sign icon-2x"></i></a>
+                            <a href="http://weibo.com/wklken" target='_blank'><i class="icon-weibo icon-2x"></i></a>
+                            <a href="mailto:wklken@yeah.net"><i class="icon-envelope icon-2x"></i></a>
+                            <a href="http://www.wklken.me/feed.xml" target='_blank'><i class="icon-rss-sign icon-2x"></i></a>
+                </div>
+                <div class="nav">
+                            <a href="/">首页</a>
+                            <a href="/categories.html">分类</a>
+                            <a href="/archives.html">归档</a>
+                            <a href="/pages/projects.html">项目</a>
+                            <a href="/pages/tools.html">工具</a>
+                            <a href="/pages/books.html">书单</a>
+                            <a href="/pages/aboutme.html">关于</a>
+
+                </div>
+
+                </div>
+            </div>
+        </header><!-- /#banner -->
+
+        <section id="main">
+
+<div id="leaf-stats">
+    on the left
+</div>
+
+<article id="article">
+    <section id="header">
+        <!--
+        <div class="meta">2014年11月23日</div>
+        <h1 id="title"> 关于调试代码de那些事 </h1>
+        -->
+        <div class="meta"> &nbsp; </div>
+        <h1> 关于调试代码de那些事 </h1>
+    </section>
+    <section id="content">
+        <p>写代码最完美的就是, 想清楚, 码, 运行, perfect, DONE, 下班.</p>
+<p>当然, 那是完美的状态. 大多数时候只存在于理想中.</p>
+<p>现实是, 我们会被各种坑, 被环境坑, 被语言坑, 被依赖坑, 被第三方库坑, 被编辑器坑, 被自己坑(三个月前的自己/昨天的自己/几分钟前的自己), 被数据库坑, 被缓存坑, 被队友坑(这个比较惨), 被需求变更坑(这个也是)......</p>
+<p>所以, 总是避免不了代码调试.</p>
+<p>今天顺带过了下&lt;&lt;想计算机科学家一样思考Python>>, 里面每一章最后都有关于调试的一些观点, 例如<code>阅读 - 深思 - 修改/运行/回退</code>, 所以决定来写写关于代码调试的一些东西.</p>
+<p>其实, 代码调试是<code>论如何排查问题</code>的一个过程, 根据一切蛛丝马迹, 推断出问题所在, 并消灭之.(破案的即视感)</p>
+<p><img alt="sherlock" src="/imgs/blabal/debug.png" /></p>
+<p>下面是一些关于一些自己在写代码和调试的总结</p>
+<hr />
+<ol>
+<li>你得明白你在做什么, 保持清醒</li>
+</ol>
+<p>代码调试有时候会让你陷入无尽的自我怀疑/迷茫/愤怒/沮丧/窘迫/挫败(无限负能量), 很容易被这些情绪左右, 不清醒, 陷入怀疑自我(一定是我调用的方式不对), 或者怀疑一切(一定是数据库问题, 不对, 缓存问题, 不对, 接口问题, 好像不对, 数据问题), 或者胡乱改代码(改-跑-错了-再改-跑-又错-再改, 传说中的随机行走编程), 或者......(挣扎吧......)</p>
+<p>此刻, 保持清醒的自我是非常重要的, 要明确: <code>我在做什么</code>, <code>问题是什么症状</code>, <code>原来逻辑是什么</code>, <code>最有可能出问题的是哪里</code>?</p>
+<ol>
+<li>想清楚了再写代码</li>
+</ol>
+<p>如果连需求是什么, 想要做什么都没整明白, 就吭哧吭哧开写, 意图在实践中摸索通向胜利的道路, 是很愚蠢的行为.</p>
+<p>需要去理解需求, 自己要做什么, 然后, 在大脑中构造, 现在有什么, 为了完成需求需要做什么, 完成大体的组成结构/步骤流程的思考后, 再着手去做.</p>
+<p>大到整体设计, 小到一个函数, 都可以这么处理</p>
+<p>例如, 遇到复杂问题, 可以先写注释, 完整所有函数整体设计, 然后再填充细节</p>
+<div class="codehilite"><pre><span class="n">def</span> <span class="n">dosomething</span><span class="p">()</span><span class="o">:</span>
+        <span class="err">“””</span>
+        <span class="err">“””</span>
+        <span class="err">#</span> <span class="n">step1</span><span class="o">:</span> <span class="n">call</span> <span class="n">func</span> <span class="n">test</span><span class="p">()</span>
+
+        <span class="err">#</span> <span class="n">step2</span><span class="o">:</span> <span class="n">parse</span> <span class="n">url</span> <span class="n">to</span> 
+
+        <span class="err">#</span> <span class="n">step3</span><span class="o">:</span> <span class="n">judge</span>
+
+        <span class="err">#</span> <span class="n">step4</span><span class="o">:</span> <span class="n">convert</span> <span class="n">and</span> <span class="k">return</span>
+</pre></div>
+
+
+<ol>
+<li>关于<code>脚手架</code>代码</li>
+</ol>
+<p>在逻辑的关键位置, print/assert关键信息, 用于在调试中迅速确认问题. (一些中间值/状态/条件判断结果)</p>
+<p>当然, 信息除了<code>关键</code>这个特性, 还需要足够<code>丰富</code>和<code>显眼</code>, 一遍一次性定位问题. (既要好看又要有用)</p>
+<p>你需要确定下如何用顺手的编辑器快速输入这些代码, 可以用各类语言的snippets</p>
+<p>例如, 在写python时候, 我很喜欢prt<tab>(k-vim自动补全), 快速插入一些需要的信息</p>
+<div class="codehilite"><pre><span class="n">print</span> <span class="s">&quot;TRACK ================= call result&quot;</span><span class="p">,</span> <span class="n">type</span><span class="p">(</span><span class="n">result</span><span class="p">),</span> <span class="n">result</span><span class="p">,</span> <span class="n">result</span> <span class="o">==</span> <span class="s">&quot;test&quot;</span>
+</pre></div>
+
+
+<ol>
+<li>写完一段代码第一时间自己review一下</li>
+</ol>
+<p>事实证明, review的效果比写完直接跑再来调, 效率高多了.</p>
+<p>刚写完一段代码, 思路还很清晰, 跳到开始, review过程中注意各类变量, 条件判断, 函数调用, 上下文, 一致性, 错误处理等, 花不了多少时间, 却能发现一些<code>显而易见</code>的问题, 省下很多无谓的调试时间(没问题不需要调试!).</p>
+<ol>
+<li>review中注意, 代码是<code>抠</code>过来的么?</li>
+</ol>
+<p>很多时候从其他地方copy代码过来(一行或几行, 有时候只是一个函数调用或已个判断), 但是很容易忘了根据当前情况修改一些必要的值, 导致问题</p>
+<p>例如函数调用, 这个地方调用参数可能跟你copy这行代码需要参数不一样, 但是放在这里并不会报错(一切运作正常), 最终结果并不对.....</p>
+<p>好了, 开始调试</p>
+<ol>
+<li>搞明白问题的表现是什么(症状)</li>
+</ol>
+<p>运行代码, 报错了, 有些人会瞬切回编辑器, 开始改代码(作高效状)......&gt;_&lt;#</p>
+<p>问题是: 报错提示你看了么, 看明白了么?</p>
+<p>现在大部分语言, 其报错提示已经很明显了, 精确到行/变量, 虽然整个异常栈信息可能很长(非常长), 但是都有其特征(在最前或在最后,或在中间靠后, 有关键字), 仔细看下报错信息, 精确制导才是王道.</p>
+<p>所以, 你需要从错误信息中先确认</p>
+<div class="codehilite"><pre><span class="err">错误类型</span>
+<span class="err">发生错误的地方</span>
+</pre></div>
+
+
+<p>很多语法问题可以根据这个信息直接定位</p>
+<ol>
+<li>调试过程中, 需要时刻注意</li>
+</ol>
+<p>改的是不是正确的目录下正确的文件?(大坑)</p>
+<p>保存了么(编译了么)?(又一个坑)</p>
+<p>服务重启了么?</p>
+<p>跟数据库有没有关系/跟缓存有没有关系, 要不要清?</p>
+<p>……</p>
+<p>以上问题, 随便碰上一个你都可能发现, 自己书写的代码和当前运行来调试的代码不一样.(会浪费你巨量的时间)</p>
+<p>自己调试半天怎么还是一样的结果</p>
+<p>我一直在修改, 但是没有什么区别(出现这种情况要自问一下了)</p>
+<ol>
+<li>环境/数据一致性</li>
+</ol>
+<p>当你发现在本地无法复现别人报过来的问题(在我电脑上是正常的), 这时候, 需要考虑是否是环境和数据的问题.</p>
+<ol>
+<li>先不要动代码, 假设代码是正确的</li>
+</ol>
+<p>遇到问题, 不要急着修改代码, 需要假设, 代码是正确的, 然后去复现, 复现之后定位.</p>
+<ol>
+<li>首先要怀疑自己</li>
+</ol>
+<p>你不能一旦代码跑不动就怀疑是别人的问题, 然后抛给别人, 这样做同样是很不负责任而且很愚蠢的.</p>
+<p>首先, 你需要怀疑自己, 排查问题, 当确定不是自己的问题之后, 将问题定位, 输入, 预期结果, 现在的异常结果都处理好, 生成一个问题, 抛给对应负责人.
+(一切没有价值的怀疑都是无意义的)</p>
+<p>程序员都是好人, 每次都在想: <code>一定是我的问题</code></p>
+<ol>
+<li>对于莫名其妙的问题, 多试几种情况</li>
+</ol>
+<p>有时候碰上一些诡异的问题, 例如有一种情况的输入会报错, 这时候, 再跳过去修改代码前, 可以多尝试几种输入, 涉及边界/异常/正常等情况, 排除法, 精确制导.</p>
+<p>例如, 可以变换输入值的范围(扩大或缩小, 可能用二分法), 变换输入类型和格式</p>
+<ol>
+<li>先回到<code>正确的代码</code></li>
+</ol>
+<p>如果这段代码是由于修改导致的, 可以注掉此次变更代码, 同样的输入再次验证定位</p>
+<ol>
+<li>如果一段代码是<code>没动过</code>的代码</li>
+</ol>
+<p>如果你确保<code>确实没动过</code>, 此时, 先不要怀疑自己, 更大的可能是<code>别人的问题</code>.</p>
+<p>可能情况: 依赖出了问题(调用函数返回数据不对/异常? 依赖请求挂了? ……), 数据出了问题(表结构变更/服务返回数据变更), 环境问题(数据库/缓存)</p>
+<ol>
+<li>bug总是倾向于集中出现在一起</li>
+</ol>
+<p>很多时候, bug是扎堆的, 可以回忆下之前修改的地方, 确认问题.</p>
+<ol>
+<li>对于很长很长, 上<code>二分法</code></li>
+</ol>
+<p>可能函数很长, 或者调用链很长, 不易调试.(光打调试信息就得打得手疼)</p>
+<p>找到关键变量, 上<code>二分法</code>, 无上利器.</p>
+<ol>
+<li>print or debug?</li>
+</ol>
+<p>个人偏好简单粗暴的<code>print</code>, 主要是用的vim+sinppet, 快速高效.</p>
+<p>当然, 如果用IDE, 用   <code>debug</code>吧</p>
+<ol>
+<li>十分十分诡异的问题</li>
+</ol>
+<p>上<code>debug</code>, 打断点, 一点点调试吧, 只能这样了.</p>
+<ol>
+<li>当一个问题超过半小时</li>
+</ol>
+<p>歇一歇, 走动走动, 打个水, 呼吸下新鲜空气.</p>
+<p>很多时候突然灵感一到, 瞬间明了(这种感觉很奇妙)</p>
+<ol>
+<li>关于google</li>
+</ol>
+<p>有些错误信息, 如果觉得比较独特诡异, 可以google下, 你会找到更多的一些信息的.</p>
+<ol>
+<li>关于求助</li>
+</ol>
+<p>实在搞不定, google大神也搞不定, 此时可能需要求助了.</p>
+<p>前提, 你自己能把问题想清楚, 并且逻辑清晰地描述出来.(什么业务什么位置的什么逻辑, 报错类型和报错信息, 输入输出, 迄今做了哪些尝试等等) 要学会聪明地问问题, 高效, 尊重自己也尊重别人.</p>
+<p>如果你自己都没整明白怎么问, 别人也无能为力.</p>
+<p>遇到很多人, 直接上来就一句<code>xxx出问题了</code>, 没有前置条件后置结果中间症状......</p>
+<p>不过, 如果你会聪明地问, 那就放心大胆地问吧, 不用磨磨唧唧的, 程序员大都是善良的孩子.</p>
+<ol>
+<li>吃一堑长一智</li>
+</ol>
+<p>被坑了就要总结总结, 有个记录, 不被同一个问题坑两次.</p>
+<p>如果被坑了就忘, 还需要去反复求助, 那这属于坑队友的行为(鄙视下)</p>
+<hr />
+<p>好了, 就这些:)</p>
+    </section>
+
+    <section id="copyright">
+        <div class="copyright">
+            版权声明：自由转载-非商用-非衍生-保持署名 | <a href="http://creativecommons.org/licenses/by-nc-nd/3.0/deed.zh" target="_blank" >Creative Commons BY-NC-ND 3.0</a>
+        </div>
+
+        <div class="donation">
+            <center>
+            <img src="/imgs/life/donation.png"/>
+            如果你觉得我的文章或项目对你有所帮助, You can buy me a coffee:)
+            </center>
+        </div>
+    </section>
+
+
+    <section id="neighbors">
+        <div>
+                        <a class="left" href="http://www.wklken.me/posts/2014/11/16/unit-statistics-system.html">
+                            上一篇:  基于 PostgreSQL 的数据统计系统
+                        </a>
+        </div>
+    </section>
+
+<section id="comments">
+<div id="tabs">
+    <ul>
+        <li><a href="#tabs-disqus">DISQUS</a> </li>
+        <li><a href="#tabs-duoshuo">多说</a> </li>
+    </ul>
+    <div id="tabs-disqus">
+        <div class="comments">
+            <div id="disqus_thread"></div>
+            <script type="text/javascript">
+                var disqus_identifier = "posts/2014/11/23/how-to-debug.html";
+                (function() {
+                var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                dsq.src = 'http://wklken.disqus.com/embed.js';
+                (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                })();
+            </script>
+            </div>
+    </div>
+    <div id="tabs-duoshuo">
+        <!-- 多说评论框 start -->
+            <div class="ds-thread" data-thread-key="关于调试代码de那些事" data-title="关于调试代码de那些事" data-url="posts/2014/11/23/how-to-debug.html"></div>
+        <!-- 多说评论框 end -->
+        <!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+        <script type="text/javascript">
+        var duoshuoQuery = {short_name:"wklken"};
+            (function() {
+                var ds = document.createElement('script');
+                ds.type = 'text/javascript';ds.async = true;
+                ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+                ds.charset = 'UTF-8';
+                (document.getElementsByTagName('head')[0] 
+                || document.getElementsByTagName('body')[0]).appendChild(ds);
+            })();
+            </script>
+        <!-- 多说公共JS代码 end -->
+    </div>
+</div>
+<div id="tabid"></div>
+    </section>
+</article>
+        </section><!--end #main-->
+
+            <footer class="row">
+                <div class="large-12 columns">
+                    <p>
+                            Copyright © 2014 wklken <br>
+                            Hosted on <a href="https://www.digitalocean.com/?refcode=8ee73f2c47ce"> digitalocean </a> and <a href="https://gitcafe.com"> gitcafe (china)</a>. Powered by <a href="http://alexis.notmyidea.org/pelican/">pelican</a>. Search Powered by <a href="https://swiftype.com/">Swiftype </a>Social Icons by <a href="http://fortawesome.github.io/Font-Awesome/">Font-Awesome</a>.
+                    </p>
+                </div>
+            </footer>
+
+            </div>
+        </div>
+
+        <section id="extras" class="body">
+        </section><!-- /#extras -->
+
+    <script type="text/javascript">
+    var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+    document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+    </script>
+    <script type="text/javascript">
+    try {
+        var pageTracker = _gat._getTracker("UA-42275748-1");
+    pageTracker._trackPageview();
+    } catch(err) {}</script>
+
+
+
+</body>
+<script src="http://apps.bdimg.com/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="http://apps.bdimg.com/libs/jquery-scrollUp/2.1.0/jquery.scrollUp.min.js"></script>
+<script src="http://apps.bdimg.com/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+<script>
+    $(function(){
+        $.scrollUp({
+              scrollText: '', // Text for element, can contain HTML
+            });
+    });
+</script>
+<script type="text/javascript">
+  var Swiftype = window.Swiftype || {};
+  Swiftype.searchSearchFields = {
+    "page": ["title^10", "body"]
+  };
+
+  (function(w,d,t,u,n,s,e){w['SwiftypeObject']=n;w[n]=w[n]||function(){
+  (w[n].q=w[n].q||[]).push(arguments);};s=d.createElement(t);
+  e=d.getElementsByTagName(t)[0];s.async=1;s.src=u;e.parentNode.insertBefore(s,e);
+  })(window,document,'script','//s.swiftypecdn.com/install/v1/st.js','_st');
+
+  _st('install','v6K-_DamCeHvwX6z3o2F');
+</script>
+
+<div id="share">
+<script>
+    window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"1","bdMiniList":["tsina","weixin","douban","youdao","sdo","qingbiji","mail","twi","deli","linkedin","copy","print"],"bdPic":"","bdStyle":"0","bdSize":"16"},"slide":{"type":"slide","bdImg":"5","bdPos":"right","bdTop":"45"}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script>
+</div>
+
+<script>
+$(function() {
+$( "#tabs" ).tabs();
+});
+</script>
+
+
+</html>
