@@ -8,566 +8,566 @@ update: 2013-11-23, DONE&lt;/p&gt;
 &lt;p&gt;寻找一个好的mysql开源gui工具&lt;/p&gt;
 &lt;h2&gt;环境配置&lt;/h2&gt;
 &lt;p&gt;ubuntu安装mysql&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;sudo&lt;/span&gt; &lt;span class="n"&gt;apt&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt; &lt;span class="n"&gt;install&lt;/span&gt; &lt;span class="n"&gt;mysql&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;server&lt;/span&gt; &lt;span class="n"&gt;mysql&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;client&lt;/span&gt;
-&lt;span class="n"&gt;netstat&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;nltp&lt;/span&gt; &lt;span class="o"&gt;|&lt;/span&gt; &lt;span class="n"&gt;grep&lt;/span&gt; &lt;span class="n"&gt;mysql&lt;/span&gt;
-&lt;span class="err"&gt;配置文件&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;etc&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;mysql&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;my&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;conf&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;sudo apt-get install mysql-server mysql-client
+netstat -nltp | grep mysql
+配置文件 /etc/mysql/my.conf
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h2&gt;基本概念&lt;/h2&gt;
 &lt;p&gt;数据库基础：&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;InnoDB&lt;/span&gt;&lt;span class="err"&gt;是一个可靠地事务处理引擎，不支持全文本搜索&lt;/span&gt;
-&lt;span class="n"&gt;MyISAM&lt;/span&gt;&lt;span class="err"&gt;是一个性能极高的引擎，支持全文本搜索，不支持事务处理&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;InnoDB是一个可靠地事务处理引擎，不支持全文本搜索
+MyISAM是一个性能极高的引擎，支持全文本搜索，不支持事务处理
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;数据库-database&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="err"&gt;保存有组织的数据的容器（通常是一个文件或一组文件）&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;保存有组织的数据的容器（通常是一个文件或一组文件）
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;表-table&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="err"&gt;某种特定类型数据的结构化清单&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;某种特定类型数据的结构化清单
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;模式-schema&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="err"&gt;关于数据库和表的布局及特性的信息&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;关于数据库和表的布局及特性的信息
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;列-column&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="err"&gt;表中的一个字段，所有表都是由一个或多个列组成的&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;表中的一个字段，所有表都是由一个或多个列组成的
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;数据类型-datatype&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="err"&gt;所容许的数据的类型。每个表列都有相应的数据类型，它限制（或容许）该列中存储的数据&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;所容许的数据的类型。每个表列都有相应的数据类型，它限制（或容许）该列中存储的数据
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;行-row&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="err"&gt;表中的一个记录&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;表中的一个记录
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;主键-primary key&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="err"&gt;一列或一组列，其值能够唯一区分表中的每个行&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;一列或一组列，其值能够唯一区分表中的每个行
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h2&gt;mysql命令行&lt;/h2&gt;
 &lt;h3&gt;进入&lt;/h3&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="err"&gt;输入：&lt;/span&gt; &lt;span class="n"&gt;mysql&lt;/span&gt;
-&lt;span class="err"&gt;或者&lt;/span&gt;   &lt;span class="n"&gt;mysql&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;u&lt;/span&gt; &lt;span class="n"&gt;ken&lt;/span&gt;
-       &lt;span class="n"&gt;mysql&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;u&lt;/span&gt; &lt;span class="n"&gt;ken&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;p&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;h&lt;/span&gt; &lt;span class="n"&gt;myserver&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;P&lt;/span&gt; &lt;span class="mi"&gt;9999&lt;/span&gt; &lt;span class="err"&gt;【给出用户名，主机名，端口】&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;输入： mysql
+或者   mysql -u ken
+       mysql -u ken -p -h myserver -P 9999 【给出用户名，主机名，端口】
 
-&lt;span class="err"&gt;获取帮助&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;mysql&lt;/span&gt; &lt;span class="o"&gt;--&lt;/span&gt;&lt;span class="n"&gt;help&lt;/span&gt;
+获取帮助: mysql --help
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;命令格式和说明：&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="mf"&gt;1.&lt;/span&gt;&lt;span class="err"&gt;命令必须；或\&lt;/span&gt;&lt;span class="n"&gt;g&lt;/span&gt;&lt;span class="err"&gt;结束，仅&lt;/span&gt;&lt;span class="n"&gt;Enter&lt;/span&gt;&lt;span class="err"&gt;不执行明林&lt;/span&gt;
-&lt;span class="mf"&gt;2.&lt;/span&gt;&lt;span class="n"&gt;help&lt;/span&gt; &lt;span class="err"&gt;或\&lt;/span&gt;&lt;span class="n"&gt;h&lt;/span&gt;&lt;span class="err"&gt;获得帮助&lt;/span&gt;
-&lt;span class="mf"&gt;3.&lt;/span&gt;&lt;span class="n"&gt;quit&lt;/span&gt;&lt;span class="err"&gt;或&lt;/span&gt;&lt;span class="n"&gt;exit&lt;/span&gt;&lt;span class="err"&gt;退出&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;1.命令必须；或\g结束，仅Enter不执行明林
+2.help 或\h获得帮助
+3.quit或exit退出
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;可以用GUI工具&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;MySQL&lt;/span&gt; &lt;span class="n"&gt;Administrator&lt;/span&gt;
-&lt;span class="n"&gt;MySQL&lt;/span&gt; &lt;span class="n"&gt;Query&lt;/span&gt; &lt;span class="n"&gt;Browser&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;MySQL Administrator
+MySQL Query Browser
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h3&gt;use&lt;/h3&gt;
 &lt;p&gt;创建库:&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;CREATE&lt;/span&gt; &lt;span class="n"&gt;DATABASE&lt;/span&gt; &lt;span class="n"&gt;MYSQLDATA&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;CREATE DATABASE MYSQLDATA
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;使用某个库&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;use&lt;/span&gt; &lt;span class="n"&gt;db_name&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;use db_name
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h3&gt;show&lt;/h3&gt;
 &lt;p&gt;查看所有数据库&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;show&lt;/span&gt; &lt;span class="n"&gt;databases&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;show databases;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;列出库中所有表&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;use&lt;/span&gt; &lt;span class="n"&gt;db_name&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-&lt;span class="n"&gt;show&lt;/span&gt; &lt;span class="n"&gt;tables&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;use db_name;
+show tables;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;列出表的所有列信息&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;show&lt;/span&gt; &lt;span class="n"&gt;columns&lt;/span&gt; &lt;span class="n"&gt;from&lt;/span&gt; &lt;span class="n"&gt;table_name&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-&lt;span class="n"&gt;or&lt;/span&gt;
-&lt;span class="n"&gt;desc&lt;/span&gt; &lt;span class="n"&gt;table_name&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;show columns from table_name;
+or
+desc table_name;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;显示创建的sql语句&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;show&lt;/span&gt; &lt;span class="n"&gt;create&lt;/span&gt; &lt;span class="n"&gt;database&lt;/span&gt; &lt;span class="n"&gt;db_name&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-&lt;span class="n"&gt;show&lt;/span&gt; &lt;span class="n"&gt;create&lt;/span&gt; &lt;span class="n"&gt;table&lt;/span&gt; &lt;span class="n"&gt;table_name&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;show create database db_name;
+show create table table_name;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;其他&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;show&lt;/span&gt; &lt;span class="n"&gt;status&lt;/span&gt;  &lt;span class="err"&gt;服务器状态信息&lt;/span&gt;
-&lt;span class="n"&gt;show&lt;/span&gt; &lt;span class="n"&gt;grants&lt;/span&gt;  &lt;span class="err"&gt;显示授权用户&lt;/span&gt;
-&lt;span class="n"&gt;show&lt;/span&gt; &lt;span class="n"&gt;errors&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;show&lt;/span&gt; &lt;span class="n"&gt;warnings&lt;/span&gt; &lt;span class="err"&gt;显示服务器错误或警告信息&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;show status  服务器状态信息
+show grants  显示授权用户
+show errors/show warnings 显示服务器错误或警告信息
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h2&gt;查询&lt;/h2&gt;
 &lt;p&gt;SELECT子句顺序&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;SELECT&lt;/span&gt;
-&lt;span class="n"&gt;FROM&lt;/span&gt;
-&lt;span class="n"&gt;WHERE&lt;/span&gt;
-&lt;span class="n"&gt;GROUP&lt;/span&gt; &lt;span class="n"&gt;BY&lt;/span&gt;
-&lt;span class="n"&gt;HAVING&lt;/span&gt;
-&lt;span class="n"&gt;ORDER&lt;/span&gt; &lt;span class="n"&gt;BY&lt;/span&gt;
-&lt;span class="n"&gt;LIMIT&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;SELECT
+FROM
+WHERE
+GROUP BY
+HAVING
+ORDER BY
+LIMIT
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h3&gt;select&lt;/h3&gt;
 &lt;p&gt;检索单个列&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;col&lt;/span&gt; &lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;tb_name&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;SELECT col FROM tb_name;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;多个列&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;col1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;col2&lt;/span&gt;
- &lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;tb_name&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;SELECT col1, col2
+ FROM tb_name
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;检索所有列&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;
- &lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;tb_name&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-&lt;span class="cp"&gt;#除非确认要用到所有列&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;SELECT *
+ FROM tb_name;
+#除非确认要用到所有列
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;检索去重&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;DISTINCT&lt;/span&gt; &lt;span class="n"&gt;col&lt;/span&gt;
- &lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;tb_name&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;SELECT DISTINCT col
+ FROM tb_name
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;限制结果数&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;col1&lt;/span&gt;
- &lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;tb_name&lt;/span&gt;
- &lt;span class="n"&gt;LIMIT&lt;/span&gt; &lt;span class="mi"&gt;5&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-&lt;span class="err"&gt;返回不多于五行&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;SELECT col1
+ FROM tb_name
+ LIMIT 5;
+返回不多于五行
 
-&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;col1&lt;/span&gt;
- &lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;tb_name&lt;/span&gt;
- &lt;span class="n"&gt;LIMIT&lt;/span&gt; &lt;span class="mi"&gt;5&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;5&lt;/span&gt;
- &lt;span class="err"&gt;第一个为开始位置，初始为&lt;/span&gt;&lt;span class="mf"&gt;0.&lt;/span&gt;&lt;span class="err"&gt;第二个为显示个数&lt;/span&gt;
-&lt;span class="err"&gt;等价于&lt;/span&gt;&lt;span class="n"&gt;LIMIT&lt;/span&gt; &lt;span class="mi"&gt;5&lt;/span&gt; &lt;span class="n"&gt;OFFSET&lt;/span&gt; &lt;span class="mi"&gt;5&lt;/span&gt;
+&amp;gt;SELECT col1
+ FROM tb_name
+ LIMIT 5, 5
+ 第一个为开始位置，初始为0.第二个为显示个数
+等价于LIMIT 5 OFFSET 5
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h3&gt;order by&lt;/h3&gt;
 &lt;p&gt;按某个字段排序&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;col1&lt;/span&gt;
- &lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;tb_name&lt;/span&gt;
- &lt;span class="n"&gt;ORDER&lt;/span&gt; &lt;span class="n"&gt;BY&lt;/span&gt; &lt;span class="n"&gt;col1&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;SELECT col1
+ FROM tb_name
+ ORDER BY col1
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;按多列排序&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;col1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;col2&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;col3&lt;/span&gt;
- &lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;tb_name&lt;/span&gt;
- &lt;span class="n"&gt;ORDER&lt;/span&gt; &lt;span class="n"&gt;BY&lt;/span&gt; &lt;span class="n"&gt;col1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;col2&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;SELECT col1, col2, col3
+ FROM tb_name
+ ORDER BY col1, col2
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;指定排序方向（升序降序）&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;col1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;col2&lt;/span&gt;
- &lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;tb_name&lt;/span&gt;
- &lt;span class="n"&gt;ORDER&lt;/span&gt; &lt;span class="n"&gt;BY&lt;/span&gt; &lt;span class="n"&gt;col1&lt;/span&gt; &lt;span class="n"&gt;DESC&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="err"&gt;【默认&lt;/span&gt;&lt;span class="n"&gt;ASC&lt;/span&gt;&lt;span class="err"&gt;】&lt;/span&gt;
-&lt;span class="err"&gt;注意：如果想在多个列上排序，必须对每个列使用&lt;/span&gt;&lt;span class="n"&gt;DESC&lt;/span&gt;
-&lt;span class="err"&gt;注意：&lt;/span&gt;&lt;span class="n"&gt;ORDER&lt;/span&gt; &lt;span class="n"&gt;BY&lt;/span&gt;&lt;span class="err"&gt;必须放在&lt;/span&gt;&lt;span class="n"&gt;LIMIT&lt;/span&gt;&lt;span class="err"&gt;之前&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;SELECT col1, col2
+ FROM tb_name
+ ORDER BY col1 DESC;【默认ASC】
+注意：如果想在多个列上排序，必须对每个列使用DESC
+注意：ORDER BY必须放在LIMIT之前
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h3&gt;where&lt;/h3&gt;
 &lt;p&gt;过滤&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;col1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;col2&lt;/span&gt;
- &lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;tb_name&lt;/span&gt;
- &lt;span class="n"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;col1&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mf"&gt;2.5&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;SELECT col1, col2
+ FROM tb_name
+ WHERE col1 = 2.5;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;过滤不匹配&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;col1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;col2&lt;/span&gt;
- &lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;tb_name&lt;/span&gt;
- &lt;span class="n"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;col1&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&amp;gt;&lt;/span&gt; &lt;span class="mi"&gt;1000&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;SELECT col1, col2
+ FROM tb_name
+ WHERE col1 &amp;lt;&amp;gt; 1000
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;范围检查&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;col1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;col2&lt;/span&gt;
- &lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;tb_name&lt;/span&gt;
- &lt;span class="n"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;col1&lt;/span&gt; &lt;span class="n"&gt;BETWEEN&lt;/span&gt; &lt;span class="mi"&gt;5&lt;/span&gt; &lt;span class="n"&gt;AND&lt;/span&gt; &lt;span class="mi"&gt;10&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;SELECT col1, col2
+ FROM tb_name
+ WHERE col1 BETWEEN 5 AND 10
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;空值检查&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;col1&lt;/span&gt;
- &lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;tb_name&lt;/span&gt;
- &lt;span class="n"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;col2&lt;/span&gt; &lt;span class="n"&gt;IS&lt;/span&gt; &lt;span class="nb"&gt;NULL&lt;/span&gt;
-&lt;span class="nb"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;无值，它与字段包含&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="err"&gt;，空字符串或仅仅包含空格不同&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;SELECT col1
+ FROM tb_name
+ WHERE col2 IS NULL
+NULL, 无值，它与字段包含0，空字符串或仅仅包含空格不同
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;多条件，组合and&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;col1&lt;/span&gt;
- &lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;tb_name&lt;/span&gt;
- &lt;span class="n"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;col1&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mi"&gt;100&lt;/span&gt; &lt;span class="n"&gt;AND&lt;/span&gt; &lt;span class="n"&gt;col2&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;=&lt;/span&gt; &lt;span class="mi"&gt;10&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;SELECT col1
+ FROM tb_name
+ WHERE col1=100 AND col2 &amp;lt;= 10
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;多条件, 组合or&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;col1&lt;/span&gt;
- &lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;tb_name&lt;/span&gt;
- &lt;span class="n"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;col1&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mi"&gt;100&lt;/span&gt; &lt;span class="n"&gt;OR&lt;/span&gt; &lt;span class="n"&gt;col2&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;=&lt;/span&gt; &lt;span class="mi"&gt;10&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;SELECT col1
+ FROM tb_name
+ WHERE col1=100 OR col2 &amp;lt;= 10
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;优先级 and 大于 or, 先处理的and,所以应该适当使用括号&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;select&lt;/span&gt; &lt;span class="n"&gt;prod_id&lt;/span&gt; &lt;span class="n"&gt;from&lt;/span&gt; &lt;span class="n"&gt;products&lt;/span&gt; &lt;span class="n"&gt;where&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;prod_price&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="mf"&gt;2.5&lt;/span&gt; &lt;span class="n"&gt;or&lt;/span&gt; &lt;span class="n"&gt;vend_id&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;1000&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;and&lt;/span&gt; &lt;span class="n"&gt;prod_price&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;select prod_id from products where (prod_price &amp;lt; 2.5 or vend_id = 1000) and prod_price &amp;gt; 1;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;指定查询范围, in操作符&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;col1&lt;/span&gt;
- &lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;tb_name&lt;/span&gt;
- &lt;span class="n"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;col1&lt;/span&gt; &lt;span class="n"&gt;IN&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;1001&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="mi"&gt;1002&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;SELECT col1
+ FROM tb_name
+ WHERE col1 IN (1001,1002)
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;取反，not操作符&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;col1&lt;/span&gt;
- &lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;tb_name&lt;/span&gt;
- &lt;span class="n"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;col1&lt;/span&gt; &lt;span class="n"&gt;NOT&lt;/span&gt; &lt;span class="n"&gt;IN&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;1001&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="mi"&gt;1002&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;SELECT col1
+ FROM tb_name
+ WHERE col1 NOT IN (1001,1002)
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;操作符&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;=&lt;/span&gt;
-&lt;span class="o"&gt;&amp;lt;&amp;gt;&lt;/span&gt;
-&lt;span class="o"&gt;!=&lt;/span&gt;
-&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;
-&lt;span class="o"&gt;&amp;lt;=&lt;/span&gt;
-&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;
-&lt;span class="o"&gt;&amp;gt;=&lt;/span&gt;
-&lt;span class="n"&gt;between&lt;/span&gt; &lt;span class="n"&gt;A&lt;/span&gt; &lt;span class="n"&gt;and&lt;/span&gt; &lt;span class="n"&gt;B&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;=
+&amp;lt;&amp;gt;
+!=
+&amp;lt;
+&amp;lt;=
+&amp;gt;
+&amp;gt;=
+between A and B
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h3&gt;like&lt;/h3&gt;
 &lt;p&gt;通配&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;col1&lt;/span&gt;
- &lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;tb_name&lt;/span&gt;
- &lt;span class="n"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;col1&lt;/span&gt; &lt;span class="n"&gt;LIKE&lt;/span&gt; &lt;span class="err"&gt;‘&lt;/span&gt;&lt;span class="n"&gt;jet&lt;/span&gt;&lt;span class="o"&gt;%&lt;/span&gt;&lt;span class="err"&gt;’&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;SELECT col1
+ FROM tb_name
+ WHERE col1 LIKE ‘jet%’
 
-&lt;span class="o"&gt;%&lt;/span&gt;&lt;span class="err"&gt;匹配&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="err"&gt;个或多个字符&lt;/span&gt;
+%匹配0个或多个字符
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;单个字符&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;col1&lt;/span&gt;
- &lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;tb_name&lt;/span&gt;
- &lt;span class="n"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;col1&lt;/span&gt; &lt;span class="n"&gt;LIKE&lt;/span&gt; &lt;span class="err"&gt;‘&lt;/span&gt;&lt;span class="n"&gt;_&lt;/span&gt; &lt;span class="n"&gt;ton&lt;/span&gt; &lt;span class="n"&gt;anvil&lt;/span&gt;&lt;span class="err"&gt;’&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;SELECT col1
+ FROM tb_name
+ WHERE col1 LIKE ‘_ ton anvil’
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h3&gt;数据过滤regexp&lt;/h3&gt;
 &lt;p&gt;正则搜索&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;col1&lt;/span&gt;
-&lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;tb_name&lt;/span&gt;
-&lt;span class="n"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;col1&lt;/span&gt; &lt;span class="n"&gt;REGEXP&lt;/span&gt; &lt;span class="err"&gt;‘&lt;/span&gt;&lt;span class="mi"&gt;1000&lt;/span&gt;&lt;span class="err"&gt;’&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;SELECT col1
+FROM tb_name
+WHERE col1 REGEXP ‘1000’
 
-&lt;span class="n"&gt;REGEXP&lt;/span&gt; &lt;span class="err"&gt;‘&lt;/span&gt;&lt;span class="mf"&gt;.000&lt;/span&gt;&lt;span class="err"&gt;’&lt;/span&gt;
-&lt;span class="n"&gt;REGEXP&lt;/span&gt;&lt;span class="err"&gt;对列值匹配&lt;/span&gt;
+REGEXP ‘.000’
+REGEXP对列值匹配
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;进行or匹配&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;col1&lt;/span&gt;
- &lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;tb_name&lt;/span&gt;
- &lt;span class="n"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;col1&lt;/span&gt; &lt;span class="n"&gt;REGEXP&lt;/span&gt; &lt;span class="err"&gt;‘&lt;/span&gt;&lt;span class="mi"&gt;1000&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="mi"&gt;2000&lt;/span&gt;&lt;span class="err"&gt;’&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;SELECT col1
+ FROM tb_name
+ WHERE col1 REGEXP ‘1000|2000’
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;几个之一&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;select&lt;/span&gt; &lt;span class="n"&gt;prod_id&lt;/span&gt; &lt;span class="n"&gt;from&lt;/span&gt; &lt;span class="n"&gt;products&lt;/span&gt; &lt;span class="n"&gt;where&lt;/span&gt; &lt;span class="n"&gt;prod_name&lt;/span&gt; &lt;span class="n"&gt;regexp&lt;/span&gt; &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="mo"&gt;000&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;select prod_id from products where prod_name regexp &amp;#39;[1|2]000&amp;#39;;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;匹配范围&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;select&lt;/span&gt; &lt;span class="n"&gt;prod_id&lt;/span&gt; &lt;span class="n"&gt;from&lt;/span&gt; &lt;span class="n"&gt;products&lt;/span&gt; &lt;span class="n"&gt;where&lt;/span&gt; &lt;span class="n"&gt;prod_name&lt;/span&gt; &lt;span class="n"&gt;regexp&lt;/span&gt; &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;5&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="mo"&gt;000&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;select prod_id from products where prod_name regexp &amp;#39;[1-5]000&amp;#39;;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;匹配特殊字符，\ 进行转义&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="err"&gt;必须使用\\为前导。&lt;/span&gt; &lt;span class="err"&gt;\\&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;
-&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;col1&lt;/span&gt;
- &lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;tb_name&lt;/span&gt;
- &lt;span class="n"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;col1&lt;/span&gt; &lt;span class="n"&gt;REGEXP&lt;/span&gt; &lt;span class="err"&gt;‘\\&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="err"&gt;’&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;必须使用\\为前导。 \\-
+&amp;gt;SELECT col1
+ FROM tb_name
+ WHERE col1 REGEXP ‘\\.’
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;like和 regexp&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;like&lt;/span&gt;&lt;span class="err"&gt;整列匹配&lt;/span&gt;
-&lt;span class="n"&gt;regexp&lt;/span&gt; &lt;span class="err"&gt;列值内匹配&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;like整列匹配
+regexp 列值内匹配
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h3&gt;concat&lt;/h3&gt;
 &lt;p&gt;拼接字符&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;Concat&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;name&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;‘&lt;/span&gt; &lt;span class="o"&gt;----&lt;/span&gt;&lt;span class="err"&gt;‘&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;age&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
- &lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;tb_name&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;SELECT Concat(name, ‘ ----‘, age)
+ FROM tb_name
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;去除空白&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;Rtrim&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;name&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
- &lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;tb_name&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;SELECT Rtrim(name)
+ FROM tb_name
 
-&lt;span class="n"&gt;Ltrim&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="n"&gt;Trim&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+Ltrim() Trim()
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;使用列名&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;Concat&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;name&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;‘&lt;/span&gt;&lt;span class="o"&gt;---&lt;/span&gt;&lt;span class="err"&gt;‘&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;age&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;AS&lt;/span&gt; &lt;span class="n"&gt;info&lt;/span&gt;
- &lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;tb_name&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;SELECT Concat(name, ‘---‘, age) AS info
+ FROM tb_name
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;算术计算&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;quantity&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;item_price&lt;/span&gt; &lt;span class="n"&gt;AS&lt;/span&gt; &lt;span class="n"&gt;total_price&lt;/span&gt;
- &lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;tb_name&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;SELECT quantity * item_price AS total_price
+ FROM tb_name
 
-&lt;span class="err"&gt;支持&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;
+支持+ - * /
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h3&gt;文本函数&lt;/h3&gt;
 &lt;p&gt;文本处理函数&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;left&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;  &lt;span class="err"&gt;串左边字符&lt;/span&gt;
-&lt;span class="n"&gt;length&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="err"&gt;串长度&lt;/span&gt;
-&lt;span class="n"&gt;locate&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="err"&gt;找出串的一个子串&lt;/span&gt;
-&lt;span class="n"&gt;lower&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="err"&gt;转为小写&lt;/span&gt;
-&lt;span class="n"&gt;ltrim&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="err"&gt;去掉左边空格&lt;/span&gt;
-&lt;span class="n"&gt;right&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="err"&gt;返回串右边字符&lt;/span&gt;
-&lt;span class="n"&gt;rtrim&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="err"&gt;去掉串右边空格&lt;/span&gt;
-&lt;span class="n"&gt;soundex&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="err"&gt;返回字符串&lt;/span&gt;&lt;span class="n"&gt;soundex&lt;/span&gt;&lt;span class="err"&gt;值&lt;/span&gt;
-&lt;span class="n"&gt;upper&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="err"&gt;大写&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;left()  串左边字符
+length() 串长度
+locate() 找出串的一个子串
+lower() 转为小写
+ltrim() 去掉左边空格
+right() 返回串右边字符
+rtrim() 去掉串右边空格
+soundex() 返回字符串soundex值
+upper() 大写
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;eg&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;Upper&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;name&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;tb_name&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;SELECT Upper(name)
+FROM tb_name
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h3&gt;日期函数&lt;/h3&gt;
 &lt;p&gt;日期和时间处理函数&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;adddate&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="err"&gt;增加一个日期&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="err"&gt;天或周&lt;/span&gt;
-&lt;span class="n"&gt;addtime&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="err"&gt;增加一个时间&lt;/span&gt;
-&lt;span class="n"&gt;curdate&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="err"&gt;返回当前日期&lt;/span&gt;
-&lt;span class="n"&gt;curtime&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="err"&gt;返回当前时间&lt;/span&gt;
-&lt;span class="n"&gt;date&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="err"&gt;返回日期时间的日期部分&lt;/span&gt;
-&lt;span class="n"&gt;datediff&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="err"&gt;计算两个日期差&lt;/span&gt;
-&lt;span class="n"&gt;date_add&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="err"&gt;高度灵活的日期运算函数&lt;/span&gt;
-&lt;span class="n"&gt;date_format&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="err"&gt;返回一个格式化的日期或时间串&lt;/span&gt;
-&lt;span class="n"&gt;day&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="err"&gt;返回一个日期的天数部分&lt;/span&gt;
-&lt;span class="n"&gt;dayofweek&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="err"&gt;对于一个日期，返回对应的星期几&lt;/span&gt;
-&lt;span class="n"&gt;hour&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
-&lt;span class="n"&gt;minute&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
-&lt;span class="n"&gt;month&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
-&lt;span class="n"&gt;now&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="err"&gt;当前日期和时间&lt;/span&gt;
-&lt;span class="n"&gt;second&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
-&lt;span class="n"&gt;time&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="err"&gt;当前日期时间的时间部分&lt;/span&gt;
-&lt;span class="n"&gt;year&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;adddate() 增加一个日期-天或周
+addtime() 增加一个时间
+curdate() 返回当前日期
+curtime() 返回当前时间
+date() 返回日期时间的日期部分
+datediff() 计算两个日期差
+date_add() 高度灵活的日期运算函数
+date_format() 返回一个格式化的日期或时间串
+day() 返回一个日期的天数部分
+dayofweek() 对于一个日期，返回对应的星期几
+hour()
+minute()
+month()
+now() 当前日期和时间
+second()
+time() 当前日期时间的时间部分
+year()
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;eg&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;col1&lt;/span&gt;
- &lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;tb_name&lt;/span&gt;
- &lt;span class="n"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;Date&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;order_date&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="err"&gt;‘&lt;/span&gt;&lt;span class="mi"&gt;2005&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;09&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mo"&gt;01&lt;/span&gt;&lt;span class="err"&gt;’&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;SELECT col1
+ FROM tb_name
+ WHERE Date(order_date) = ‘2005-09-01’
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;常用日期和时间函数&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;Date&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="err"&gt;返回日期时间的日期部分&lt;/span&gt;
-&lt;span class="n"&gt;Day&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="err"&gt;返回日期的天数部分&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;Date()返回日期时间的日期部分
+Day()返回日期的天数部分
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h3&gt;数值函数&lt;/h3&gt;
 &lt;p&gt;数值处理函数&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;abs&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
-&lt;span class="n"&gt;cos&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
-&lt;span class="n"&gt;exp&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="err"&gt;指数&lt;/span&gt;
-&lt;span class="n"&gt;mod&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
-&lt;span class="n"&gt;pi&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="err"&gt;返回圆周率&lt;/span&gt;
-&lt;span class="n"&gt;rand&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="err"&gt;随机数&lt;/span&gt;
-&lt;span class="n"&gt;sin&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
-&lt;span class="n"&gt;sqrt&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
-&lt;span class="n"&gt;tan&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;abs()
+cos()
+exp() 指数
+mod()
+pi() 返回圆周率
+rand() 随机数
+sin()
+sqrt()
+tan()
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h3&gt;聚集函数&lt;/h3&gt;
 &lt;p&gt;avg 平均&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;AVG&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;price&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;AS&lt;/span&gt; &lt;span class="n"&gt;avg_price&lt;/span&gt;
- &lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;tb_name&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;SELECT AVG(price) AS avg_price
+ FROM tb_name
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;count 计数&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;select&lt;/span&gt; &lt;span class="n"&gt;count&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;from&lt;/span&gt; &lt;span class="n"&gt;products&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="err"&gt;#无论&lt;/span&gt;&lt;span class="n"&gt;Null&lt;/span&gt;&lt;span class="err"&gt;还是非空，均纳入计数&lt;/span&gt;
-&lt;span class="n"&gt;select&lt;/span&gt; &lt;span class="n"&gt;count&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;prod_id&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;from&lt;/span&gt; &lt;span class="n"&gt;products&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="err"&gt;#计数有值记录，忽略&lt;/span&gt;&lt;span class="nb"&gt;NULL&lt;/span&gt;&lt;span class="err"&gt;值&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;select count(*) from products; #无论Null还是非空，均纳入计数
+select count(prod_id) from products; #计数有值记录，忽略NULL值
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;max 最大&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;MAX&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;price&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;AS&lt;/span&gt; &lt;span class="n"&gt;max_price&lt;/span&gt;
- &lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;tb_name&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;SELECT MAX(price) AS max_price
+ FROM tb_name
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;min 最小&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;MIN&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;price&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;AS&lt;/span&gt; &lt;span class="n"&gt;min_price&lt;/span&gt;
- &lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;tb_name&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;SELECT MIN(price) AS min_price
+ FROM tb_name
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;sum 求和&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;SUM&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;quantity&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;AS&lt;/span&gt; &lt;span class="n"&gt;total&lt;/span&gt;
- &lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;tb_name&lt;/span&gt;
-&lt;span class="cp"&gt;#sum函数忽略值为NULL的行&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;SELECT SUM(quantity) AS total
+ FROM tb_name
+#sum函数忽略值为NULL的行
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h3&gt;group&lt;/h3&gt;
 &lt;p&gt;group&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;id&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;COUNT&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;AS&lt;/span&gt; &lt;span class="n"&gt;num_prods&lt;/span&gt;
- &lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;tb_name&lt;/span&gt;
- &lt;span class="n"&gt;GROUP&lt;/span&gt; &lt;span class="n"&gt;BY&lt;/span&gt; &lt;span class="n"&gt;id&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;SELECT id, COUNT(*) AS num_prods
+ FROM tb_name
+ GROUP BY id
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;注意：&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="mf"&gt;1.&lt;/span&gt;&lt;span class="n"&gt;group&lt;/span&gt; &lt;span class="n"&gt;by&lt;/span&gt; &lt;span class="err"&gt;可以包含任意数目的列&lt;/span&gt;
-&lt;span class="mf"&gt;2.&lt;/span&gt;&lt;span class="n"&gt;group&lt;/span&gt; &lt;span class="n"&gt;by&lt;/span&gt; &lt;span class="err"&gt;中每个列都必须是检索列或有效的表达式（但不能使聚集函数）&lt;/span&gt;
-&lt;span class="mf"&gt;3.&lt;/span&gt;&lt;span class="err"&gt;除聚集函数外，&lt;/span&gt;&lt;span class="n"&gt;select&lt;/span&gt;&lt;span class="err"&gt;语句中的每个列都必须在&lt;/span&gt;&lt;span class="n"&gt;group&lt;/span&gt; &lt;span class="n"&gt;by&lt;/span&gt;&lt;span class="err"&gt;子句中出现&lt;/span&gt;
-&lt;span class="mf"&gt;4.&lt;/span&gt;&lt;span class="err"&gt;如果分组列有&lt;/span&gt;&lt;span class="n"&gt;Null&lt;/span&gt;&lt;span class="err"&gt;值，&lt;/span&gt;&lt;span class="n"&gt;Null&lt;/span&gt;&lt;span class="err"&gt;将作为一个分组返回&lt;/span&gt;
-&lt;span class="mf"&gt;5.&lt;/span&gt;&lt;span class="n"&gt;group&lt;/span&gt; &lt;span class="n"&gt;by&lt;/span&gt; &lt;span class="err"&gt;子句必须出现在&lt;/span&gt;&lt;span class="n"&gt;where&lt;/span&gt;&lt;span class="err"&gt;子句之后&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;order&lt;/span&gt; &lt;span class="n"&gt;by&lt;/span&gt; &lt;span class="err"&gt;之前&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;1.group by 可以包含任意数目的列
+2.group by 中每个列都必须是检索列或有效的表达式（但不能使聚集函数）
+3.除聚集函数外，select语句中的每个列都必须在group by子句中出现
+4.如果分组列有Null值，Null将作为一个分组返回
+5.group by 子句必须出现在where子句之后, order by 之前
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;过滤分组&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;cust_id&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;COUNT&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;AS&lt;/span&gt; &lt;span class="n"&gt;orders&lt;/span&gt;
- &lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;orders&lt;/span&gt;
- &lt;span class="n"&gt;GROUP&lt;/span&gt; &lt;span class="n"&gt;BY&lt;/span&gt; &lt;span class="n"&gt;cust_id&lt;/span&gt;
- &lt;span class="n"&gt;HAVING&lt;/span&gt; &lt;span class="n"&gt;COUNT&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;SELECT cust_id, COUNT(*) AS orders
+ FROM orders
+ GROUP BY cust_id
+ HAVING COUNT(*) &amp;gt; 2
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;where和having区别&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;where&lt;/span&gt;&lt;span class="err"&gt;在分组前过滤，&lt;/span&gt;&lt;span class="n"&gt;having&lt;/span&gt;&lt;span class="err"&gt;在分组后过滤&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;where在分组前过滤，having在分组后过滤
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h3&gt;子查询&lt;/h3&gt;
 &lt;p&gt;1.用于过滤&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;cust_id&lt;/span&gt;
- &lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;orders&lt;/span&gt;
- &lt;span class="n"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;order_num&lt;/span&gt; &lt;span class="n"&gt;IN&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;order_num&lt;/span&gt;
-                    &lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;orderitems&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;SELECT cust_id
+ FROM orders
+ WHERE order_num IN (SELECT order_num
+                    FROM orderitems)
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;2.作为字段&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;cust_name&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-       &lt;span class="n"&gt;cust_state&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-       &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;COUNT&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-        &lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;orders&lt;/span&gt;
-        &lt;span class="n"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;orders&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;cust_id&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;customers&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;cust_id&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;AS&lt;/span&gt; &lt;span class="n"&gt;orders&lt;/span&gt;
- &lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;customers&lt;/span&gt;
- &lt;span class="n"&gt;ORDER&lt;/span&gt; &lt;span class="n"&gt;BY&lt;/span&gt; &lt;span class="n"&gt;cust_name&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;SELECT cust_name,
+       cust_state,
+       (SELECT COUNT(*)
+        FROM orders
+        WHERE orders.cust_id = customers.cust_id) AS orders
+ FROM customers
+ ORDER BY cust_name
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h3&gt;联结表&lt;/h3&gt;
 &lt;p&gt;1.创建联结&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;vend_name&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;prod_name&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;prod_price&lt;/span&gt;
- &lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;vendors&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;products&lt;/span&gt;
- &lt;span class="n"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;vendors&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;vend_id&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;products&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;vend_id&lt;/span&gt;
- &lt;span class="n"&gt;ORDER&lt;/span&gt; &lt;span class="n"&gt;BY&lt;/span&gt; &lt;span class="n"&gt;vend_name&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;prod_name&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;SELECT vend_name, prod_name, prod_price
+ FROM vendors, products
+ WHERE vendors.vend_id = products.vend_id
+ ORDER BY vend_name, prod_name;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;可进行联结多个表&lt;/p&gt;
 &lt;p&gt;2.内部联结&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;vend_name&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="n"&gt;prod_name&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="n"&gt;prod_price&lt;/span&gt;
- &lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;vendors&lt;/span&gt; &lt;span class="n"&gt;INNER&lt;/span&gt; &lt;span class="n"&gt;JOIN&lt;/span&gt; &lt;span class="n"&gt;products&lt;/span&gt; &lt;span class="n"&gt;ON&lt;/span&gt; &lt;span class="n"&gt;vendors&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;vend_id&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;products&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;vend_id&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;SELECT vend_name,prod_name,prod_price
+ FROM vendors INNER JOIN products ON vendors.vend_id = products.vend_id
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h3&gt;高级联结表&lt;/h3&gt;
 &lt;p&gt;1.自联结&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;prod_id&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;prod_name&lt;/span&gt;
- &lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;products&lt;/span&gt;
- &lt;span class="n"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;vend_id&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;vend_id&lt;/span&gt; &lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;products&lt;/span&gt;
-                &lt;span class="n"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;prod_id&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="err"&gt;‘&lt;/span&gt;&lt;span class="n"&gt;DTNTR&lt;/span&gt;&lt;span class="err"&gt;’&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;SELECT prod_id, prod_name
+ FROM products
+ WHERE vend_id = (SELECT vend_id FROM products
+                WHERE prod_id = ‘DTNTR’)
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;等价于&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;p1&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;prod_id&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;p1&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;prod_name&lt;/span&gt;
- &lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;products&lt;/span&gt; &lt;span class="n"&gt;AS&lt;/span&gt; &lt;span class="n"&gt;p1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;products&lt;/span&gt; &lt;span class="n"&gt;AS&lt;/span&gt; &lt;span class="n"&gt;p2&lt;/span&gt;
- &lt;span class="n"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;p1&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;vend_id&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;p2&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;vend_id&lt;/span&gt;
-        &lt;span class="n"&gt;AND&lt;/span&gt; &lt;span class="n"&gt;p2&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;prod_id&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="err"&gt;‘&lt;/span&gt;&lt;span class="n"&gt;DTNTR&lt;/span&gt;&lt;span class="err"&gt;’&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;SELECT p1.prod_id, p1.prod_name
+ FROM products AS p1, products AS p2
+ WHERE p1.vend_id = p2.vend_id
+        AND p2.prod_id = ‘DTNTR’
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;2.外部联结&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;customers&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;cust_id&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;orders&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;order_num&lt;/span&gt;
- &lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;customers&lt;/span&gt; &lt;span class="n"&gt;LEFT&lt;/span&gt; &lt;span class="n"&gt;OUTER&lt;/span&gt; &lt;span class="n"&gt;JOIN&lt;/span&gt; &lt;span class="n"&gt;orders&lt;/span&gt;
-      &lt;span class="n"&gt;ON&lt;/span&gt; &lt;span class="n"&gt;customers&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;cust_id&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;orders&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;cust_id&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;SELECT customers.cust_id, orders.order_num
+ FROM customers LEFT OUTER JOIN orders
+      ON customers.cust_id = orders.cust_id
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h3&gt;组合查询&lt;/h3&gt;
 &lt;p&gt;1.UNION&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;vend_id&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;prod_id&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;prod_price&lt;/span&gt;
- &lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;products&lt;/span&gt;
- &lt;span class="n"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;prod_price&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;=&lt;/span&gt;&lt;span class="mi"&gt;5&lt;/span&gt;
- &lt;span class="n"&gt;UNION&lt;/span&gt;
- &lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;vend_id&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;prod_id&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;prod_price&lt;/span&gt;
- &lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;products&lt;/span&gt;
- &lt;span class="n"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;vend_id&lt;/span&gt; &lt;span class="n"&gt;IN&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;1001&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="mi"&gt;1002&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;SELECT vend_id, prod_id, prod_price
+ FROM products
+ WHERE prod_price &amp;lt;=5
+ UNION
+ SELECT vend_id, prod_id, prod_price
+ FROM products
+ WHERE vend_id IN (1001,1002)
 
-&lt;span class="n"&gt;UNION&lt;/span&gt;&lt;span class="err"&gt;自动去除重复行&lt;/span&gt;
-&lt;span class="n"&gt;UNION&lt;/span&gt; &lt;span class="n"&gt;ALL&lt;/span&gt; &lt;span class="err"&gt;保留&lt;/span&gt;
+UNION自动去除重复行
+UNION ALL 保留
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;2.放在UNION后的排序语句&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="err"&gt;对所有&lt;/span&gt;&lt;span class="n"&gt;SELECT&lt;/span&gt;&lt;span class="err"&gt;生效&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;对所有SELECT生效
 &lt;/pre&gt;&lt;/div&gt;
 
 
@@ -575,391 +575,391 @@ update: 2013-11-23, DONE&lt;/p&gt;
 &lt;p&gt;MyISAM 支持全文本搜索&lt;/p&gt;
 &lt;p&gt;InnoDB不支持全文本搜索&lt;/p&gt;
 &lt;p&gt;1.启用&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;CREATE&lt;/span&gt; &lt;span class="n"&gt;TABLE&lt;/span&gt; &lt;span class="n"&gt;productnotes&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
- &lt;span class="n"&gt;note_id&lt;/span&gt; &lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;NOT&lt;/span&gt; &lt;span class="nb"&gt;NULL&lt;/span&gt; &lt;span class="n"&gt;AUT_INCREMENT&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
- &lt;span class="n"&gt;note_text&lt;/span&gt; &lt;span class="n"&gt;text&lt;/span&gt; &lt;span class="nb"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
- &lt;span class="n"&gt;FULLTEXT&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;note_text&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;CREATE TABLE productnotes(
+ note_id int NOT NULL AUT_INCREMENT,
+ note_text text NULL,
+ FULLTEXT(note_text)
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;2.进行全文本搜索&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;note_text&lt;/span&gt;
- &lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;tb_name&lt;/span&gt;
- &lt;span class="n"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;Match&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;note_text&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;Against&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;‘&lt;/span&gt;&lt;span class="n"&gt;rabbit&lt;/span&gt;&lt;span class="err"&gt;’&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;SELECT note_text
+ FROM tb_name
+ WHERE Match(note_text) Against(‘rabbit’)
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;3.布尔文本搜索&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;note_text&lt;/span&gt;
- &lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;productontes&lt;/span&gt;
- &lt;span class="n"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;Match&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;note_text&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;Against&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;‘&lt;/span&gt;&lt;span class="n"&gt;heavy&lt;/span&gt;&lt;span class="err"&gt;’&lt;/span&gt; &lt;span class="n"&gt;IN&lt;/span&gt; &lt;span class="n"&gt;BOOLEAN&lt;/span&gt; &lt;span class="n"&gt;MODE&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;SELECT note_text
+ FROM productontes
+ WHERE Match(note_text) Against(‘heavy’ IN BOOLEAN MODE)
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h2&gt;插入数据&lt;/h2&gt;
 &lt;p&gt;1.基本插入&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;INSERT&lt;/span&gt; &lt;span class="n"&gt;INTO&lt;/span&gt; &lt;span class="n"&gt;customers&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;cust_name&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-                     &lt;span class="n"&gt;cust_address&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
- &lt;span class="n"&gt;VALUES&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;‘&lt;/span&gt;&lt;span class="n"&gt;Pep&lt;/span&gt;&lt;span class="err"&gt;’&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;‘&lt;/span&gt;&lt;span class="mi"&gt;100&lt;/span&gt; &lt;span class="n"&gt;main&lt;/span&gt; &lt;span class="n"&gt;street&lt;/span&gt;&lt;span class="err"&gt;’&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;INSERT INTO customers(cust_name,
+                     cust_address)
+ VALUES(‘Pep’, ‘100 main street’)
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;2.插入多行&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;INSERT&lt;/span&gt; &lt;span class="n"&gt;INTO&lt;/span&gt; &lt;span class="n"&gt;customers&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;cust_name&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-                     &lt;span class="n"&gt;cust_address&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
- &lt;span class="n"&gt;VALUES&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;‘&lt;/span&gt;&lt;span class="n"&gt;Pep&lt;/span&gt;&lt;span class="err"&gt;’&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;‘&lt;/span&gt;&lt;span class="mi"&gt;100&lt;/span&gt; &lt;span class="n"&gt;main&lt;/span&gt; &lt;span class="n"&gt;street&lt;/span&gt;&lt;span class="err"&gt;’&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;
-       &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;‘&lt;/span&gt;&lt;span class="n"&gt;Tim&lt;/span&gt;&lt;span class="err"&gt;’&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;‘&lt;/span&gt;&lt;span class="mi"&gt;200&lt;/span&gt; &lt;span class="n"&gt;main&lt;/span&gt; &lt;span class="n"&gt;Street&lt;/span&gt;&lt;span class="err"&gt;’&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;INSERT INTO customers(cust_name,
+                     cust_address)
+ VALUES(‘Pep’, ‘100 main street’),
+       (‘Tim’, ‘200 main Street’);
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;3.插入检索出来的数据&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;INSERT&lt;/span&gt; &lt;span class="n"&gt;INTO&lt;/span&gt; &lt;span class="n"&gt;customers&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;cust_name&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-                     &lt;span class="n"&gt;cust_address&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
- &lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;cust_name&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;custaddress&lt;/span&gt;
- &lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;custnew&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;INSERT INTO customers(cust_name,
+                     cust_address)
+ SELECT cust_name, custaddress
+ FROM custnew;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h2&gt;更新&lt;/h2&gt;
 &lt;p&gt;1.更新行&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;UPDATE&lt;/span&gt; &lt;span class="n"&gt;customers&lt;/span&gt;
- &lt;span class="n"&gt;SET&lt;/span&gt; &lt;span class="n"&gt;cust_email&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="err"&gt;‘&lt;/span&gt;&lt;span class="n"&gt;a&lt;/span&gt;&lt;span class="err"&gt;@&lt;/span&gt;&lt;span class="n"&gt;fudd&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;com&lt;/span&gt;&lt;span class="err"&gt;’&lt;/span&gt;
- &lt;span class="n"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;cust_id&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;10005&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;UPDATE customers
+ SET cust_email = ‘a@fudd.com’
+ WHERE cust_id = 10005
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;2.即使发生错误也继续进行而不是退出&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;UPDATE&lt;/span&gt; &lt;span class="n"&gt;IGNORE&lt;/span&gt; &lt;span class="n"&gt;customers&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;UPDATE IGNORE customers
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h2&gt;删除&lt;/h2&gt;
 &lt;p&gt;1.删除数据&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;DELETE&lt;/span&gt; &lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;customers&lt;/span&gt;
- &lt;span class="n"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;cust_id&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;10006&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;DELETE FROM customers
+ WHERE cust_id = 10006
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h2&gt;表操作&lt;/h2&gt;
 &lt;p&gt;1.创建表&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;CREATE&lt;/span&gt; &lt;span class="n"&gt;TABLE&lt;/span&gt; &lt;span class="n"&gt;customers&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
-   &lt;span class="n"&gt;cust_id&lt;/span&gt; &lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;NOT&lt;/span&gt; &lt;span class="nb"&gt;NULL&lt;/span&gt; &lt;span class="n"&gt;AUTO_INCREMENT&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-   &lt;span class="n"&gt;cust_name&lt;/span&gt; &lt;span class="kt"&gt;char&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;50&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;NOT&lt;/span&gt; &lt;span class="nb"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-   &lt;span class="n"&gt;vend_city&lt;/span&gt; &lt;span class="kt"&gt;char&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;50&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="nb"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-   &lt;span class="n"&gt;quantity&lt;/span&gt; &lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;NOT&lt;/span&gt; &lt;span class="nb"&gt;NULL&lt;/span&gt; &lt;span class="n"&gt;DEFAULT&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-   &lt;span class="n"&gt;PRIMARY&lt;/span&gt; &lt;span class="n"&gt;KEY&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;cust_id&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="n"&gt;ENGINE&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;InnoDB&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;CREATE TABLE customers(
+   cust_id int NOT NULL AUTO_INCREMENT,
+   cust_name char(50) NOT NULL,
+   vend_city char(50) NULL,
+   quantity int NOT NULL DEFAULT 1,
+   PRIMARY KEY(cust_id)
+)ENGINE=InnoDB
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;2.更新表&lt;/p&gt;
 &lt;p&gt;加字段&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ALTER&lt;/span&gt; &lt;span class="n"&gt;TABLE&lt;/span&gt; &lt;span class="n"&gt;vendors&lt;/span&gt;
- &lt;span class="n"&gt;ADD&lt;/span&gt; &lt;span class="n"&gt;vend_phone&lt;/span&gt; &lt;span class="n"&gt;CHAR&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;20&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;ALTER TABLE vendors
+ ADD vend_phone CHAR(20)
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;删除某个字段&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ALTER&lt;/span&gt; &lt;span class="n"&gt;TABLE&lt;/span&gt; &lt;span class="n"&gt;tb1&lt;/span&gt; &lt;span class="n"&gt;DROP&lt;/span&gt; &lt;span class="n"&gt;COLUMN&lt;/span&gt; &lt;span class="n"&gt;names&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;ALTER TABLE tb1 DROP COLUMN names;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;改变列类型&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ALTER&lt;/span&gt; &lt;span class="n"&gt;TABLE&lt;/span&gt; &lt;span class="n"&gt;infos&lt;/span&gt; &lt;span class="n"&gt;CHANGE&lt;/span&gt; &lt;span class="n"&gt;list&lt;/span&gt; &lt;span class="n"&gt;list&lt;/span&gt; &lt;span class="n"&gt;tinyint&lt;/span&gt; &lt;span class="n"&gt;NOT&lt;/span&gt; &lt;span class="nb"&gt;NULL&lt;/span&gt; &lt;span class="n"&gt;DEFAULT&lt;/span&gt; &lt;span class="sc"&gt;&amp;#39;0&amp;#39;&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;ALTER TABLE infos CHANGE list list tinyint NOT NULL DEFAULT &amp;#39;0&amp;#39;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;加主键&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ALTER&lt;/span&gt; &lt;span class="n"&gt;TABLE&lt;/span&gt; &lt;span class="n"&gt;tb1&lt;/span&gt; &lt;span class="n"&gt;ADD&lt;/span&gt; &lt;span class="n"&gt;primary&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;id&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;ALTER TABLE tb1 ADD primary key(id)
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;删除一个字段&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ALTER&lt;/span&gt; &lt;span class="n"&gt;TABLE&lt;/span&gt; &lt;span class="n"&gt;tb1&lt;/span&gt; &lt;span class="n"&gt;DROP&lt;/span&gt; &lt;span class="n"&gt;field_name&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;ALTER TABLE tb1 DROP field_name
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;增加自增长主键&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;alter&lt;/span&gt; &lt;span class="n"&gt;table&lt;/span&gt; &lt;span class="n"&gt;customers&lt;/span&gt; &lt;span class="n"&gt;change&lt;/span&gt; &lt;span class="n"&gt;id&lt;/span&gt; &lt;span class="n"&gt;id&lt;/span&gt; &lt;span class="n"&gt;not&lt;/span&gt; &lt;span class="n"&gt;null&lt;/span&gt; &lt;span class="n"&gt;auto_increment&lt;/span&gt; &lt;span class="n"&gt;primary&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;alter table customers change id id not null auto_increment primary key;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;增加新字段并设置为主键&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;Alter&lt;/span&gt; &lt;span class="n"&gt;TABLE&lt;/span&gt; &lt;span class="n"&gt;tablename&lt;/span&gt; &lt;span class="n"&gt;ADD&lt;/span&gt; &lt;span class="n"&gt;new_field_id&lt;/span&gt; &lt;span class="kt"&gt;int&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;5&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;default&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt; &lt;span class="n"&gt;not&lt;/span&gt; &lt;span class="n"&gt;null&lt;/span&gt; &lt;span class="n"&gt;auto_increment&lt;/span&gt; &lt;span class="n"&gt;ADD&lt;/span&gt; &lt;span class="n"&gt;primary&lt;/span&gt; &lt;span class="n"&gt;key&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;new_field_id&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;Alter TABLE tablename ADD new_field_id int(5) default 0 not null auto_increment ADD primary key(new_field_id)
 
-&lt;span class="n"&gt;ALTER&lt;/span&gt; &lt;span class="n"&gt;TABLE&lt;/span&gt; &lt;span class="n"&gt;example&lt;/span&gt; &lt;span class="n"&gt;ADD&lt;/span&gt; &lt;span class="n"&gt;ID&lt;/span&gt; &lt;span class="n"&gt;INT&lt;/span&gt; &lt;span class="n"&gt;NOT&lt;/span&gt; &lt;span class="nb"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-&lt;span class="n"&gt;ALTER&lt;/span&gt; &lt;span class="n"&gt;TABLE&lt;/span&gt; &lt;span class="n"&gt;example&lt;/span&gt; &lt;span class="n"&gt;ADD&lt;/span&gt; &lt;span class="n"&gt;UNIQUE&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;url&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+ALTER TABLE example ADD ID INT NOT NULL;
+ALTER TABLE example ADD UNIQUE(url)
 
-&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ALTER&lt;/span&gt; &lt;span class="n"&gt;TABLE&lt;/span&gt; &lt;span class="n"&gt;vendors&lt;/span&gt;
- &lt;span class="n"&gt;DROP&lt;/span&gt; &lt;span class="n"&gt;COLUMN&lt;/span&gt; &lt;span class="n"&gt;vend_phone&lt;/span&gt;
+&amp;gt;ALTER TABLE vendors
+ DROP COLUMN vend_phone
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;alter table syntax:
 http://dev.mysql.com/doc/refman/5.1/en/alter-table.html&lt;/p&gt;
 &lt;p&gt;3.删除表&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;DROP&lt;/span&gt; &lt;span class="n"&gt;TABLE&lt;/span&gt; &lt;span class="n"&gt;customers2&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;DROP TABLE customers2;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;4.清空表数据&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;DELETE&lt;/span&gt; &lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;mytable&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;DELETE FROM mytable;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;5.重命名表&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;RENAME&lt;/span&gt; &lt;span class="n"&gt;TABLE&lt;/span&gt; &lt;span class="n"&gt;customers2&lt;/span&gt; &lt;span class="n"&gt;TO&lt;/span&gt; &lt;span class="n"&gt;customers&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
- &lt;span class="n"&gt;ALTER&lt;/span&gt; &lt;span class="n"&gt;TABLE&lt;/span&gt; &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;oldname&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt; &lt;span class="n"&gt;RENAME&lt;/span&gt; &lt;span class="n"&gt;TO&lt;/span&gt; &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;newname&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;RENAME TABLE customers2 TO customers;
+ ALTER TABLE &amp;#39;oldname&amp;#39; RENAME TO &amp;#39;newname&amp;#39;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h2&gt;视图操作&lt;/h2&gt;
 &lt;p&gt;1.创建视图&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;CREATE&lt;/span&gt; &lt;span class="n"&gt;VIEW&lt;/span&gt; &lt;span class="n"&gt;productcustomers&lt;/span&gt; &lt;span class="n"&gt;AS&lt;/span&gt;
- &lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;cust_name&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;cust_contact&lt;/span&gt;
- &lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;customers&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;orders&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;orderitems&lt;/span&gt;
- &lt;span class="n"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;customers&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;cust_id&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;orders&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;cust_id&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;CREATE VIEW productcustomers AS
+ SELECT cust_name, cust_contact
+ FROM customers, orders, orderitems
+ WHERE customers.cust_id = orders.cust_id
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;2.使用视图&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;cust_name&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;cust_contact&lt;/span&gt;
- &lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;productcustomers&lt;/span&gt;
- &lt;span class="n"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;prod_id&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="err"&gt;‘&lt;/span&gt;&lt;span class="n"&gt;TNT2&lt;/span&gt;&lt;span class="err"&gt;’&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;SELECT cust_name, cust_contact
+ FROM productcustomers
+ WHERE prod_id = ‘TNT2’
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h2&gt;存储过程&lt;/h2&gt;
 &lt;p&gt;1.创建简单存储过程&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;CREATE&lt;/span&gt; &lt;span class="n"&gt;PROCEDURE&lt;/span&gt; &lt;span class="n"&gt;productpricing&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
- &lt;span class="n"&gt;BEGIN&lt;/span&gt;
-&lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;Avg&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;price&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;AS&lt;/span&gt; &lt;span class="n"&gt;priceavg&lt;/span&gt;
-&lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;products&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
- &lt;span class="n"&gt;END&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;CREATE PROCEDURE productpricing()
+ BEGIN
+SELECT Avg(price) AS priceavg
+FROM products;
+ END;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;调用:CALL productpricing()&lt;/p&gt;
 &lt;p&gt;2.删除存储过程&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;DROP&lt;/span&gt; &lt;span class="n"&gt;PROCEDURE&lt;/span&gt; &lt;span class="n"&gt;productpricing&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;DROP PROCEDURE productpricing
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;3.使用参数&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;CREATE&lt;/span&gt; &lt;span class="n"&gt;PROCEDURE&lt;/span&gt; &lt;span class="n"&gt;ordertotal&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
-&lt;span class="n"&gt;IN&lt;/span&gt; &lt;span class="n"&gt;onumber&lt;/span&gt; &lt;span class="n"&gt;INT&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-&lt;span class="n"&gt;OUT&lt;/span&gt; &lt;span class="n"&gt;ototal&lt;/span&gt; &lt;span class="n"&gt;DECIMAL&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="n"&gt;BEGIN&lt;/span&gt;
-&lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;Sum&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;item_price&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;quality&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;orderitems&lt;/span&gt;
-&lt;span class="n"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;order_num&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;onumber&lt;/span&gt;
-&lt;span class="n"&gt;INTO&lt;/span&gt; &lt;span class="n"&gt;ototal&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-&lt;span class="n"&gt;END&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;CREATE PROCEDURE ordertotal(
+IN onumber INT,
+OUT ototal DECIMAL(8,2)
+)
+BEGIN
+SELECT Sum(item_price*quality)
+FROM orderitems
+WHERE order_num = onumber
+INTO ototal;
+END;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;调用:&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;CALL&lt;/span&gt; &lt;span class="n"&gt;ordertotal&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;200005&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;@&lt;/span&gt;&lt;span class="n"&gt;total&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="err"&gt;@&lt;/span&gt;&lt;span class="n"&gt;total&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;CALL ordertotal(200005, @total;
+&amp;gt;SELECT @total;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;3.检查存储过程&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SHOW&lt;/span&gt; &lt;span class="n"&gt;CREATE&lt;/span&gt; &lt;span class="n"&gt;PROCEDURE&lt;/span&gt; &lt;span class="n"&gt;ordertotal&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;SHOW CREATE PROCEDURE ordertotal;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h2&gt;游标&lt;/h2&gt;
 &lt;p&gt;1.创建游标&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;CREATE&lt;/span&gt; &lt;span class="n"&gt;PROCEDURE&lt;/span&gt; &lt;span class="n"&gt;processorders&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
- &lt;span class="n"&gt;BEGIN&lt;/span&gt;
-&lt;span class="n"&gt;DECLARE&lt;/span&gt; &lt;span class="n"&gt;ordernumbers&lt;/span&gt; &lt;span class="n"&gt;CURSOR&lt;/span&gt;
-&lt;span class="n"&gt;FOR&lt;/span&gt;
-&lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;order_number&lt;/span&gt; &lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;orders&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;CREATE PROCEDURE processorders()
+ BEGIN
+DECLARE ordernumbers CURSOR
+FOR
+SELECT order_number FROM orders;
 
-&lt;span class="n"&gt;BEGIN&lt;/span&gt; &lt;span class="n"&gt;ordernumbers&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+BEGIN ordernumbers;
 
-&lt;span class="n"&gt;FETCH&lt;/span&gt; &lt;span class="n"&gt;ordernumbers&lt;/span&gt; &lt;span class="n"&gt;INTO&lt;/span&gt; &lt;span class="n"&gt;o&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+FETCH ordernumbers INTO o;
 
-&lt;span class="n"&gt;CLOSE&lt;/span&gt; &lt;span class="n"&gt;ordernumbers&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
- &lt;span class="n"&gt;END&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+CLOSE ordernumbers;
+ END;
 
-&lt;span class="n"&gt;DECLARE&lt;/span&gt; &lt;span class="n"&gt;CONTINUE&lt;/span&gt; &lt;span class="n"&gt;HANDLER&lt;/span&gt; &lt;span class="n"&gt;FOR&lt;/span&gt; &lt;span class="n"&gt;SQLSTATE&lt;/span&gt; &lt;span class="err"&gt;‘&lt;/span&gt;&lt;span class="mo"&gt;02000&lt;/span&gt;&lt;span class="err"&gt;’&lt;/span&gt; &lt;span class="n"&gt;SET&lt;/span&gt; &lt;span class="n"&gt;done&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-&lt;span class="n"&gt;REPEAT&lt;/span&gt;
-    &lt;span class="n"&gt;FETCH&lt;/span&gt; &lt;span class="n"&gt;ordernumbers&lt;/span&gt; &lt;span class="n"&gt;INTO&lt;/span&gt; &lt;span class="n"&gt;o&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-&lt;span class="n"&gt;END&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+DECLARE CONTINUE HANDLER FOR SQLSTATE ‘02000’ SET done=1;
+REPEAT
+    FETCH ordernumbers INTO o;
+END;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h2&gt;触发器&lt;/h2&gt;
 &lt;p&gt;1.创建触发器&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;CREATE&lt;/span&gt; &lt;span class="n"&gt;TRIGGER&lt;/span&gt; &lt;span class="n"&gt;newproduct&lt;/span&gt; &lt;span class="n"&gt;AFTER&lt;/span&gt; &lt;span class="n"&gt;INSERT&lt;/span&gt; &lt;span class="n"&gt;ON&lt;/span&gt; &lt;span class="n"&gt;products&lt;/span&gt;
- &lt;span class="n"&gt;FOR&lt;/span&gt; &lt;span class="n"&gt;EACH&lt;/span&gt; &lt;span class="n"&gt;ROW&lt;/span&gt; &lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="err"&gt;‘&lt;/span&gt;&lt;span class="n"&gt;Product&lt;/span&gt; &lt;span class="n"&gt;added&lt;/span&gt;&lt;span class="err"&gt;’&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;CREATE TRIGGER newproduct AFTER INSERT ON products
+ FOR EACH ROW SELECT ‘Product added’
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;2.删除触发器&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;DROP&lt;/span&gt; &lt;span class="n"&gt;TRIGGER&lt;/span&gt; &lt;span class="n"&gt;newproduct&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;DROP TRIGGER newproduct;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;3.INSERT触发器&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;CREATE&lt;/span&gt; &lt;span class="n"&gt;TRIGGER&lt;/span&gt; &lt;span class="n"&gt;neworder&lt;/span&gt; &lt;span class="n"&gt;AFTER&lt;/span&gt; &lt;span class="n"&gt;INSERT&lt;/span&gt; &lt;span class="n"&gt;ON&lt;/span&gt; &lt;span class="n"&gt;orders&lt;/span&gt;
- &lt;span class="n"&gt;FOR&lt;/span&gt; &lt;span class="n"&gt;EACH&lt;/span&gt; &lt;span class="n"&gt;ROW&lt;/span&gt; &lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;NEW&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;order_num&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;CREATE TRIGGER neworder AFTER INSERT ON orders
+ FOR EACH ROW SELECT NEW.order_num
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;4.DELETE触发器&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;CREATE&lt;/span&gt; &lt;span class="n"&gt;TRIGGER&lt;/span&gt; &lt;span class="n"&gt;deleteorder&lt;/span&gt; &lt;span class="n"&gt;BEFORE&lt;/span&gt; &lt;span class="n"&gt;DELETE&lt;/span&gt; &lt;span class="n"&gt;ON&lt;/span&gt; &lt;span class="n"&gt;orders&lt;/span&gt;
- &lt;span class="n"&gt;FOR&lt;/span&gt; &lt;span class="n"&gt;EACH&lt;/span&gt; &lt;span class="n"&gt;ROW&lt;/span&gt;
- &lt;span class="n"&gt;BEGIN&lt;/span&gt;
-&lt;span class="n"&gt;INSERT&lt;/span&gt; &lt;span class="n"&gt;INTO&lt;/span&gt; &lt;span class="n"&gt;archive_orders&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;order_num&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;order_date&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;cust_id&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="n"&gt;VALUES&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;OLD&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;order_num&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;OLD&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;order_date&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;OLD&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;cust_id&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
- &lt;span class="n"&gt;END&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;CREATE TRIGGER deleteorder BEFORE DELETE ON orders
+ FOR EACH ROW
+ BEGIN
+INSERT INTO archive_orders(order_num, order_date, cust_id)
+VALUES(OLD.order_num, OLD.order_date, OLD.cust_id);
+ END;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;5.UPDATE触发器&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;CREATE&lt;/span&gt; &lt;span class="n"&gt;TRIGGER&lt;/span&gt; &lt;span class="n"&gt;updatevendor&lt;/span&gt; &lt;span class="n"&gt;BEFORE&lt;/span&gt; &lt;span class="n"&gt;UPDATE&lt;/span&gt; &lt;span class="n"&gt;ON&lt;/span&gt; &lt;span class="n"&gt;vendors&lt;/span&gt;
- &lt;span class="n"&gt;FOR&lt;/span&gt; &lt;span class="n"&gt;EACH&lt;/span&gt; &lt;span class="n"&gt;ROW&lt;/span&gt; &lt;span class="n"&gt;SET&lt;/span&gt; &lt;span class="n"&gt;NEW&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;vend_state&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Upper&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;NEW&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;vend_state&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;CREATE TRIGGER updatevendor BEFORE UPDATE ON vendors
+ FOR EACH ROW SET NEW.vend_state = Upper(NEW.vend_state);
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h2&gt;事务&lt;/h2&gt;
 &lt;p&gt;基本概念&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;ACID&lt;/span&gt;
-&lt;span class="n"&gt;A&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="err"&gt;原子性，食物是一个原子操作单元，其对数据的修改，要么全执行，要么全不执行&lt;/span&gt;
-&lt;span class="n"&gt;C&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="err"&gt;一致性，事务开始和完成的时候，数据必须都保持一致状态（所有相关数据规则和内部数据结构）&lt;/span&gt;
-&lt;span class="n"&gt;I&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="err"&gt;隔离性，保证事务不受外部并发操作影响，即事务处理中间过程状态对外不可见&lt;/span&gt;
-&lt;span class="n"&gt;D&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="err"&gt;持久性，事务完成后，对数据修改时永久性的，及时出现系统故障也能够保持&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;ACID
+A,原子性，食物是一个原子操作单元，其对数据的修改，要么全执行，要么全不执行
+C.一致性，事务开始和完成的时候，数据必须都保持一致状态（所有相关数据规则和内部数据结构）
+I.隔离性，保证事务不受外部并发操作影响，即事务处理中间过程状态对外不可见
+D.持久性，事务完成后，对数据修改时永久性的，及时出现系统故障也能够保持
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;1.事务&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;START&lt;/span&gt; &lt;span class="n"&gt;TRANSACTION&lt;/span&gt;
- &lt;span class="n"&gt;DELETE&lt;/span&gt; &lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;ordertotals&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
- &lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;ordertotals&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;START TRANSACTION
+ DELETE FROM ordertotals;
+ SELECT * FROM ordertotals;
 
-&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ROLLBACK&lt;/span&gt;
-&lt;span class="err"&gt;回退&lt;/span&gt;
+&amp;gt;ROLLBACK
+回退
 
-&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;COMMIT&lt;/span&gt;
-&lt;span class="err"&gt;提交&lt;/span&gt;
+&amp;gt;COMMIT
+提交
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;2.设立保留点&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;SAVEPOINT&lt;/span&gt; &lt;span class="n"&gt;delete1&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;SAVEPOINT delete1;
 
-&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ROLLBACK&lt;/span&gt; &lt;span class="n"&gt;TO&lt;/span&gt; &lt;span class="n"&gt;delete1&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&amp;gt;ROLLBACK TO delete1;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h2&gt;导入导出&lt;/h2&gt;
 &lt;p&gt;1.导入&lt;/p&gt;
 &lt;p&gt;用文本形式插入数据&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;LOAD&lt;/span&gt; &lt;span class="n"&gt;DATA&lt;/span&gt; &lt;span class="n"&gt;LOCAL&lt;/span&gt; &lt;span class="n"&gt;INFILE&lt;/span&gt; &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;d&lt;/span&gt;&lt;span class="o"&gt;:/&lt;/span&gt;&lt;span class="n"&gt;mysql&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;txt&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt; &lt;span class="n"&gt;INTO&lt;/span&gt; &lt;span class="n"&gt;TABLE&lt;/span&gt; &lt;span class="n"&gt;mytable&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="nt"&gt;LOAD&lt;/span&gt; &lt;span class="nt"&gt;DATA&lt;/span&gt; &lt;span class="nt"&gt;LOCAL&lt;/span&gt; &lt;span class="nt"&gt;INFILE&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;d:/mysql.txt&amp;#39;&lt;/span&gt; &lt;span class="nt"&gt;INTO&lt;/span&gt; &lt;span class="nt"&gt;TABLE&lt;/span&gt; &lt;span class="nt"&gt;mytable&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;导入.sql&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;use&lt;/span&gt; &lt;span class="n"&gt;database&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;source&lt;/span&gt; &lt;span class="n"&gt;d&lt;/span&gt;&lt;span class="o"&gt;:/&lt;/span&gt;&lt;span class="n"&gt;mysql&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;sql&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&amp;gt;use database;
+&amp;gt;source d:/mysql.sql
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;从另外一张表往这张表插入&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;INSERT&lt;/span&gt; &lt;span class="n"&gt;INTO&lt;/span&gt; &lt;span class="n"&gt;tab1&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;f1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="n"&gt;f2&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;a&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;f1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;a&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;f2&lt;/span&gt;
-&lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;a&lt;/span&gt; &lt;span class="n"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;a&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;f1&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="sc"&gt;&amp;#39;a&amp;#39;&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;INSERT INTO tab1(f1,f2)
+SELECT a.f1, a.f2
+FROM a WHERE a.f1=&amp;#39;a&amp;#39;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;2.备份&lt;/p&gt;
 &lt;p&gt;导出要用到MySQL的mysqldump工具，基本用法是：&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;mysqldump&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;OPTIONS&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="n"&gt;database&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;tables&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;mysqldump [OPTIONS] database [tables]
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;备份MySQL数据库的命令&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;mysqldump&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;hhostname&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;uusername&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;ppassword&lt;/span&gt; &lt;span class="n"&gt;databasename&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;backupfile&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;sql&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;mysqldump -hhostname -uusername -ppassword databasename &amp;gt; backupfile.sql
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;备份MySQL数据库为带删除表的格式，能够让该备份覆盖已有数据库而不需要手动删除原有数据库。&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;mysqldump&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="err"&gt;–&lt;/span&gt;&lt;span class="n"&gt;add&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;drop&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;table&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;uusername&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;ppassword&lt;/span&gt; &lt;span class="n"&gt;databasename&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;backupfile&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;sql&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;mysqldump -–add-drop-table -uusername -ppassword databasename &amp;gt; backupfile.sql
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;直接将MySQL数据库压缩备份&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;mysqldump&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;hhostname&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;uusername&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;ppassword&lt;/span&gt; &lt;span class="n"&gt;databasename&lt;/span&gt; &lt;span class="o"&gt;|&lt;/span&gt; &lt;span class="n"&gt;gzip&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;backupfile&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;sql&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;gz&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;mysqldump -hhostname -uusername -ppassword databasename | gzip &amp;gt; backupfile.sql.gz
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;备份MySQL数据库某个(些)表&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;mysqldump&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;hhostname&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;uusername&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;ppassword&lt;/span&gt; &lt;span class="n"&gt;databasename&lt;/span&gt; &lt;span class="n"&gt;specific_table1&lt;/span&gt; &lt;span class="n"&gt;specific_table2&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;backupfile&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;sql&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;mysqldump -hhostname -uusername -ppassword databasename specific_table1 specific_table2 &amp;gt; backupfile.sql
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;同时备份多个MySQL数据库&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;mysqldump&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;hhostname&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;uusername&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;ppassword&lt;/span&gt; &lt;span class="err"&gt;–&lt;/span&gt;&lt;span class="n"&gt;databases&lt;/span&gt; &lt;span class="n"&gt;databasename1&lt;/span&gt; &lt;span class="n"&gt;databasename2&lt;/span&gt; &lt;span class="n"&gt;databasename3&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;multibackupfile&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;sql&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;mysqldump -hhostname -uusername -ppassword –databases databasename1 databasename2 databasename3 &amp;gt; multibackupfile.sql
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;仅仅备份数据库结构&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;mysqldump&lt;/span&gt; &lt;span class="err"&gt;–&lt;/span&gt;&lt;span class="n"&gt;no&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;data&lt;/span&gt; &lt;span class="err"&gt;–&lt;/span&gt;&lt;span class="n"&gt;databases&lt;/span&gt; &lt;span class="n"&gt;databasename1&lt;/span&gt; &lt;span class="n"&gt;databasename2&lt;/span&gt; &lt;span class="n"&gt;databasename3&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;structurebackupfile&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;sql&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;mysqldump –no-data –databases databasename1 databasename2 databasename3 &amp;gt; structurebackupfile.sql
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;备份服务器上所有数据库&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;mysqldump&lt;/span&gt; &lt;span class="err"&gt;–&lt;/span&gt;&lt;span class="n"&gt;all&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;databases&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;allbackupfile&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;sql&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;mysqldump –all-databases &amp;gt; allbackupfile.sql
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;还原&lt;/p&gt;
 &lt;p&gt;还原MySQL数据库的命令&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;mysql&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;hhostname&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;uusername&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;ppassword&lt;/span&gt; &lt;span class="n"&gt;databasename&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="n"&gt;backupfile&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;sql&lt;/span&gt;
-&lt;span class="n"&gt;mysql&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;hhostname&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;ppassword&lt;/span&gt; &lt;span class="n"&gt;databasename&lt;/span&gt; &lt;span class="n"&gt;tablename&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="n"&gt;backuptablefile&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;sql&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;mysql -hhostname -uusername -ppassword databasename &amp;lt; backupfile.sql
+mysql -hhostname -ppassword databasename tablename &amp;lt; backuptablefile.sql
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;还原压缩的MySQL数据库&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;gunzip&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="n"&gt;backupfile&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;sql&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;gz&lt;/span&gt; &lt;span class="o"&gt;|&lt;/span&gt; &lt;span class="n"&gt;mysql&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;uusername&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;ppassword&lt;/span&gt; &lt;span class="n"&gt;databasename&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;gunzip &amp;lt; backupfile.sql.gz | mysql -uusername -ppassword databasename
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;将数据库转移到新服务器&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;mysqldump&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;uusername&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;ppassword&lt;/span&gt; &lt;span class="n"&gt;databasename&lt;/span&gt; &lt;span class="o"&gt;|&lt;/span&gt; &lt;span class="n"&gt;mysql&lt;/span&gt; &lt;span class="err"&gt;–&lt;/span&gt;&lt;span class="n"&gt;host&lt;/span&gt;&lt;span class="o"&gt;=*&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;C&lt;/span&gt; &lt;span class="n"&gt;databasename&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;mysqldump -uusername -ppassword databasename | mysql –host=*.*.*.* -C databasename
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;将查询结果导入外部文件&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;a&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="n"&gt;a&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="n"&gt;b&lt;/span&gt; 
-&lt;span class="n"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;test_table&lt;/span&gt;
-&lt;span class="n"&gt;INTO&lt;/span&gt; &lt;span class="n"&gt;OUTFILE&lt;/span&gt; &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;tmp&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;result&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;txt&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;
-&lt;span class="n"&gt;FIELDS&lt;/span&gt; &lt;span class="n"&gt;TERMINATED&lt;/span&gt; &lt;span class="n"&gt;BY&lt;/span&gt; &lt;span class="sc"&gt;&amp;#39;,&amp;#39;&lt;/span&gt; &lt;span class="n"&gt;OPTIONALLY&lt;/span&gt; &lt;span class="n"&gt;ENCLOSED&lt;/span&gt; &lt;span class="n"&gt;BY&lt;/span&gt; &lt;span class="sc"&gt;&amp;#39;&amp;quot;&amp;#39;&lt;/span&gt;
-&lt;span class="n"&gt;LINES&lt;/span&gt; &lt;span class="n"&gt;TERMINATED&lt;/span&gt; &lt;span class="n"&gt;BY&lt;/span&gt; &lt;span class="sc"&gt;&amp;#39;\n&amp;#39;&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;SELECT a,b,a+b 
+FROM test_table
+INTO OUTFILE &amp;#39;/tmp/result.txt&amp;#39;
+FIELDS TERMINATED BY &amp;#39;,&amp;#39; OPTIONALLY ENCLOSED BY &amp;#39;&amp;quot;&amp;#39;
+LINES TERMINATED BY &amp;#39;\n&amp;#39;
 
-&lt;span class="err"&gt;或者&lt;/span&gt;
+或者
 
-&lt;span class="n"&gt;mysql&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;u&lt;/span&gt; &lt;span class="n"&gt;you&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;p&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;e&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;SELECT ...&amp;quot;&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt;  &lt;span class="n"&gt;file_name&lt;/span&gt;
+mysql -u you -p -e &amp;quot;SELECT ...&amp;quot; &amp;gt;  file_name
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h2&gt;性能研究&lt;/h2&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="mf"&gt;1.&lt;/span&gt;&lt;span class="err"&gt;什么情况下无法使用索引？&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;1.什么情况下无法使用索引？
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h2&gt;实时监控&lt;/h2&gt;
 &lt;p&gt;查看mysql数据库的当前连接数&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="err"&gt;命令：&lt;/span&gt; &lt;span class="n"&gt;show&lt;/span&gt; &lt;span class="n"&gt;processlist&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-&lt;span class="err"&gt;或者&lt;/span&gt; &lt;span class="err"&gt;#&lt;/span&gt; &lt;span class="n"&gt;mysqladmin&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;uroot&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;p&lt;/span&gt;&lt;span class="err"&gt;密码&lt;/span&gt; &lt;span class="n"&gt;processlist&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;命令： show processlist;
+或者 # mysqladmin -uroot -p密码 processlist
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;当前状态&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="err"&gt;命令：&lt;/span&gt; &lt;span class="n"&gt;show&lt;/span&gt; &lt;span class="n"&gt;status&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-&lt;span class="err"&gt;或者&lt;/span&gt; &lt;span class="err"&gt;#&lt;/span&gt; &lt;span class="n"&gt;mysqladmin&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;uroot&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;p&lt;/span&gt;&lt;span class="err"&gt;密码&lt;/span&gt; &lt;span class="n"&gt;status&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;命令： show status;
+或者 # mysqladmin -uroot -p密码 status
 &lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sun, 11 Aug 2013 00:00:00 +0800</pubDate><guid>tag:www.wklken.me,2013-08-11:posts/2013/08/11/mysql-base.html</guid><category>linux</category><category>mysql</category></item></channel></rss>

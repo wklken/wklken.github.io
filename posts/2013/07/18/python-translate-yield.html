@@ -78,28 +78,28 @@
 <p>SN上面看到的，顺手翻译下，第一次翻译，好多地方翻的不是很好 :)</p>
 <hr />
 <p>问题:</p>
-<div class="codehilite"><pre><span class="n">Python</span><span class="err">中</span><span class="n">yield</span><span class="err">关键字的作用是什么？它做了什么？</span>
+<div class="codehilite"><pre>Python中yield关键字的作用是什么？它做了什么？
 </pre></div>
 
 
 <p>例如，我想理解以下代码</p>
-<div class="codehilite"><pre><span class="n">def</span> <span class="n">node</span><span class="p">.</span><span class="n">_get_child_candidates</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">distance</span><span class="p">,</span> <span class="n">min_dist</span><span class="p">,</span> <span class="n">max_dist</span><span class="p">)</span><span class="o">:</span>
-    <span class="k">if</span> <span class="n">self</span><span class="p">.</span><span class="n">_leftchild</span> <span class="n">and</span> <span class="n">distance</span> <span class="o">-</span> <span class="n">max_dist</span> <span class="o">&lt;</span> <span class="n">self</span><span class="p">.</span><span class="n">_median</span><span class="o">:</span>
-        <span class="n">yield</span> <span class="n">self</span><span class="p">.</span><span class="n">_leftchild</span>
-    <span class="k">if</span> <span class="n">self</span><span class="p">.</span><span class="n">_rightchild</span> <span class="n">and</span> <span class="n">distance</span> <span class="o">+</span> <span class="n">max_dist</span> <span class="o">&gt;=</span> <span class="n">self</span><span class="p">.</span><span class="n">_median</span><span class="o">:</span>
-        <span class="n">yield</span> <span class="n">self</span><span class="p">.</span><span class="n">_rightchild</span>
+<div class="codehilite"><pre>def node._get_child_candidates(self, distance, min_dist, max_dist):
+    if self._leftchild and distance - max_dist &lt; self._median:
+        yield self._leftchild
+    if self._rightchild and distance + max_dist &gt;= self._median:
+        yield self._rightchild
 </pre></div>
 
 
 <p>下面是调用者</p>
-<div class="codehilite"><pre><span class="n">result</span><span class="p">,</span> <span class="n">candidates</span> <span class="o">=</span> <span class="n">list</span><span class="p">(),</span> <span class="p">[</span><span class="n">self</span><span class="p">]</span>
-<span class="k">while</span> <span class="n">candidates</span><span class="o">:</span>
-    <span class="n">node</span> <span class="o">=</span> <span class="n">candidates</span><span class="p">.</span><span class="n">pop</span><span class="p">()</span>
-    <span class="n">distance</span> <span class="o">=</span> <span class="n">node</span><span class="p">.</span><span class="n">_get_dist</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">distance</span> <span class="o">&lt;=</span> <span class="n">max_dist</span> <span class="n">and</span> <span class="n">distance</span> <span class="o">&gt;=</span> <span class="n">min_dist</span><span class="o">:</span>
-        <span class="n">result</span><span class="p">.</span><span class="n">extend</span><span class="p">(</span><span class="n">node</span><span class="p">.</span><span class="n">_values</span><span class="p">)</span>
-    <span class="n">candidates</span><span class="p">.</span><span class="n">extend</span><span class="p">(</span><span class="n">node</span><span class="p">.</span><span class="n">_get_child_candidates</span><span class="p">(</span><span class="n">distance</span><span class="p">,</span> <span class="n">min_dist</span><span class="p">,</span> <span class="n">max_dist</span><span class="p">))</span>
-<span class="k">return</span> <span class="n">result</span>
+<div class="codehilite"><pre>result, candidates = list(), [self]
+while candidates:
+    node = candidates.pop()
+    distance = node._get_dist(obj)
+    if distance &lt;= max_dist and distance &gt;= min_dist:
+        result.extend(node._values)
+    candidates.extend(node._get_child_candidates(distance, min_dist, max_dist))
+return result
 </pre></div>
 
 
@@ -109,22 +109,22 @@
 <p>要了解yield的作用，你必须先明白什么是生成器，在此之前，你需要了解什么是可迭代对象（可迭代序列）</p>
 <h2>迭代</h2>
 <p>你可以创建一个列表，然后逐一遍历，这就是迭代</p>
-<div class="codehilite"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">mylist</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="k">for</span> <span class="n">i</span> <span class="n">in</span> <span class="n">mylist</span><span class="o">:</span>
-<span class="p">...</span>    <span class="n">print</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
-<span class="mi">1</span>
-<span class="mi">2</span>
-<span class="mi">3</span>
+<div class="codehilite"><pre>&gt;&gt;&gt; mylist = [1, 2, 3]
+&gt;&gt;&gt; for i in mylist:
+...    print(i)
+1
+2
+3
 </pre></div>
 
 
 <p>mylist是可迭代的对象，当你使用列表解析时，你创建一个列表,即一个可迭代对象</p>
-<div class="codehilite"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">mylist</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">*</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="n">in</span> <span class="n">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)]</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="k">for</span> <span class="n">i</span> <span class="n">in</span> <span class="n">mylist</span><span class="o">:</span>
-<span class="p">...</span>    <span class="n">print</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
-<span class="mi">0</span>
-<span class="mi">1</span>
-<span class="mi">4</span>
+<div class="codehilite"><pre>&gt;&gt;&gt; mylist = [x*x for x in range(3)]
+&gt;&gt;&gt; for i in mylist:
+...    print(i)
+0
+1
+4
 </pre></div>
 
 
@@ -135,12 +135,12 @@
 <h2>生成器</h2>
 <p>生成器是迭代器，但你只能遍历它一次(iterate over them once)
 因为生成器并没有将所有值放入内存中，而是实时地生成这些值</p>
-<div class="codehilite"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">mygenerator</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span><span class="o">*</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="n">in</span> <span class="n">range</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="k">for</span> <span class="n">i</span> <span class="n">in</span> <span class="n">mygenerator</span><span class="o">:</span>
-<span class="p">...</span>    <span class="n">print</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
-<span class="mi">0</span>
-<span class="mi">1</span>
-<span class="mi">4</span>
+<div class="codehilite"><pre>&gt;&gt;&gt; mygenerator = (x*x for x in range(3))
+&gt;&gt;&gt; for i in mygenerator:
+...    print(i)
+0
+1
+4
 </pre></div>
 
 
@@ -148,19 +148,19 @@
 <p>注意，你不能执行for i in mygenerator第二次，因为每个生成器只能被使用一次: 计算0，并不保留结果和状态，接着计算1，然后计算4，逐一生成</p>
 <h2>yield</h2>
 <p>yield是一个关键词，类似return, 不同之处在于，yield返回的是一个生成器</p>
-<div class="codehilite"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">def</span> <span class="n">createGenerator</span><span class="p">()</span><span class="o">:</span>
-<span class="p">...</span>    <span class="n">mylist</span> <span class="o">=</span> <span class="n">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
-<span class="p">...</span>    <span class="k">for</span> <span class="n">i</span> <span class="n">in</span> <span class="n">mylist</span><span class="o">:</span>
-<span class="p">...</span>        <span class="n">yield</span> <span class="n">i</span><span class="o">*</span><span class="n">i</span>
-<span class="p">...</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">mygenerator</span> <span class="o">=</span> <span class="n">createGenerator</span><span class="p">()</span> <span class="err">#</span> <span class="n">create</span> <span class="n">a</span> <span class="n">generator</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">print</span><span class="p">(</span><span class="n">mygenerator</span><span class="p">)</span> <span class="err">#</span> <span class="n">mygenerator</span> <span class="n">is</span> <span class="n">an</span> <span class="n">object</span><span class="o">!</span>
-<span class="o">&lt;</span><span class="n">generator</span> <span class="n">object</span> <span class="n">createGenerator</span> <span class="n">at</span> <span class="mh">0xb7555c34</span><span class="o">&gt;</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="k">for</span> <span class="n">i</span> <span class="n">in</span> <span class="n">mygenerator</span><span class="o">:</span>
-<span class="p">...</span>     <span class="n">print</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
-<span class="mi">0</span>
-<span class="mi">1</span>
-<span class="mi">4</span>
+<div class="codehilite"><pre>&gt;&gt;&gt; def createGenerator():
+...    mylist = range(3)
+...    for i in mylist:
+...        yield i*i
+...
+&gt;&gt;&gt; mygenerator = createGenerator() # create a generator
+&gt;&gt;&gt; print(mygenerator) # mygenerator is an object!
+&lt;generator object createGenerator at 0xb7555c34&gt;
+&gt;&gt;&gt; for i in mygenerator:
+...     print(i)
+0
+1
+4
 </pre></div>
 
 
@@ -173,45 +173,45 @@
 <p>当循环结束，或者不满足"if/else"条件，导致函数运行但不命中yield关键字，此时生成器被认为是空的</p>
 <h3>问题代码的解释</h3>
 <p>生成器:</p>
-<div class="codehilite"><pre><span class="cp"># 这你你创建了node的能返回生成器的函数</span>
-<span class="n">def</span> <span class="n">node</span><span class="p">.</span><span class="n">_get_child_candidates</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">distance</span><span class="p">,</span> <span class="n">min_dist</span><span class="p">,</span> <span class="n">max_dist</span><span class="p">)</span><span class="o">:</span>
+<div class="codehilite"><pre># 这你你创建了node的能返回生成器的函数
+def node._get_child_candidates(self, distance, min_dist, max_dist):
 
-<span class="cp"># 这里的代码你每次使用生成器对象都会调用</span>
+# 这里的代码你每次使用生成器对象都会调用
 
-<span class="cp"># 如果node节点存在左子节点,且距离没问题，返回该节点</span>
-<span class="k">if</span> <span class="n">self</span><span class="p">.</span><span class="n">_leftchild</span> <span class="n">and</span> <span class="n">distance</span> <span class="o">-</span> <span class="n">max_dist</span> <span class="o">&lt;</span> <span class="n">self</span><span class="p">.</span><span class="n">_median</span><span class="o">:</span>
-                <span class="n">yield</span> <span class="n">self</span><span class="p">.</span><span class="n">_leftchild</span>
+# 如果node节点存在左子节点,且距离没问题，返回该节点
+if self._leftchild and distance - max_dist &lt; self._median:
+                yield self._leftchild
 
-<span class="cp"># 同理，返回右子节点</span>
-<span class="k">if</span> <span class="n">self</span><span class="p">.</span><span class="n">_rightchild</span> <span class="n">and</span> <span class="n">distance</span> <span class="o">+</span> <span class="n">max_dist</span> <span class="o">&gt;=</span> <span class="n">self</span><span class="p">.</span><span class="n">_median</span><span class="o">:</span>
-                <span class="n">yield</span> <span class="n">self</span><span class="p">.</span><span class="n">_rightchild</span>
+# 同理，返回右子节点
+if self._rightchild and distance + max_dist &gt;= self._median:
+                yield self._rightchild
 
-<span class="cp"># 如果函数运行到这里，生成器空，该节点不存在左右节点</span>
+# 如果函数运行到这里，生成器空，该节点不存在左右节点
 </pre></div>
 
 
 <p>调用者:</p>
-<div class="codehilite"><pre><span class="cp"># 创建一个空列表，一个包含当前候选对象引用的列表</span>
-<span class="n">result</span><span class="p">,</span> <span class="n">candidates</span> <span class="o">=</span> <span class="n">list</span><span class="p">(),</span> <span class="p">[</span><span class="n">self</span><span class="p">]</span>
+<div class="codehilite"><pre># 创建一个空列表，一个包含当前候选对象引用的列表
+result, candidates = list(), [self]
 
-<span class="cp"># 当前候选非空，循环(开始时仅有一个元素)</span>
-<span class="k">while</span> <span class="n">candidates</span><span class="o">:</span>
+# 当前候选非空，循环(开始时仅有一个元素)
+while candidates:
 
-    <span class="err">#</span> <span class="err">从候选列表取出最后一个元素作为当前节点</span>
-    <span class="n">node</span> <span class="o">=</span> <span class="n">candidates</span><span class="p">.</span><span class="n">pop</span><span class="p">()</span>
+    # 从候选列表取出最后一个元素作为当前节点
+    node = candidates.pop()
 
-    <span class="err">#</span> <span class="err">获取</span><span class="n">obj</span><span class="err">和当前节点距离</span>
-    <span class="n">distance</span> <span class="o">=</span> <span class="n">node</span><span class="p">.</span><span class="n">_get_dist</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+    # 获取obj和当前节点距离
+    distance = node._get_dist(obj)
 
-    <span class="err">#</span> <span class="err">如果距离满足条件，将节点值加入结果列表</span>
-    <span class="k">if</span> <span class="n">distance</span> <span class="o">&lt;=</span> <span class="n">max_dist</span> <span class="n">and</span> <span class="n">distance</span> <span class="o">&gt;=</span> <span class="n">min_dist</span><span class="o">:</span>
-        <span class="n">result</span><span class="p">.</span><span class="n">extend</span><span class="p">(</span><span class="n">node</span><span class="p">.</span><span class="n">_values</span><span class="p">)</span>
+    # 如果距离满足条件，将节点值加入结果列表
+    if distance &lt;= max_dist and distance &gt;= min_dist:
+        result.extend(node._values)
 
-    <span class="err">#</span> <span class="err">获取节点的子节点，加入到候选列表，回到循环开始</span><span class="p">,</span> <span class="err">这里使用了生成器</span>
-    <span class="n">candidates</span><span class="p">.</span><span class="n">extend</span><span class="p">(</span><span class="n">node</span><span class="p">.</span><span class="n">_get_child_candidates</span><span class="p">(</span><span class="n">distance</span><span class="p">,</span> <span class="n">min_dist</span><span class="p">,</span> <span class="n">max_dist</span><span class="p">))</span>
-    <span class="err">#</span> <span class="err">注意这里</span><span class="n">extend</span><span class="err">会反复调用获取到所有生成器返回值</span>
+    # 获取节点的子节点，加入到候选列表，回到循环开始, 这里使用了生成器
+    candidates.extend(node._get_child_candidates(distance, min_dist, max_dist))
+    # 注意这里extend会反复调用获取到所有生成器返回值
 
-<span class="k">return</span> <span class="n">result</span>
+return result
 </pre></div>
 
 
@@ -221,11 +221,11 @@
 <p>在这个例子中， candidates.extend(node._get_child_candidates(distance, min_dist, max_dist)) 读取了生成器产生的所有值, 同时while循环产生新的生成器对象加入到列表，因为每个对象作用在不同节点上，所以每个生成器都将生成不同的值</p>
 <p>2.列表方法extend() 接收一个生成器，生成器的所有值被添加到列表中</p>
 <p>通常，我们传一个列表作为参数:</p>
-<div class="codehilite"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">a</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">b</span> <span class="o">=</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">a</span><span class="p">.</span><span class="n">extend</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">print</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
-<span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>
+<div class="codehilite"><pre>&gt;&gt;&gt; a = [1, 2]
+&gt;&gt;&gt; b = [3, 4]
+&gt;&gt;&gt; a.extend(b)
+&gt;&gt;&gt; print(a)
+[1, 2, 3, 4]
 </pre></div>
 
 
@@ -238,41 +238,41 @@
 <p>这就是所谓的“鸭子类型”(duck typing), 这也是Python如此酷的原因之一, 但这是另一个问题了，对于这个问题......</p>
 <p>你可以在这里完成阅读，或者读一点点生成器的进阶用法:</p>
 <h4>控制一个生成器的消耗</h4>
-<div class="codehilite"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">class</span> <span class="n">Bank</span><span class="p">()</span><span class="o">:</span> <span class="err">#</span> <span class="n">let</span><span class="err">&#39;</span><span class="n">s</span> <span class="n">create</span> <span class="n">a</span> <span class="n">bank</span><span class="p">,</span> <span class="n">building</span> <span class="n">ATMs</span>
-<span class="p">...</span>    <span class="n">crisis</span> <span class="o">=</span> <span class="n">False</span>
-<span class="p">...</span>    <span class="n">def</span> <span class="n">create_atm</span><span class="p">(</span><span class="n">self</span><span class="p">)</span><span class="o">:</span>
-<span class="p">...</span>        <span class="k">while</span> <span class="n">not</span> <span class="n">self</span><span class="p">.</span><span class="n">crisis</span><span class="o">:</span>
-<span class="p">...</span>            <span class="n">yield</span> <span class="s">&quot;$100&quot;</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">hsbc</span> <span class="o">=</span> <span class="n">Bank</span><span class="p">()</span> <span class="err">#</span> <span class="n">when</span> <span class="n">everything</span><span class="err">&#39;</span><span class="n">s</span> <span class="n">ok</span> <span class="n">the</span> <span class="n">ATM</span> <span class="n">gives</span> <span class="n">you</span> <span class="n">as</span> <span class="n">much</span> <span class="n">as</span> <span class="n">you</span> <span class="n">want</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">corner_street_atm</span> <span class="o">=</span> <span class="n">hsbc</span><span class="p">.</span><span class="n">create_atm</span><span class="p">()</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">print</span><span class="p">(</span><span class="n">corner_street_atm</span><span class="p">.</span><span class="n">next</span><span class="p">())</span>
-<span class="err">$</span><span class="mi">100</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">print</span><span class="p">(</span><span class="n">corner_street_atm</span><span class="p">.</span><span class="n">next</span><span class="p">())</span>
-<span class="err">$</span><span class="mi">100</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">print</span><span class="p">([</span><span class="n">corner_street_atm</span><span class="p">.</span><span class="n">next</span><span class="p">()</span> <span class="k">for</span> <span class="n">cash</span> <span class="n">in</span> <span class="n">range</span><span class="p">(</span><span class="mi">5</span><span class="p">)])</span>
-<span class="p">[</span><span class="err">&#39;$</span><span class="mi">100</span><span class="err">&#39;</span><span class="p">,</span> <span class="err">&#39;$</span><span class="mi">100</span><span class="err">&#39;</span><span class="p">,</span> <span class="err">&#39;$</span><span class="mi">100</span><span class="err">&#39;</span><span class="p">,</span> <span class="err">&#39;$</span><span class="mi">100</span><span class="err">&#39;</span><span class="p">,</span> <span class="err">&#39;$</span><span class="mi">100</span><span class="err">&#39;</span><span class="p">]</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">hsbc</span><span class="p">.</span><span class="n">crisis</span> <span class="o">=</span> <span class="n">True</span> <span class="err">#</span> <span class="n">crisis</span> <span class="n">is</span> <span class="n">coming</span><span class="p">,</span> <span class="n">no</span> <span class="n">more</span> <span class="n">money</span><span class="o">!</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">print</span><span class="p">(</span><span class="n">corner_street_atm</span><span class="p">.</span><span class="n">next</span><span class="p">())</span>
-<span class="o">&lt;</span><span class="n">type</span> <span class="err">&#39;</span><span class="n">exceptions</span><span class="p">.</span><span class="n">StopIteration</span><span class="err">&#39;</span><span class="o">&gt;</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">wall_street_atm</span> <span class="o">=</span> <span class="n">hsbc</span><span class="p">.</span><span class="n">create_atm</span><span class="p">()</span> <span class="err">#</span> <span class="n">it</span><span class="err">&#39;</span><span class="n">s</span> <span class="n">even</span> <span class="nb">true</span> <span class="k">for</span> <span class="n">new</span> <span class="n">ATMs</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">print</span><span class="p">(</span><span class="n">wall_street_atm</span><span class="p">.</span><span class="n">next</span><span class="p">())</span>
-<span class="o">&lt;</span><span class="n">type</span> <span class="err">&#39;</span><span class="n">exceptions</span><span class="p">.</span><span class="n">StopIteration</span><span class="err">&#39;</span><span class="o">&gt;</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">hsbc</span><span class="p">.</span><span class="n">crisis</span> <span class="o">=</span> <span class="n">False</span> <span class="err">#</span> <span class="n">trouble</span> <span class="n">is</span><span class="p">,</span> <span class="n">even</span> <span class="n">post</span><span class="o">-</span><span class="n">crisis</span> <span class="n">the</span> <span class="n">ATM</span> <span class="n">remains</span> <span class="n">empty</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">print</span><span class="p">(</span><span class="n">corner_street_atm</span><span class="p">.</span><span class="n">next</span><span class="p">())</span>
-<span class="o">&lt;</span><span class="n">type</span> <span class="err">&#39;</span><span class="n">exceptions</span><span class="p">.</span><span class="n">StopIteration</span><span class="err">&#39;</span><span class="o">&gt;</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">brand_new_atm</span> <span class="o">=</span> <span class="n">hsbc</span><span class="p">.</span><span class="n">create_atm</span><span class="p">()</span> <span class="err">#</span> <span class="n">build</span> <span class="n">a</span> <span class="n">new</span> <span class="n">one</span> <span class="n">to</span> <span class="n">get</span> <span class="n">back</span> <span class="n">in</span> <span class="n">business</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="k">for</span> <span class="n">cash</span> <span class="n">in</span> <span class="n">brand_new_atm</span><span class="o">:</span>
-<span class="p">...</span>    <span class="n">print</span> <span class="n">cash</span>
-<span class="err">$</span><span class="mi">100</span>
-<span class="err">$</span><span class="mi">100</span>
-<span class="err">$</span><span class="mi">100</span>
-<span class="err">$</span><span class="mi">100</span>
-<span class="err">$</span><span class="mi">100</span>
-<span class="err">$</span><span class="mi">100</span>
-<span class="err">$</span><span class="mi">100</span>
-<span class="err">$</span><span class="mi">100</span>
-<span class="err">$</span><span class="mi">100</span>
-<span class="p">...</span>
+<div class="codehilite"><pre>&gt;&gt;&gt; class Bank(): # let&#39;s create a bank, building ATMs
+...    crisis = False
+...    def create_atm(self):
+...        while not self.crisis:
+...            yield &quot;$100&quot;
+&gt;&gt;&gt; hsbc = Bank() # when everything&#39;s ok the ATM gives you as much as you want
+&gt;&gt;&gt; corner_street_atm = hsbc.create_atm()
+&gt;&gt;&gt; print(corner_street_atm.next())
+$100
+&gt;&gt;&gt; print(corner_street_atm.next())
+$100
+&gt;&gt;&gt; print([corner_street_atm.next() for cash in range(5)])
+[&#39;$100&#39;, &#39;$100&#39;, &#39;$100&#39;, &#39;$100&#39;, &#39;$100&#39;]
+&gt;&gt;&gt; hsbc.crisis = True # crisis is coming, no more money!
+&gt;&gt;&gt; print(corner_street_atm.next())
+&lt;type &#39;exceptions.StopIteration&#39;&gt;
+&gt;&gt;&gt; wall_street_atm = hsbc.create_atm() # it&#39;s even true for new ATMs
+&gt;&gt;&gt; print(wall_street_atm.next())
+&lt;type &#39;exceptions.StopIteration&#39;&gt;
+&gt;&gt;&gt; hsbc.crisis = False # trouble is, even post-crisis the ATM remains empty
+&gt;&gt;&gt; print(corner_street_atm.next())
+&lt;type &#39;exceptions.StopIteration&#39;&gt;
+&gt;&gt;&gt; brand_new_atm = hsbc.create_atm() # build a new one to get back in business
+&gt;&gt;&gt; for cash in brand_new_atm:
+...    print cash
+$100
+$100
+$100
+$100
+$100
+$100
+$100
+$100
+$100
+...
 </pre></div>
 
 
@@ -284,35 +284,35 @@
 (Ever wish to duplicate a generator? Chain two generators? Group values in a nested list with a one liner? Map / Zip without creating another list?)</p>
 <p>只需要使用itertools模块</p>
 <p>一个例子，4匹马赛跑的可能抵达顺序</p>
-<div class="codehilite"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">horses</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">races</span> <span class="o">=</span> <span class="n">itertools</span><span class="p">.</span><span class="n">permutations</span><span class="p">(</span><span class="n">horses</span><span class="p">)</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">print</span><span class="p">(</span><span class="n">races</span><span class="p">)</span>
-<span class="o">&lt;</span><span class="n">itertools</span><span class="p">.</span><span class="n">permutations</span> <span class="n">object</span> <span class="n">at</span> <span class="mh">0xb754f1dc</span><span class="o">&gt;</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">print</span><span class="p">(</span><span class="n">list</span><span class="p">(</span><span class="n">itertools</span><span class="p">.</span><span class="n">permutations</span><span class="p">(</span><span class="n">horses</span><span class="p">)))</span>
-<span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span>
-<span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
-<span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span>
-<span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
-<span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
-<span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
-<span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span>
-<span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
-<span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span>
-<span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
-<span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
-<span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
-<span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span>
-<span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
-<span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span>
-<span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
-<span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
-<span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
-<span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
-<span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
-<span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
-<span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
-<span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
-<span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]</span>
+<div class="codehilite"><pre>&gt;&gt;&gt; horses = [1, 2, 3, 4]
+&gt;&gt;&gt; races = itertools.permutations(horses)
+&gt;&gt;&gt; print(races)
+&lt;itertools.permutations object at 0xb754f1dc&gt;
+&gt;&gt;&gt; print(list(itertools.permutations(horses)))
+[(1, 2, 3, 4),
+(1, 2, 4, 3),
+(1, 3, 2, 4),
+(1, 3, 4, 2),
+(1, 4, 2, 3),
+(1, 4, 3, 2),
+(2, 1, 3, 4),
+(2, 1, 4, 3),
+(2, 3, 1, 4),
+(2, 3, 4, 1),
+(2, 4, 1, 3),
+(2, 4, 3, 1),
+(3, 1, 2, 4),
+(3, 1, 4, 2),
+(3, 2, 1, 4),
+(3, 2, 4, 1),
+(3, 4, 1, 2),
+(3, 4, 2, 1),
+(4, 1, 2, 3),
+(4, 1, 3, 2),
+(4, 2, 1, 3),
+(4, 2, 3, 1),
+(4, 3, 1, 2),
+(4, 3, 2, 1)]
 </pre></div>
 
 

@@ -77,115 +77,115 @@
 <p>struct，一组字段的集合，类似其他语言的class</p>
 <p>放弃了大量包括继承在内的面向对象特性，只保留了组合(composition)这个最基础的特性</p>
 <h4>1.声明及初始化</h4>
-<div class="codehilite"><pre><span class="n">type</span> <span class="n">person</span> <span class="k">struct</span> <span class="p">{</span>
-    <span class="n">name</span> <span class="n">string</span>
-    <span class="n">age</span>  <span class="kt">int</span>
-<span class="p">}</span>
+<div class="codehilite"><pre>type person struct {
+    name string
+    age  int
+}
 
-<span class="c1">//初始化</span>
+//初始化
 
-<span class="n">func</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
-    <span class="n">var</span> <span class="n">P</span> <span class="n">person</span>
+func main() {
+    var P person
 
-    <span class="n">P</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s">&quot;tom&quot;</span>
-    <span class="n">P</span><span class="p">.</span><span class="n">age</span> <span class="o">=</span> <span class="mi">25</span>
-    <span class="n">fmt</span><span class="p">.</span><span class="n">Println</span><span class="p">(</span><span class="n">P</span><span class="p">.</span><span class="n">name</span><span class="p">)</span>
+    P.name = &quot;tom&quot;
+    P.age = 25
+    fmt.Println(P.name)
 
-    <span class="n">P1</span> <span class="o">:=</span> <span class="n">person</span><span class="p">{</span><span class="s">&quot;Tom1&quot;</span><span class="p">,</span> <span class="mi">25</span><span class="p">}</span>
-    <span class="n">fmt</span><span class="p">.</span><span class="n">Println</span><span class="p">(</span><span class="n">P1</span><span class="p">.</span><span class="n">name</span><span class="p">)</span>
+    P1 := person{&quot;Tom1&quot;, 25}
+    fmt.Println(P1.name)
 
-    <span class="n">P2</span> <span class="o">:=</span> <span class="n">person</span><span class="p">{</span><span class="n">age</span><span class="o">:</span> <span class="mi">24</span><span class="p">,</span> <span class="n">name</span><span class="o">:</span> <span class="s">&quot;Tom&quot;</span><span class="p">}</span>
-    <span class="n">fmt</span><span class="p">.</span><span class="n">Println</span><span class="p">(</span><span class="n">P2</span><span class="p">.</span><span class="n">name</span><span class="p">)</span>
-<span class="p">}</span>
+    P2 := person{age: 24, name: &quot;Tom&quot;}
+    fmt.Println(P2.name)
+}
 </pre></div>
 
 
 <h4>2.struct的匿名字段(继承)</h4>
-<div class="codehilite"><pre><span class="n">type</span> <span class="n">Human</span> <span class="k">struct</span> <span class="p">{</span>
-    <span class="n">name</span> <span class="n">string</span>
-    <span class="n">age</span> <span class="kt">int</span>
-    <span class="n">weight</span> <span class="kt">int</span>
-<span class="p">}</span>
+<div class="codehilite"><pre>type Human struct {
+    name string
+    age int
+    weight int
+}
 
-<span class="n">tyep</span> <span class="n">Student</span> <span class="k">struct</span> <span class="p">{</span>
-    <span class="n">Human</span> <span class="c1">//匿名字段，默认Student包含了Human的所有字段</span>
-    <span class="n">speciality</span> <span class="n">string</span>
-<span class="p">}</span>
+tyep Student struct {
+    Human //匿名字段，默认Student包含了Human的所有字段
+    speciality string
+}
 
-<span class="n">mark</span> <span class="o">:=</span> <span class="n">Student</span><span class="p">(</span><span class="n">Human</span><span class="p">{</span><span class="s">&quot;mark&quot;</span><span class="p">,</span> <span class="mi">25</span><span class="p">,</span> <span class="mi">120</span><span class="p">},</span> <span class="s">&quot;Computer Science&quot;</span><span class="p">)</span>
+mark := Student(Human{&quot;mark&quot;, 25, 120}, &quot;Computer Science&quot;)
 
-<span class="n">mark</span><span class="p">.</span><span class="n">name</span>
-<span class="n">mark</span><span class="p">.</span><span class="n">age</span>
+mark.name
+mark.age
 </pre></div>
 
 
 <p>能够实现字段继承，当字段名重复的时候，优先取外层的,可以通过指定struct名还决定取哪个</p>
-<div class="codehilite"><pre><span class="n">mark</span><span class="p">.</span><span class="n">Human</span> <span class="o">=</span> <span class="n">Human</span><span class="p">{</span><span class="s">&quot;a&quot;</span><span class="p">,</span> <span class="mi">55</span><span class="p">,</span> <span class="mi">220</span><span class="p">}</span>
-<span class="n">mark</span><span class="p">.</span><span class="n">Human</span><span class="p">.</span><span class="n">age</span> <span class="o">-=</span> <span class="mi">1</span>
+<div class="codehilite"><pre>mark.Human = Human{&quot;a&quot;, 55, 220}
+mark.Human.age -= 1
 </pre></div>
 
 
 <p>struct不仅可以使用struct作为匿名字段，自定义类型、内置类型都可以作为匿名字段,而且可以在相应字段上做函数操作</p>
 <h4>3.method</h4>
-<div class="codehilite"><pre><span class="n">type</span> <span class="n">Rect</span> <span class="k">struct</span> <span class="p">{</span>
-    <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="n">float64</span>
-    <span class="n">width</span><span class="p">,</span> <span class="n">height</span> <span class="n">float64</span>
-<span class="p">}</span>
+<div class="codehilite"><pre>type Rect struct {
+    x, y float64
+    width, height float64
+}
 
-<span class="c1">//method</span>
+//method
 
-<span class="n">Reciver</span> <span class="err">默认以值传递，而非引用传递，还可以是指针</span>
-<span class="err">指针作为</span><span class="n">Receiver</span><span class="err">会对实例对象的内容发生操作，而普通类型作为</span><span class="n">Receiver</span><span class="err">仅仅是以副本作为操作对象，而不对原实例对象发生操作</span>
+Reciver 默认以值传递，而非引用传递，还可以是指针
+指针作为Receiver会对实例对象的内容发生操作，而普通类型作为Receiver仅仅是以副本作为操作对象，而不对原实例对象发生操作
 
-<span class="n">func</span> <span class="p">(</span><span class="n">r</span> <span class="n">ReciverType</span><span class="p">)</span> <span class="n">funcName</span><span class="p">(</span><span class="n">params</span><span class="p">)</span> <span class="p">(</span><span class="n">results</span><span class="p">)</span> <span class="p">{</span>
+func (r ReciverType) funcName(params) (results) {
 
-<span class="p">}</span>
+}
 
-<span class="err">如果一个</span><span class="n">method</span><span class="err">的</span><span class="n">receiver</span><span class="err">是</span><span class="o">*</span><span class="n">T</span><span class="err">，调用时，可以传递一个</span><span class="n">T</span><span class="err">类型的实例变量</span><span class="n">V</span><span class="err">，而不必用</span><span class="o">&amp;</span><span class="n">V</span><span class="err">去调用这个</span><span class="n">method</span>
+如果一个method的receiver是*T，调用时，可以传递一个T类型的实例变量V，而不必用&amp;V去调用这个method
 
-<span class="n">func</span> <span class="p">(</span><span class="n">r</span> <span class="o">*</span><span class="n">Rect</span><span class="p">)</span> <span class="n">Area</span><span class="p">()</span> <span class="n">float64</span> <span class="p">{</span>
-    <span class="k">return</span> <span class="n">r</span><span class="p">.</span><span class="n">width</span> <span class="o">*</span> <span class="n">r</span><span class="p">.</span><span class="n">height</span>
-<span class="p">}</span>
+func (r *Rect) Area() float64 {
+    return r.width * r.height
+}
 
-<span class="n">func</span> <span class="p">(</span><span class="n">b</span> <span class="o">*</span><span class="n">Box</span><span class="p">)</span> <span class="n">SetColor</span><span class="p">(</span><span class="n">c</span> <span class="n">Color</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">b</span><span class="p">.</span><span class="n">color</span> <span class="o">=</span> <span class="n">c</span>
-<span class="p">}</span>
+func (b *Box) SetColor(c Color) {
+    b.color = c
+}
 </pre></div>
 
 
 <h3>4.method继承和重写</h3>
 <p>采用组合的方式实现继承</p>
-<div class="codehilite"><pre><span class="n">type</span> <span class="n">Human</span> <span class="k">struct</span> <span class="p">{</span>
-    <span class="n">name</span> <span class="n">string</span>
-<span class="p">}</span>
+<div class="codehilite"><pre>type Human struct {
+    name string
+}
 
-<span class="n">type</span> <span class="n">Student</span> <span class="k">struct</span> <span class="p">{</span>
-    <span class="n">Human</span>
-    <span class="n">School</span> <span class="n">string</span>
-<span class="p">}</span>
+type Student struct {
+    Human
+    School string
+}
 
-<span class="n">func</span> <span class="p">(</span><span class="n">h</span> <span class="o">*</span><span class="n">Human</span><span class="p">)</span> <span class="n">SayHi</span><span class="p">()</span> <span class="p">{</span>
-    <span class="n">fmt</span><span class="p">.</span><span class="n">Println</span><span class="p">(</span><span class="n">h</span><span class="p">.</span><span class="n">name</span><span class="p">)</span>
-<span class="p">}</span>
+func (h *Human) SayHi() {
+    fmt.Println(h.name)
+}
 
-<span class="c1">//则Student和Employee的实例可以调用</span>
-<span class="n">func</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
-    <span class="n">h</span> <span class="o">:=</span> <span class="n">Human</span><span class="p">{</span><span class="n">name</span><span class="o">:</span> <span class="s">&quot;human&quot;</span><span class="p">}</span>
-    <span class="n">fmt</span><span class="p">.</span><span class="n">Print</span><span class="p">(</span><span class="n">h</span><span class="p">.</span><span class="n">name</span><span class="p">)</span>
-    <span class="n">h</span><span class="p">.</span><span class="n">SayHi</span><span class="p">()</span>
+//则Student和Employee的实例可以调用
+func main() {
+    h := Human{name: &quot;human&quot;}
+    fmt.Print(h.name)
+    h.SayHi()
 
-    <span class="n">s</span> <span class="o">:=</span> <span class="n">Student</span><span class="p">{</span><span class="n">Human</span><span class="p">{</span><span class="s">&quot;student&quot;</span><span class="p">}}</span>
-    <span class="n">s</span><span class="p">.</span><span class="n">SayHi</span><span class="p">()</span>
+    s := Student{Human{&quot;student&quot;}}
+    s.SayHi()
 
-<span class="p">}</span>
+}
 </pre></div>
 
 
 <p>还可以进行方法重写</p>
-<div class="codehilite"><pre><span class="n">funct</span> <span class="p">(</span><span class="n">e</span> <span class="o">*</span><span class="n">Student</span><span class="p">)</span> <span class="n">SayHi</span><span class="p">()</span> <span class="p">{</span>
-    <span class="n">e</span><span class="p">.</span><span class="n">Human</span><span class="p">.</span><span class="n">SayHi</span><span class="p">()</span>
-    <span class="n">fmt</span><span class="p">.</span><span class="n">Println</span><span class="p">(</span><span class="n">e</span><span class="p">.</span><span class="n">School</span><span class="p">)</span>
-<span class="p">}</span>
+<div class="codehilite"><pre>funct (e *Student) SayHi() {
+    e.Human.SayHi()
+    fmt.Println(e.School)
+}
 </pre></div>
     </section>
 

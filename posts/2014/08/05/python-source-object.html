@@ -77,10 +77,10 @@
 <p>参考内容: Python源码 + <code>&lt;&lt;Python源码剖析&gt;&gt;</code></p>
 <p>用<code>源代码+说明+图解</code>的方式, 尽量说明白吧, 有一份注释在github上</p>
 <p>内容:</p>
-<div class="codehilite"><pre><span class="o">-&gt;</span> <span class="err">对象</span><span class="o">/</span><span class="err">类型</span>
-<span class="o">-&gt;</span> <span class="err">各种内建类型对象及机制</span>
-<span class="o">-&gt;</span> <span class="err">虚拟机相关</span><span class="p">(</span><span class="err">编译及执行</span><span class="p">)</span>
-<span class="o">-&gt;</span> <span class="err">内存管理</span><span class="o">/</span><span class="err">动态加载</span><span class="o">/</span><span class="err">多线程等</span>
+<div class="codehilite"><pre>-&gt; 对象/类型
+-&gt; 各种内建类型对象及机制
+-&gt; 虚拟机相关(编译及执行)
+-&gt; 内存管理/动态加载/多线程等
 </pre></div>
 
 
@@ -97,39 +97,39 @@
 <h3>PyObject_HEAD</h3>
 <p>Python 内部, 每个对象拥有相同的头部.</p>
 <p>定义</p>
-<div class="codehilite"><pre><span class="cm">/* PyObject_HEAD defines the initial segment of every PyObject. */</span>
-<span class="p">#</span><span class="n">define</span> <span class="n">PyObject_HEAD</span>                   \
-    <span class="n">_PyObject_HEAD_EXTRA</span>                \
-    <span class="n">Py_ssize_t</span> <span class="n">ob_refcnt</span><span class="p">;</span>               \
-    <span class="k">struct</span> <span class="n">_typeobject</span> <span class="o">*</span><span class="n">ob_type</span><span class="p">;</span>
+<div class="codehilite"><pre><span class="cm">/* PyObject_HEAD defines the initial segment of every PyObject. */</span><span class="w"></span>
+<span class="err">#</span>define<span class="w"> </span>PyObject_HEAD<span class="w">                   </span><span class="o">\</span><span class="w"></span>
+<span class="w">    </span>_PyObject_HEAD_EXTRA<span class="w">                </span><span class="o">\</span><span class="w"></span>
+<span class="w">    </span>Py_ssize_t<span class="w"> </span>ob_refcnt<span class="err">;</span><span class="w">               </span><span class="o">\</span><span class="w"></span>
+<span class="w">    </span>struct<span class="w"> </span>_typeobject<span class="w"> </span><span class="o">*</span>ob_type<span class="err">;</span><span class="w"></span>
 </pre></div>
 
 
 <p>说明</p>
-<div class="codehilite"><pre><span class="mf">1.</span> <span class="n">_PyObject_HEAD_EXTRA</span>
-<span class="err">先忽略</span><span class="p">,</span> <span class="err">双向链表结构</span><span class="p">,</span> <span class="err">后面垃圾回收再说</span>
+<div class="codehilite"><pre>1. _PyObject_HEAD_EXTRA
+先忽略, 双向链表结构, 后面垃圾回收再说
 
-<span class="mf">2.</span> <span class="n">Py_ssize_t</span> <span class="n">ob_refcnt</span>
-<span class="n">Py_ssize_t</span><span class="err">在编译时确定</span><span class="p">,</span> <span class="err">整型</span>
-<span class="n">ob_refcnt</span><span class="p">,</span> <span class="err">引用计数</span><span class="p">,</span> <span class="err">跟</span><span class="n">Python</span><span class="err">的内存管理机制相关</span><span class="p">(</span><span class="err">基于引用计数的垃圾回收</span><span class="p">)</span>
+2. Py_ssize_t ob_refcnt
+Py_ssize_t在编译时确定, 整型
+ob_refcnt, 引用计数, 跟Python的内存管理机制相关(基于引用计数的垃圾回收)
 
-<span class="mf">3.</span> <span class="k">struct</span> <span class="n">_typeobject</span> <span class="o">*</span><span class="n">ob_type</span>
-<span class="o">*</span><span class="n">ob_type</span> <span class="err">指向类型对象的指针</span><span class="p">(</span><span class="err">指向</span><span class="n">_typeobject</span><span class="err">结构体</span><span class="p">)</span>
-<span class="err">决定了这个对象的类型</span><span class="o">!</span>
+3. struct _typeobject *ob_type
+*ob_type 指向类型对象的指针(指向_typeobject结构体)
+决定了这个对象的类型!
 </pre></div>
 
 
 <h3>PyObject</h3>
 <p>定义</p>
-<div class="codehilite"><pre> <span class="k">typedef</span> <span class="k">struct</span> <span class="n">_object</span> <span class="p">{</span>
-     <span class="n">PyObject_HEAD</span>
- <span class="p">}</span> <span class="n">PyObject</span><span class="p">;</span>
+<div class="codehilite"><pre> typedef struct _object {
+     PyObject_HEAD
+ } PyObject;
 </pre></div>
 
 
 <p>说明</p>
-<div class="codehilite"><pre> <span class="mf">1.</span> <span class="err">依赖关系</span>
- <span class="n">PyObject</span> <span class="o">-&gt;</span> <span class="n">PyObject_HEAD</span>
+<div class="codehilite"><pre> 1. 依赖关系
+ PyObject -&gt; PyObject_HEAD
 </pre></div>
 
 
@@ -137,22 +137,22 @@
 <p><img alt="PyObject" src="/imgs/python-source/PyObject.png" /></p>
 <h3>PyVarObject</h3>
 <p>定义</p>
-<div class="codehilite"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>
-    <span class="n">PyObject_VAR_HEAD</span>
-<span class="p">}</span> <span class="n">PyVarObject</span><span class="p">;</span>
+<div class="codehilite"><pre>typedef struct {
+    PyObject_VAR_HEAD
+} PyVarObject;
 
-<span class="cp">#define PyObject_VAR_HEAD               \</span>
-<span class="cp">  PyObject_HEAD                       \</span>
-<span class="cp">  Py_ssize_t ob_size; </span><span class="cm">/* Number of items in variable part */</span><span class="cp"></span>
+#define PyObject_VAR_HEAD               \
+  PyObject_HEAD                       \
+  Py_ssize_t ob_size; /* Number of items in variable part */
 </pre></div>
 
 
 <p>说明</p>
-<div class="codehilite"><pre> <span class="mf">1.</span> <span class="err">依赖关系</span>
- <span class="n">PyVarObject</span> <span class="o">-&gt;</span> <span class="n">PyObject_VAR_HEAD</span> <span class="o">-&gt;</span> <span class="n">PyObject_HEAD</span>
+<div class="codehilite"><pre> 1. 依赖关系
+ PyVarObject -&gt; PyObject_VAR_HEAD -&gt; PyObject_HEAD
 
- <span class="mf">2.</span><span class="n">Py_ssize_t</span> <span class="n">ob_size</span>
- <span class="n">ob_size</span><span class="p">,</span> <span class="err">变长对象容纳的元素个数</span>
+ 2.Py_ssize_t ob_size
+ ob_size, 变长对象容纳的元素个数
 </pre></div>
 
 
@@ -160,29 +160,29 @@
 <p><img alt="PyVarObject" src="/imgs/python-source/PyVarObject.png" /></p>
 <h3>几个方法</h3>
 <p>跟对象相关的方法</p>
-<div class="codehilite"><pre><span class="cp">#define Py_REFCNT(ob)           (((PyObject*)(ob))-&gt;ob_refcnt)</span>
-<span class="err">读取引用计数</span>
+<div class="codehilite"><pre>#define Py_REFCNT(ob)           (((PyObject*)(ob))-&gt;ob_refcnt)
+读取引用计数
 
-<span class="cp">#define Py_TYPE(ob)             (((PyObject*)(ob))-&gt;ob_type)</span>
-<span class="err">获取对象类型</span>
+#define Py_TYPE(ob)             (((PyObject*)(ob))-&gt;ob_type)
+获取对象类型
 
-<span class="cp">#define Py_SIZE(ob)             (((PyVarObject*)(ob))-&gt;ob_size)</span>
-<span class="err">读取元素个数</span><span class="p">(</span><span class="n">len</span><span class="p">)</span>
+#define Py_SIZE(ob)             (((PyVarObject*)(ob))-&gt;ob_size)
+读取元素个数(len)
 </pre></div>
 
 
 <p>跟引用计数相关的方法</p>
-<div class="codehilite"><pre><span class="n">Py_INCREF</span><span class="p">(</span><span class="n">op</span><span class="p">)</span>  <span class="err">增加对象引用计数</span>
+<div class="codehilite"><pre>Py_INCREF(op)  增加对象引用计数
 
-<span class="n">Py_DECREF</span><span class="p">(</span><span class="n">op</span><span class="p">)</span>  <span class="err">减少对象引用计数</span><span class="p">,</span> <span class="err">如果计数位</span><span class="mi">0</span><span class="p">,</span> <span class="err">调用</span><span class="n">_Py_Dealloc</span>
+Py_DECREF(op)  减少对象引用计数, 如果计数位0, 调用_Py_Dealloc
 
-<span class="n">_Py_Dealloc</span><span class="p">(</span><span class="n">op</span><span class="p">)</span> <span class="err">调用对应类型的</span> <span class="n">tp_dealloc</span> <span class="err">方法</span><span class="p">(</span><span class="err">每种类型回收行为不一样的</span><span class="p">,</span> <span class="err">各种缓存池机制</span><span class="p">,</span> <span class="err">后面看</span><span class="p">)</span>
+_Py_Dealloc(op) 调用对应类型的 tp_dealloc 方法(每种类型回收行为不一样的, 各种缓存池机制, 后面看)
 </pre></div>
 
 
 <hr />
 <p>changelog:</p>
-<div class="codehilite"><pre><span class="mi">2013</span><span class="o">-</span><span class="mi">08</span><span class="o">-</span><span class="mo">05</span> <span class="n">first</span> <span class="n">version</span>
+<div class="codehilite"><pre>2013-08-05 first version
 </pre></div>
     </section>
 

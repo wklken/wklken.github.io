@@ -80,54 +80,54 @@
 <p>源码位置 <a href="https://github.com/wklken/Python-2.7.8/blob/master/Include/stringobject.h">Include/stringobject.h</a> |
          <a href="https://github.com/wklken/Python-2.7.8/blob/master/Objects/stringobject.c">Objects/stringobject.c</a></p>
 <p>定义</p>
-<div class="codehilite"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>
-  <span class="n">PyObject_VAR_HEAD</span>
-  <span class="kt">long</span> <span class="n">ob_shash</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">ob_sstate</span><span class="p">;</span>
-  <span class="kt">char</span> <span class="n">ob_sval</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
+<div class="codehilite"><pre>typedef struct {
+  PyObject_VAR_HEAD
+  long ob_shash;
+  int ob_sstate;
+  char ob_sval[1];
 
-  <span class="cm">/* Invariants:</span>
-<span class="cm">   *     ob_sval contains space for &#39;ob_size+1&#39; elements.</span>
-<span class="cm">   *     ob_sval[ob_size] == 0.</span>
-<span class="cm">   *     ob_shash is the hash of the string or -1 if not computed yet.</span>
-<span class="cm">   *     ob_sstate != 0 iff the string object is in stringobject.c&#39;s</span>
-<span class="cm">   *       &#39;interned&#39; dictionary; in this case the two references</span>
-<span class="cm">   *       from &#39;interned&#39; to this object are *not counted* in ob_refcnt.</span>
-<span class="cm">   */</span>
-<span class="p">}</span> <span class="n">PyStringObject</span><span class="p">;</span>
+  /* Invariants:
+   *     ob_sval contains space for &#39;ob_size+1&#39; elements.
+   *     ob_sval[ob_size] == 0.
+   *     ob_shash is the hash of the string or -1 if not computed yet.
+   *     ob_sstate != 0 iff the string object is in stringobject.c&#39;s
+   *       &#39;interned&#39; dictionary; in this case the two references
+   *       from &#39;interned&#39; to this object are *not counted* in ob_refcnt.
+   */
+} PyStringObject;
 </pre></div>
 
 
 <p>说明</p>
-<div class="codehilite"><pre><span class="mf">1.</span> <span class="n">PyObject_VAR_HEAD</span>
-<span class="n">PyStringObject</span><span class="err">是变长对象</span><span class="p">,</span> <span class="err">比定长对象多了一个</span><span class="n">ob_size</span><span class="err">字段</span>
+<div class="codehilite"><pre>1. PyObject_VAR_HEAD
+PyStringObject是变长对象, 比定长对象多了一个ob_size字段
 
-<span class="mf">2.</span> <span class="n">ob_shash</span>
-<span class="err">存储字符串的</span><span class="n">hash</span><span class="err">值</span><span class="p">,</span> <span class="err">如果还没计算等于</span><span class="o">-</span><span class="mi">1</span>
-<span class="err">当</span><span class="n">string_hash</span><span class="err">被调用</span><span class="p">,</span> <span class="err">计算结果会被保存到这个字段一份</span><span class="p">,</span> <span class="err">后续不再进行计算</span>
+2. ob_shash
+存储字符串的hash值, 如果还没计算等于-1
+当string_hash被调用, 计算结果会被保存到这个字段一份, 后续不再进行计算
 
-<span class="mf">3.</span> <span class="n">ob_sstate</span>
-<span class="err">如果是</span><span class="n">interned</span><span class="p">,</span> <span class="o">!=</span><span class="mi">0</span><span class="p">,</span> <span class="err">否则</span><span class="o">=</span><span class="mi">0</span>
-<span class="n">interned</span><span class="err">后面说</span>
+3. ob_sstate
+如果是interned, !=0, 否则=0
+interned后面说
 
-<span class="mf">4.</span> <span class="kt">char</span> <span class="n">ob_sval</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-<span class="err">字符指针指向一段内存</span><span class="p">,</span> <span class="kt">char</span><span class="err">数组指针</span><span class="p">,</span> <span class="err">指向一个</span><span class="n">ob_size</span><span class="o">+</span><span class="mi">1</span><span class="err">大小数组</span><span class="p">(</span><span class="n">c</span><span class="err">中字符串最后要多一个字符`\</span><span class="mi">0</span><span class="err">`表字符串结束</span><span class="p">)</span>
+4. char ob_sval[1]
+字符指针指向一段内存, char数组指针, 指向一个ob_size+1大小数组(c中字符串最后要多一个字符`\0`表字符串结束)
 </pre></div>
 
 
 <p>结构</p>
 <p><img alt="PyStringObject" src="/imgs/python-source/PyStringObject.png" /></p>
 <p>构造方法</p>
-<div class="codehilite"><pre><span class="n">PyAPI_FUNC</span><span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="p">)</span> <span class="n">PyString_FromString</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="p">);</span>
+<div class="codehilite"><pre>PyAPI_FUNC(PyObject *) PyString_FromString(const char *);
 
-<span class="n">PyAPI_FUNC</span><span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="p">)</span> <span class="n">PyString_FromStringAndSize</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="p">,</span> <span class="n">Py_ssize_t</span><span class="p">);</span>
+PyAPI_FUNC(PyObject *) PyString_FromStringAndSize(const char *, Py_ssize_t);
 </pre></div>
 
 
 <p>两个构造方法其实区别不大,</p>
-<div class="codehilite"><pre><span class="n">PyString_FromStringAndSize</span> <span class="err">参数可以为`</span><span class="nb">NULL</span><span class="err">`</span><span class="p">,</span> <span class="err">无论是否为`</span><span class="nb">NULL</span><span class="err">`</span><span class="p">,</span> <span class="err">都会分配`</span><span class="n">size</span><span class="o">+</span><span class="mi">1</span><span class="err">`个字节空间</span><span class="p">.(</span><span class="err">不为</span><span class="nb">NULL</span><span class="err">的话字符数组会进行拷贝</span><span class="p">)</span>
+<div class="codehilite"><pre>PyString_FromStringAndSize 参数可以为`NULL`, 无论是否为`NULL`, 都会分配`size+1`个字节空间.(不为NULL的话字符数组会进行拷贝)
 
-<span class="n">PyString_FromString</span><span class="p">,</span> <span class="err">参数不能为`</span><span class="nb">NULL</span><span class="err">`</span><span class="p">,</span> <span class="err">且必须是`\</span><span class="mi">0</span><span class="err">`结束的字符数组</span><span class="p">,</span> <span class="err">会调用</span><span class="n">c</span> <span class="err">语言</span><span class="n">string</span><span class="p">.</span><span class="n">h</span><span class="err">模块的</span><span class="n">strlen</span><span class="p">()</span><span class="err">函数计算字符串长度</span><span class="p">,</span> <span class="err">分配空间</span><span class="p">,</span> <span class="err">并将整个字符数组拷贝到</span><span class="n">ob_sval</span><span class="err">指向的内存</span>
+PyString_FromString, 参数不能为`NULL`, 且必须是`\0`结束的字符数组, 会调用c 语言string.h模块的strlen()函数计算字符串长度, 分配空间, 并将整个字符数组拷贝到ob_sval指向的内存
 </pre></div>
 
 
@@ -135,42 +135,42 @@
 <h1>创建过程 PyString_FromString</h1>
 <p>定义</p>
 <div class="codehilite"><pre><span class="c1">//默认未初始化, 均为NULL</span>
-<span class="k">static</span> <span class="n">PyStringObject</span> <span class="o">*</span><span class="n">characters</span><span class="p">[</span><span class="no">UCHAR_MAX</span> <span class="o">+</span> <span class="mh">1</span><span class="p">];</span>
+<span class="k">static</span> <span class="n">PyStringObject</span> <span class="o">*</span><span class="n">characters</span><span class="p">[</span><span class="n">UCHAR_MAX</span> <span class="o">+</span> <span class="mi">1</span><span class="p">];</span>
 <span class="k">static</span> <span class="n">PyStringObject</span> <span class="o">*</span><span class="n">nullstring</span><span class="p">;</span>
 
 <span class="n">PyObject</span> <span class="o">*</span>
-<span class="n">PyString_FromString</span><span class="p">(</span><span class="k">const</span> <span class="n">char</span> <span class="o">*</span><span class="n">str</span><span class="p">)</span>
+<span class="nf">PyString_FromString</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">str</span><span class="p">)</span>
 <span class="p">{</span>
-    <span class="n">register</span> <span class="n">size_t</span> <span class="n">size</span><span class="p">;</span>
-    <span class="n">register</span> <span class="n">PyStringObject</span> <span class="o">*</span><span class="n">op</span><span class="p">;</span>
+    <span class="k">register</span> <span class="kt">size_t</span> <span class="n">size</span><span class="p">;</span>
+    <span class="k">register</span> <span class="n">PyStringObject</span> <span class="o">*</span><span class="n">op</span><span class="p">;</span>
 
-    <span class="k">assert</span><span class="p">(</span><span class="n">str</span> <span class="o">!=</span> <span class="no">NULL</span><span class="p">);</span>
+    <span class="n">assert</span><span class="p">(</span><span class="n">str</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">);</span>
 
     <span class="c1">// 计算参数字符数组长度</span>
     <span class="n">size</span> <span class="o">=</span> <span class="n">strlen</span><span class="p">(</span><span class="n">str</span><span class="p">);</span>
 
     <span class="c1">// 超长, 报错(PY_SSIZE_T_MAX平台相关,32位2GB)</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">size</span> <span class="o">&gt;</span> <span class="no">PY_SSIZE_T_MAX</span> <span class="o">-</span> <span class="n">PyStringObject_SIZE</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">size</span> <span class="o">&gt;</span> <span class="n">PY_SSIZE_T_MAX</span> <span class="o">-</span> <span class="n">PyStringObject_SIZE</span><span class="p">)</span> <span class="p">{</span>
         <span class="n">PyErr_SetString</span><span class="p">(</span><span class="n">PyExc_OverflowError</span><span class="p">,</span>
             <span class="s">&quot;string is too long for a Python string&quot;</span><span class="p">);</span>
-        <span class="k">return</span> <span class="no">NULL</span><span class="p">;</span>
+        <span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span>
     <span class="p">}</span>
 
     <span class="c1">// 长度=0, 且nullstring已定义, 返回nullstring</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">size</span> <span class="o">==</span> <span class="mh">0</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="n">op</span> <span class="o">=</span> <span class="n">nullstring</span><span class="p">)</span> <span class="o">!=</span> <span class="no">NULL</span><span class="p">)</span> <span class="p">{</span>
-<span class="p">#</span><span class="n">ifdef</span> <span class="no">COUNT_ALLOCS</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="n">op</span> <span class="o">=</span> <span class="n">nullstring</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>
+<span class="cp">#ifdef COUNT_ALLOCS</span>
         <span class="n">null_strings</span><span class="o">++</span><span class="p">;</span>
-<span class="p">#</span><span class="n">endif</span>
+<span class="cp">#endif</span>
         <span class="n">Py_INCREF</span><span class="p">(</span><span class="n">op</span><span class="p">);</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="p">)</span><span class="n">op</span><span class="p">;</span>
     <span class="p">}</span>
 
     <span class="c1">// 字符缓冲池逻辑</span>
     <span class="c1">// 长度=1, 且characters[*str &amp; UCHAR_MAX]字符已定义</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">size</span> <span class="o">==</span> <span class="mh">1</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="n">op</span> <span class="o">=</span> <span class="n">characters</span><span class="p">[</span><span class="o">*</span><span class="n">str</span> <span class="o">&amp;</span> <span class="no">UCHAR_MAX</span><span class="p">])</span> <span class="o">!=</span> <span class="no">NULL</span><span class="p">)</span> <span class="p">{</span>
-<span class="p">#</span><span class="n">ifdef</span> <span class="no">COUNT_ALLOCS</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">size</span> <span class="o">==</span> <span class="mi">1</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="n">op</span> <span class="o">=</span> <span class="n">characters</span><span class="p">[</span><span class="o">*</span><span class="n">str</span> <span class="o">&amp;</span> <span class="n">UCHAR_MAX</span><span class="p">])</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>
+<span class="cp">#ifdef COUNT_ALLOCS</span>
         <span class="n">one_strings</span><span class="o">++</span><span class="p">;</span>
-<span class="p">#</span><span class="n">endif</span>
+<span class="cp">#endif</span>
         <span class="n">Py_INCREF</span><span class="p">(</span><span class="n">op</span><span class="p">);</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="p">)</span><span class="n">op</span><span class="p">;</span>
     <span class="p">}</span>
@@ -178,20 +178,20 @@
     <span class="c1">// 申请内存空间</span>
     <span class="cm">/* Inline PyObject_NewVar */</span>
     <span class="n">op</span> <span class="o">=</span> <span class="p">(</span><span class="n">PyStringObject</span> <span class="o">*</span><span class="p">)</span><span class="n">PyObject_MALLOC</span><span class="p">(</span><span class="n">PyStringObject_SIZE</span> <span class="o">+</span> <span class="n">size</span><span class="p">);</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">op</span> <span class="o">==</span> <span class="no">NULL</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">op</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">PyErr_NoMemory</span><span class="p">();</span>
 
     <span class="c1">// 初始化</span>
     <span class="n">PyObject_INIT_VAR</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">PyString_Type</span><span class="p">,</span> <span class="n">size</span><span class="p">);</span>
-    <span class="n">op</span><span class="o">-&gt;</span><span class="n">ob_shash</span> <span class="o">=</span> <span class="o">-</span><span class="mh">1</span><span class="p">;</span> <span class="c1">//未计算hash, -1</span>
-    <span class="n">op</span><span class="o">-&gt;</span><span class="n">ob_sstate</span> <span class="o">=</span> <span class="no">SSTATE_NOT_INTERNED</span><span class="p">;</span>  <span class="c1">//未intern, 0</span>
+    <span class="n">op</span><span class="o">-&gt;</span><span class="n">ob_shash</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span> <span class="c1">//未计算hash, -1</span>
+    <span class="n">op</span><span class="o">-&gt;</span><span class="n">ob_sstate</span> <span class="o">=</span> <span class="n">SSTATE_NOT_INTERNED</span><span class="p">;</span>  <span class="c1">//未intern, 0</span>
     <span class="c1">// 将字符数组拷贝到PyStringObject</span>
-    <span class="n">Py_MEMCPY</span><span class="p">(</span><span class="n">op</span><span class="o">-&gt;</span><span class="n">ob_sval</span><span class="p">,</span> <span class="n">str</span><span class="p">,</span> <span class="n">size</span><span class="o">+</span><span class="mh">1</span><span class="p">);</span>
+    <span class="n">Py_MEMCPY</span><span class="p">(</span><span class="n">op</span><span class="o">-&gt;</span><span class="n">ob_sval</span><span class="p">,</span> <span class="n">str</span><span class="p">,</span> <span class="n">size</span><span class="o">+</span><span class="mi">1</span><span class="p">);</span>
 
 
     <span class="c1">// 在nullstring和字符缓冲池对应位置未初始化时, 会走到这个逻辑</span>
     <span class="cm">/* share short strings */</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">size</span> <span class="o">==</span> <span class="mh">0</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
         <span class="n">PyObject</span> <span class="o">*</span><span class="n">t</span> <span class="o">=</span> <span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="p">)</span><span class="n">op</span><span class="p">;</span>
         <span class="c1">// 走intern, 后面说</span>
         <span class="n">PyString_InternInPlace</span><span class="p">(</span><span class="o">&amp;</span><span class="n">t</span><span class="p">);</span>
@@ -200,14 +200,14 @@
         <span class="c1">// 初始化nullstring</span>
         <span class="n">nullstring</span> <span class="o">=</span> <span class="n">op</span><span class="p">;</span>
         <span class="n">Py_INCREF</span><span class="p">(</span><span class="n">op</span><span class="p">);</span>
-    <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">size</span> <span class="o">==</span> <span class="mh">1</span><span class="p">)</span> <span class="p">{</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">size</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
         <span class="n">PyObject</span> <span class="o">*</span><span class="n">t</span> <span class="o">=</span> <span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="p">)</span><span class="n">op</span><span class="p">;</span>
         <span class="c1">// 走intern, 后面说</span>
         <span class="n">PyString_InternInPlace</span><span class="p">(</span><span class="o">&amp;</span><span class="n">t</span><span class="p">);</span>
         <span class="n">op</span> <span class="o">=</span> <span class="p">(</span><span class="n">PyStringObject</span> <span class="o">*</span><span class="p">)</span><span class="n">t</span><span class="p">;</span>
 
         <span class="c1">// 初始化字符缓冲池对应位置</span>
-        <span class="n">characters</span><span class="p">[</span><span class="o">*</span><span class="n">str</span> <span class="o">&amp;</span> <span class="no">UCHAR_MAX</span><span class="p">]</span> <span class="o">=</span> <span class="n">op</span><span class="p">;</span>
+        <span class="n">characters</span><span class="p">[</span><span class="o">*</span><span class="n">str</span> <span class="o">&amp;</span> <span class="n">UCHAR_MAX</span><span class="p">]</span> <span class="o">=</span> <span class="n">op</span><span class="p">;</span>
         <span class="n">Py_INCREF</span><span class="p">(</span><span class="n">op</span><span class="p">);</span>
     <span class="p">}</span>
 
@@ -219,16 +219,16 @@
 
 
 <p>步骤简化</p>
-<div class="codehilite"><pre><span class="mf">1.</span> <span class="err">计算长度</span>
-<span class="mf">2.</span> <span class="err">长度</span><span class="mi">0</span><span class="p">,</span> <span class="err">空字符串</span><span class="p">,</span> <span class="err">是返回已定义好的</span><span class="n">nullstring</span>
-<span class="mf">3.</span> <span class="err">长度</span><span class="mi">1</span><span class="p">,</span> <span class="err">字符</span><span class="p">,</span> <span class="err">返回字符缓冲池里面的</span>
-<span class="mf">4.</span> <span class="err">都不是</span><span class="p">,</span> <span class="err">分配内存</span><span class="p">,</span> <span class="err">初始化</span>
+<div class="codehilite"><pre>1. 计算长度
+2. 长度0, 空字符串, 是返回已定义好的nullstring
+3. 长度1, 字符, 返回字符缓冲池里面的
+4. 都不是, 分配内存, 初始化
 </pre></div>
 
 
 <p>结论</p>
-<div class="codehilite"><pre><span class="err">长度</span><span class="mi">0</span><span class="o">/</span><span class="err">长度</span><span class="mi">1</span><span class="p">,</span> <span class="err">会用到</span><span class="n">intern</span><span class="err">机制</span>
-<span class="err">注意</span><span class="p">,</span> <span class="n">intern</span><span class="err">机制对长度</span><span class="o">&gt;</span><span class="mi">1</span><span class="err">的字符串也适用</span>
+<div class="codehilite"><pre>长度0/长度1, 会用到intern机制
+注意, intern机制对长度&gt;1的字符串也适用
 </pre></div>
 
 
@@ -242,192 +242,192 @@
 <span class="cm">Another way to look at this is that to say that the actual reference</span>
 <span class="cm">count of a string is:  s-&gt;ob_refcnt + (s-&gt;ob_sstate?2:0)</span>
 <span class="cm">*/</span>
-<span class="k">static</span> <span class="n">PyObject</span> <span class="o">*</span><span class="n">interned</span><span class="p">;</span> <span class="c1">//指针, 指向PyDictObject</span>
+<span class="kr">static</span> <span class="nx">PyObject</span> <span class="o">*</span><span class="nx">interned</span><span class="p">;</span> <span class="c1">//指针, 指向PyDictObject</span>
 </pre></div>
 
 
 <p>interned定义</p>
-<div class="codehilite"><pre><span class="kt">void</span>
-<span class="nf">PyString_InternInPlace</span><span class="p">(</span><span class="n">PyObject</span> <span class="o">**</span><span class="n">p</span><span class="p">)</span>
+<div class="codehilite"><pre><span class="nt">void</span>
+<span class="nt">PyString_InternInPlace</span><span class="o">(</span><span class="nt">PyObject</span> <span class="o">**</span><span class="nt">p</span><span class="o">)</span>
 <span class="p">{</span>
-    <span class="k">register</span> <span class="n">PyStringObject</span> <span class="o">*</span><span class="n">s</span> <span class="o">=</span> <span class="p">(</span><span class="n">PyStringObject</span> <span class="o">*</span><span class="p">)(</span><span class="o">*</span><span class="n">p</span><span class="p">);</span>
+    <span class="n">register</span> <span class="n">PyStringObject</span> <span class="o">*</span><span class="n">s</span> <span class="o">=</span> <span class="p">(</span><span class="n">PyStringObject</span> <span class="o">*</span><span class="p">)(</span><span class="o">*</span><span class="n">p</span><span class="p">);</span>
 
     <span class="n">PyObject</span> <span class="o">*</span><span class="n">t</span><span class="p">;</span>
 
-    <span class="c1">// 检查值使用在PyStringObject上, 派生类不适用</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">s</span> <span class="o">==</span> <span class="nb">NULL</span> <span class="o">||</span> <span class="o">!</span><span class="n">PyString_Check</span><span class="p">(</span><span class="n">s</span><span class="p">))</span>
-        <span class="n">Py_FatalError</span><span class="p">(</span><span class="s">&quot;PyString_InternInPlace: strings only please!&quot;</span><span class="p">);</span>
-    <span class="cm">/* If it&#39;s a string subclass, we don&#39;t really know what putting it in the interned dict might do. */</span>
+    <span class="o">//</span> <span class="err">检查值使用在</span><span class="n">PyStringObject</span><span class="err">上</span><span class="o">,</span> <span class="err">派生类不适用</span>
+    <span class="n">if</span> <span class="p">(</span><span class="n">s</span> <span class="o">==</span> <span class="n">NULL</span> <span class="o">||</span> <span class="o">!</span><span class="n">PyString_Check</span><span class="p">(</span><span class="n">s</span><span class="p">))</span>
+        <span class="n">Py_FatalError</span><span class="p">(</span><span class="s2">&quot;PyString_InternInPlace: strings only please!&quot;</span><span class="p">);</span>
+    <span class="c">/* If it&#39;s a string subclass, we don&#39;t really know what putting it in the interned dict might do. */</span>
 
-    <span class="c1">// 不是字符串类型, 返回</span>
-    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">PyString_CheckExact</span><span class="p">(</span><span class="n">s</span><span class="p">))</span>
-        <span class="k">return</span><span class="p">;</span>
-    <span class="c1">// 本身已经intern了(标志位ob_sstate), 不重复进行, 返回</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">PyString_CHECK_INTERNED</span><span class="p">(</span><span class="n">s</span><span class="p">))</span>
-        <span class="k">return</span><span class="p">;</span>
+    <span class="o">//</span> <span class="err">不是字符串类型</span><span class="o">,</span> <span class="err">返回</span>
+    <span class="n">if</span> <span class="p">(</span><span class="o">!</span><span class="n">PyString_CheckExact</span><span class="p">(</span><span class="n">s</span><span class="p">))</span>
+        <span class="n">return</span><span class="p">;</span>
+    <span class="o">//</span> <span class="err">本身已经</span><span class="n">intern</span><span class="err">了</span><span class="p">(</span><span class="err">标志位</span><span class="n">ob_sstate</span><span class="p">)</span><span class="o">,</span> <span class="err">不重复进行</span><span class="o">,</span> <span class="err">返回</span>
+    <span class="n">if</span> <span class="p">(</span><span class="n">PyString_CHECK_INTERNED</span><span class="p">(</span><span class="n">s</span><span class="p">))</span>
+        <span class="n">return</span><span class="p">;</span>
 
-    <span class="c1">// 未初始化字典, 初始化之</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">interned</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>
-        <span class="c1">// 注意这里</span>
+    <span class="o">//</span> <span class="err">未初始化字典</span><span class="o">,</span> <span class="err">初始化之</span>
+    <span class="n">if</span> <span class="p">(</span><span class="n">interned</span> <span class="o">==</span> <span class="n">NULL</span><span class="p">)</span> <span class="err">{</span>
+        <span class="o">//</span> <span class="err">注意这里</span>
         <span class="n">interned</span> <span class="o">=</span> <span class="n">PyDict_New</span><span class="p">();</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">interned</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>
-            <span class="n">PyErr_Clear</span><span class="p">();</span> <span class="cm">/* Don&#39;t leave an exception */</span>
-            <span class="k">return</span><span class="p">;</span>
+        <span class="n">if</span> <span class="p">(</span><span class="n">interned</span> <span class="o">==</span> <span class="n">NULL</span><span class="p">)</span> <span class="err">{</span>
+            <span class="n">PyErr_Clear</span><span class="p">();</span> <span class="c">/* Don&#39;t leave an exception */</span>
+            <span class="n">return</span><span class="p">;</span>
         <span class="p">}</span>
-    <span class="p">}</span>
+    <span class="err">}</span>
 
-    <span class="c1">// 在interned字典中已存在, 修改, 返回intern独享</span>
-    <span class="n">t</span> <span class="o">=</span> <span class="n">PyDict_GetItem</span><span class="p">(</span><span class="n">interned</span><span class="p">,</span> <span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="p">)</span><span class="n">s</span><span class="p">);</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="p">{</span>
+    <span class="o">//</span> <span class="err">在</span><span class="nt">interned</span><span class="err">字典中已存在</span><span class="o">,</span> <span class="err">修改</span><span class="o">,</span> <span class="err">返回</span><span class="nt">intern</span><span class="err">独享</span>
+    <span class="nt">t</span> <span class="o">=</span> <span class="nt">PyDict_GetItem</span><span class="o">(</span><span class="nt">interned</span><span class="o">,</span> <span class="o">(</span><span class="nt">PyObject</span> <span class="o">*)</span><span class="nt">s</span><span class="o">);</span>
+    <span class="nt">if</span> <span class="o">(</span><span class="nt">t</span><span class="o">)</span> <span class="p">{</span>
         <span class="n">Py_INCREF</span><span class="p">(</span><span class="n">t</span><span class="p">);</span>
         <span class="n">Py_DECREF</span><span class="p">(</span><span class="o">*</span><span class="n">p</span><span class="p">);</span>
         <span class="o">*</span><span class="n">p</span> <span class="o">=</span> <span class="n">t</span><span class="p">;</span>
-        <span class="k">return</span><span class="p">;</span>
+        <span class="n">return</span><span class="p">;</span>
     <span class="p">}</span>
 
-    <span class="c1">// 在interned字典中不存在, 放进去</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">PyDict_SetItem</span><span class="p">(</span><span class="n">interned</span><span class="p">,</span> <span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="p">)</span><span class="n">s</span><span class="p">,</span> <span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="p">)</span><span class="n">s</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+    <span class="o">//</span> <span class="err">在</span><span class="nt">interned</span><span class="err">字典中不存在</span><span class="o">,</span> <span class="err">放进去</span>
+    <span class="nt">if</span> <span class="o">(</span><span class="nt">PyDict_SetItem</span><span class="o">(</span><span class="nt">interned</span><span class="o">,</span> <span class="o">(</span><span class="nt">PyObject</span> <span class="o">*)</span><span class="nt">s</span><span class="o">,</span> <span class="o">(</span><span class="nt">PyObject</span> <span class="o">*)</span><span class="nt">s</span><span class="o">)</span> <span class="o">&lt;</span> <span class="nt">0</span><span class="o">)</span> <span class="p">{</span>
         <span class="n">PyErr_Clear</span><span class="p">();</span>
-        <span class="k">return</span><span class="p">;</span>
+        <span class="n">return</span><span class="p">;</span>
     <span class="p">}</span>
 
-    <span class="c1">// 加入interned字典(key-value), 会导致refcnt+2, 去掉, 保证当外部没有引用时, refcnt=0, 可以进行回收处理, (不-2, refcnt永远&gt;=2)</span>
-    <span class="cm">/* The two references in interned are not counted by refcnt.</span>
-<span class="cm">       The string deallocator will take care of this */</span>
-    <span class="n">Py_REFCNT</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">-=</span> <span class="mi">2</span><span class="p">;</span>
+    <span class="o">//</span> <span class="err">加入</span><span class="nt">interned</span><span class="err">字典</span><span class="o">(</span><span class="nt">key-value</span><span class="o">),</span> <span class="err">会导致</span><span class="nt">refcnt</span><span class="o">+</span><span class="nt">2</span><span class="o">,</span> <span class="err">去掉</span><span class="o">,</span> <span class="err">保证当外部没有引用时</span><span class="o">,</span> <span class="nt">refcnt</span><span class="o">=</span><span class="nt">0</span><span class="o">,</span> <span class="err">可以进行回收处理</span><span class="o">,</span> <span class="o">(</span><span class="err">不</span><span class="nt">-2</span><span class="o">,</span> <span class="nt">refcnt</span><span class="err">永远</span><span class="o">&gt;=</span><span class="nt">2</span><span class="o">)</span>
+    <span class="c">/* The two references in interned are not counted by refcnt.</span>
+<span class="c">       The string deallocator will take care of this */</span>
+    <span class="nt">Py_REFCNT</span><span class="o">(</span><span class="nt">s</span><span class="o">)</span> <span class="nt">-</span><span class="o">=</span> <span class="nt">2</span><span class="o">;</span>
 
-    <span class="c1">// 修改字符串对象的ob_sstate标志位, SSTATE_INTERNED_MORTAL</span>
-    <span class="n">PyString_CHECK_INTERNED</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">=</span> <span class="n">SSTATE_INTERNED_MORTAL</span><span class="p">;</span>
-<span class="p">}</span>
+    <span class="o">//</span> <span class="err">修改字符串对象的</span><span class="nt">ob_sstate</span><span class="err">标志位</span><span class="o">,</span> <span class="nt">SSTATE_INTERNED_MORTAL</span>
+    <span class="nt">PyString_CHECK_INTERNED</span><span class="o">(</span><span class="nt">s</span><span class="o">)</span> <span class="o">=</span> <span class="nt">SSTATE_INTERNED_MORTAL</span><span class="o">;</span>
+<span class="err">}</span>
 </pre></div>
 
 
 <p>使用的地方</p>
-<div class="codehilite"><pre><span class="c1">// 构造方法</span>
-<span class="n">PyAPI_FUNC</span><span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="p">)</span> <span class="n">PyString_FromString</span><span class="p">(</span><span class="k">const</span> <span class="n">char</span> <span class="o">*</span><span class="p">);</span>
+<div class="codehilite"><pre>// 构造方法
+PyAPI_FUNC(PyObject *) PyString_FromString(const char *);
 
-<span class="n">PyAPI_FUNC</span><span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="p">)</span> <span class="n">PyString_FromStringAndSize</span><span class="p">(</span><span class="k">const</span> <span class="n">char</span> <span class="o">*</span><span class="p">,</span> <span class="n">Py_ssize_t</span><span class="p">);</span>
-
-
-<span class="c1">// SSTATE_INTERNED_MORTAL, 计数0会被回收</span>
-<span class="n">PyObject</span> <span class="o">*</span>
-<span class="n">PyString_InternFromString</span><span class="p">(</span><span class="k">const</span> <span class="n">char</span> <span class="o">*</span><span class="n">cp</span><span class="p">)</span>
-<span class="p">{</span>
-    <span class="n">PyObject</span> <span class="o">*</span><span class="n">s</span> <span class="o">=</span> <span class="n">PyString_FromString</span><span class="p">(</span><span class="n">cp</span><span class="p">);</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">s</span> <span class="o">==</span> <span class="no">NULL</span><span class="p">)</span>
-        <span class="k">return</span> <span class="no">NULL</span><span class="p">;</span>
-    <span class="n">PyString_InternInPlace</span><span class="p">(</span><span class="o">&amp;</span><span class="n">s</span><span class="p">);</span>
-    <span class="k">return</span> <span class="n">s</span><span class="p">;</span>
-<span class="p">}</span>
+PyAPI_FUNC(PyObject *) PyString_FromStringAndSize(const char *, Py_ssize_t);
 
 
-<span class="c1">// SSTATE_INTERNED_IMMORTAL, 永远不会被销毁</span>
-<span class="k">void</span>
-<span class="n">PyString_InternImmortal</span><span class="p">(</span><span class="n">PyObject</span> <span class="o">**</span><span class="n">p</span><span class="p">)</span>
+// SSTATE_INTERNED_MORTAL, 计数0会被回收
+PyObject *
+PyString_InternFromString(const char *cp)
+{
+    PyObject *s = PyString_FromString(cp);
+    if (s == NULL)
+        return NULL;
+    PyString_InternInPlace(&amp;s);
+    return s;
+}
+
+
+// SSTATE_INTERNED_IMMORTAL, 永远不会被销毁
+void
+PyString_InternImmortal(PyObject **p)
 </pre></div>
 
 
 <p>示例</p>
-<div class="codehilite"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">a</span> <span class="o">=</span> <span class="err">&#39;&#39;</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">b</span> <span class="o">=</span> <span class="err">&#39;&#39;</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">id</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">==</span> <span class="n">id</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
-<span class="n">True</span>
+<div class="codehilite"><pre>&gt;&gt;&gt; a = &#39;&#39;
+&gt;&gt;&gt; b = &#39;&#39;
+&gt;&gt;&gt; id(a) == id(b)
+True
 
-<span class="o">&gt;&gt;&gt;</span> <span class="n">a</span> <span class="o">=</span> <span class="sc">&#39;x&#39;</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">b</span> <span class="o">=</span> <span class="sc">&#39;x&#39;</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">id</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">==</span> <span class="n">id</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
-<span class="n">True</span>
+&gt;&gt;&gt; a = &#39;x&#39;
+&gt;&gt;&gt; b = &#39;x&#39;
+&gt;&gt;&gt; id(a) == id(b)
+True
 
-<span class="o">&gt;&gt;&gt;</span> <span class="n">a</span> <span class="o">=</span> <span class="s">&quot;abc&quot;</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">b</span> <span class="o">=</span> <span class="s">&quot;abc&quot;</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">id</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">==</span> <span class="n">id</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
-<span class="n">True</span>
+&gt;&gt;&gt; a = &quot;abc&quot;
+&gt;&gt;&gt; b = &quot;abc&quot;
+&gt;&gt;&gt; id(a) == id(b)
+True
 </pre></div>
 
 
 <p>python源代码自己也大量使用</p>
-<div class="codehilite"><pre><span class="n">dict_str</span> <span class="o">=</span> <span class="n">PyString_InternFromString</span><span class="p">(</span><span class="s">&quot;__dict__&quot;</span><span class="p">)</span>
-<span class="n">lenstr</span> <span class="o">=</span> <span class="n">PyString_InternFromString</span><span class="p">(</span><span class="s">&quot;__len__&quot;</span><span class="p">)</span>
-<span class="n">s_true</span> <span class="o">=</span> <span class="n">PyString_InternFromString</span><span class="p">(</span><span class="s">&quot;true&quot;</span><span class="p">)</span>
-<span class="n">empty_array</span> <span class="o">=</span> <span class="n">PyString_InternFromString</span><span class="p">(</span><span class="s">&quot;[]&quot;</span><span class="p">)</span>
+<div class="codehilite"><pre>dict_str = PyString_InternFromString(&quot;__dict__&quot;)
+lenstr = PyString_InternFromString(&quot;__len__&quot;)
+s_true = PyString_InternFromString(&quot;true&quot;)
+empty_array = PyString_InternFromString(&quot;[]&quot;)
 </pre></div>
 
 
 <p>好处</p>
-<div class="codehilite"><pre><span class="err">一旦字符串被</span><span class="n">intern</span><span class="p">,</span> <span class="err">会被</span><span class="n">python</span><span class="err">保存到字典中</span><span class="p">,</span> <span class="err">整个</span><span class="n">python</span><span class="err">运行期间</span><span class="p">,</span> <span class="err">系统中有且仅有一个对象</span><span class="p">.</span> <span class="err">下次相同字符串再进入</span><span class="p">,</span> <span class="err">不会重复创建对象</span><span class="p">.</span>
+<div class="codehilite"><pre>一旦字符串被intern, 会被python保存到字典中, 整个python运行期间, 系统中有且仅有一个对象. 下次相同字符串再进入, 不会重复创建对象.
 </pre></div>
 
 
 <h1>字符缓冲池</h1>
 <p>定义</p>
-<div class="codehilite"><pre><span class="n">UCHAR_MAX</span> <span class="err">平台相关</span>
+<div class="codehilite"><pre>UCHAR_MAX 平台相关
 
-<span class="k">static</span> <span class="n">PyStringObject</span> <span class="o">*</span><span class="n">characters</span><span class="p">[</span><span class="n">UCHAR_MAX</span> <span class="o">+</span> <span class="mi">1</span><span class="p">];</span>
+static PyStringObject *characters[UCHAR_MAX + 1];
 </pre></div>
 
 
 <p>在上面<code>PyString_FromString</code>可以看到, 字符缓冲池在使用中初始化(存在直接返回, 不存在建一个, 放interned字典中, 初始化字符缓冲池对应位置)</p>
-<div class="codehilite"><pre><span class="n">PyObject</span> <span class="o">*</span><span class="n">t</span> <span class="o">=</span> <span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="p">)</span><span class="n">op</span><span class="p">;</span>
-<span class="c1">// 走intern, 后面说</span>
-<span class="n">PyString_InternInPlace</span><span class="p">(</span><span class="o">&amp;</span><span class="n">t</span><span class="p">);</span>
-<span class="n">op</span> <span class="o">=</span> <span class="p">(</span><span class="n">PyStringObject</span> <span class="o">*</span><span class="p">)</span><span class="n">t</span><span class="p">;</span>
+<div class="codehilite"><pre>PyObject *t = (PyObject *)op;
+// 走intern, 后面说
+PyString_InternInPlace(&amp;t);
+op = (PyStringObject *)t;
 
-<span class="c1">// 初始化字符缓冲池对应位置</span>
-<span class="n">characters</span><span class="p">[</span><span class="o">*</span><span class="n">str</span> <span class="o">&amp;</span> <span class="n">UCHAR_MAX</span><span class="p">]</span> <span class="o">=</span> <span class="n">op</span><span class="p">;</span>
+// 初始化字符缓冲池对应位置
+characters[*str &amp; UCHAR_MAX] = op;
 </pre></div>
 
 
 <h1>字符串销毁过程</h1>
-<div class="codehilite"><pre><span class="k">static</span> <span class="kt">void</span>
-<span class="nf">string_dealloc</span><span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="n">op</span><span class="p">)</span>
-<span class="p">{</span>
-    <span class="c1">// 是否intern</span>
-    <span class="k">switch</span> <span class="p">(</span><span class="n">PyString_CHECK_INTERNED</span><span class="p">(</span><span class="n">op</span><span class="p">))</span> <span class="p">{</span>
-        <span class="c1">// 非, 跳出 -&gt; 回收内存</span>
-        <span class="k">case</span> <span class="n">SSTATE_NOT_INTERNED</span>:
-            <span class="k">break</span><span class="p">;</span>
+<div class="codehilite"><pre>static void
+string_dealloc(PyObject *op)
+{
+    // 是否intern
+    switch (PyString_CHECK_INTERNED(op)) {
+        // 非, 跳出 -&gt; 回收内存
+        case SSTATE_NOT_INTERNED:
+            break;
 
-        <span class="c1">// 普通, 从interned字典中删除, 跳出 -&gt; 回收内存</span>
-        <span class="k">case</span> <span class="n">SSTATE_INTERNED_MORTAL</span>:
-            <span class="cm">/* revive dead object temporarily for DelItem */</span>
-            <span class="n">Py_REFCNT</span><span class="p">(</span><span class="n">op</span><span class="p">)</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
-            <span class="k">if</span> <span class="p">(</span><span class="n">PyDict_DelItem</span><span class="p">(</span><span class="n">interned</span><span class="p">,</span> <span class="n">op</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span>
-                <span class="n">Py_FatalError</span><span class="p">(</span>
-                    <span class="s">&quot;deletion of interned string failed&quot;</span><span class="p">);</span>
-            <span class="k">break</span><span class="p">;</span>
-        <span class="c1">// 永不回收的对象, 报错</span>
-        <span class="k">case</span> <span class="n">SSTATE_INTERNED_IMMORTAL</span>:
-            <span class="n">Py_FatalError</span><span class="p">(</span><span class="s">&quot;Immortal interned string died.&quot;</span><span class="p">);</span>
+        // 普通, 从interned字典中删除, 跳出 -&gt; 回收内存
+        case SSTATE_INTERNED_MORTAL:
+            /* revive dead object temporarily for DelItem */
+            Py_REFCNT(op) = 3;
+            if (PyDict_DelItem(interned, op) != 0)
+                Py_FatalError(
+                    &quot;deletion of interned string failed&quot;);
+            break;
+        // 永不回收的对象, 报错
+        case SSTATE_INTERNED_IMMORTAL:
+            Py_FatalError(&quot;Immortal interned string died.&quot;);
 
-        <span class="nl">default:</span>
-            <span class="n">Py_FatalError</span><span class="p">(</span><span class="s">&quot;Inconsistent interned string state.&quot;</span><span class="p">);</span>
-    <span class="p">}</span>
+        default:
+            Py_FatalError(&quot;Inconsistent interned string state.&quot;);
+    }
 
-    <span class="c1">// 回收内存</span>
-    <span class="n">Py_TYPE</span><span class="p">(</span><span class="n">op</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">tp_free</span><span class="p">(</span><span class="n">op</span><span class="p">);</span>
-<span class="p">}</span>
+    // 回收内存
+    Py_TYPE(op)-&gt;tp_free(op);
+}
 </pre></div>
 
 
 <h1>性能相关</h1>
 <p><code>+</code>与 <code>join</code></p>
-<div class="codehilite"><pre><span class="sc">&#39;a&#39;</span> <span class="o">+</span> <span class="sc">&#39;b&#39;</span> <span class="o">+</span> <span class="sc">&#39;c&#39;</span>
+<div class="codehilite"><pre>&#39;a&#39; + &#39;b&#39; + &#39;c&#39;
 
-<span class="n">or</span>
+or
 
-<span class="err">&#39;&#39;</span><span class="p">.</span><span class="n">join</span><span class="p">([</span><span class="sc">&#39;a&#39;</span><span class="p">,</span> <span class="sc">&#39;b&#39;</span><span class="p">,</span> <span class="sc">&#39;c&#39;</span><span class="p">])</span>
+&#39;&#39;.join([&#39;a&#39;, &#39;b&#39;, &#39;c&#39;])
 </pre></div>
 
 
 <p>可以查看<code>string_concat</code>方法和<code>string_join</code>方法的源代码</p>
-<div class="codehilite"><pre><span class="n">string_concat</span><span class="p">,</span> <span class="err">一次加</span><span class="o">=</span><span class="err">分配一次内存空间</span><span class="p">,</span> <span class="err">拷贝两次</span><span class="p">.</span> <span class="n">N</span><span class="err">次链接</span><span class="p">,</span> <span class="err">需要</span><span class="n">N</span><span class="o">-</span><span class="mi">1</span><span class="err">次内存分配</span><span class="p">.</span>
-<span class="n">string_join</span><span class="p">,</span> <span class="err">计算序列所有元素字符串总长度</span><span class="p">,</span> <span class="err">用</span><span class="n">PyString_FromStringAndSize</span><span class="p">((</span><span class="kt">char</span><span class="o">*</span><span class="p">)</span><span class="nb">NULL</span><span class="p">,</span> <span class="n">sz</span><span class="p">)</span><span class="err">分配内存空间</span><span class="p">,</span> <span class="err">然后逐一拷贝</span><span class="p">.</span> <span class="err">一次内存操作</span><span class="p">.</span>
+<div class="codehilite"><pre>string_concat, 一次加=分配一次内存空间, 拷贝两次. N次链接, 需要N-1次内存分配.
+string_join, 计算序列所有元素字符串总长度, 用PyString_FromStringAndSize((char*)NULL, sz)分配内存空间, 然后逐一拷贝. 一次内存操作.
 </pre></div>
 
 
 <hr />
 <p>changelog</p>
-<div class="codehilite"><pre><span class="mi">2014</span><span class="o">-</span><span class="mi">08</span><span class="o">-</span><span class="mi">08</span> <span class="n">first</span> <span class="n">version</span>
+<div class="codehilite"><pre>2014-08-08 first version
 </pre></div>
     </section>
 

@@ -5,70 +5,70 @@
 &lt;p&gt;ps. 之前一篇 &lt;a href="http://www.wklken.me/posts/2013/11/23/nginx-base.html"&gt;nginx基础笔记&lt;/a&gt;&lt;/p&gt;
 &lt;h2&gt;使用独立目录, 然后include具体配置&lt;/h2&gt;
 &lt;p&gt;目录&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;nginx&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;conf&lt;/span&gt;
-&lt;span class="n"&gt;site&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;
-    &lt;span class="n"&gt;a&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;conf&lt;/span&gt;
-    &lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;conf&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;nginx.conf
+site/
+    a.conf
+    b.conf
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;nginx.conf&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;http&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;http {
 
-    &lt;span class="p"&gt;.......&lt;/span&gt;
-    &lt;span class="n"&gt;include&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;etc&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;nginx&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;conf&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;d&lt;/span&gt;&lt;span class="o"&gt;/*&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;conf&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-    &lt;span class="n"&gt;include&lt;/span&gt; &lt;span class="n"&gt;sites&lt;/span&gt;&lt;span class="o"&gt;/*&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;conf&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-&lt;span class="p"&gt;}&lt;/span&gt;
+    .......
+    include /etc/nginx/conf.d/*.conf;
+    include sites/*.conf;
+}
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h3&gt;gzip on&lt;/h3&gt;
 &lt;p&gt;加到&lt;code&gt;http&lt;/code&gt;模块中, 开启&lt;code&gt;gzip&lt;/code&gt;, 注意&lt;code&gt;gzip_types&lt;/code&gt;配置得是压缩的资源类型&lt;/p&gt;
 &lt;p&gt;nginx.conf&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;http&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;http {
 
 
-    &lt;span class="p"&gt;.....&lt;/span&gt;
+    .....
 
 
-    &lt;span class="n"&gt;gzip&lt;/span&gt; &lt;span class="n"&gt;on&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-    &lt;span class="n"&gt;gzip_min_length&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="n"&gt;k&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-    &lt;span class="n"&gt;gzip_comp_level&lt;/span&gt; &lt;span class="mi"&gt;5&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-    &lt;span class="n"&gt;gzip_proxied&lt;/span&gt; &lt;span class="n"&gt;expired&lt;/span&gt; &lt;span class="n"&gt;no&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;cache&lt;/span&gt; &lt;span class="n"&gt;no&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;store&lt;/span&gt; &lt;span class="n"&gt;private&lt;/span&gt; &lt;span class="n"&gt;auth&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-    &lt;span class="n"&gt;gzip_types&lt;/span&gt; &lt;span class="n"&gt;text&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;plain&lt;/span&gt; &lt;span class="n"&gt;text&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;css&lt;/span&gt; &lt;span class="n"&gt;application&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;javascript&lt;/span&gt; &lt;span class="n"&gt;text&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;javascript&lt;/span&gt; &lt;span class="n"&gt;application&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;javascript&lt;/span&gt; &lt;span class="n"&gt;text&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;xml&lt;/span&gt; &lt;span class="n"&gt;application&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;xml&lt;/span&gt; &lt;span class="n"&gt;application&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;xml&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="n"&gt;rss&lt;/span&gt; &lt;span class="n"&gt;application&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;json&lt;/span&gt; &lt;span class="n"&gt;image&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;icon&lt;/span&gt; &lt;span class="n"&gt;image&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;png&lt;/span&gt; &lt;span class="n"&gt;image&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;jpg&lt;/span&gt; &lt;span class="n"&gt;image&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;jpeg&lt;/span&gt; &lt;span class="n"&gt;application&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;font&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;woff&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-    &lt;span class="n"&gt;gzip_vary&lt;/span&gt; &lt;span class="n"&gt;on&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-&lt;span class="p"&gt;}&lt;/span&gt;
+    gzip on;
+    gzip_min_length 1k;
+    gzip_comp_level 5;
+    gzip_proxied expired no-cache no-store private auth;
+    gzip_types text/plain text/css application/javascript text/javascript application/x-javascript text/xml application/xml application/xml+rss application/json image/x-icon image/png image/jpg image/jpeg application/font-woff;
+    gzip_vary on;
+}
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h2&gt;for multi processers&lt;/h2&gt;
 &lt;p&gt;nginx.conf&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;worker_processes&lt;/span&gt;  &lt;span class="mi"&gt;4&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-&lt;span class="n"&gt;events&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
-    &lt;span class="n"&gt;worker_connections&lt;/span&gt;  &lt;span class="mi"&gt;2048&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-    &lt;span class="n"&gt;use&lt;/span&gt; &lt;span class="n"&gt;epoll&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-    &lt;span class="n"&gt;multi_accept&lt;/span&gt; &lt;span class="n"&gt;on&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;worker_processes  4;
+events {
+    worker_connections  2048;
+    use epoll;
+    multi_accept on;
+}
 
-&lt;span class="n"&gt;worker_rlimit_nofile&lt;/span&gt; &lt;span class="mi"&gt;100000&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+worker_rlimit_nofile 100000;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h2&gt;static file cache&lt;/h2&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;    &lt;span class="n"&gt;location&lt;/span&gt; &lt;span class="o"&gt;~*&lt;/span&gt; &lt;span class="err"&gt;\&lt;/span&gt;&lt;span class="p"&gt;.(&lt;/span&gt;&lt;span class="o"&gt;?:&lt;/span&gt;&lt;span class="n"&gt;css&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="n"&gt;js&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
-      &lt;span class="n"&gt;expires&lt;/span&gt; &lt;span class="mi"&gt;12&lt;/span&gt;&lt;span class="n"&gt;h&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;    &lt;span class="nt"&gt;location&lt;/span&gt; &lt;span class="o"&gt;~*&lt;/span&gt; &lt;span class="err"&gt;\&lt;/span&gt;&lt;span class="o"&gt;.(?&lt;/span&gt;&lt;span class="nd"&gt;:css&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="nt"&gt;js&lt;/span&gt;&lt;span class="o"&gt;)$&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+      &lt;span class="n"&gt;expires&lt;/span&gt; &lt;span class="m"&gt;12&lt;/span&gt;&lt;span class="n"&gt;h&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
       &lt;span class="n"&gt;access_log&lt;/span&gt; &lt;span class="n"&gt;off&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-      &lt;span class="n"&gt;add_header&lt;/span&gt; &lt;span class="n"&gt;Cache&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;Control&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;public&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-      &lt;span class="n"&gt;proxy_pass&lt;/span&gt; &lt;span class="n"&gt;http&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="c1"&gt;//127.0.0.1:5000;&lt;/span&gt;
+      &lt;span class="n"&gt;add_header&lt;/span&gt; &lt;span class="n"&gt;Cache&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;Control&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;public&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+      &lt;span class="n"&gt;proxy_pass&lt;/span&gt; &lt;span class="n"&gt;http&lt;/span&gt;&lt;span class="o"&gt;://&lt;/span&gt;&lt;span class="m"&gt;127&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="m"&gt;1&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="m"&gt;5000&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
       &lt;span class="n"&gt;proxy_redirect&lt;/span&gt; &lt;span class="n"&gt;off&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
     &lt;span class="p"&gt;}&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h2&gt;proxy pass&lt;/h2&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;    &lt;span class="n"&gt;location&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;    &lt;span class="nt"&gt;location&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;
     &lt;span class="p"&gt;{&lt;/span&gt;
-        &lt;span class="n"&gt;proxy_pass&lt;/span&gt; &lt;span class="n"&gt;http&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="c1"&gt;//127.0.0.1:8000;&lt;/span&gt;
+        &lt;span class="n"&gt;proxy_pass&lt;/span&gt; &lt;span class="n"&gt;http&lt;/span&gt;&lt;span class="o"&gt;://&lt;/span&gt;&lt;span class="m"&gt;127&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="m"&gt;1&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="m"&gt;8000&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
         &lt;span class="n"&gt;proxy_pass_header&lt;/span&gt; &lt;span class="n"&gt;Server&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
         &lt;span class="n"&gt;proxy_set_header&lt;/span&gt; &lt;span class="n"&gt;X&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;Forwarded&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;For&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;proxy_add_x_forwarded_for&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
         &lt;span class="n"&gt;proxy_set_header&lt;/span&gt; &lt;span class="n"&gt;X&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;Real&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;IP&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;remote_addr&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
@@ -80,37 +80,37 @@
 
 
 &lt;p&gt;可以设置超时时间&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;        &lt;span class="n"&gt;proxy_connect_timeout&lt;/span&gt; &lt;span class="mi"&gt;500&lt;/span&gt;&lt;span class="n"&gt;s&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-        &lt;span class="n"&gt;proxy_read_timeout&lt;/span&gt; &lt;span class="mi"&gt;500&lt;/span&gt;&lt;span class="n"&gt;s&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-        &lt;span class="n"&gt;proxy_send_timeout&lt;/span&gt; &lt;span class="mi"&gt;500&lt;/span&gt;&lt;span class="n"&gt;s&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;        proxy_connect_timeout 500s;
+        proxy_read_timeout 500s;
+        proxy_send_timeout 500s;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h2&gt;静态目录 or 文件&lt;/h2&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;    &lt;span class="n"&gt;location&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;movies&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
-        &lt;span class="n"&gt;alias&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;Volumes&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;Media&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;Movies&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-        &lt;span class="n"&gt;allow&lt;/span&gt; &lt;span class="n"&gt;all&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-    &lt;span class="p"&gt;}&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;    location /movies/ {
+        alias /Volumes/Media/Movies/;
+        allow all;
+    }
 
-    &lt;span class="n"&gt;location&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;abc&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;txt&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
-        &lt;span class="n"&gt;alias&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;www&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="k"&gt;static&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;abc&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;txt&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-        &lt;span class="n"&gt;expires&lt;/span&gt;  &lt;span class="mi"&gt;30&lt;/span&gt;&lt;span class="n"&gt;d&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-        &lt;span class="n"&gt;access_log&lt;/span&gt; &lt;span class="n"&gt;off&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-    &lt;span class="p"&gt;}&lt;/span&gt;
+    location = /abc.txt {
+        alias /data/www/static/abc.txt;
+        expires  30d;
+        access_log off;
+    }
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h2&gt;静态站&lt;/h2&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;server&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
-    &lt;span class="n"&gt;listen&lt;/span&gt;       &lt;span class="mf"&gt;192.168.1.1&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;80&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-    &lt;span class="n"&gt;server_name&lt;/span&gt;  &lt;span class="n"&gt;www&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;abc&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;com&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="nt"&gt;server&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="n"&gt;listen&lt;/span&gt;       &lt;span class="m"&gt;192&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="m"&gt;168&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="m"&gt;1&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="m"&gt;1&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="m"&gt;80&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;server_name&lt;/span&gt;  &lt;span class="n"&gt;www&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;abc&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;com&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
 
-    &lt;span class="n"&gt;client_max_body_size&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="n"&gt;M&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-    &lt;span class="n"&gt;access_log&lt;/span&gt; &lt;span class="n"&gt;logs&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;blog_access&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;log&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-    &lt;span class="n"&gt;error_log&lt;/span&gt; &lt;span class="n"&gt;logs&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;blog_error&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;log&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;client_max_body_size&lt;/span&gt; &lt;span class="m"&gt;1&lt;/span&gt;&lt;span class="n"&gt;M&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;access_log&lt;/span&gt; &lt;span class="n"&gt;logs&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;blog_access&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;log&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;error_log&lt;/span&gt; &lt;span class="n"&gt;logs&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;blog_error&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;log&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
 
     &lt;span class="n"&gt;root&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;static_site_dir&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-    &lt;span class="n"&gt;index&lt;/span&gt; &lt;span class="n"&gt;index&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;html&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;index&lt;/span&gt; &lt;span class="n"&gt;index&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;html&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
 
 &lt;span class="p"&gt;}&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
@@ -119,141 +119,141 @@
 &lt;h2&gt;return&lt;/h2&gt;
 &lt;p&gt;直接&lt;code&gt;return&lt;/code&gt;&lt;/p&gt;
 &lt;p&gt;语法&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;http_code&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-&lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;http_code&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;content&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;return http_code;
+return http_code &amp;quot;content&amp;quot;;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;e.g.&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;location&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;api&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;test&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
-    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="mi"&gt;403&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;location /api/test/ {
+    return 403;
+}
 
-&lt;span class="n"&gt;location&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;stat&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
-    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="mi"&gt;204&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-&lt;span class="p"&gt;}&lt;/span&gt;
+location /stat/ {
+    return 204;
+}
 
-&lt;span class="n"&gt;location&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;ping&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
-    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="mi"&gt;200&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-&lt;span class="p"&gt;}&lt;/span&gt;
+location /ping/ {
+    return 200;
+}
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h2&gt;for mobile&lt;/h2&gt;
 &lt;p&gt;移动端和网站端互相跳转&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;    &lt;span class="n"&gt;location&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
-        &lt;span class="n"&gt;try_files&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;uri&lt;/span&gt; &lt;span class="err"&gt;@&lt;/span&gt;&lt;span class="n"&gt;mobile_rewrite&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;    &lt;span class="nt"&gt;location&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="n"&gt;try_files&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;uri&lt;/span&gt; &lt;span class="o"&gt;@&lt;/span&gt;&lt;span class="n"&gt;mobile_rewrite&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
     &lt;span class="p"&gt;}&lt;/span&gt;
 
-    &lt;span class="n"&gt;location&lt;/span&gt; &lt;span class="o"&gt;~&lt;/span&gt; &lt;span class="o"&gt;^/&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;login&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="k"&gt;register&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="n"&gt;search&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="n"&gt;album&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="mi"&gt;404&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="n"&gt;album&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="err"&gt;\&lt;/span&gt;&lt;span class="n"&gt;d&lt;/span&gt;&lt;span class="o"&gt;+|&lt;/span&gt;&lt;span class="n"&gt;item&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="err"&gt;\&lt;/span&gt;&lt;span class="n"&gt;d&lt;/span&gt;&lt;span class="o"&gt;+|&lt;/span&gt;&lt;span class="n"&gt;topic&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
-        &lt;span class="n"&gt;try_files&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;uri&lt;/span&gt; &lt;span class="err"&gt;@&lt;/span&gt;&lt;span class="n"&gt;mobile_rewrite&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="nt"&gt;location&lt;/span&gt; &lt;span class="o"&gt;~&lt;/span&gt; &lt;span class="o"&gt;^/(&lt;/span&gt;&lt;span class="nt"&gt;login&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="nt"&gt;register&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="nt"&gt;search&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="nt"&gt;album&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="nt"&gt;404&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="nt"&gt;album&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="err"&gt;\&lt;/span&gt;&lt;span class="nt"&gt;d&lt;/span&gt;&lt;span class="o"&gt;+|&lt;/span&gt;&lt;span class="nt"&gt;item&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="err"&gt;\&lt;/span&gt;&lt;span class="nt"&gt;d&lt;/span&gt;&lt;span class="o"&gt;+|&lt;/span&gt;&lt;span class="nt"&gt;topic&lt;/span&gt;&lt;span class="o"&gt;)$&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="n"&gt;try_files&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;uri&lt;/span&gt; &lt;span class="o"&gt;@&lt;/span&gt;&lt;span class="n"&gt;mobile_rewrite&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
     &lt;span class="p"&gt;}&lt;/span&gt;
 
 
-    &lt;span class="n"&gt;location&lt;/span&gt; &lt;span class="err"&gt;@&lt;/span&gt;&lt;span class="n"&gt;mobile_rewrite&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="nt"&gt;location&lt;/span&gt; &lt;span class="k"&gt;@mobile_rewrite&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
 
-        &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;http_user_agent&lt;/span&gt; &lt;span class="o"&gt;~*&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows (ce|phone)|xda|xiino&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="nt"&gt;if&lt;/span&gt; &lt;span class="o"&gt;($&lt;/span&gt;&lt;span class="nt"&gt;http_user_agent&lt;/span&gt; &lt;span class="o"&gt;~*&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows (ce|phone)|xda|xiino&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
             &lt;span class="n"&gt;set&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;mobile_rewrite&lt;/span&gt; &lt;span class="n"&gt;perform&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
         &lt;span class="p"&gt;}&lt;/span&gt;
-        &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;http_user_agent&lt;/span&gt; &lt;span class="o"&gt;~*&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;^(1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-)&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="nt"&gt;if&lt;/span&gt; &lt;span class="o"&gt;($&lt;/span&gt;&lt;span class="nt"&gt;http_user_agent&lt;/span&gt; &lt;span class="o"&gt;~*&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;^(1207|6310|6590|3gso|4thp|50&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;6&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="s2"&gt;i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez(&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;4&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;7&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="s2"&gt;0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="nx"&gt;a&lt;/span&gt;&lt;span class="na"&gt;-w&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="s2"&gt;)|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="s2"&gt;|n20&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="s2"&gt;|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-(&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="s2"&gt;|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;7&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="s2"&gt;|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="s2"&gt;|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-)&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
             &lt;span class="n"&gt;set&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;mobile_rewrite&lt;/span&gt; &lt;span class="n"&gt;perform&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
         &lt;span class="p"&gt;}&lt;/span&gt;
 
-        &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;arg_mobile&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;no&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="nt"&gt;if&lt;/span&gt; &lt;span class="o"&gt;($&lt;/span&gt;&lt;span class="nt"&gt;arg_mobile&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;no&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
             &lt;span class="n"&gt;set&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;mobile_rewrite&lt;/span&gt; &lt;span class="n"&gt;do_not_perform&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
         &lt;span class="p"&gt;}&lt;/span&gt;
 
-        &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;arg_mobile&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;yes&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="nt"&gt;if&lt;/span&gt; &lt;span class="o"&gt;($&lt;/span&gt;&lt;span class="nt"&gt;arg_mobile&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;yes&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
             &lt;span class="n"&gt;set&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;mobile_rewrite&lt;/span&gt; &lt;span class="n"&gt;perform&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
         &lt;span class="p"&gt;}&lt;/span&gt;
 
-        &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;mobile_rewrite&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;perform&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
-            &lt;span class="n"&gt;rewrite&lt;/span&gt; &lt;span class="o"&gt;^&lt;/span&gt; &lt;span class="n"&gt;http&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="c1"&gt;//$server_name/m$request_uri permanent;&lt;/span&gt;
-            &lt;span class="k"&gt;break&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="nt"&gt;if&lt;/span&gt; &lt;span class="o"&gt;($&lt;/span&gt;&lt;span class="nt"&gt;mobile_rewrite&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nt"&gt;perform&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+            &lt;span class="n"&gt;rewrite&lt;/span&gt; &lt;span class="o"&gt;^&lt;/span&gt; &lt;span class="n"&gt;http&lt;/span&gt;&lt;span class="o"&gt;://&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;server_name&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;request_uri&lt;/span&gt; &lt;span class="n"&gt;permanent&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+            &lt;span class="n"&gt;break&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
         &lt;span class="p"&gt;}&lt;/span&gt;
 
-        &lt;span class="n"&gt;proxy_pass&lt;/span&gt; &lt;span class="n"&gt;http&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="c1"&gt;//127.0.0.1:5000;&lt;/span&gt;
-        &lt;span class="n"&gt;proxy_set_header&lt;/span&gt; &lt;span class="n"&gt;X&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;Forwarded&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;For&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;proxy_add_x_forwarded_for&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-        &lt;span class="n"&gt;proxy_set_header&lt;/span&gt; &lt;span class="n"&gt;X&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;Real&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;IP&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;remote_addr&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-        &lt;span class="n"&gt;proxy_set_header&lt;/span&gt; &lt;span class="n"&gt;Host&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;http_host&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-        &lt;span class="n"&gt;proxy_redirect&lt;/span&gt; &lt;span class="n"&gt;off&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="nt"&gt;proxy_pass&lt;/span&gt; &lt;span class="nt"&gt;http&lt;/span&gt;&lt;span class="o"&gt;://&lt;/span&gt;&lt;span class="nt"&gt;127&lt;/span&gt;&lt;span class="nc"&gt;.0.0.1&lt;/span&gt;&lt;span class="nd"&gt;:5000&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
+        &lt;span class="nt"&gt;proxy_set_header&lt;/span&gt; &lt;span class="nt"&gt;X-Forwarded-For&lt;/span&gt; &lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;proxy_add_x_forwarded_for&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
+        &lt;span class="nt"&gt;proxy_set_header&lt;/span&gt; &lt;span class="nt"&gt;X-Real-IP&lt;/span&gt; &lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;remote_addr&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
+        &lt;span class="nt"&gt;proxy_set_header&lt;/span&gt; &lt;span class="nt"&gt;Host&lt;/span&gt; &lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;http_host&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
+        &lt;span class="nt"&gt;proxy_redirect&lt;/span&gt; &lt;span class="nt"&gt;off&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
 
     &lt;span class="p"&gt;}&lt;/span&gt;
 
 
-    &lt;span class="n"&gt;location&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;
+    &lt;span class="nt"&gt;location&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nt"&gt;m&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;
     &lt;span class="p"&gt;{&lt;/span&gt;
 
-        &lt;span class="n"&gt;set&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;pc_rewrite&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-        &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;http_user_agent&lt;/span&gt; &lt;span class="o"&gt;~*&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows (ce|phone)|xda|xiino&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
-            &lt;span class="n"&gt;set&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;pc_rewrite&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="n"&gt;set&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;pc_rewrite&lt;/span&gt; &lt;span class="m"&gt;1&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="n"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;http_user_agent&lt;/span&gt; &lt;span class="o"&gt;~*&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows (ce|phone)|xda|xiino&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="err"&gt;{&lt;/span&gt;
+            &lt;span class="n"&gt;set&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;pc_rewrite&lt;/span&gt; &lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
         &lt;span class="p"&gt;}&lt;/span&gt;
-        &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;http_user_agent&lt;/span&gt; &lt;span class="o"&gt;~*&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;^(1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-)&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
-            &lt;span class="n"&gt;set&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;pc_rewrite&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="nt"&gt;if&lt;/span&gt; &lt;span class="o"&gt;($&lt;/span&gt;&lt;span class="nt"&gt;http_user_agent&lt;/span&gt; &lt;span class="o"&gt;~*&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;^(1207|6310|6590|3gso|4thp|50&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;6&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="s2"&gt;i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez(&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;4&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;7&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="s2"&gt;0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="nx"&gt;a&lt;/span&gt;&lt;span class="na"&gt;-w&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="s2"&gt;)|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="s2"&gt;|n20&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="s2"&gt;|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-(&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="s2"&gt;|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;7&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="s2"&gt;|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="s2"&gt;|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-)&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+            &lt;span class="n"&gt;set&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;pc_rewrite&lt;/span&gt; &lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
         &lt;span class="p"&gt;}&lt;/span&gt;
-        &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;pc_rewrite&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
-            &lt;span class="n"&gt;rewrite&lt;/span&gt; &lt;span class="o"&gt;^/&lt;/span&gt;&lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="p"&gt;(.&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt; &lt;span class="n"&gt;http&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="c1"&gt;//$server_name/$1 permanent;&lt;/span&gt;
+        &lt;span class="nt"&gt;if&lt;/span&gt; &lt;span class="o"&gt;($&lt;/span&gt;&lt;span class="nt"&gt;pc_rewrite&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nt"&gt;1&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+            &lt;span class="n"&gt;rewrite&lt;/span&gt; &lt;span class="o"&gt;^/&lt;/span&gt;&lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;.*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt; &lt;span class="n"&gt;http&lt;/span&gt;&lt;span class="o"&gt;://&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;server_name&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="m"&gt;1&lt;/span&gt; &lt;span class="n"&gt;permanent&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
         &lt;span class="p"&gt;}&lt;/span&gt;
 
-        &lt;span class="n"&gt;proxy_pass&lt;/span&gt; &lt;span class="n"&gt;http&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="c1"&gt;//127.0.0.1:5000;&lt;/span&gt;
-        &lt;span class="n"&gt;proxy_set_header&lt;/span&gt; &lt;span class="n"&gt;X&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;Forwarded&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;For&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;proxy_add_x_forwarded_for&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-        &lt;span class="n"&gt;proxy_set_header&lt;/span&gt; &lt;span class="n"&gt;X&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;Real&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;IP&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;remote_addr&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-        &lt;span class="n"&gt;proxy_set_header&lt;/span&gt; &lt;span class="n"&gt;Host&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;http_host&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-        &lt;span class="n"&gt;proxy_redirect&lt;/span&gt; &lt;span class="n"&gt;off&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-    &lt;span class="p"&gt;}&lt;/span&gt;
+        &lt;span class="nt"&gt;proxy_pass&lt;/span&gt; &lt;span class="nt"&gt;http&lt;/span&gt;&lt;span class="o"&gt;://&lt;/span&gt;&lt;span class="nt"&gt;127&lt;/span&gt;&lt;span class="nc"&gt;.0.0.1&lt;/span&gt;&lt;span class="nd"&gt;:5000&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
+        &lt;span class="nt"&gt;proxy_set_header&lt;/span&gt; &lt;span class="nt"&gt;X-Forwarded-For&lt;/span&gt; &lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;proxy_add_x_forwarded_for&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
+        &lt;span class="nt"&gt;proxy_set_header&lt;/span&gt; &lt;span class="nt"&gt;X-Real-IP&lt;/span&gt; &lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;remote_addr&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
+        &lt;span class="nt"&gt;proxy_set_header&lt;/span&gt; &lt;span class="nt"&gt;Host&lt;/span&gt; &lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;http_host&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
+        &lt;span class="nt"&gt;proxy_redirect&lt;/span&gt; &lt;span class="nt"&gt;off&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
+    &lt;span class="err"&gt;}&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h2&gt;redirect to www&lt;/h2&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;server&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
-    &lt;span class="n"&gt;server_name&lt;/span&gt;  &lt;span class="n"&gt;abc&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;com&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-    &lt;span class="n"&gt;rewrite&lt;/span&gt; &lt;span class="o"&gt;^&lt;/span&gt;&lt;span class="p"&gt;(.&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;http&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="c1"&gt;//www.abc.com$1 permanent;&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="nt"&gt;server&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="n"&gt;server_name&lt;/span&gt;  &lt;span class="n"&gt;abc&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;com&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;rewrite&lt;/span&gt; &lt;span class="o"&gt;^&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;.*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;http&lt;/span&gt;&lt;span class="o"&gt;://&lt;/span&gt;&lt;span class="n"&gt;www&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;abc&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;com&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="m"&gt;1&lt;/span&gt; &lt;span class="n"&gt;permanent&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
 &lt;span class="p"&gt;}&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h2&gt;allow and deny&lt;/h2&gt;
 &lt;p&gt;访问ip控制&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;location&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;test&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
-    &lt;span class="n"&gt;allow&lt;/span&gt; &lt;span class="mf"&gt;192.168.1.1&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-    &lt;span class="n"&gt;deny&lt;/span&gt; &lt;span class="n"&gt;all&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;location /test/ {
+    allow 192.168.1.1;
+    deny all;
 
-&lt;span class="p"&gt;}&lt;/span&gt;
+}
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h2&gt;负载均衡&lt;/h2&gt;
 &lt;p&gt;nginx.conf&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;http&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="nt"&gt;http&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
 
-    &lt;span class="n"&gt;upstream&lt;/span&gt; &lt;span class="n"&gt;A&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
-        &lt;span class="n"&gt;server&lt;/span&gt; &lt;span class="mf"&gt;192.168.1.1&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;5000&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-        &lt;span class="n"&gt;server&lt;/span&gt; &lt;span class="mf"&gt;192.168.1.2&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;5000&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;upstream&lt;/span&gt; &lt;span class="n"&gt;A&lt;/span&gt; &lt;span class="err"&gt;{&lt;/span&gt;
+        &lt;span class="n"&gt;server&lt;/span&gt; &lt;span class="m"&gt;192&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="m"&gt;168&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="m"&gt;1&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="m"&gt;1&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="m"&gt;5000&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="n"&gt;server&lt;/span&gt; &lt;span class="m"&gt;192&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="m"&gt;168&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="m"&gt;1&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="m"&gt;2&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="m"&gt;5000&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
     &lt;span class="p"&gt;}&lt;/span&gt;
-&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="err"&gt;}&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;sites/a.conf&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;server&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;server {
 
-    &lt;span class="n"&gt;location&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
-        &lt;span class="n"&gt;proxy_pass&lt;/span&gt; &lt;span class="n"&gt;A&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-    &lt;span class="p"&gt;}&lt;/span&gt;
+    location / {
+        proxy_pass A;
+    }
 
-&lt;span class="p"&gt;}&lt;/span&gt;
+}
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;hr /&gt;
 &lt;p&gt;其他&lt;/p&gt;
 &lt;h2&gt;centos service cmds&lt;/h2&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="err"&gt;检查配置文件正确性&lt;/span&gt;
-&lt;span class="n"&gt;service&lt;/span&gt; &lt;span class="n"&gt;nginx&lt;/span&gt; &lt;span class="n"&gt;configtest&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;检查配置文件正确性
+service nginx configtest
 
 
-&lt;span class="err"&gt;重新加载配置&lt;/span&gt;
-&lt;span class="n"&gt;service&lt;/span&gt; &lt;span class="n"&gt;nginx&lt;/span&gt; &lt;span class="n"&gt;reload&lt;/span&gt;
+重新加载配置
+service nginx reload
 &lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Thu, 01 Jan 2015 00:00:00 +0800</pubDate><guid>tag:www.wklken.me,2015-01-01:posts/2015/01/01/some-nginx-configs.html</guid><category>linux</category><category>nginx</category></item><item><title>Nginx基础笔记</title><link>http://www.wklken.me/posts/2013/11/23/nginx-base.html</link><description>&lt;p&gt;nginx小结&lt;/p&gt;
 &lt;h3&gt;资源&lt;/h3&gt;
 &lt;blockquote&gt;
@@ -277,152 +277,152 @@
 &lt;p&gt;Nginx Rewrite研究笔记 &lt;a href="http://blog.cafeneko.info/2010/10/nginx_rewrite_note/"&gt;入口&lt;/a&gt;&lt;/p&gt;
 &lt;h2&gt;安装&lt;/h2&gt;
 &lt;h3&gt;ubuntu下&lt;/h3&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;sudo&lt;/span&gt; &lt;span class="n"&gt;apt&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt; &lt;span class="n"&gt;install&lt;/span&gt; &lt;span class="n"&gt;nginx&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;sudo apt-get install nginx
 
-&lt;span class="err"&gt;启动&lt;/span&gt;
-&lt;span class="n"&gt;sudo&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;etc&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;init&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;d&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;nginx&lt;/span&gt; &lt;span class="n"&gt;start&lt;/span&gt;       &lt;span class="err"&gt;#通过&lt;/span&gt;&lt;span class="n"&gt;init&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;d&lt;/span&gt;&lt;span class="err"&gt;下的启动文件启动。&lt;/span&gt;
-&lt;span class="n"&gt;sudo&lt;/span&gt; &lt;span class="n"&gt;service&lt;/span&gt; &lt;span class="n"&gt;nginx&lt;/span&gt; &lt;span class="n"&gt;start&lt;/span&gt;&lt;span class="err"&gt;#通过&lt;/span&gt;&lt;span class="n"&gt;ubuntu&lt;/span&gt;&lt;span class="err"&gt;的服务管理器启动&lt;/span&gt;
+启动
+sudo /etc/init.d/nginx start       #通过init.d下的启动文件启动。
+sudo service nginx start#通过ubuntu的服务管理器启动
 
-&lt;span class="err"&gt;配置文件位置&lt;/span&gt;
-&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;etc&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;nginx&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;nginx&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;conf&lt;/span&gt;
+配置文件位置
+/etc/nginx/nginx.conf
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h3&gt;编译安装&lt;/h3&gt;
 &lt;p&gt;1.先决条件&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="mf"&gt;1.&lt;/span&gt;&lt;span class="n"&gt;gcc&lt;/span&gt;
-&lt;span class="n"&gt;apt&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt; &lt;span class="n"&gt;install&lt;/span&gt; &lt;span class="n"&gt;gcc&lt;/span&gt;
-&lt;span class="mf"&gt;2.&lt;/span&gt;&lt;span class="n"&gt;pcre&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;Perl&lt;/span&gt; &lt;span class="n"&gt;Compatible&lt;/span&gt; &lt;span class="n"&gt;Regular&lt;/span&gt; &lt;span class="n"&gt;Expression&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="n"&gt;apt&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt; &lt;span class="n"&gt;install&lt;/span&gt; &lt;span class="n"&gt;libpcre3&lt;/span&gt; &lt;span class="n"&gt;libpcre3&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;dev&lt;/span&gt;
-&lt;span class="mf"&gt;3.&lt;/span&gt;&lt;span class="n"&gt;zlib&lt;/span&gt;
-&lt;span class="n"&gt;apt&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt; &lt;span class="n"&gt;install&lt;/span&gt; &lt;span class="n"&gt;zliblg&lt;/span&gt; &lt;span class="n"&gt;zliblg&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;dev&lt;/span&gt;
-&lt;span class="mf"&gt;4.&lt;/span&gt;&lt;span class="n"&gt;openssl&lt;/span&gt;
-&lt;span class="n"&gt;apt&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt; &lt;span class="n"&gt;install&lt;/span&gt; &lt;span class="n"&gt;openssl&lt;/span&gt; &lt;span class="n"&gt;opensll&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;dev&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;1.gcc
+apt-get install gcc
+2.pcre(Perl Compatible Regular Expression)
+apt-get install libpcre3 libpcre3-dev
+3.zlib
+apt-get install zliblg zliblg-dev
+4.openssl
+apt-get install openssl opensll-dev
 
-&lt;span class="cp"&gt;#如果非apt，可以使用下载包手动编译安装的方式处理&lt;/span&gt;
+#如果非apt，可以使用下载包手动编译安装的方式处理
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;2.下载包&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;www&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;nginx&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;net&lt;/span&gt; &lt;span class="err"&gt;下载稳定版&lt;/span&gt;
-&lt;span class="n"&gt;wget&lt;/span&gt; &lt;span class="n"&gt;http&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="c1"&gt;//nginx.org/download/nginx-1.4.4.tar.gz&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;www.nginx.net 下载稳定版
+wget http://nginx.org/download/nginx-1.4.4.tar.gz
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;3.解压安装&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;tar&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;xzvf&lt;/span&gt; &lt;span class="n"&gt;nginx&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mf"&gt;1.4.4&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;tar&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;gz&lt;/span&gt;
-&lt;span class="cp"&gt;#默认，安装目录/usr/local/nginx&lt;/span&gt;
-&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;configure&lt;/span&gt;
-&lt;span class="n"&gt;make&lt;/span&gt;
-&lt;span class="n"&gt;make&lt;/span&gt; &lt;span class="n"&gt;install&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;tar -xzvf nginx-1.4.4.tar.gz
+#默认，安装目录/usr/local/nginx
+./configure
+make
+make install
 
-&lt;span class="cp"&gt;#配置&lt;/span&gt;
-&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;configure&lt;/span&gt; &lt;span class="o"&gt;--&lt;/span&gt;&lt;span class="n"&gt;conf&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;path&lt;/span&gt;&lt;span class="o"&gt;=/&lt;/span&gt;&lt;span class="n"&gt;etc&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;nginx&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;nginx&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;conf&lt;/span&gt;
+#配置
+./configure --conf-path=/etc/nginx/nginx.conf
 
-&lt;span class="err"&gt;可以配置一些其他选项&lt;/span&gt;
+可以配置一些其他选项
 
-&lt;span class="err"&gt;安装后查看下目录下的&lt;/span&gt;&lt;span class="n"&gt;Configuration&lt;/span&gt; &lt;span class="n"&gt;summary&lt;/span&gt;
+安装后查看下目录下的Configuration summary
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;4.init脚本&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="err"&gt;需要给&lt;/span&gt;&lt;span class="n"&gt;nginx&lt;/span&gt;&lt;span class="err"&gt;建立一个&lt;/span&gt;&lt;span class="n"&gt;init&lt;/span&gt;&lt;span class="err"&gt;脚本&lt;/span&gt;
-&lt;span class="err"&gt;从网上捞一个，放入&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;etc&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;init&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;d&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;nginx&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;需要给nginx建立一个init脚本
+从网上捞一个，放入/etc/init.d/nginx
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;推荐编译配置&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="mf"&gt;1.&lt;/span&gt;&lt;span class="err"&gt;使用不同&lt;/span&gt;&lt;span class="n"&gt;prefix&lt;/span&gt;&lt;span class="err"&gt;，方便指定不同版本&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="err"&gt;也便于升级&lt;/span&gt;
-&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;configure&lt;/span&gt; &lt;span class="o"&gt;--&lt;/span&gt;&lt;span class="n"&gt;prefix&lt;/span&gt;&lt;span class="o"&gt;=/&lt;/span&gt;&lt;span class="n"&gt;usr&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;local&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;nginx&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mf"&gt;1.4.4&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;1.使用不同prefix，方便指定不同版本,也便于升级
+./configure --prefix=/usr/local/nginx-1.4.4
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h2&gt;基本操作&lt;/h2&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="err"&gt;查看帮助&lt;/span&gt;
-&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;usr&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;local&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;nginx&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;sbin&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;nginx&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;h&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;查看帮助
+/usr/local/nginx/sbin/nginx -h
 
-&lt;span class="err"&gt;立即停止进程&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;TERM&lt;/span&gt;&lt;span class="err"&gt;信号&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;usr&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;local&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;nginx&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;sbin&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;nginx&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;s&lt;/span&gt; &lt;span class="n"&gt;stop&lt;/span&gt;
+立即停止进程(TERM信号)
+/usr/local/nginx/sbin/nginx -s stop
 
-&lt;span class="err"&gt;温和停止进程&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;QUIT&lt;/span&gt;&lt;span class="err"&gt;信号&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;usr&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;local&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;nginx&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;sbin&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;nginx&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;s&lt;/span&gt; &lt;span class="n"&gt;quit&lt;/span&gt;
+温和停止进程(QUIT信号)
+/usr/local/nginx/sbin/nginx -s quit
 
-&lt;span class="err"&gt;重加载&lt;/span&gt;
-&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;etc&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;init&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;d&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;nginx&lt;/span&gt; &lt;span class="n"&gt;reload&lt;/span&gt; &lt;span class="err"&gt;#有&lt;/span&gt;&lt;span class="n"&gt;init&lt;/span&gt;&lt;span class="err"&gt;脚本情况下&lt;/span&gt;
-&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;usr&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;local&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;nginx&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;sbin&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;nginx&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;s&lt;/span&gt; &lt;span class="n"&gt;reload&lt;/span&gt; &lt;span class="err"&gt;#原生&lt;/span&gt;
+重加载
+/etc/init.d/nginx reload #有init脚本情况下
+/usr/local/nginx/sbin/nginx -s reload #原生
 
-&lt;span class="err"&gt;检测配置文件是否正确&lt;/span&gt;
-&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;usr&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;local&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;nginx&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;sbin&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;nginx&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;t&lt;/span&gt; &lt;span class="err"&gt;#生产路径下的&lt;/span&gt;
-&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;usr&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;local&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;nginx&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;sbin&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;nginx&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;t&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;c&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;home&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;ken&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;tmp&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;test&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;conf&lt;/span&gt; &lt;span class="err"&gt;#可以测试某个临时文件&lt;/span&gt;
+检测配置文件是否正确
+/usr/local/nginx/sbin/nginx -t #生产路径下的
+/usr/local/nginx/sbin/nginx -t -c /home/ken/tmp/test.conf #可以测试某个临时文件
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h2&gt;HTTP基本配置&lt;/h2&gt;
 &lt;h3&gt;配置说明&lt;/h3&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="err"&gt;注释，#&lt;/span&gt;
-&lt;span class="err"&gt;每条指令总是以分好结束&lt;/span&gt;&lt;span class="p"&gt;(;)&lt;/span&gt;
-&lt;span class="err"&gt;配置继承：在一个区块中嵌套其他区段，那么被嵌套的区段会继承其父区段的设置&lt;/span&gt;
-&lt;span class="err"&gt;字符串，可以没有引号，但是如果存在特殊字符（空格，分号，花括号）需要用引号引起&lt;/span&gt;
-&lt;span class="err"&gt;单位：大小&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;k&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;K&lt;/span&gt; &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;M&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="err"&gt;时间值&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;ms&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;s&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;h&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;d&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;w&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;M&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;y&lt;/span&gt; &lt;span class="err"&gt;默认&lt;/span&gt;&lt;span class="n"&gt;s&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="err"&gt;模块提供各种变量值，可以进行读取和赋值（每个模块提供变量列表需要自己去查）&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;注释，#
+每条指令总是以分好结束(;)
+配置继承：在一个区块中嵌套其他区段，那么被嵌套的区段会继承其父区段的设置
+字符串，可以没有引号，但是如果存在特殊字符（空格，分号，花括号）需要用引号引起
+单位：大小(k/K m/M) 时间值(ms/s/m/h/d/w/M/y 默认s)
+模块提供各种变量值，可以进行读取和赋值（每个模块提供变量列表需要自己去查）
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h3&gt;配置文件目录结构&lt;/h3&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;usr&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;local&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;nginx&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;conf&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;/usr/local/nginx/conf/
 
-&lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="n"&gt;mime&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;types&lt;/span&gt; &lt;span class="err"&gt;一个文件扩展列表，它们与&lt;/span&gt;&lt;span class="n"&gt;MIME&lt;/span&gt;&lt;span class="err"&gt;类型关联&lt;/span&gt;
-&lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="n"&gt;fastcgi&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;conf&lt;/span&gt; &lt;span class="err"&gt;与&lt;/span&gt;&lt;span class="n"&gt;FastCGI&lt;/span&gt;&lt;span class="err"&gt;相关的配置文件&lt;/span&gt;
-&lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="n"&gt;proxy&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;conf&lt;/span&gt; &lt;span class="err"&gt;与&lt;/span&gt;&lt;span class="n"&gt;Proxy&lt;/span&gt;&lt;span class="err"&gt;相关的配置文件&lt;/span&gt;
-&lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="n"&gt;nginx&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;conf&lt;/span&gt; &lt;span class="err"&gt;应用程序的基本配置文件&lt;/span&gt;
-&lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="n"&gt;sites&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;
-    &lt;span class="o"&gt;|-&lt;/span&gt; &lt;span class="n"&gt;a&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;conf&lt;/span&gt; &lt;span class="err"&gt;#允许给每个单独网站建立一个配置文件&lt;/span&gt;
-    &lt;span class="o"&gt;|-&lt;/span&gt; &lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;conf&lt;/span&gt;
-    &lt;span class="o"&gt;|-&lt;/span&gt; &lt;span class="n"&gt;dir&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;
-        &lt;span class="o"&gt;|-&lt;/span&gt; &lt;span class="n"&gt;c&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;conf&lt;/span&gt;
+- mime.types 一个文件扩展列表，它们与MIME类型关联
+- fastcgi.conf 与FastCGI相关的配置文件
+- proxy.conf 与Proxy相关的配置文件
+- nginx.conf 应用程序的基本配置文件
+- sites/
+    |- a.conf #允许给每个单独网站建立一个配置文件
+    |- b.conf
+    |- dir/
+        |- c.conf
 
-&lt;span class="err"&gt;需要在&lt;/span&gt;&lt;span class="n"&gt;nginx&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;conf&lt;/span&gt;&lt;span class="err"&gt;中使用包含命令&lt;/span&gt;
-&lt;span class="n"&gt;include&lt;/span&gt; &lt;span class="n"&gt;sites&lt;/span&gt;&lt;span class="cm"&gt;/*.conf;&lt;/span&gt;
-&lt;span class="cm"&gt;include sites/*/&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;conf&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+需要在nginx.conf中使用包含命令
+include sites/*.conf;
+include sites/*/*.conf;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h3&gt;配置文件结构&lt;/h3&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;http&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt; &lt;span class="err"&gt;#嵌入配置文件的根部，&lt;/span&gt; &lt;span class="err"&gt;一个&lt;/span&gt;&lt;span class="n"&gt;http&lt;/span&gt;&lt;span class="err"&gt;里可以配置多个&lt;/span&gt;&lt;span class="n"&gt;server&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;http { #嵌入配置文件的根部， 一个http里可以配置多个server
 
-    &lt;span class="n"&gt;server&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt; &lt;span class="err"&gt;#声明一个站点&lt;/span&gt;
-        &lt;span class="n"&gt;server_name&lt;/span&gt; &lt;span class="n"&gt;www&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;website&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;com&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="err"&gt;#监听的主机名&lt;/span&gt;
-        &lt;span class="n"&gt;listen&lt;/span&gt; &lt;span class="mi"&gt;80&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="err"&gt;#监听套接字所使用的&lt;/span&gt;&lt;span class="n"&gt;ip&lt;/span&gt;&lt;span class="err"&gt;地址和端口号&lt;/span&gt;
+    server { #声明一个站点
+        server_name www.website.com; #监听的主机名
+        listen 80; #监听套接字所使用的ip地址和端口号
 
-        &lt;span class="n"&gt;error_page&lt;/span&gt; &lt;span class="mi"&gt;404&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;not_found&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;html&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-        &lt;span class="n"&gt;error_page&lt;/span&gt; &lt;span class="mi"&gt;500&lt;/span&gt; &lt;span class="mi"&gt;501&lt;/span&gt; &lt;span class="mi"&gt;502&lt;/span&gt; &lt;span class="mi"&gt;503&lt;/span&gt; &lt;span class="mi"&gt;504&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;server_error&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;html&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        error_page 404 /not_found.html;
+        error_page 500 501 502 503 504 /server_error.html;
 
-        &lt;span class="n"&gt;index&lt;/span&gt; &lt;span class="n"&gt;index&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;html&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        index index.html;
 
-        &lt;span class="n"&gt;root&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;var&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;www&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;website&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;com&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;html&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="err"&gt;#定义文档的根目录&lt;/span&gt;
+        root /var/www/website/com/html; #定义文档的根目录
 
-        &lt;span class="err"&gt;#&lt;/span&gt;&lt;span class="n"&gt;location&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;通过制定的模式与客户端请求的&lt;/span&gt;&lt;span class="n"&gt;URI&lt;/span&gt;&lt;span class="err"&gt;相匹配&lt;/span&gt;
-        &lt;span class="n"&gt;location&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt; &lt;span class="err"&gt;#网站的特定位置&lt;/span&gt;
-        &lt;span class="p"&gt;}&lt;/span&gt;
-        &lt;span class="n"&gt;location&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;admin&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt; &lt;span class="err"&gt;#网站的特定位置&lt;/span&gt; &lt;span class="err"&gt;#&lt;/span&gt;
-            &lt;span class="n"&gt;alias&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;var&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;www&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;locked&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="err"&gt;#只能放在&lt;/span&gt; &lt;span class="n"&gt;location&lt;/span&gt;&lt;span class="err"&gt;区段中，为指定路径提供别名&lt;/span&gt;
-        &lt;span class="p"&gt;}&lt;/span&gt;
+        #location, 通过制定的模式与客户端请求的URI相匹配
+        location / { #网站的特定位置
+        }
+        location /admin/ { #网站的特定位置 #
+            alias /var/www/locked/; #只能放在 location区段中，为指定路径提供别名
+        }
 
-        &lt;span class="err"&gt;#操作符&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="err"&gt;匹配时跟定义顺序无关&lt;/span&gt;
-        &lt;span class="n"&gt;location&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;abcd&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt; &lt;span class="err"&gt;#精确匹配，不能用正则&lt;/span&gt;
-        &lt;span class="p"&gt;}&lt;/span&gt;
-        &lt;span class="n"&gt;location&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;abc&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt; &lt;span class="err"&gt;#&lt;/span&gt;&lt;span class="n"&gt;url&lt;/span&gt;&lt;span class="err"&gt;必须以指定模式开始，不能用正则&lt;/span&gt;
-        &lt;span class="p"&gt;}&lt;/span&gt;
-        &lt;span class="n"&gt;location&lt;/span&gt; &lt;span class="o"&gt;^~&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;abcd&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt; &lt;span class="err"&gt;#吴标致行为，&lt;/span&gt;&lt;span class="n"&gt;URI&lt;/span&gt;&lt;span class="err"&gt;定位必须以指定模式开始，如果匹配，停止搜索其他模式&lt;/span&gt;
-        &lt;span class="p"&gt;}&lt;/span&gt;
-        &lt;span class="n"&gt;location&lt;/span&gt; &lt;span class="o"&gt;~&lt;/span&gt; &lt;span class="o"&gt;^/&lt;/span&gt;&lt;span class="n"&gt;abcd&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt; &lt;span class="err"&gt;#正则匹配，区分大小写&lt;/span&gt;
-        &lt;span class="p"&gt;}&lt;/span&gt;
-        &lt;span class="n"&gt;location&lt;/span&gt; &lt;span class="o"&gt;~*&lt;/span&gt; &lt;span class="o"&gt;^/&lt;/span&gt;&lt;span class="n"&gt;abcd&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt; &lt;span class="err"&gt;#正则匹配，不区分大小写&lt;/span&gt;
-        &lt;span class="p"&gt;}&lt;/span&gt;
-        &lt;span class="n"&gt;location&lt;/span&gt; &lt;span class="err"&gt;@&lt;/span&gt;&lt;span class="n"&gt;test&lt;/span&gt;  &lt;span class="p"&gt;{&lt;/span&gt; &lt;span class="err"&gt;#定义&lt;/span&gt;&lt;span class="n"&gt;location&lt;/span&gt;&lt;span class="err"&gt;区段名，客户端不能访问，内部产生的请求可以&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="err"&gt;例如&lt;/span&gt;&lt;span class="n"&gt;try_files&lt;/span&gt;&lt;span class="err"&gt;或&lt;/span&gt;&lt;span class="n"&gt;error_page&lt;/span&gt;
-        &lt;span class="p"&gt;}&lt;/span&gt;
-    &lt;span class="p"&gt;}&lt;/span&gt;
-&lt;span class="p"&gt;}&lt;/span&gt;
+        #操作符,匹配时跟定义顺序无关
+        location = /abcd { #精确匹配，不能用正则
+        }
+        location /abc/ { #url必须以指定模式开始，不能用正则
+        }
+        location ^~ /abcd$ { #吴标致行为，URI定位必须以指定模式开始，如果匹配，停止搜索其他模式
+        }
+        location ~ ^/abcd$ { #正则匹配，区分大小写
+        }
+        location ~* ^/abcd$ { #正则匹配，不区分大小写
+        }
+        location @test  { #定义location区段名，客户端不能访问，内部产生的请求可以,例如try_files或error_page
+        }
+    }
+}
 &lt;/pre&gt;&lt;/div&gt;
 
 
@@ -431,54 +431,54 @@
 &lt;p&gt;nginx真正的魅力在于它的模块，整个应用程序建立在一个模块化系统之上，在编译时，可以对每一个模块进行启用或者禁用&lt;/p&gt;
 &lt;h3&gt;index模块&lt;/h3&gt;
 &lt;p&gt;定义往回走哪index页&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;index&lt;/span&gt; &lt;span class="n"&gt;index&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;php&lt;/span&gt; &lt;span class="n"&gt;index&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;html&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;website&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;index&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;html&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-&lt;span class="cp"&gt;#可以指定多个，但是ngxin提供第一个找到的文件&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;index index.php index.html /data/website/index.html;
+#可以指定多个，但是ngxin提供第一个找到的文件
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h3&gt;Log模块&lt;/h3&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;access_log&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;file&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;path&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-&lt;span class="n"&gt;error_log&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;file&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;path&lt;/span&gt; &lt;span class="n"&gt;error&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;  &lt;span class="err"&gt;#&lt;/span&gt;&lt;span class="n"&gt;level&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;debug&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;info&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;notice&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;warn&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;error&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;crit&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;access_log /file/path;
+error_log /file/path error;  #level: debug/info/notice/warn/error/crit
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;日志格式&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;log_format&lt;/span&gt; &lt;span class="n"&gt;main&lt;/span&gt; &lt;span class="err"&gt;&amp;#39;$&lt;/span&gt;&lt;span class="n"&gt;remote_addr&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;remote_user&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;time_local&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;$request&amp;quot;&lt;/span&gt; &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;
-&lt;span class="err"&gt;&amp;#39;$&lt;/span&gt;&lt;span class="n"&gt;status&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;body_bytes_sent&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;$http_referer&amp;quot;&lt;/span&gt; &lt;span class="err"&gt;&amp;#39;&lt;/span&gt;
-&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;$http_user_agent&amp;quot;&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;http_x_forwarded_for&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="x"&gt;log_format main &amp;#39;&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;remote_addr&lt;/span&gt;&lt;span class="x"&gt; - &lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;remote_user&lt;/span&gt;&lt;span class="x"&gt; [&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;time_local&lt;/span&gt;&lt;span class="x"&gt;] &amp;quot;&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;request&lt;/span&gt;&lt;span class="x"&gt;&amp;quot; &amp;#39;&lt;/span&gt;
+&lt;span class="x"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;status&lt;/span&gt;&lt;span class="x"&gt; &lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;body_bytes_sent&lt;/span&gt;&lt;span class="x"&gt; &amp;quot;&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;http_referer&lt;/span&gt;&lt;span class="x"&gt;&amp;quot; &amp;#39;&lt;/span&gt;
+&lt;span class="x"&gt;&amp;#39;&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;http_user_agent&lt;/span&gt;&lt;span class="x"&gt;&amp;quot; &lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;http_x_forwarded_for&lt;/span&gt;&lt;span class="x"&gt;&amp;#39;;&lt;/span&gt;
 
-&lt;span class="n"&gt;access_log&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;var&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;log&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;test&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;log&lt;/span&gt; &lt;span class="n"&gt;main&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="x"&gt;access_log /var/log/test.log main;&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h3&gt;Real IP模块&lt;/h3&gt;
 &lt;p&gt;默认编译nginx不包含这个模块&lt;/p&gt;
 &lt;p&gt;当通过nginx将用户请求进行转发时，接收请求的应用要拿到用户的真实IP(经转发拿到的是服务器的IP)&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;real_ip_header&lt;/span&gt; &lt;span class="n"&gt;X&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;Forwarded&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;For&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;real_ip_header X-Forwarded-For;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h3&gt;Access模块&lt;/h3&gt;
 &lt;p&gt;可以禁用ip段&lt;/p&gt;
 &lt;p&gt;语法&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="cp"&gt;#如果规则之间有冲突，会以最前面匹配的规则为准&lt;/span&gt;
-&lt;span class="n"&gt;deny&lt;/span&gt; &lt;span class="n"&gt;IP&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-&lt;span class="n"&gt;deny&lt;/span&gt; &lt;span class="n"&gt;subnet&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-&lt;span class="n"&gt;allow&lt;/span&gt; &lt;span class="n"&gt;IP&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-&lt;span class="n"&gt;allow&lt;/span&gt; &lt;span class="n"&gt;subnet&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-&lt;span class="cp"&gt;# block all ips&lt;/span&gt;
-&lt;span class="n"&gt;deny&lt;/span&gt;    &lt;span class="n"&gt;all&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-&lt;span class="cp"&gt;# allow all ips&lt;/span&gt;
-&lt;span class="n"&gt;allow&lt;/span&gt;    &lt;span class="n"&gt;all&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;#如果规则之间有冲突，会以最前面匹配的规则为准
+deny IP;
+deny subnet;
+allow IP;
+allow subnet;
+# block all ips
+deny    all;
+# allow all ips
+allow    all;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;配置一个blockips.conf,然后在nginx.conf中include&lt;/p&gt;
 &lt;p&gt;e.g&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;location&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
-    &lt;span class="n"&gt;allow&lt;/span&gt; &lt;span class="mf"&gt;127.0.0.1&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="err"&gt;#允许本地&lt;/span&gt;&lt;span class="n"&gt;ip&lt;/span&gt; &lt;span class="err"&gt;注意顺序，&lt;/span&gt;&lt;span class="n"&gt;allow&lt;/span&gt;&lt;span class="err"&gt;要放在前面&lt;/span&gt;
-    &lt;span class="n"&gt;deny&lt;/span&gt; &lt;span class="n"&gt;all&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="err"&gt;#禁止其他&lt;/span&gt;&lt;span class="n"&gt;ip&lt;/span&gt;
-&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;location {
+    allow 127.0.0.1; #允许本地ip 注意顺序，allow要放在前面
+    deny all; #禁止其他ip
+}
 &lt;/pre&gt;&lt;/div&gt;
 
 
@@ -486,16 +486,16 @@
 &lt;p&gt;作用：执行URL重定向,允许你去掉带有恶意的URL，包含多个参数（修改）&lt;/p&gt;
 &lt;p&gt;利用正则的匹配，分组和引用，达到目的&lt;/p&gt;
 &lt;p&gt;break/return/set等&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;f&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;uri&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
-    &lt;span class="k"&gt;break&lt;/span&gt;
-&lt;span class="p"&gt;}&lt;/span&gt;
-&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;uri&lt;/span&gt; &lt;span class="o"&gt;~&lt;/span&gt; &lt;span class="o"&gt;^/&lt;/span&gt;&lt;span class="n"&gt;admin&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="p"&gt;){&lt;/span&gt;
-    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="mi"&gt;403&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-&lt;span class="p"&gt;}&lt;/span&gt;
-&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;uri&lt;/span&gt; &lt;span class="o"&gt;~&lt;/span&gt; &lt;span class="o"&gt;^/&lt;/span&gt;&lt;span class="n"&gt;search&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="p"&gt;(.&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
-    &lt;span class="n"&gt;set&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;query&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-    &lt;span class="n"&gt;rewrite&lt;/span&gt; &lt;span class="o"&gt;^&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;search&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;php&lt;/span&gt;&lt;span class="o"&gt;?&lt;/span&gt;&lt;span class="n"&gt;q&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;query&lt;/span&gt;&lt;span class="o"&gt;?&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="x"&gt;if (-f &lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;uri&lt;/span&gt;&lt;span class="x"&gt;) &lt;/span&gt;&lt;span class="err"&gt;{&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;    break&lt;/span&gt;
+&lt;span class="x"&gt;}&lt;/span&gt;
+&lt;span class="x"&gt;if (&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;uri&lt;/span&gt;&lt;span class="x"&gt; ~ ^/admin/)&lt;/span&gt;&lt;span class="err"&gt;{&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;    return 403;&lt;/span&gt;
+&lt;span class="x"&gt;}&lt;/span&gt;
+&lt;span class="x"&gt;if (&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;uri&lt;/span&gt;&lt;span class="x"&gt; ~ ^/search/(.*)&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="x"&gt;) &lt;/span&gt;&lt;span class="err"&gt;{&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;    set &lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;query&lt;/span&gt;&lt;span class="x"&gt; &lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="x"&gt;1;&lt;/span&gt;
+&lt;span class="x"&gt;    rewrite ^ /search.php?q=&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;query&lt;/span&gt;&lt;span class="x"&gt;?;&lt;/span&gt;
+&lt;span class="x"&gt;}&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
@@ -515,124 +515,124 @@
 
 
 &lt;p&gt;rewrite语法&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;rewrite&lt;/span&gt; &lt;span class="n"&gt;A&lt;/span&gt; &lt;span class="n"&gt;B&lt;/span&gt; &lt;span class="n"&gt;option&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-&lt;span class="nl"&gt;options:&lt;/span&gt;
-        &lt;span class="n"&gt;last&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="err"&gt;表示完成&lt;/span&gt;&lt;span class="n"&gt;rewrite&lt;/span&gt;
-        &lt;span class="nl"&gt;break:&lt;/span&gt;&lt;span class="err"&gt;本规则匹配完成后，终止匹配，不再匹配后面的规则&lt;/span&gt;
-        &lt;span class="nl"&gt;redirect:&lt;/span&gt;&lt;span class="err"&gt;返回&lt;/span&gt;&lt;span class="mi"&gt;302&lt;/span&gt;&lt;span class="err"&gt;临时重定向，地址栏会显示跳转后的地址&lt;/span&gt;
-        &lt;span class="nl"&gt;permanent:&lt;/span&gt;&lt;span class="err"&gt;返回&lt;/span&gt;&lt;span class="mi"&gt;301&lt;/span&gt;&lt;span class="err"&gt;永久重定向，地址栏会显示跳转后的地址&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;rewrite A B option;
+options:
+        last :表示完成rewrite
+        break:本规则匹配完成后，终止匹配，不再匹配后面的规则
+        redirect:返回302临时重定向，地址栏会显示跳转后的地址
+        permanent:返回301永久重定向，地址栏会显示跳转后的地址
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h3&gt;Proxy模块&lt;/h3&gt;
 &lt;p&gt;默认模块，允许你讲客户端的HTTP请求转到后端服务器&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;location&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="nt"&gt;location&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
     &lt;span class="n"&gt;proxy_pass_header&lt;/span&gt; &lt;span class="n"&gt;Server&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;  &lt;span class="err"&gt;#该指令强制一些被忽略的头传递到客户端&lt;/span&gt;
-    &lt;span class="n"&gt;proxy_redirect&lt;/span&gt; &lt;span class="n"&gt;off&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="err"&gt;#允许改写出现在&lt;/span&gt;&lt;span class="n"&gt;HTTP&lt;/span&gt;&lt;span class="err"&gt;头却被后端服务器触发重定向的&lt;/span&gt;&lt;span class="n"&gt;URL&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="err"&gt;对相应本身不做任何处理&lt;/span&gt;
-    &lt;span class="n"&gt;proxy_set_header&lt;/span&gt; &lt;span class="n"&gt;Host&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;http_host&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="err"&gt;#允许你重新定义代理&lt;/span&gt;&lt;span class="n"&gt;header&lt;/span&gt;&lt;span class="err"&gt;值再转到后端服务器&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="err"&gt;目标服务器可以看到客户端的原始主机名&lt;/span&gt;
+    &lt;span class="n"&gt;proxy_redirect&lt;/span&gt; &lt;span class="n"&gt;off&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="err"&gt;#允许改写出现在&lt;/span&gt;&lt;span class="n"&gt;HTTP&lt;/span&gt;&lt;span class="err"&gt;头却被后端服务器触发重定向的&lt;/span&gt;&lt;span class="n"&gt;URL&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt;&lt;span class="err"&gt;对相应本身不做任何处理&lt;/span&gt;
+    &lt;span class="n"&gt;proxy_set_header&lt;/span&gt; &lt;span class="n"&gt;Host&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;http_host&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="err"&gt;#允许你重新定义代理&lt;/span&gt;&lt;span class="n"&gt;header&lt;/span&gt;&lt;span class="err"&gt;值再转到后端服务器&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="err"&gt;目标服务器可以看到客户端的原始主机名&lt;/span&gt;
     &lt;span class="n"&gt;proxy_set_header&lt;/span&gt; &lt;span class="n"&gt;X&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;Real&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;IP&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;remote_addr&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="err"&gt;#目标服务器可以看到客户端的真实&lt;/span&gt;&lt;span class="n"&gt;ip&lt;/span&gt;&lt;span class="err"&gt;，而不是转发服务器的&lt;/span&gt;&lt;span class="n"&gt;ip&lt;/span&gt;
     &lt;span class="n"&gt;proxy_set_header&lt;/span&gt; &lt;span class="n"&gt;X&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;Scheme&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;scheme&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-    &lt;span class="n"&gt;proxy_pass&lt;/span&gt; &lt;span class="n"&gt;http&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="c1"&gt;//localhost:8080;&lt;/span&gt;
+    &lt;span class="n"&gt;proxy_pass&lt;/span&gt; &lt;span class="n"&gt;http&lt;/span&gt;&lt;span class="o"&gt;://&lt;/span&gt;&lt;span class="n"&gt;localhost&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="m"&gt;8080&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
 &lt;span class="p"&gt;}&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h3&gt;upstream模块&lt;/h3&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;upstream&lt;/span&gt; &lt;span class="n"&gt;up_name&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
-    &lt;span class="n"&gt;server&lt;/span&gt; &lt;span class="mf"&gt;192.168.0.1&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;9000&lt;/span&gt; &lt;span class="n"&gt;weight&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mi"&gt;5&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="err"&gt;#权重&lt;/span&gt;
-    &lt;span class="n"&gt;server&lt;/span&gt; &lt;span class="mf"&gt;192.168.0.2&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;9000&lt;/span&gt; &lt;span class="n"&gt;weight&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mi"&gt;5&lt;/span&gt; &lt;span class="n"&gt;max_fails&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mi"&gt;5&lt;/span&gt; &lt;span class="n"&gt;fail_timeout&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mi"&gt;60&lt;/span&gt;&lt;span class="n"&gt;s&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="err"&gt;#在&lt;/span&gt;&lt;span class="mi"&gt;60&lt;/span&gt;&lt;span class="n"&gt;s&lt;/span&gt;&lt;span class="err"&gt;内，其错误通信超过&lt;/span&gt;&lt;span class="mi"&gt;5&lt;/span&gt;&lt;span class="err"&gt;次&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="err"&gt;认为该服务失效&lt;/span&gt;
-    &lt;span class="n"&gt;server&lt;/span&gt; &lt;span class="mf"&gt;192.168.0.3&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;9000&lt;/span&gt; &lt;span class="n"&gt;down&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="err"&gt;#服务标记为离线，不再使用&lt;/span&gt;
-    &lt;span class="n"&gt;server&lt;/span&gt; &lt;span class="mf"&gt;192.168.0.4&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;9000&lt;/span&gt; &lt;span class="n"&gt;backup&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="err"&gt;#备份服务器，其他全部宕机了才启用&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="nt"&gt;upstream&lt;/span&gt; &lt;span class="nt"&gt;up_name&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="n"&gt;server&lt;/span&gt; &lt;span class="m"&gt;192&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="m"&gt;168&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="m"&gt;1&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="m"&gt;9000&lt;/span&gt; &lt;span class="n"&gt;weight&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;5&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="err"&gt;#权重&lt;/span&gt;
+    &lt;span class="n"&gt;server&lt;/span&gt; &lt;span class="m"&gt;192&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="m"&gt;168&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="m"&gt;2&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="m"&gt;9000&lt;/span&gt; &lt;span class="n"&gt;weight&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;5&lt;/span&gt; &lt;span class="n"&gt;max_fails&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;5&lt;/span&gt; &lt;span class="n"&gt;fail_timeout&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;60s&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="err"&gt;#在&lt;/span&gt;&lt;span class="m"&gt;60s&lt;/span&gt;&lt;span class="err"&gt;内，其错误通信超过&lt;/span&gt;&lt;span class="m"&gt;5&lt;/span&gt;&lt;span class="err"&gt;次&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt;&lt;span class="err"&gt;认为该服务失效&lt;/span&gt;
+    &lt;span class="n"&gt;server&lt;/span&gt; &lt;span class="m"&gt;192&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="m"&gt;168&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="m"&gt;3&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="m"&gt;9000&lt;/span&gt; &lt;span class="n"&gt;down&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="err"&gt;#服务标记为离线，不再使用&lt;/span&gt;
+    &lt;span class="n"&gt;server&lt;/span&gt; &lt;span class="m"&gt;192&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="m"&gt;168&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="m"&gt;4&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="m"&gt;9000&lt;/span&gt; &lt;span class="n"&gt;backup&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="err"&gt;#备份服务器，其他全部宕机了才启用&lt;/span&gt;
 &lt;span class="p"&gt;}&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h2&gt;其他&lt;/h2&gt;
 &lt;h3&gt;配置静态化目录&lt;/h3&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;    &lt;span class="n"&gt;location&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="k"&gt;static&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;
-    &lt;span class="p"&gt;{&lt;/span&gt;
-        &lt;span class="n"&gt;root&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;var&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;www&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;app&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-        &lt;span class="n"&gt;autoindex&lt;/span&gt; &lt;span class="n"&gt;off&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-    &lt;span class="p"&gt;}&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;    location /static/
+    {
+        root /var/www/app/;
+        autoindex off;
+    }
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h3&gt;负载均衡&lt;/h3&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;http&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
-    &lt;span class="n"&gt;include&lt;/span&gt; &lt;span class="n"&gt;mime&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;types&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="nt"&gt;http&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="n"&gt;include&lt;/span&gt; &lt;span class="n"&gt;mime&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;types&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
     &lt;span class="n"&gt;default_type&lt;/span&gt; &lt;span class="n"&gt;application&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;octet&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;stream&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
 
-    &lt;span class="n"&gt;keepalive_timeout&lt;/span&gt; &lt;span class="mi"&gt;120&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;keepalive_timeout&lt;/span&gt; &lt;span class="m"&gt;120&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
 
     &lt;span class="n"&gt;tcp_nodelay&lt;/span&gt; &lt;span class="n"&gt;on&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
 
-    &lt;span class="n"&gt;upstream&lt;/span&gt; &lt;span class="n"&gt;up_localhost&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
-        &lt;span class="n"&gt;server&lt;/span&gt; &lt;span class="mf"&gt;127.0.0.1&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;8000&lt;/span&gt; &lt;span class="n"&gt;weight&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mi"&gt;5&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-        &lt;span class="n"&gt;server&lt;/span&gt; &lt;span class="mf"&gt;127.0.0.1&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;8001&lt;/span&gt; &lt;span class="n"&gt;weight&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mi"&gt;10&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;upstream&lt;/span&gt; &lt;span class="n"&gt;up_localhost&lt;/span&gt; &lt;span class="err"&gt;{&lt;/span&gt;
+        &lt;span class="n"&gt;server&lt;/span&gt; &lt;span class="m"&gt;127&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="m"&gt;1&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="m"&gt;8000&lt;/span&gt; &lt;span class="n"&gt;weight&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;5&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="n"&gt;server&lt;/span&gt; &lt;span class="m"&gt;127&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="m"&gt;1&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="m"&gt;8001&lt;/span&gt; &lt;span class="n"&gt;weight&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;10&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
     &lt;span class="p"&gt;}&lt;/span&gt;
 
-    &lt;span class="n"&gt;server&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
-        &lt;span class="n"&gt;listen&lt;/span&gt; &lt;span class="mi"&gt;80&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="nt"&gt;server&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="n"&gt;listen&lt;/span&gt; &lt;span class="m"&gt;80&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
 
         &lt;span class="n"&gt;server_name&lt;/span&gt; &lt;span class="n"&gt;localhost&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
 
-        &lt;span class="n"&gt;location&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;
-            &lt;span class="n"&gt;proxy_pass&lt;/span&gt; &lt;span class="n"&gt;http&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="c1"&gt;//up_localhost;&lt;/span&gt;
+        &lt;span class="n"&gt;location&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="err"&gt;{&lt;/span&gt;
+            &lt;span class="n"&gt;proxy_pass&lt;/span&gt; &lt;span class="n"&gt;http&lt;/span&gt;&lt;span class="o"&gt;://&lt;/span&gt;&lt;span class="n"&gt;up_localhost&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
             &lt;span class="n"&gt;proxy_set_header&lt;/span&gt; &lt;span class="n"&gt;Host&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;host&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
             &lt;span class="n"&gt;proxy_set_header&lt;/span&gt; &lt;span class="n"&gt;X&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;Real_IP&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;remote_addr&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
             &lt;span class="n"&gt;proxy_set_header&lt;/span&gt; &lt;span class="n"&gt;X&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;Forwarded&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;For&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;proxy_add_x_forwarded_for&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
         &lt;span class="p"&gt;}&lt;/span&gt;
-    &lt;span class="p"&gt;}&lt;/span&gt;
+    &lt;span class="err"&gt;}&lt;/span&gt;
 
-&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="err"&gt;}&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h3&gt;控制页面缓存&lt;/h3&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;location&lt;/span&gt; &lt;span class="o"&gt;~&lt;/span&gt; &lt;span class="err"&gt;\&lt;/span&gt;&lt;span class="p"&gt;.(&lt;/span&gt;&lt;span class="n"&gt;htm&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="n"&gt;html&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="n"&gt;gif&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="n"&gt;jpg&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="n"&gt;jpeg&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="n"&gt;png&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="n"&gt;bmp&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="n"&gt;ico&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="n"&gt;css&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="n"&gt;js&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="n"&gt;txt&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="nt"&gt;location&lt;/span&gt; &lt;span class="o"&gt;~&lt;/span&gt; &lt;span class="err"&gt;\&lt;/span&gt;&lt;span class="o"&gt;.(&lt;/span&gt;&lt;span class="nt"&gt;htm&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="nt"&gt;html&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="nt"&gt;gif&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="nt"&gt;jpg&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="nt"&gt;jpeg&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="nt"&gt;png&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="nt"&gt;bmp&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="nt"&gt;ico&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="nt"&gt;css&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="nt"&gt;js&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="nt"&gt;txt&lt;/span&gt;&lt;span class="o"&gt;)$&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
     &lt;span class="n"&gt;root&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;opt&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;webapp&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-    &lt;span class="n"&gt;expires&lt;/span&gt; &lt;span class="mi"&gt;24&lt;/span&gt;&lt;span class="n"&gt;h&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;expires&lt;/span&gt; &lt;span class="m"&gt;24&lt;/span&gt;&lt;span class="n"&gt;h&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
 &lt;span class="p"&gt;}&lt;/span&gt;
 
-&lt;span class="n"&gt;expires&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt; &lt;span class="n"&gt;January&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;1970&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mo"&gt;00&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mo"&gt;00&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mo"&gt;01&lt;/span&gt; &lt;span class="n"&gt;GMT&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-&lt;span class="n"&gt;expires&lt;/span&gt; &lt;span class="mi"&gt;60&lt;/span&gt;&lt;span class="n"&gt;s&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-&lt;span class="n"&gt;expires&lt;/span&gt; &lt;span class="mi"&gt;30&lt;/span&gt;&lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-&lt;span class="n"&gt;expires&lt;/span&gt; &lt;span class="mi"&gt;24&lt;/span&gt;&lt;span class="n"&gt;h&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-&lt;span class="n"&gt;expires&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="n"&gt;d&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-&lt;span class="n"&gt;expires&lt;/span&gt; &lt;span class="n"&gt;max&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-&lt;span class="n"&gt;expires&lt;/span&gt; &lt;span class="n"&gt;off&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="nt"&gt;expires&lt;/span&gt; &lt;span class="nt"&gt;1&lt;/span&gt; &lt;span class="nt"&gt;January&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="nt"&gt;1970&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="nt"&gt;00&lt;/span&gt;&lt;span class="nd"&gt;:00:01&lt;/span&gt; &lt;span class="nt"&gt;GMT&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
+&lt;span class="nt"&gt;expires&lt;/span&gt; &lt;span class="nt"&gt;60s&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
+&lt;span class="nt"&gt;expires&lt;/span&gt; &lt;span class="nt"&gt;30m&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
+&lt;span class="nt"&gt;expires&lt;/span&gt; &lt;span class="nt"&gt;24h&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
+&lt;span class="nt"&gt;expires&lt;/span&gt; &lt;span class="nt"&gt;1d&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
+&lt;span class="nt"&gt;expires&lt;/span&gt; &lt;span class="nt"&gt;max&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
+&lt;span class="nt"&gt;expires&lt;/span&gt; &lt;span class="nt"&gt;off&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;h3&gt;nginx的内置变量&lt;/h3&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;arg_PARAMETER&lt;/span&gt; &lt;span class="err"&gt;这个变量包含在查询字符串时&lt;/span&gt;&lt;span class="n"&gt;GET&lt;/span&gt;&lt;span class="err"&gt;请求&lt;/span&gt;&lt;span class="n"&gt;PARAMETER&lt;/span&gt;&lt;span class="err"&gt;的值。&lt;/span&gt;
-&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;args&lt;/span&gt; &lt;span class="err"&gt;这个变量等于请求行中的参数。&lt;/span&gt;
-&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;binary_remote_addr&lt;/span&gt; &lt;span class="err"&gt;二进制码形式的客户端地址。&lt;/span&gt;
-&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;body_bytes_sent&lt;/span&gt;
-&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;content_length&lt;/span&gt; &lt;span class="err"&gt;请求头中的&lt;/span&gt;&lt;span class="n"&gt;Content&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;length&lt;/span&gt;&lt;span class="err"&gt;字段。&lt;/span&gt;
-&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;content_type&lt;/span&gt; &lt;span class="err"&gt;请求头中的&lt;/span&gt;&lt;span class="n"&gt;Content&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;Type&lt;/span&gt;&lt;span class="err"&gt;字段。&lt;/span&gt;
-&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;cookie_COOKIE&lt;/span&gt; &lt;span class="n"&gt;cookie&lt;/span&gt; &lt;span class="n"&gt;COOKIE&lt;/span&gt;&lt;span class="err"&gt;的值。&lt;/span&gt;
-&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;document_root&lt;/span&gt; &lt;span class="err"&gt;当前请求在&lt;/span&gt;&lt;span class="n"&gt;root&lt;/span&gt;&lt;span class="err"&gt;指令中指定的值。&lt;/span&gt;
-&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;document_uri&lt;/span&gt; &lt;span class="err"&gt;与$&lt;/span&gt;&lt;span class="n"&gt;uri&lt;/span&gt;&lt;span class="err"&gt;相同。&lt;/span&gt;
-&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;host&lt;/span&gt; &lt;span class="err"&gt;请求中的主机头字段，如果请求中的主机头不可用，则为服务器处理请求的服务器名称。&lt;/span&gt;
-&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;is_args&lt;/span&gt; &lt;span class="err"&gt;如果$&lt;/span&gt;&lt;span class="n"&gt;args&lt;/span&gt;&lt;span class="err"&gt;设置，值为&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;?&amp;quot;&lt;/span&gt;&lt;span class="err"&gt;，否则为&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;&amp;quot;&lt;/span&gt;&lt;span class="err"&gt;。&lt;/span&gt;
-&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;limit_rate&lt;/span&gt; &lt;span class="err"&gt;这个变量可以限制连接速率。&lt;/span&gt;
-&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;nginx_version&lt;/span&gt; &lt;span class="err"&gt;当前运行的&lt;/span&gt;&lt;span class="n"&gt;nginx&lt;/span&gt;&lt;span class="err"&gt;版本号。&lt;/span&gt;
-&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;query_string&lt;/span&gt; &lt;span class="err"&gt;与$&lt;/span&gt;&lt;span class="n"&gt;args&lt;/span&gt;&lt;span class="err"&gt;相同。&lt;/span&gt;
-&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;remote_addr&lt;/span&gt; &lt;span class="err"&gt;客户端的&lt;/span&gt;&lt;span class="n"&gt;IP&lt;/span&gt;&lt;span class="err"&gt;地址。&lt;/span&gt;
-&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;remote_port&lt;/span&gt; &lt;span class="err"&gt;客户端的端口。&lt;/span&gt;
-&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;remote_user&lt;/span&gt; &lt;span class="err"&gt;已经经过&lt;/span&gt;&lt;span class="n"&gt;Auth&lt;/span&gt; &lt;span class="n"&gt;Basic&lt;/span&gt; &lt;span class="n"&gt;Module&lt;/span&gt;&lt;span class="err"&gt;验证的用户名。&lt;/span&gt;
-&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;request_filename&lt;/span&gt; &lt;span class="err"&gt;当前连接请求的文件路径，由&lt;/span&gt;&lt;span class="n"&gt;root&lt;/span&gt;&lt;span class="err"&gt;或&lt;/span&gt;&lt;span class="n"&gt;alias&lt;/span&gt;&lt;span class="err"&gt;指令与&lt;/span&gt;&lt;span class="n"&gt;URI&lt;/span&gt;&lt;span class="err"&gt;请求生成。&lt;/span&gt;
-&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;request_body&lt;/span&gt; &lt;span class="err"&gt;这个变量（&lt;/span&gt;&lt;span class="mf"&gt;0.7.58&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="err"&gt;）包含请求的主要信息。在使用&lt;/span&gt;&lt;span class="n"&gt;proxy_pass&lt;/span&gt;&lt;span class="err"&gt;或&lt;/span&gt;&lt;span class="n"&gt;fastcgi_pass&lt;/span&gt;&lt;span class="err"&gt;指令的&lt;/span&gt;&lt;span class="n"&gt;location&lt;/span&gt;&lt;span class="err"&gt;中比较有意义。&lt;/span&gt;
-&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;request_body_file&lt;/span&gt; &lt;span class="err"&gt;客户端请求主体信息的临时文件名。&lt;/span&gt;
-&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;request_completion&lt;/span&gt; &lt;span class="err"&gt;请求完成&lt;/span&gt;
-&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;request_method&lt;/span&gt; &lt;span class="err"&gt;这个变量是客户端请求的动作，通常为&lt;/span&gt;&lt;span class="n"&gt;GET&lt;/span&gt;&lt;span class="err"&gt;或&lt;/span&gt;&lt;span class="n"&gt;POST&lt;/span&gt;&lt;span class="err"&gt;。包括&lt;/span&gt;&lt;span class="mf"&gt;0.8.20&lt;/span&gt;&lt;span class="err"&gt;及之前的版本中，这个变量总为&lt;/span&gt;&lt;span class="n"&gt;main&lt;/span&gt; &lt;span class="n"&gt;request&lt;/span&gt;&lt;span class="err"&gt;中的动作，如果当前请求是一个子请求，并不使用这个当前请求的动作。&lt;/span&gt;
-&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;request_uri&lt;/span&gt; &lt;span class="err"&gt;这个变量等于包含一些客户端请求参数的原始&lt;/span&gt;&lt;span class="n"&gt;URI&lt;/span&gt;&lt;span class="err"&gt;，它无法修改，请查看$&lt;/span&gt;&lt;span class="n"&gt;uri&lt;/span&gt;&lt;span class="err"&gt;更改或重写&lt;/span&gt;&lt;span class="n"&gt;URI&lt;/span&gt;&lt;span class="err"&gt;。&lt;/span&gt;
-&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;schemeHTTP&lt;/span&gt; &lt;span class="err"&gt;方法（如&lt;/span&gt;&lt;span class="n"&gt;http&lt;/span&gt;&lt;span class="err"&gt;，&lt;/span&gt;&lt;span class="n"&gt;https&lt;/span&gt;&lt;span class="err"&gt;）。按需使用，例：&lt;/span&gt;
-&lt;span class="n"&gt;rewrite&lt;/span&gt; &lt;span class="o"&gt;^&lt;/span&gt;&lt;span class="p"&gt;(.&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;scheme&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="c1"&gt;//example.com$1 redirect;&lt;/span&gt;
-&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;server_addr&lt;/span&gt; &lt;span class="err"&gt;服务器地址，在完成一次系统调用后可以确定这个值，如果要绕开系统调用，则必须在&lt;/span&gt;&lt;span class="n"&gt;listen&lt;/span&gt;&lt;span class="err"&gt;中指定地址并且使用&lt;/span&gt;&lt;span class="n"&gt;bind&lt;/span&gt;&lt;span class="err"&gt;参数。&lt;/span&gt;
-&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;server_name&lt;/span&gt; &lt;span class="err"&gt;服务器名称。&lt;/span&gt;
-&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;server_port&lt;/span&gt; &lt;span class="err"&gt;请求到达服务器的端口号。&lt;/span&gt;
-&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;server_protocol&lt;/span&gt; &lt;span class="err"&gt;请求使用的协议，通常是&lt;/span&gt;&lt;span class="n"&gt;HTTP&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="mf"&gt;1.0&lt;/span&gt;&lt;span class="err"&gt;或&lt;/span&gt;&lt;span class="n"&gt;HTTP&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="mf"&gt;1.1&lt;/span&gt;&lt;span class="err"&gt;。&lt;/span&gt;
-&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;uri&lt;/span&gt; &lt;span class="err"&gt;请求中的当前&lt;/span&gt;&lt;span class="n"&gt;URI&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;不带请求参数，参数位于$&lt;/span&gt;&lt;span class="n"&gt;args&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="err"&gt;，可以不同于浏览器传递的$&lt;/span&gt;&lt;span class="n"&gt;request_uri&lt;/span&gt;&lt;span class="err"&gt;的值，它可以通过内部重定向，或者使用&lt;/span&gt;&lt;span class="n"&gt;index&lt;/span&gt;&lt;span class="err"&gt;指令进行修改。&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;arg_PARAMETER&lt;/span&gt; &lt;span class="err"&gt;这个变量包含在查询字符串时&lt;/span&gt;&lt;span class="nt"&gt;GET&lt;/span&gt;&lt;span class="err"&gt;请求&lt;/span&gt;&lt;span class="nt"&gt;PARAMETER&lt;/span&gt;&lt;span class="err"&gt;的值。&lt;/span&gt;
+&lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;args&lt;/span&gt; &lt;span class="err"&gt;这个变量等于请求行中的参数。&lt;/span&gt;
+&lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;binary_remote_addr&lt;/span&gt; &lt;span class="err"&gt;二进制码形式的客户端地址。&lt;/span&gt;
+&lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;body_bytes_sent&lt;/span&gt;
+&lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;content_length&lt;/span&gt; &lt;span class="err"&gt;请求头中的&lt;/span&gt;&lt;span class="nt"&gt;Content-length&lt;/span&gt;&lt;span class="err"&gt;字段。&lt;/span&gt;
+&lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;content_type&lt;/span&gt; &lt;span class="err"&gt;请求头中的&lt;/span&gt;&lt;span class="nt"&gt;Content-Type&lt;/span&gt;&lt;span class="err"&gt;字段。&lt;/span&gt;
+&lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;cookie_COOKIE&lt;/span&gt; &lt;span class="nt"&gt;cookie&lt;/span&gt; &lt;span class="nt"&gt;COOKIE&lt;/span&gt;&lt;span class="err"&gt;的值。&lt;/span&gt;
+&lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;document_root&lt;/span&gt; &lt;span class="err"&gt;当前请求在&lt;/span&gt;&lt;span class="nt"&gt;root&lt;/span&gt;&lt;span class="err"&gt;指令中指定的值。&lt;/span&gt;
+&lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;document_uri&lt;/span&gt; &lt;span class="err"&gt;与&lt;/span&gt;&lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;uri&lt;/span&gt;&lt;span class="err"&gt;相同。&lt;/span&gt;
+&lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;host&lt;/span&gt; &lt;span class="err"&gt;请求中的主机头字段，如果请求中的主机头不可用，则为服务器处理请求的服务器名称。&lt;/span&gt;
+&lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;is_args&lt;/span&gt; &lt;span class="err"&gt;如果&lt;/span&gt;&lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;args&lt;/span&gt;&lt;span class="err"&gt;设置，值为&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;?&amp;quot;&lt;/span&gt;&lt;span class="err"&gt;，否则为&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&amp;quot;&lt;/span&gt;&lt;span class="err"&gt;。&lt;/span&gt;
+&lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;limit_rate&lt;/span&gt; &lt;span class="err"&gt;这个变量可以限制连接速率。&lt;/span&gt;
+&lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;nginx_version&lt;/span&gt; &lt;span class="err"&gt;当前运行的&lt;/span&gt;&lt;span class="nt"&gt;nginx&lt;/span&gt;&lt;span class="err"&gt;版本号。&lt;/span&gt;
+&lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;query_string&lt;/span&gt; &lt;span class="err"&gt;与&lt;/span&gt;&lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;args&lt;/span&gt;&lt;span class="err"&gt;相同。&lt;/span&gt;
+&lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;remote_addr&lt;/span&gt; &lt;span class="err"&gt;客户端的&lt;/span&gt;&lt;span class="nt"&gt;IP&lt;/span&gt;&lt;span class="err"&gt;地址。&lt;/span&gt;
+&lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;remote_port&lt;/span&gt; &lt;span class="err"&gt;客户端的端口。&lt;/span&gt;
+&lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;remote_user&lt;/span&gt; &lt;span class="err"&gt;已经经过&lt;/span&gt;&lt;span class="nt"&gt;Auth&lt;/span&gt; &lt;span class="nt"&gt;Basic&lt;/span&gt; &lt;span class="nt"&gt;Module&lt;/span&gt;&lt;span class="err"&gt;验证的用户名。&lt;/span&gt;
+&lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;request_filename&lt;/span&gt; &lt;span class="err"&gt;当前连接请求的文件路径，由&lt;/span&gt;&lt;span class="nt"&gt;root&lt;/span&gt;&lt;span class="err"&gt;或&lt;/span&gt;&lt;span class="nt"&gt;alias&lt;/span&gt;&lt;span class="err"&gt;指令与&lt;/span&gt;&lt;span class="nt"&gt;URI&lt;/span&gt;&lt;span class="err"&gt;请求生成。&lt;/span&gt;
+&lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;request_body&lt;/span&gt; &lt;span class="err"&gt;这个变量（&lt;/span&gt;&lt;span class="nt"&gt;0&lt;/span&gt;&lt;span class="nc"&gt;.7.58&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="err"&gt;）包含请求的主要信息。在使用&lt;/span&gt;&lt;span class="nt"&gt;proxy_pass&lt;/span&gt;&lt;span class="err"&gt;或&lt;/span&gt;&lt;span class="nt"&gt;fastcgi_pass&lt;/span&gt;&lt;span class="err"&gt;指令的&lt;/span&gt;&lt;span class="nt"&gt;location&lt;/span&gt;&lt;span class="err"&gt;中比较有意义。&lt;/span&gt;
+&lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;request_body_file&lt;/span&gt; &lt;span class="err"&gt;客户端请求主体信息的临时文件名。&lt;/span&gt;
+&lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;request_completion&lt;/span&gt; &lt;span class="err"&gt;请求完成&lt;/span&gt;
+&lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;request_method&lt;/span&gt; &lt;span class="err"&gt;这个变量是客户端请求的动作，通常为&lt;/span&gt;&lt;span class="nt"&gt;GET&lt;/span&gt;&lt;span class="err"&gt;或&lt;/span&gt;&lt;span class="nt"&gt;POST&lt;/span&gt;&lt;span class="err"&gt;。包括&lt;/span&gt;&lt;span class="nt"&gt;0&lt;/span&gt;&lt;span class="nc"&gt;.8.20&lt;/span&gt;&lt;span class="err"&gt;及之前的版本中，这个变量总为&lt;/span&gt;&lt;span class="nt"&gt;main&lt;/span&gt; &lt;span class="nt"&gt;request&lt;/span&gt;&lt;span class="err"&gt;中的动作，如果当前请求是一个子请求，并不使用这个当前请求的动作。&lt;/span&gt;
+&lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;request_uri&lt;/span&gt; &lt;span class="err"&gt;这个变量等于包含一些客户端请求参数的原始&lt;/span&gt;&lt;span class="nt"&gt;URI&lt;/span&gt;&lt;span class="err"&gt;，它无法修改，请查看&lt;/span&gt;&lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;uri&lt;/span&gt;&lt;span class="err"&gt;更改或重写&lt;/span&gt;&lt;span class="nt"&gt;URI&lt;/span&gt;&lt;span class="err"&gt;。&lt;/span&gt;
+&lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;schemeHTTP&lt;/span&gt; &lt;span class="err"&gt;方法（如&lt;/span&gt;&lt;span class="nt"&gt;http&lt;/span&gt;&lt;span class="err"&gt;，&lt;/span&gt;&lt;span class="nt"&gt;https&lt;/span&gt;&lt;span class="err"&gt;）。按需使用，例：&lt;/span&gt;
+&lt;span class="nt"&gt;rewrite&lt;/span&gt; &lt;span class="o"&gt;^(.+)$&lt;/span&gt; &lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;scheme&lt;/span&gt;&lt;span class="o"&gt;://&lt;/span&gt;&lt;span class="nt"&gt;example&lt;/span&gt;&lt;span class="nc"&gt;.com&lt;/span&gt;&lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;1&lt;/span&gt; &lt;span class="nt"&gt;redirect&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
+&lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;server_addr&lt;/span&gt; &lt;span class="err"&gt;服务器地址，在完成一次系统调用后可以确定这个值，如果要绕开系统调用，则必须在&lt;/span&gt;&lt;span class="nt"&gt;listen&lt;/span&gt;&lt;span class="err"&gt;中指定地址并且使用&lt;/span&gt;&lt;span class="nt"&gt;bind&lt;/span&gt;&lt;span class="err"&gt;参数。&lt;/span&gt;
+&lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;server_name&lt;/span&gt; &lt;span class="err"&gt;服务器名称。&lt;/span&gt;
+&lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;server_port&lt;/span&gt; &lt;span class="err"&gt;请求到达服务器的端口号。&lt;/span&gt;
+&lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;server_protocol&lt;/span&gt; &lt;span class="err"&gt;请求使用的协议，通常是&lt;/span&gt;&lt;span class="nt"&gt;HTTP&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nt"&gt;1&lt;/span&gt;&lt;span class="nc"&gt;.0&lt;/span&gt;&lt;span class="err"&gt;或&lt;/span&gt;&lt;span class="nt"&gt;HTTP&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nt"&gt;1&lt;/span&gt;&lt;span class="nc"&gt;.1&lt;/span&gt;&lt;span class="err"&gt;。&lt;/span&gt;
+&lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;uri&lt;/span&gt; &lt;span class="err"&gt;请求中的当前&lt;/span&gt;&lt;span class="nt"&gt;URI&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="err"&gt;不带请求参数，参数位于&lt;/span&gt;&lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;args&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt;&lt;span class="err"&gt;，可以不同于浏览器传递的&lt;/span&gt;&lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;request_uri&lt;/span&gt;&lt;span class="err"&gt;的值，它可以通过内部重定向，或者使用&lt;/span&gt;&lt;span class="nt"&gt;index&lt;/span&gt;&lt;span class="err"&gt;指令进行修改。&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sat, 23 Nov 2013 00:00:00 +0800</pubDate><guid>tag:www.wklken.me,2013-11-23:posts/2013/11/23/nginx-base.html</guid><category>linux</category><category>nginx</category></item></channel></rss>
