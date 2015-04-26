@@ -78,10 +78,10 @@
 <p>一年刚好, 发生了很多事, 那套系统不知现在如何了.</p>
 <p>在新的公司, 一切都得从0到1, 近期开始关注日志/数据上报/统计, 以及后续的数据挖掘等.</p>
 <hr />
-<p>花了两天时间预研, 搭建, 测试并上线了一套简单的系统, 初期将所有服务器的nginx日志, 以及搜索日志进行处理.</p>
+<p>搭建, 测试并上线了一套简单的系统, 初期将所有服务器的nginx日志, 以及搜索日志进行处理.</p>
 <p><img alt="elk" src="/imgs/system/elk.png" /></p>
 <p>下面主要介绍对nginx日志进行处理的过程, 不是针对<code>elk</code>的介绍, 所有涉及ip的地方都改成<code>127.0.0.1</code>了, 根据自己环境进行修改</p>
-<h2>nginx日志 -&gt; logstash shipper -&gt; redis</h2>
+<h3>1. nginx日志 -&gt; logstash shipper -&gt; redis</h3>
 <p>在<code>centos</code>使用<code>yum</code>安装<code>nginx</code>后, 默认<code>/etc/nginx/nginx.conf</code>中的日志格式定义为:</p>
 <div class="codehilite"><pre><span class="x">log_format  main  &#39;</span><span class="p">$</span><span class="nv">remote_addr</span><span class="x"> - </span><span class="p">$</span><span class="nv">remote_user</span><span class="x"> [</span><span class="p">$</span><span class="nv">time_local</span><span class="x">] &quot;</span><span class="p">$</span><span class="nv">request</span><span class="x">&quot; &#39;</span>
 <span class="x">                  &#39;</span><span class="p">$</span><span class="nv">status</span><span class="x"> </span><span class="p">$</span><span class="nv">body_bytes_sent</span><span class="x"> &quot;</span><span class="p">$</span><span class="nv">http_referer</span><span class="x">&quot; &#39;</span>
@@ -111,51 +111,53 @@ NGINXACCESS %{IPORHOST:clientip} - %{NOTSPACE:remote_user} \[%{HTTPDATE:timestam
 <li>增加一个<code>logstash</code>配置文件: <code>logstash-project-access-log.conf</code></li>
 </ol>
 <p>注意, input的file, filter的grok, output的redis-key</p>
-<div class="codehilite"><pre>input {
-  file {
+<div class="codehilite"><pre>```
+input {
+file {
     path =&gt; [ &quot;/data/logs/nginx/xxxx_access.log&quot; ]
     start_position =&gt; &quot;beginning&quot;
-  }
+}
 }
 
 filter {
-  mutate { replace =&gt; { &quot;type&quot; =&gt; &quot;nginx_access&quot; } }
-  grok {
+mutate { replace =&gt; { &quot;type&quot; =&gt; &quot;nginx_access&quot; } }
+grok {
     match =&gt; { &quot;message&quot; =&gt; &quot;%{NGINXACCESS}&quot; }
-  }
-  date {
+}
+date {
     match =&gt; [ &quot;timestamp&quot; , &quot;dd/MMM/YYYY:HH:mm:ss Z&quot; ]
-  }
-  geoip {
+}
+geoip {
     source =&gt; &quot;clientip&quot;
-  }
+}
 }
 
 
 output {
-  redis { host =&gt; &quot;127.0.0.1&quot; data_type =&gt; &quot;list&quot; key =&gt; &quot;logstash:xxxx:access_log&quot; }
+redis { host =&gt; &quot;127.0.0.1&quot; data_type =&gt; &quot;list&quot; key =&gt; &quot;logstash:xxxx:access_log&quot; }
 }
+```
 </pre></div>
 
 
 <ol>
-<li>使用<code>supervisor</code>启动<code>shipper</code></li>
+<li>
+<p>使用<code>supervisor</code>启动<code>shipper</code></p>
+<p><code>[program:logstash_xxxx_shipper]
+command=/var/shell/logstash/bin/logstash -f /var/shell/logstash/configs/nginx-xxxx-shipper.conf
+numprocs=1
+autostart=true
+autorestart=true
+log_stdout=true
+log_stderr=true
+logfile=/data/logs/logstash/logstash_xxxx_access.log</code></p>
+</li>
 </ol>
-<div class="codehilite"><pre><span class="k">[program:logstash_xxxx_shipper]</span>
-<span class="na">command</span><span class="o">=</span><span class="s">/var/shell/logstash/bin/logstash -f /var/shell/logstash/configs/nginx-xxxx-shipper.conf</span>
-<span class="na">numprocs</span><span class="o">=</span><span class="s">1</span>
-<span class="na">autostart</span><span class="o">=</span><span class="s">true</span>
-<span class="na">autorestart</span><span class="o">=</span><span class="s">true</span>
-<span class="na">log_stdout</span><span class="o">=</span><span class="s">true</span>
-<span class="na">log_stderr</span><span class="o">=</span><span class="s">true</span>
-<span class="na">logfile</span><span class="o">=</span><span class="s">/data/logs/logstash/logstash_xxxx_access.log</span>
-</pre></div>
-
-
-<h2>redis -&gt; logstash indexer -&gt; elasticsearch</h2>
+<h3>2. redis -&gt; logstash indexer -&gt; elasticsearch</h3>
 <p>注意, input的redis为上一步redis配置, key要对应, output的elasticsearch配置, <code>index</code>指定了最终es中存储对应的index, 加日期, 方便对日志进行定期删除</p>
-<div class="codehilite"><pre>input {
-  redis {
+<div class="codehilite"><pre>```
+input {
+redis {
     host =&gt; &quot;127.0.0.1&quot;
     port =&gt; &quot;6379&quot;
     key =&gt; &quot;logstash:xxxx:access_log&quot;
@@ -163,25 +165,27 @@ output {
     codec  =&gt; &quot;json&quot;
     type =&gt; &quot;logstash-arthas-access&quot;
     tags =&gt; [&quot;arthas&quot;]
-  }
+}
 }
 
 output {
-  elasticsearch {
+elasticsearch {
     host =&gt; &quot;127.0.0.1&quot;
     index =&gt; &quot;logstash-arthas-access-%{+YYYY.MM.dd}&quot;
-  }
 }
+}
+```
 </pre></div>
 
 
-<h2>elasticsearch -&gt; kibana</h2>
+<h3>3. elasticsearch -&gt; kibana</h3>
 <p>剩下的其实没什么了, 启动<code>kibana</code>后, 配置好指向的<code>es</code>, 就可以在<code>kibana</code>中查看到实时的日志数据</p>
 <p>demo环境截图</p>
 <p><img alt="kibana-nginx" src="/imgs/system/kibana-nginx.png" /></p>
 <p><code>kibana</code>中, 支持各种统计, 着实让人惊艳了一把.</p>
 <p>除了基本的nginx日志, 还需要在各类url入口, 加入平台, 渠道等信息, 这样通过nginx访问日志, 可以统计到更多的信息</p>
 <p>当然, 如果需要一些更为精确/特殊的统计, 需要自行进行数据上报的工作.</p>
+<hr />
 <h2>后续</h2>
 <ol>
 <li>更多的类型的日志聚合, 包括各类访问日志, 统计上报日志等, 日志落地成文件, 永久留存, 转入es中, 只留存三个月</li>
@@ -191,7 +195,8 @@ output {
 <li>为什么不使用<code>logstash forwarder</code>, 因为目前日志组成等较为简单, 简单处理 , 后续需要用到时再考虑</li>
 </ol>
 <hr />
-<h2>关于<code>logformat</code>和对应<code>grok</code>的配置</h2>
+<h1>其他</h1>
+<h2>1. 关于<code>logformat</code>和对应<code>grok</code>的配置</h2>
 <p><code>grok</code>是<code>logstash</code>的一个插件,  <a href="http://logstash.net/docs/1.4.2/filters/grok">文档</a></p>
 <blockquote>
 <p>Grok is currently the best way in logstash to parse crappy unstructured log data into something structured and queryable</p>
@@ -217,9 +222,9 @@ NGINXACCESS %{IPORHOST:http_host} %{IPORHOST:clientip} \[%{HTTPDATE:timestamp}\]
 
 
 <p>如果想自行定义, 可以使用 <a href="https://grokdebug.herokuapp.com/">grokdebug</a>, 将要解析的日志和配置的正则放入, 可以查看最终得到的结构化数据</p>
-<h2>elasticsearch插件</h2>
+<h2>2. elasticsearch插件</h2>
 <p>初期只安装了一个 <a href="https://github.com/lmenezes/elasticsearch-kopf">kopf</a>, web界面查看</p>
-<h2>supervisor</h2>
+<h2>3. supervisor</h2>
 <p>建议使用<code>supervisor</code>对<code>elk</code>进行管理,(ps. 不要用yum自带的, 版本太旧好多坑, 浪费1小时......使用pip install安装最新版本即可)</p>
 <p>配置示例<code>elk.conf</code></p>
 <div class="codehilite"><pre><span class="k">[program:elasticsearch]</span>
@@ -245,7 +250,7 @@ NGINXACCESS %{IPORHOST:http_host} %{IPORHOST:clientip} \[%{HTTPDATE:timestamp}\]
 </pre></div>
 
 
-<h2>logstash坑</h2>
+<h2>4. logstash坑</h2>
 <div class="codehilite"><pre>start_position =&gt; &quot;beginning&quot;
 </pre></div>
 

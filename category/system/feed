@@ -4,10 +4,10 @@
 &lt;p&gt;一年刚好, 发生了很多事, 那套系统不知现在如何了.&lt;/p&gt;
 &lt;p&gt;在新的公司, 一切都得从0到1, 近期开始关注日志/数据上报/统计, 以及后续的数据挖掘等.&lt;/p&gt;
 &lt;hr /&gt;
-&lt;p&gt;花了两天时间预研, 搭建, 测试并上线了一套简单的系统, 初期将所有服务器的nginx日志, 以及搜索日志进行处理.&lt;/p&gt;
+&lt;p&gt;搭建, 测试并上线了一套简单的系统, 初期将所有服务器的nginx日志, 以及搜索日志进行处理.&lt;/p&gt;
 &lt;p&gt;&lt;img alt="elk" src="/imgs/system/elk.png" /&gt;&lt;/p&gt;
 &lt;p&gt;下面主要介绍对nginx日志进行处理的过程, 不是针对&lt;code&gt;elk&lt;/code&gt;的介绍, 所有涉及ip的地方都改成&lt;code&gt;127.0.0.1&lt;/code&gt;了, 根据自己环境进行修改&lt;/p&gt;
-&lt;h2&gt;nginx日志 -&amp;gt; logstash shipper -&amp;gt; redis&lt;/h2&gt;
+&lt;h3&gt;1. nginx日志 -&amp;gt; logstash shipper -&amp;gt; redis&lt;/h3&gt;
 &lt;p&gt;在&lt;code&gt;centos&lt;/code&gt;使用&lt;code&gt;yum&lt;/code&gt;安装&lt;code&gt;nginx&lt;/code&gt;后, 默认&lt;code&gt;/etc/nginx/nginx.conf&lt;/code&gt;中的日志格式定义为:&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="x"&gt;log_format  main  &amp;#39;&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;remote_addr&lt;/span&gt;&lt;span class="x"&gt; - &lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;remote_user&lt;/span&gt;&lt;span class="x"&gt; [&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;time_local&lt;/span&gt;&lt;span class="x"&gt;] &amp;quot;&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;request&lt;/span&gt;&lt;span class="x"&gt;&amp;quot; &amp;#39;&lt;/span&gt;
 &lt;span class="x"&gt;                  &amp;#39;&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;status&lt;/span&gt;&lt;span class="x"&gt; &lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;body_bytes_sent&lt;/span&gt;&lt;span class="x"&gt; &amp;quot;&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;http_referer&lt;/span&gt;&lt;span class="x"&gt;&amp;quot; &amp;#39;&lt;/span&gt;
@@ -37,51 +37,53 @@ NGINXACCESS %{IPORHOST:clientip} - %{NOTSPACE:remote_user} \[%{HTTPDATE:timestam
 &lt;li&gt;增加一个&lt;code&gt;logstash&lt;/code&gt;配置文件: &lt;code&gt;logstash-project-access-log.conf&lt;/code&gt;&lt;/li&gt;
 &lt;/ol&gt;
 &lt;p&gt;注意, input的file, filter的grok, output的redis-key&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;input {
-  file {
+&lt;div class="codehilite"&gt;&lt;pre&gt;```
+input {
+file {
     path =&amp;gt; [ &amp;quot;/data/logs/nginx/xxxx_access.log&amp;quot; ]
     start_position =&amp;gt; &amp;quot;beginning&amp;quot;
-  }
+}
 }
 
 filter {
-  mutate { replace =&amp;gt; { &amp;quot;type&amp;quot; =&amp;gt; &amp;quot;nginx_access&amp;quot; } }
-  grok {
+mutate { replace =&amp;gt; { &amp;quot;type&amp;quot; =&amp;gt; &amp;quot;nginx_access&amp;quot; } }
+grok {
     match =&amp;gt; { &amp;quot;message&amp;quot; =&amp;gt; &amp;quot;%{NGINXACCESS}&amp;quot; }
-  }
-  date {
+}
+date {
     match =&amp;gt; [ &amp;quot;timestamp&amp;quot; , &amp;quot;dd/MMM/YYYY:HH:mm:ss Z&amp;quot; ]
-  }
-  geoip {
+}
+geoip {
     source =&amp;gt; &amp;quot;clientip&amp;quot;
-  }
+}
 }
 
 
 output {
-  redis { host =&amp;gt; &amp;quot;127.0.0.1&amp;quot; data_type =&amp;gt; &amp;quot;list&amp;quot; key =&amp;gt; &amp;quot;logstash:xxxx:access_log&amp;quot; }
+redis { host =&amp;gt; &amp;quot;127.0.0.1&amp;quot; data_type =&amp;gt; &amp;quot;list&amp;quot; key =&amp;gt; &amp;quot;logstash:xxxx:access_log&amp;quot; }
 }
+```
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;ol&gt;
-&lt;li&gt;使用&lt;code&gt;supervisor&lt;/code&gt;启动&lt;code&gt;shipper&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;使用&lt;code&gt;supervisor&lt;/code&gt;启动&lt;code&gt;shipper&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;[program:logstash_xxxx_shipper]
+command=/var/shell/logstash/bin/logstash -f /var/shell/logstash/configs/nginx-xxxx-shipper.conf
+numprocs=1
+autostart=true
+autorestart=true
+log_stdout=true
+log_stderr=true
+logfile=/data/logs/logstash/logstash_xxxx_access.log&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
 &lt;/ol&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="k"&gt;[program:logstash_xxxx_shipper]&lt;/span&gt;
-&lt;span class="na"&gt;command&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;/var/shell/logstash/bin/logstash -f /var/shell/logstash/configs/nginx-xxxx-shipper.conf&lt;/span&gt;
-&lt;span class="na"&gt;numprocs&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;1&lt;/span&gt;
-&lt;span class="na"&gt;autostart&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;true&lt;/span&gt;
-&lt;span class="na"&gt;autorestart&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;true&lt;/span&gt;
-&lt;span class="na"&gt;log_stdout&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;true&lt;/span&gt;
-&lt;span class="na"&gt;log_stderr&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;true&lt;/span&gt;
-&lt;span class="na"&gt;logfile&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;/data/logs/logstash/logstash_xxxx_access.log&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;h2&gt;redis -&amp;gt; logstash indexer -&amp;gt; elasticsearch&lt;/h2&gt;
+&lt;h3&gt;2. redis -&amp;gt; logstash indexer -&amp;gt; elasticsearch&lt;/h3&gt;
 &lt;p&gt;注意, input的redis为上一步redis配置, key要对应, output的elasticsearch配置, &lt;code&gt;index&lt;/code&gt;指定了最终es中存储对应的index, 加日期, 方便对日志进行定期删除&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;input {
-  redis {
+&lt;div class="codehilite"&gt;&lt;pre&gt;```
+input {
+redis {
     host =&amp;gt; &amp;quot;127.0.0.1&amp;quot;
     port =&amp;gt; &amp;quot;6379&amp;quot;
     key =&amp;gt; &amp;quot;logstash:xxxx:access_log&amp;quot;
@@ -89,25 +91,27 @@ output {
     codec  =&amp;gt; &amp;quot;json&amp;quot;
     type =&amp;gt; &amp;quot;logstash-arthas-access&amp;quot;
     tags =&amp;gt; [&amp;quot;arthas&amp;quot;]
-  }
+}
 }
 
 output {
-  elasticsearch {
+elasticsearch {
     host =&amp;gt; &amp;quot;127.0.0.1&amp;quot;
     index =&amp;gt; &amp;quot;logstash-arthas-access-%{+YYYY.MM.dd}&amp;quot;
-  }
 }
+}
+```
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;h2&gt;elasticsearch -&amp;gt; kibana&lt;/h2&gt;
+&lt;h3&gt;3. elasticsearch -&amp;gt; kibana&lt;/h3&gt;
 &lt;p&gt;剩下的其实没什么了, 启动&lt;code&gt;kibana&lt;/code&gt;后, 配置好指向的&lt;code&gt;es&lt;/code&gt;, 就可以在&lt;code&gt;kibana&lt;/code&gt;中查看到实时的日志数据&lt;/p&gt;
 &lt;p&gt;demo环境截图&lt;/p&gt;
 &lt;p&gt;&lt;img alt="kibana-nginx" src="/imgs/system/kibana-nginx.png" /&gt;&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;kibana&lt;/code&gt;中, 支持各种统计, 着实让人惊艳了一把.&lt;/p&gt;
 &lt;p&gt;除了基本的nginx日志, 还需要在各类url入口, 加入平台, 渠道等信息, 这样通过nginx访问日志, 可以统计到更多的信息&lt;/p&gt;
 &lt;p&gt;当然, 如果需要一些更为精确/特殊的统计, 需要自行进行数据上报的工作.&lt;/p&gt;
+&lt;hr /&gt;
 &lt;h2&gt;后续&lt;/h2&gt;
 &lt;ol&gt;
 &lt;li&gt;更多的类型的日志聚合, 包括各类访问日志, 统计上报日志等, 日志落地成文件, 永久留存, 转入es中, 只留存三个月&lt;/li&gt;
@@ -117,7 +121,8 @@ output {
 &lt;li&gt;为什么不使用&lt;code&gt;logstash forwarder&lt;/code&gt;, 因为目前日志组成等较为简单, 简单处理 , 后续需要用到时再考虑&lt;/li&gt;
 &lt;/ol&gt;
 &lt;hr /&gt;
-&lt;h2&gt;关于&lt;code&gt;logformat&lt;/code&gt;和对应&lt;code&gt;grok&lt;/code&gt;的配置&lt;/h2&gt;
+&lt;h1&gt;其他&lt;/h1&gt;
+&lt;h2&gt;1. 关于&lt;code&gt;logformat&lt;/code&gt;和对应&lt;code&gt;grok&lt;/code&gt;的配置&lt;/h2&gt;
 &lt;p&gt;&lt;code&gt;grok&lt;/code&gt;是&lt;code&gt;logstash&lt;/code&gt;的一个插件,  &lt;a href="http://logstash.net/docs/1.4.2/filters/grok"&gt;文档&lt;/a&gt;&lt;/p&gt;
 &lt;blockquote&gt;
 &lt;p&gt;Grok is currently the best way in logstash to parse crappy unstructured log data into something structured and queryable&lt;/p&gt;
@@ -143,9 +148,9 @@ NGINXACCESS %{IPORHOST:http_host} %{IPORHOST:clientip} \[%{HTTPDATE:timestamp}\]
 
 
 &lt;p&gt;如果想自行定义, 可以使用 &lt;a href="https://grokdebug.herokuapp.com/"&gt;grokdebug&lt;/a&gt;, 将要解析的日志和配置的正则放入, 可以查看最终得到的结构化数据&lt;/p&gt;
-&lt;h2&gt;elasticsearch插件&lt;/h2&gt;
+&lt;h2&gt;2. elasticsearch插件&lt;/h2&gt;
 &lt;p&gt;初期只安装了一个 &lt;a href="https://github.com/lmenezes/elasticsearch-kopf"&gt;kopf&lt;/a&gt;, web界面查看&lt;/p&gt;
-&lt;h2&gt;supervisor&lt;/h2&gt;
+&lt;h2&gt;3. supervisor&lt;/h2&gt;
 &lt;p&gt;建议使用&lt;code&gt;supervisor&lt;/code&gt;对&lt;code&gt;elk&lt;/code&gt;进行管理,(ps. 不要用yum自带的, 版本太旧好多坑, 浪费1小时......使用pip install安装最新版本即可)&lt;/p&gt;
 &lt;p&gt;配置示例&lt;code&gt;elk.conf&lt;/code&gt;&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="k"&gt;[program:elasticsearch]&lt;/span&gt;
@@ -171,7 +176,7 @@ NGINXACCESS %{IPORHOST:http_host} %{IPORHOST:clientip} \[%{HTTPDATE:timestamp}\]
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;h2&gt;logstash坑&lt;/h2&gt;
+&lt;h2&gt;4. logstash坑&lt;/h2&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;start_position =&amp;gt; &amp;quot;beginning&amp;quot;
 &lt;/pre&gt;&lt;/div&gt;
 
