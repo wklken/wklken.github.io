@@ -96,51 +96,45 @@
 
 <p>此时, 我们需要做的是, 将<code>access log</code>通过<code>logstash shipper</code>读取, 转<code>json</code>, 发送到<code>redis</code>, 由后续的<code>logstash indexer</code>进行处理</p>
 <p>步骤</p>
-<ol>
-<li>在日志所在机器部署<code>logstash</code></li>
-<li>在<code>logstash</code>安装目录下的<code>patterns</code>中加入一个文件<code>nginx</code></li>
-</ol>
+<p>1.在日志所在机器部署<code>logstash</code></p>
+<p>2.在<code>logstash</code>安装目录下的<code>patterns</code>中加入一个文件<code>nginx</code></p>
 <p>内容(与上面的<code>log_format</code>相对应)</p>
-<div class="codehilite"><pre>    NGUSERNAME [a-zA-Z\.\@\-\+_%]+
-    NGUSER %{NGUSERNAME}
-    NGINXACCESS %{IPORHOST:clientip} - %{NOTSPACE:remote_user} \[%{HTTPDATE:timestamp}\] \&quot;(?:%{WORD:verb} %{NOTSPACE:request}(?: HTTP/%{NUMBER:httpversion})?|%{DATA:rawrequest})\&quot; %{NUMBER:response} (?:%{NUMBER:bytes}|-) %{QS:referrer} %{QS:agent} %{NOTSPACE:http_x_forwarded_for}
+<div class="codehilite"><pre>NGUSERNAME [a-zA-Z\.\@\-\+_%]+
+NGUSER %{NGUSERNAME}
+NGINXACCESS %{IPORHOST:clientip} - %{NOTSPACE:remote_user} \[%{HTTPDATE:timestamp}\] \&quot;(?:%{WORD:verb} %{NOTSPACE:request}(?: HTTP/%{NUMBER:httpversion})?|%{DATA:rawrequest})\&quot; %{NUMBER:response} (?:%{NUMBER:bytes}|-) %{QS:referrer} %{QS:agent} %{NOTSPACE:http_x_forwarded_for}
 </pre></div>
 
 
-<ol>
-<li>增加一个<code>logstash</code>配置文件: <code>logstash-project-access-log.conf</code></li>
-</ol>
+<p>3.增加一个<code>logstash</code>配置文件: <code>logstash-project-access-log.conf</code></p>
 <p>注意, input的file, filter的grok, output的redis-key</p>
-<div class="codehilite"><pre>    input {
-    file {
-        path =&gt; [ &quot;/data/logs/nginx/xxxx_access.log&quot; ]
-        start_position =&gt; &quot;beginning&quot;
-    }
-    }
+<div class="codehilite"><pre>input {
+file {
+    path =&gt; [ &quot;/data/logs/nginx/xxxx_access.log&quot; ]
+    start_position =&gt; &quot;beginning&quot;
+}
+}
 
-    filter {
-    mutate { replace =&gt; { &quot;type&quot; =&gt; &quot;nginx_access&quot; } }
-    grok {
-        match =&gt; { &quot;message&quot; =&gt; &quot;%{NGINXACCESS}&quot; }
-    }
-    date {
-        match =&gt; [ &quot;timestamp&quot; , &quot;dd/MMM/YYYY:HH:mm:ss Z&quot; ]
-    }
-    geoip {
-        source =&gt; &quot;clientip&quot;
-    }
-    }
+filter {
+mutate { replace =&gt; { &quot;type&quot; =&gt; &quot;nginx_access&quot; } }
+grok {
+    match =&gt; { &quot;message&quot; =&gt; &quot;%{NGINXACCESS}&quot; }
+}
+date {
+    match =&gt; [ &quot;timestamp&quot; , &quot;dd/MMM/YYYY:HH:mm:ss Z&quot; ]
+}
+geoip {
+    source =&gt; &quot;clientip&quot;
+}
+}
 
 
-    output {
-    redis { host =&gt; &quot;127.0.0.1&quot; data_type =&gt; &quot;list&quot; key =&gt; &quot;logstash:xxxx:access_log&quot; }
-    }
+output {
+redis { host =&gt; &quot;127.0.0.1&quot; data_type =&gt; &quot;list&quot; key =&gt; &quot;logstash:xxxx:access_log&quot; }
+}
 </pre></div>
 
 
-<ol>
-<li>
-<p>使用<code>supervisor</code>启动<code>shipper</code>.</p>
+<p>4.使用<code>supervisor</code>启动<code>shipper</code>.</p>
 <div class="codehilite"><pre><span class="k">[program:logstash_xxxx_shipper]</span>
 <span class="na">command</span><span class="o">=</span><span class="s">/var/shell/logstash/bin/logstash -f /var/shell/logstash/configs/nginx-xxxx-shipper.conf</span>
 <span class="na">numprocs</span><span class="o">=</span><span class="s">1</span>
@@ -152,8 +146,6 @@
 </pre></div>
 
 
-</li>
-</ol>
 <h3>2. redis -&gt; logstash indexer -&gt; elasticsearch</h3>
 <p>注意, input的redis为上一步redis配置, key要对应, output的elasticsearch配置, <code>index</code>指定了最终es中存储对应的index, 加日期, 方便对日志进行定期删除</p>
 <div class="codehilite"><pre>input {
