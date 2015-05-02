@@ -73,13 +73,17 @@
         <div class="meta"> &nbsp; </div>
         <h1> Golang笔记-04-array/slice/map </h1>
     </section>
+
+        <section id="toc">
+            <html><body><div id="toc"><ul><li><a class="toc-href" href="#" title="Golang笔记-04-array/slice/map">Golang笔记-04-array/slice/map</a><ul><li><a class="toc-href" href="#array" title="一.Array">一.Array</a><ul><li><a class="toc-href" href="#1" title="1.声明&amp;赋值">1.声明&amp;赋值</a></li><li><a class="toc-href" href="#2" title="2.元素访问">2.元素访问</a></li></ul></li><li><a class="toc-href" href="#slice_1" title="二.Slice">二.Slice</a><ul><li><a class="toc-href" href="#1_1" title="1.声明&amp;赋值">1.声明&amp;赋值</a></li><li><a class="toc-href" href="#2_1" title="2.元素访问">2.元素访问</a></li><li><a class="toc-href" href="#3" title="3.其他操作">3.其他操作</a></li></ul></li><li><a class="toc-href" href="#map_1" title="三.Map">三.Map</a><ul><li><a class="toc-href" href="#1_2" title="1.声明&amp;赋值">1.声明&amp;赋值</a></li><li><a class="toc-href" href="#2_2" title="2.元素访问">2.元素访问</a></li><li><a class="toc-href" href="#3_1" title="3.基本操作">3.基本操作</a></li></ul></li><li><a class="toc-href" href="#_2" title="四.其他">四.其他</a></li></ul></li></ul></div></body></html>
+        </section>
     <section id="content">
-        <h3>一.Array</h3>
+        <h3 id="array">一.Array</h3>
 <p>在Go语言中，数组是一个值类型(value type)</p>
 <p>所有的值类型变量在赋值和作为参数传递时都将产生一个复制动作</p>
 <p>如果作为函数的参数类型，则在函数调用时参数发生数据复制，在函数体中无法修改传入数组的内容</p>
 <p>数组相等用 = != 比较，不能用 &lt; &gt;</p>
-<h4>1.声明&amp;赋值</h4>
+<h4 id="1">1.声明&amp;赋值</h4>
 <p>初始化</p>
 <div class="codehilite"><pre><span class="x">语法</span>
 <span class="x">var VarName [n]type     // n&gt;=0</span>
@@ -102,17 +106,13 @@
 <span class="x">easyArray := [2][4]int</span><span class="cp">{{</span><span class="m">1</span><span class="o">,</span><span class="m">2</span><span class="o">,</span><span class="m">3</span><span class="o">,</span><span class="m">4</span><span class="o">},</span> <span class="o">{</span><span class="m">1</span><span class="o">,</span><span class="m">2</span><span class="o">,</span><span class="m">3</span><span class="o">,</span><span class="m">4</span><span class="cp">}}</span><span class="x"></span>
 <span class="x">多维 [...][n] 前者可推断，但是后者必须显示赋值</span>
 </pre></div>
-
-
 <p>数组的长度是该数组类型的一个内置常量</p>
 <div class="codehilite"><pre>arrLength := len(arr)
 </pre></div>
-
-
 <p>注意，数组长度也是类型的一部分，因此不同长度数组为不同类型(内置常量)</p>
 <p>即[3]int和[4]int是不同类型，并且数组不能改变长度</p>
 <p>数组之间的赋值是值的赋值，即当把一个数组作为参数传入函数的时候，传入的其实是该数组的副本(一次复制操作)，而不是它的指针，如果要传入指针，使用slice</p>
-<h4>2.元素访问</h4>
+<h4 id="2">2.元素访问</h4>
 <div class="codehilite"><pre><span class="nt">for</span> <span class="nt">i</span><span class="o">:=</span><span class="nt">0</span><span class="o">;</span> <span class="nt">i</span> <span class="o">&lt;</span> <span class="nt">len</span><span class="o">(</span><span class="nt">array</span><span class="o">);</span> <span class="nt">i</span><span class="o">++</span> <span class="p">{</span>
     <span class="n">fmt</span><span class="o">.</span><span class="n">Println</span><span class="p">(</span><span class="n">i</span><span class="o">,</span> <span class="n">array</span><span class="cp">[</span><span class="nx">i</span><span class="cp">]</span><span class="p">)</span>
 <span class="p">}</span>
@@ -121,14 +121,10 @@
     <span class="n">fmt</span><span class="o">.</span><span class="n">Println</span><span class="p">(</span><span class="n">i</span><span class="o">,</span> <span class="n">v</span><span class="p">)</span>
 <span class="p">}</span>
 </pre></div>
-
-
 <p>可以用new创建数组</p>
 <div class="codehilite"><pre>p := new([10]int)
 返回一个指向数组的指针
 </pre></div>
-
-
 <p>注意区分</p>
 <div class="codehilite"><pre>指向数组的指针
 a := [100]int{}
@@ -138,9 +134,7 @@ var p *[100]int = &amp;a
 x, y = 1, 2
 a := [...]*int{&amp;x, &amp;y}
 </pre></div>
-
-
-<h3>二.Slice</h3>
+<h3 id="slice_1">二.Slice</h3>
 <p>数组切片就像一个指向数组的指针，但更复杂，实际上它拥有自己的数据结构，而不仅仅是指针(指向原生数组的指针 + 数组切片中元素个数 + 数组切片已分配的存储空间)</p>
 <p>一个引用类型，总是指向一个底层array，声明可以向array一样，只是不需要长度</p>
 <p>slice就像一个结构体，包含三个元素</p>
@@ -148,9 +142,7 @@ a := [...]*int{&amp;x, &amp;y}
 长度，即slice的长度
 最大长度，也就是slice开始位置到数组的最后位置的长度
 </pre></div>
-
-
-<h4>1.声明&amp;赋值</h4>
+<h4 id="1_1">1.声明&amp;赋值</h4>
 <p>通过array创建</p>
 <div class="codehilite"><pre>var myArray [10]int = [10]int{1,2,3,4,5,6,7,8,9,10}
 var mySlice []int = myArray[:5]
@@ -161,22 +153,18 @@ b := a[:4]
 b := a[2:]
 
 从数组或已存在的slice再次声明
-var ar [10]byte {&#39;a&#39;, &#39;b&#39;, &#39;c&#39;, &#39;d&#39;, &#39;e&#39;, &#39;f&#39;, &#39;g&#39;, &#39;h&#39;, &#39;i&#39;, &#39;j&#39;}
+var ar [10]byte {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'}
 
 var a, b []byte
 a = ar[2:5]
 b = ar[3:5]
 </pre></div>
-
-
 <p>直接创建</p>
 <div class="codehilite"><pre>myslice1 := make([]int, 5)
 myslice2 := make([]int, 5, 10) //初始个数5，预留10个元素的存储空间
 myslice3 := []int{1,2,3,4,5}
 </pre></div>
-
-
-<h4>2.元素访问</h4>
+<h4 id="2_1">2.元素访问</h4>
 <div class="codehilite"><pre><span class="nt">for</span> <span class="nt">i</span><span class="o">:=</span><span class="nt">0</span><span class="o">;</span> <span class="nt">i</span><span class="o">&lt;</span><span class="nt">len</span><span class="o">(</span><span class="nt">mySlice</span><span class="o">);</span> <span class="nt">i</span><span class="o">++</span> <span class="p">{</span>
     <span class="n">fmt</span><span class="o">.</span><span class="n">Println</span><span class="p">(</span><span class="n">i</span><span class="o">,</span> <span class="n">mySlice</span><span class="cp">[</span><span class="nx">i</span><span class="cp">]</span><span class="p">)</span>
 <span class="p">}</span>
@@ -185,15 +173,11 @@ myslice3 := []int{1,2,3,4,5}
     <span class="n">fmt</span><span class="o">.</span><span class="n">Println</span><span class="p">(</span><span class="n">i</span><span class="o">,</span> <span class="n">v</span><span class="p">)</span>
 <span class="p">}</span>
 </pre></div>
-
-
-<h4>3.其他操作</h4>
+<h4 id="3">3.其他操作</h4>
 <p>大小和容量</p>
 <div class="codehilite"><pre>len获取slice的长度
 cap获取slice的最大容量
 </pre></div>
-
-
 <p>动态增减元素</p>
 <div class="codehilite"><pre>append想slice里面追加一个或者多个元素，然后返回一个和slice一样类型的slice
 
@@ -205,8 +189,6 @@ mySlice = append(mySlice, mySlice2) //增加另一个
      但当slice中没有剩余空间，此时动态分配新的数组空间返回的slice数组指针将指向这个空间，
      而原数组的内容将保持不变，其他引用此数组的slice不受影响(坑，可能引入bug)
 </pre></div>
-
-
 <p>内容复制</p>
 <div class="codehilite"><pre>copy，从源slice的src中复制到目标dst，并且返回复制元素的个数
 copy(dst, source) //会按短的个数复制
@@ -217,25 +199,19 @@ slice2 := []int{5,4,3}
 copy(slice2, slice1) //复制slice1前三个 1 -&gt; 2
 copy(slice1, slice2) //复制slice2的前三个 2 -&gt; 1
 </pre></div>
-
-
 <p>切片</p>
 <div class="codehilite"><pre>默认开始位置0，ar[:n]等价于ar[0:n]
 第二个序列默认是数组长度 ar[n:] 等价于 ar[n:len(ar)]
 从一个数组直接获取slice，可以是ar[:]
 </pre></div>
-
-
 <p>slice是引用类型，所以当改变其中元素的时候，其他的所有引用都会改变</p>
 <div class="codehilite"><pre>aSlice = array[3:7]
 bslice = aSlice[:3]
 </pre></div>
-
-
-<h3>三.Map</h3>
+<h3 id="map_1">三.Map</h3>
 <p>Python中字典的概念</p>
 <p>map是无序的,长度不固定，内置的len可以用于map,可以方便的修改</p>
-<h4>1.声明&amp;赋值</h4>
+<h4 id="1_2">1.声明&amp;赋值</h4>
 <div class="codehilite"><pre>map[keyType]valueType
 
 var m map[string] PersonInfo
@@ -244,42 +220,32 @@ m = make(map[string] personInfo[, 100])
 var numbers map[string]int
 or
 numbers := make(map[string]int)
-numbers[&quot;one&quot;] = 1
+numbers["one"] = 1
 </pre></div>
-
-
 <p>初始化一个字典</p>
-<h4>2.元素访问</h4>
-<div class="codehilite"><pre>rating := map[string]float32 {&quot;c&quot;:5, &quot;Go&quot;:4.5}
+<h4 id="2_2">2.元素访问</h4>
+<div class="codehilite"><pre>rating := map[string]float32 {"c":5, "Go":4.5}
 
-csharpRating, ok := rating[&quot;C#&quot;]
+csharpRating, ok := rating["C#"]
 if ok {
-    fmt.Println(&quot;get the value&quot;)
+    fmt.Println("get the value")
 } else{
-    fmt.Println(&quot;error&quot;)
+    fmt.Println("error")
 }
 </pre></div>
-
-
-<h4>3.基本操作</h4>
+<h4 id="3_1">3.基本操作</h4>
 <p>赋值</p>
-<div class="codehilite"><pre>m[&quot;1234&quot;] = PersonInfo{}
+<div class="codehilite"><pre>m["1234"] = PersonInfo{}
 </pre></div>
-
-
 <p>删除</p>
-<div class="codehilite"><pre>delete(m, &quot;1234&quot;)
+<div class="codehilite"><pre>delete(m, "1234")
 </pre></div>
-
-
-<h3>四.其他</h3>
+<h3 id="_2">四.其他</h3>
 <p>make和new操作</p>
 <div class="codehilite"><pre>make用于内建类型(map,slice,channel) 的内存分配。
 
 new用于各种类型的内存分配
 </pre></div>
-
-
 <p>new本质上和其他语言中同名函数一样, new(T)分配了零值填充的T类型的内存空间，并返回其地址，即一个*T类型的值
 即，返回一个指针，指向新分配的类型T的零值</p>
 <p>make(T, args)，只能创建slice,map,channel，并返回一个有初始值（非零值）的T类型，而不是*T。

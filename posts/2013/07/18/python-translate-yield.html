@@ -73,16 +73,18 @@
         <div class="meta"> &nbsp; </div>
         <h1> [翻译]Python中yield的解释 </h1>
     </section>
+
+        <section id="toc">
+            <html><body><div id="toc"><ul><li><a class="toc-href" href="#" title="[翻译]Python中yield的解释">[翻译]Python中yield的解释</a><ul><li><a class="toc-href" href="#_1" title="迭代">迭代</a></li><li><a class="toc-href" href="#_2" title="生成器">生成器</a></li><li><a class="toc-href" href="#yield" title="yield">yield</a><ul><li><a class="toc-href" href="#_3" title="问题代码的解释">问题代码的解释</a><ul><li><a class="toc-href" href="#_4" title="控制一个生成器的消耗">控制一个生成器的消耗</a></li></ul></li></ul></li><li><a class="toc-href" href="#itertools_2" title="Itertools">Itertools</a></li><li><a class="toc-href" href="#_5" title="了解迭代器的内部机制">了解迭代器的内部机制</a></li></ul></li></ul></div></body></html>
+        </section>
     <section id="content">
         <p>翻译</p>
 <p>来源于stackoverflow问答，原文链接 <a href="http://stackoverflow.com/questions/231767/the-python-yield-keyword-explained">Here</a></p>
 <p>SN上面看到的，顺手翻译下，第一次翻译，好多地方翻的不是很好 :)</p>
-<hr />
+<hr/>
 <p>问题:</p>
 <div class="codehilite"><pre>Python中yield关键字的作用是什么？它做了什么？
 </pre></div>
-
-
 <p>例如，我想理解以下代码</p>
 <div class="codehilite"><pre>def node._get_child_candidates(self, distance, min_dist, max_dist):
     if self._leftchild and distance - max_dist &lt; self._median:
@@ -90,8 +92,6 @@
     if self._rightchild and distance + max_dist &gt;= self._median:
         yield self._rightchild
 </pre></div>
-
-
 <p>下面是调用者</p>
 <div class="codehilite"><pre>result, candidates = list(), [self]
 while candidates:
@@ -102,13 +102,11 @@ while candidates:
     candidates.extend(node._get_child_candidates(distance, min_dist, max_dist))
 return result
 </pre></div>
-
-
 <p>在_get_child_candidates这个函数被调用时发生了什么？返回了一个列表？还是只返回了一个元素？然后又再次被调用？什么时候调用结束？</p>
 <p>这段代码的来源 Jochen Schulz (jrschulz), who made a great Python library for metric spaces. 完整源码链接: <a href="http://well-adjusted.de/~jrschulz/mspace/">here</a></p>
-<hr />
+<hr/>
 <p>要了解yield的作用，你必须先明白什么是生成器，在此之前，你需要了解什么是可迭代对象（可迭代序列）</p>
-<h2>迭代</h2>
+<h2 id="_1">迭代</h2>
 <p>你可以创建一个列表，然后逐一遍历，这就是迭代</p>
 <div class="codehilite"><pre>&gt;&gt;&gt; mylist = [1, 2, 3]
 &gt;&gt;&gt; for i in mylist:
@@ -117,8 +115,6 @@ return result
 2
 3
 </pre></div>
-
-
 <p>mylist是可迭代的对象，当你使用列表解析时，你创建一个列表,即一个可迭代对象</p>
 <div class="codehilite"><pre>&gt;&gt;&gt; mylist = [x*x for x in range(3)]
 &gt;&gt;&gt; for i in mylist:
@@ -127,13 +123,11 @@ return result
 1
 4
 </pre></div>
-
-
 <p>任何你可用 "for... in..." 处理的都是可迭代对象：列表，字符串，文件....
 这些迭代对象非常便捷，因为你可以尽可能多地获取你想要的东西</p>
 <p>但，当你有大量数据并把所有值放到内存时，这种处理方式可能不总是你想要的
 (but you store all the values in memory and it's not always what you want when you have a lot of values.)</p>
-<h2>生成器</h2>
+<h2 id="_2">生成器</h2>
 <p>生成器是迭代器，但你只能遍历它一次(iterate over them once)
 因为生成器并没有将所有值放入内存中，而是实时地生成这些值</p>
 <div class="codehilite"><pre>&gt;&gt;&gt; mygenerator = (x*x for x in range(3))
@@ -143,11 +137,9 @@ return result
 1
 4
 </pre></div>
-
-
 <p>这和使用列表解析地唯一区别在于使用()替代了原来的[]</p>
 <p>注意，你不能执行for i in mygenerator第二次，因为每个生成器只能被使用一次: 计算0，并不保留结果和状态，接着计算1，然后计算4，逐一生成</p>
-<h2>yield</h2>
+<h2 id="yield">yield</h2>
 <p>yield是一个关键词，类似return, 不同之处在于，yield返回的是一个生成器</p>
 <div class="codehilite"><pre>&gt;&gt;&gt; def createGenerator():
 ...    mylist = range(3)
@@ -163,8 +155,6 @@ return result
 1
 4
 </pre></div>
-
-
 <p>这个例子并没有什么实际作用,仅说明当你知道你的函数将产生大量仅被读取一次的数据时,使用生成器将是十分有效的做法</p>
 <p>要掌握yield,你必须明白 - 当你调用这个函数，函数中你书写的代码并没有执行。这个函数仅仅返回一个生成器对象</p>
 <p>这有些狡猾 :-)</p>
@@ -172,7 +162,7 @@ return result
 <p>然后，是比较困难的部分：</p>
 <p>第一次函数将会从头运行，直到遇到yield，然后将返回循环的首个值. 然后，每次调用，都会执行函数中的循环一次，返回下一个值，直到没有值可以返回</p>
 <p>当循环结束，或者不满足"if/else"条件，导致函数运行但不命中yield关键字，此时生成器被认为是空的</p>
-<h3>问题代码的解释</h3>
+<h3 id="_3">问题代码的解释</h3>
 <p>生成器:</p>
 <div class="codehilite"><pre># 这你你创建了node的能返回生成器的函数
 def node._get_child_candidates(self, distance, min_dist, max_dist):
@@ -189,8 +179,6 @@ if self._rightchild and distance + max_dist &gt;= self._median:
 
 # 如果函数运行到这里，生成器空，该节点不存在左右节点
 </pre></div>
-
-
 <p>调用者:</p>
 <div class="codehilite"><pre># 创建一个空列表，一个包含当前候选对象引用的列表
 result, candidates = list(), [self]
@@ -214,8 +202,6 @@ while candidates:
 
 return result
 </pre></div>
-
-
 <p>这段代码包含几个灵活的部分:</p>
 <p>1.这个循环遍读取历候选列表,但过程中，候选列表不断扩展:-) </p>
 <p>这是一种遍历嵌套数据的简明方法，虽然有些危险，你或许会陷入死循环中</p>
@@ -228,39 +214,37 @@ return result
 &gt;&gt;&gt; print(a)
 [1, 2, 3, 4]
 </pre></div>
-
-
 <p>但是，在代码中，这个函数接受到一个生成器</p>
 <p>这样的做法好处是:</p>
 <p>1.你不需要重复读这些值</p>
 <p>2.你可能有海量的子节点，但是不希望将所有节点放入内存</p>
 <p>并且，可以这么传递生成器作为参数的原因是，Python不关心参数是一个方法还是一个列表</p>
 <p>Python接收可迭代对象，对于字符串，列表，元组还有生成器，都适用!</p>
-<p>这就是所谓的“鸭子类型”(duck typing), 这也是Python如此酷的原因之一, 但这是另一个问题了，对于这个问题......</p>
+<p>这就是所谓的&ldquo;鸭子类型&rdquo;(duck typing), 这也是Python如此酷的原因之一, 但这是另一个问题了，对于这个问题......</p>
 <p>你可以在这里完成阅读，或者读一点点生成器的进阶用法:</p>
-<h4>控制一个生成器的消耗</h4>
-<div class="codehilite"><pre>&gt;&gt;&gt; class Bank(): # let&#39;s create a bank, building ATMs
+<h4 id="_4">控制一个生成器的消耗</h4>
+<div class="codehilite"><pre>&gt;&gt;&gt; class Bank(): # let's create a bank, building ATMs
 ...    crisis = False
 ...    def create_atm(self):
 ...        while not self.crisis:
-...            yield &quot;$100&quot;
-&gt;&gt;&gt; hsbc = Bank() # when everything&#39;s ok the ATM gives you as much as you want
+...            yield "$100"
+&gt;&gt;&gt; hsbc = Bank() # when everything's ok the ATM gives you as much as you want
 &gt;&gt;&gt; corner_street_atm = hsbc.create_atm()
 &gt;&gt;&gt; print(corner_street_atm.next())
 $100
 &gt;&gt;&gt; print(corner_street_atm.next())
 $100
 &gt;&gt;&gt; print([corner_street_atm.next() for cash in range(5)])
-[&#39;$100&#39;, &#39;$100&#39;, &#39;$100&#39;, &#39;$100&#39;, &#39;$100&#39;]
+['$100', '$100', '$100', '$100', '$100']
 &gt;&gt;&gt; hsbc.crisis = True # crisis is coming, no more money!
 &gt;&gt;&gt; print(corner_street_atm.next())
-&lt;type &#39;exceptions.StopIteration&#39;&gt;
-&gt;&gt;&gt; wall_street_atm = hsbc.create_atm() # it&#39;s even true for new ATMs
+&lt;type 'exceptions.StopIteration'&gt;
+&gt;&gt;&gt; wall_street_atm = hsbc.create_atm() # it's even true for new ATMs
 &gt;&gt;&gt; print(wall_street_atm.next())
-&lt;type &#39;exceptions.StopIteration&#39;&gt;
+&lt;type 'exceptions.StopIteration'&gt;
 &gt;&gt;&gt; hsbc.crisis = False # trouble is, even post-crisis the ATM remains empty
 &gt;&gt;&gt; print(corner_street_atm.next())
-&lt;type &#39;exceptions.StopIteration&#39;&gt;
+&lt;type 'exceptions.StopIteration'&gt;
 &gt;&gt;&gt; brand_new_atm = hsbc.create_atm() # build a new one to get back in business
 &gt;&gt;&gt; for cash in brand_new_atm:
 ...    print cash
@@ -275,10 +259,8 @@ $100
 $100
 ...
 </pre></div>
-
-
 <p>这在很多场景都非常有用，例如控制资源的获取</p>
-<h2>Itertools</h2>
+<h2 id="itertools_2">Itertools</h2>
 <p>一个很好的工具</p>
 <p>itertools模块包含很多处理可迭代对象的具体方法. 例如</p>
 <p>复制一个生成器？连接两个生成器？一行将嵌套列表中值分组？不使用另一个列表进行Map/Zip?
@@ -315,9 +297,7 @@ $100
 (4, 3, 1, 2),
 (4, 3, 2, 1)]
 </pre></div>
-
-
-<h2>了解迭代器的内部机制</h2>
+<h2 id="_5">了解迭代器的内部机制</h2>
 <p>迭代过程包含可迭代对象(实现__iter__()方法) 和迭代器(实现__next__()方法)</p>
 <p>你可以获取一个迭代器的任何对象都是可迭代对象，迭代器可以让你迭代遍历一个可迭代对象(Iterators are objects that let you iterate on iterables.) [好拗口:]</p>
 <p>更多关于这个问题的 <a href="http://effbot.org/zone/python-for-statement.htm">how does the for loop work</a></p>

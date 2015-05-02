@@ -73,57 +73,53 @@
         <div class="meta"> &nbsp; </div>
         <h1> Python fabric实现远程操作和部署 </h1>
     </section>
+
+        <section id="toc">
+            <html><body><div id="toc"><ul><li><a class="toc-href" href="#" title="Python fabric实现远程操作和部署">Python fabric实现远程操作和部署</a><ul><li><a class="toc-href" href="#fabric" title="fabric">fabric</a><ul><li><a class="toc-href" href="#_1" title="作用">作用</a></li><li><a class="toc-href" href="#_2" title="环境配置">环境配置</a></li><li><a class="toc-href" href="#hello-world" title="hello world">hello world</a></li><li><a class="toc-href" href="#_3" title="执行本机操作">执行本机操作</a></li><li><a class="toc-href" href="#_4" title="混搭整合远端操作">混搭整合远端操作</a></li><li><a class="toc-href" href="#_5" title="多服务器混搭">多服务器混搭</a></li><li><a class="toc-href" href="#_6" title="扩展">扩展</a></li></ul></li></ul></li></ul></div></body></html>
+        </section>
     <section id="content">
-        <h2>fabric</h2>
+        <h2 id="fabric">fabric</h2>
 <p>title是开发，但是同时要干开发测试还有运维的活 (o(╯□╰)o)</p>
 <p>近期接手越来越多的东西，发布和运维的工作相当机械，加上频率还蛮高，导致时间浪费还是优点多。</p>
 <p>修复bug什么的，测试，提交版本库(2分钟)，ssh到测试环境pull部署（2分钟），rsync到线上机器A,B,C,D,E（1分钟），分别ssh到ABCDE五台机器，逐一重启(8-10分钟) =  13-15分钟</p>
 <p>其中郁闷的是，每次操作都是相同的，命令一样，要命的是在多个机器上，很难在本机一个脚本搞定，主要时间都浪费在ssh，敲命令上了，写成脚本，完全可以一键执行，花两分钟看下执行结果</p>
 <p>直到，发现了fabric这货</p>
 <p>官方文档 <a href="http://fabric.readthedocs.org/">入口</a></p>
-<h3>作用</h3>
+<h3 id="_1">作用</h3>
 <p>很强大的工具</p>
 <p>可以将自动化部署或者多机操作的命令固化到一个脚本里</p>
-<p>和某些运维工具很像，用它主要是因为，python…..</p>
+<p>和某些运维工具很像，用它主要是因为，python&hellip;..</p>
 <p>简单好用易上手</p>
 <p>当然，shell各种命令组合起来也可以，上古神器和现代兵器的区别</p>
-<h3>环境配置</h3>
+<h3 id="_2">环境配置</h3>
 <p>在本机和目标机器安装对应包（注意，都要有）</p>
 <div class="codehilite"><pre>sudo easy_install fabric
 </pre></div>
-
-
 <p>目前是1.8版本</p>
 <p>安装完后，可以查看是否安装成功</p>
 <div class="codehilite"><pre>[ken@~$] which fab
 /usr/local/bin/fab
 </pre></div>
-
-
 <p>装完之后，可以浏览下<a href="http://docs.fabfile.org/en/1.8/">官方文档</a></p>
 <p>然后，可以动手了</p>
-<h3>hello world</h3>
+<h3 id="hello-world">hello world</h3>
 <p>先进行本机简单操作，有一个初步认识，例子来源与官网</p>
 <p>新建一个py脚本: fabfile.py</p>
 <div class="codehilite"><pre><span class="k">def</span> <span class="nf">hello</span><span class="p">():</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&quot;Hello world!&quot;</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">"Hello world!"</span><span class="p">)</span>
 </pre></div>
-
-
 <p>命令行执行：</p>
 <div class="codehilite"><pre>[ken@~/tmp/fab$] fab hello
 Hello world!
 
 Done.
 </pre></div>
-
-
 <p>注意，这里可以不用fabfile作为文件名，但是在执行时需指定文件</p>
 <div class="codehilite"><pre>[ken@~/tmp/fab$] mv fabfile.py test.py
 fabfile.py -&gt; test.py
 [ken@~/tmp/fab$] fab hello
 
-Fatal error: Couldn&#39;t find any fabfiles!
+Fatal error: Couldn't find any fabfiles!
 
 Remember that -f can be used to specify fabfile path, and use -h for help.
 
@@ -133,15 +129,11 @@ Hello world!
 
 Done.
 </pre></div>
-
-
 <p>带参数：</p>
 <p>修改fabfile.py脚本：</p>
 <div class="codehilite"><pre><span class="k">def</span> <span class="nf">hello</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s"> = </span><span class="si">%s</span><span class="s">!&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">"</span><span class="si">%s</span><span class="s"> = </span><span class="si">%s</span><span class="s">!"</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
 </pre></div>
-
-
 <p>执行</p>
 <div class="codehilite"><pre>[ken@~/tmp/fab$] fab hello:name=age,value=20
 age = 20!
@@ -152,18 +144,14 @@ age = 20!
 
 Done.
 </pre></div>
-
-
-<h3>执行本机操作</h3>
+<h3 id="_3">执行本机操作</h3>
 <p>简单的本地操作:</p>
 <div class="codehilite"><pre><span class="kn">from</span> <span class="nn">fabric.api</span> <span class="kn">import</span> <span class="n">local</span><span class="p">,</span> <span class="n">lcd</span>
 
 <span class="k">def</span> <span class="nf">lsfab</span><span class="p">():</span>
-    <span class="k">with</span> <span class="n">lcd</span><span class="p">(</span><span class="s">&#39;~/tmp/fab&#39;</span><span class="p">):</span>
-        <span class="n">local</span><span class="p">(</span><span class="s">&#39;ls&#39;</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">lcd</span><span class="p">(</span><span class="s">'~/tmp/fab'</span><span class="p">):</span>
+        <span class="n">local</span><span class="p">(</span><span class="s">'ls'</span><span class="p">)</span>
 </pre></div>
-
-
 <p>结果：</p>
 <div class="codehilite"><pre>[ken@~/tmp/fab$] pwd;ls
 /Users/ken/tmp/fab
@@ -175,59 +163,51 @@ fabfile.py  fabfile.pyc test.py     test.pyc
 
 Done.
 </pre></div>
-
-
 <p>实战开始：</p>
 <p>假设，你每天要提交一份配置文件settings.py到版本库（这里没有考虑冲突的情况）</p>
 <p>如果是手工操作：</p>
 <div class="codehilite"><pre>cd /home/project/test/conf/
 git add settings.py
-git commit -m &#39;daily update settings.py&#39;
+git commit -m 'daily update settings.py'
 git pull origin
 git push origin
 </pre></div>
-
-
 <p>也就是说，这几个命令你每天都要手动敲一次，所谓daily job，就是每天都要重复的，机械化的工作，让我们看看用fabric怎么实现一键搞定：(其实用shell脚本可以直接搞定，但是fab的优势不是在这里，这里主要位后面本地+远端操作做准备，毕竟两个地方的操作写一种脚本便于维护)</p>
 <div class="codehilite"><pre><span class="kn">from</span> <span class="nn">fabric.api</span> <span class="kn">import</span> <span class="n">local</span><span class="p">,</span> <span class="n">lcd</span>
 
 <span class="k">def</span> <span class="nf">setting_ci</span><span class="p">():</span>
-    <span class="k">with</span> <span class="n">lcd</span><span class="p">(</span><span class="s">&#39;/home/project/test/conf/&#39;</span><span class="p">):</span>
-        <span class="n">local</span><span class="p">(</span><span class="s">&quot;git add settings.py&quot;</span><span class="p">)</span>
-        <span class="c">#后面你懂的，懒得敲了…..</span>
+    <span class="k">with</span> <span class="n">lcd</span><span class="p">(</span><span class="s">'/home/project/test/conf/'</span><span class="p">):</span>
+        <span class="n">local</span><span class="p">(</span><span class="s">"git add settings.py"</span><span class="p">)</span>
+        <span class="c">#后面你懂的，懒得敲了&hellip;..</span>
 </pre></div>
-
-
-<h3>混搭整合远端操作</h3>
+<h3 id="_4">混搭整合远端操作</h3>
 <p>这时候，假设，你要到机器A的/home/ken/project对应项目目录把配置文件更新下来</p>
 <div class="codehilite"><pre><span class="c">#!/usr/bin/env python</span>
 <span class="c"># encoding: utf-8</span>
 
 <span class="kn">from</span> <span class="nn">fabric.api</span> <span class="kn">import</span> <span class="n">local</span><span class="p">,</span><span class="n">cd</span><span class="p">,</span><span class="n">run</span><span class="p">,</span> <span class="n">env</span>
 
-<span class="n">env</span><span class="o">.</span><span class="n">hosts</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;user@ip:port&#39;</span><span class="p">,]</span> <span class="c">#ssh要用到的参数</span>
-<span class="n">env</span><span class="o">.</span><span class="n">password</span> <span class="o">=</span> <span class="s">&#39;pwd&#39;</span>
+<span class="n">env</span><span class="o">.</span><span class="n">hosts</span><span class="o">=</span><span class="p">[</span><span class="s">'user@ip:port'</span><span class="p">,]</span> <span class="c">#ssh要用到的参数</span>
+<span class="n">env</span><span class="o">.</span><span class="n">password</span> <span class="o">=</span> <span class="s">'pwd'</span>
 
 
 <span class="k">def</span> <span class="nf">setting_ci</span><span class="p">():</span>
-    <span class="n">local</span><span class="p">(</span><span class="s">&#39;echo &quot;add and commit settings in local&quot;&#39;</span><span class="p">)</span>
+    <span class="n">local</span><span class="p">(</span><span class="s">'echo "add and commit settings in local"'</span><span class="p">)</span>
     <span class="c">#刚才的操作换到这里，你懂的</span>
 
 <span class="k">def</span> <span class="nf">update_setting_remote</span><span class="p">():</span>
-    <span class="k">print</span> <span class="s">&quot;remote update&quot;</span>
-    <span class="k">with</span> <span class="n">cd</span><span class="p">(</span><span class="s">&#39;~/temp&#39;</span><span class="p">):</span>   <span class="c">#cd用于进入某个目录</span>
-        <span class="n">run</span><span class="p">(</span><span class="s">&#39;ls -l | wc -l&#39;</span><span class="p">)</span>  <span class="c">#远程操作用run</span>
+    <span class="k">print</span> <span class="s">"remote update"</span>
+    <span class="k">with</span> <span class="n">cd</span><span class="p">(</span><span class="s">'~/temp'</span><span class="p">):</span>   <span class="c">#cd用于进入某个目录</span>
+        <span class="n">run</span><span class="p">(</span><span class="s">'ls -l | wc -l'</span><span class="p">)</span>  <span class="c">#远程操作用run</span>
 
 <span class="k">def</span> <span class="nf">update</span><span class="p">():</span>
     <span class="n">setting_ci</span><span class="p">()</span>
     <span class="n">update_setting_remote</span><span class="p">()</span>
 </pre></div>
-
-
 <p>然后，执行之：</p>
 <div class="codehilite"><pre>[ken@~/tmp/fab$] fab -f deploy.py update
-[user@ip:port] Executing task &#39;update&#39;
-[localhost] local: echo &quot;add and commit settings in local&quot;
+[user@ip:port] Executing task 'update'
+[localhost] local: echo "add and commit settings in local"
 add and commit settings in local
 remote update
 [user@ip:port] run: ls -l | wc -l
@@ -237,10 +217,8 @@ remote update
 
 Done.
 </pre></div>
-
-
 <p>注意，如果不声明env.password，执行到对应机器时会跳出要求输入密码的交互</p>
-<h3>多服务器混搭</h3>
+<h3 id="_5">多服务器混搭</h3>
 <p>操作多个服务器，需要配置多个host</p>
 <div class="codehilite"><pre><span class="c">#!/usr/bin/env python</span>
 <span class="c"># encoding: utf-8</span>
@@ -249,34 +227,32 @@ Done.
 
 <span class="c">#操作一致的服务器可以放在一组，同一组的执行同一套操作</span>
 <span class="n">env</span><span class="o">.</span><span class="n">roledefs</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s">&#39;testserver&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;user1@host1:port1&#39;</span><span class="p">,],</span>
-            <span class="s">&#39;realserver&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;user2@host2:port2&#39;</span><span class="p">,</span> <span class="p">]</span>
+            <span class="s">'testserver'</span><span class="p">:</span> <span class="p">[</span><span class="s">'user1@host1:port1'</span><span class="p">,],</span>
+            <span class="s">'realserver'</span><span class="p">:</span> <span class="p">[</span><span class="s">'user2@host2:port2'</span><span class="p">,</span> <span class="p">]</span>
             <span class="p">}</span>
 
-<span class="c">#env.password = &#39;这里不要用这种配置了，不可能要求密码都一致的，明文编写也不合适。打通所有ssh就行了&#39;</span>
+<span class="c">#env.password = '这里不要用这种配置了，不可能要求密码都一致的，明文编写也不合适。打通所有ssh就行了'</span>
 
-<span class="nd">@roles</span><span class="p">(</span><span class="s">&#39;testserver&#39;</span><span class="p">)</span>
+<span class="nd">@roles</span><span class="p">(</span><span class="s">'testserver'</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">task1</span><span class="p">():</span>
-    <span class="n">run</span><span class="p">(</span><span class="s">&#39;ls -l | wc -l&#39;</span><span class="p">)</span>
+    <span class="n">run</span><span class="p">(</span><span class="s">'ls -l | wc -l'</span><span class="p">)</span>
 
-<span class="nd">@roles</span><span class="p">(</span><span class="s">&#39;realserver&#39;</span><span class="p">)</span>
+<span class="nd">@roles</span><span class="p">(</span><span class="s">'realserver'</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">task2</span><span class="p">():</span>
-    <span class="n">run</span><span class="p">(</span><span class="s">&#39;ls ~/temp/ | wc -l&#39;</span><span class="p">)</span>
+    <span class="n">run</span><span class="p">(</span><span class="s">'ls ~/temp/ | wc -l'</span><span class="p">)</span>
 
 <span class="k">def</span> <span class="nf">dotask</span><span class="p">():</span>
     <span class="n">execute</span><span class="p">(</span><span class="n">task1</span><span class="p">)</span>
     <span class="n">execute</span><span class="p">(</span><span class="n">task2</span><span class="p">)</span>
 </pre></div>
-
-
 <p>结果：</p>
 <div class="codehilite"><pre>[ken@~/tmp/fab$] fab -f mult.py dotask
-[user1@host1:port1] Executing task &#39;task1&#39;
+[user1@host1:port1] Executing task 'task1'
 [user1@host1:port1] run: ls -l | wc -l
 [user1@host1:port1] out: 9
 [user1@host1:port1] out:
 
-[user2@host2:port2] Executing task &#39;task2&#39;
+[user2@host2:port2] Executing task 'task2'
 [user2@host2:port2] run: ls ~/temp/ | wc -l
 [user2@host2:port2] out: 11
 [user2@host2:port2] out:
@@ -284,21 +260,17 @@ Done.
 
 Done.
 </pre></div>
-
-
-<h3>扩展</h3>
+<h3 id="_6">扩展</h3>
 <p>1.颜色</p>
 <p>可以打印颜色，在查看操作结果信息的时候更为醒目和方便</p>
 <div class="codehilite"><pre><span class="kn">from</span> <span class="nn">fabric.colors</span> <span class="kn">import</span> <span class="o">*</span>
 
 <span class="k">def</span> <span class="nf">show</span><span class="p">():</span>
-    <span class="k">print</span> <span class="n">green</span><span class="p">(</span><span class="s">&#39;success&#39;</span><span class="p">)</span>
-    <span class="k">print</span> <span class="n">red</span><span class="p">(</span><span class="s">&#39;fail&#39;</span><span class="p">)</span>
-    <span class="k">print</span> <span class="n">yellow</span><span class="p">(</span><span class="s">&#39;yellow&#39;</span><span class="p">)</span>
+    <span class="k">print</span> <span class="n">green</span><span class="p">(</span><span class="s">'success'</span><span class="p">)</span>
+    <span class="k">print</span> <span class="n">red</span><span class="p">(</span><span class="s">'fail'</span><span class="p">)</span>
+    <span class="k">print</span> <span class="n">yellow</span><span class="p">(</span><span class="s">'yellow'</span><span class="p">)</span>
 <span class="c">#fab -f color.py show</span>
 </pre></div>
-
-
 <p>2.错误和异常</p>
 <p>关于<a href="http://docs.fabfile.org/en/1.6/usage/execution.html#failures">错误处理</a></p>
 <p>默认，一组命令，上一个命令执行失败后，不会接着往下执行</p>
@@ -310,31 +282,29 @@ Done.
 <p>3.1 host,user,port,password配置列表，所有的都写在一个文件</p>
 <p>或者直接搞到脚本里，当然这个更........</p>
 <div class="codehilite"><pre><span class="n">env</span><span class="o">.</span><span class="n">hosts</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="s">&#39;host1&#39;</span><span class="p">,</span>
-        <span class="s">&#39;host2&#39;</span>
+        <span class="s">'host1'</span><span class="p">,</span>
+        <span class="s">'host2'</span>
 <span class="p">]</span>
 <span class="c"># 注意: 要使env.passwords生效, host格式必须是  user@ip:port 端口号一定要显式写出来,即使是使用的默认22端口</span>
 <span class="n">env</span><span class="o">.</span><span class="n">passwords</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s">&#39;host1&#39;</span><span class="p">:</span> <span class="s">&quot;pwdofhost1&quot;</span><span class="p">,</span>
-    <span class="s">&#39;host2&#39;</span><span class="p">:</span> <span class="s">&quot;pwdofhost2&quot;</span><span class="p">,</span>
+    <span class="s">'host1'</span><span class="p">:</span> <span class="s">"pwdofhost1"</span><span class="p">,</span>
+    <span class="s">'host2'</span><span class="p">:</span> <span class="s">"pwdofhost2"</span><span class="p">,</span>
 <span class="p">}</span>
 
 <span class="err">或者</span>
 <span class="n">env</span><span class="o">.</span><span class="n">roledefs</span> <span class="o">=</span> <span class="p">{</span>
-<span class="s">&#39;testserver&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;host1:22&#39;</span><span class="p">,</span> <span class="s">&#39;host2:22&#39;</span><span class="p">],</span>
-<span class="s">&#39;realserver&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;host3:22&#39;</span><span class="p">,</span> <span class="p">]</span>
+<span class="s">'testserver'</span><span class="p">:</span> <span class="p">[</span><span class="s">'host1:22'</span><span class="p">,</span> <span class="s">'host2:22'</span><span class="p">],</span>
+<span class="s">'realserver'</span><span class="p">:</span> <span class="p">[</span><span class="s">'host3:22'</span><span class="p">,</span> <span class="p">]</span>
 <span class="p">}</span>
 <span class="c"># 注意: 要使env.passwords生效, host格式必须是  user@ip:port 端口号一定要显式写出来,即使是使用的默认22端口</span>
 <span class="n">env</span><span class="o">.</span><span class="n">passwords</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s">&#39;host1:22&#39;</span><span class="p">:</span> <span class="s">&quot;pwdofhost1&quot;</span><span class="p">,</span>
-    <span class="s">&#39;host2:22&#39;</span><span class="p">:</span> <span class="s">&quot;pwdofhost2&quot;</span><span class="p">,</span>
-    <span class="s">&#39;host3:22&#39;</span><span class="p">:</span> <span class="s">&quot;pwdofhost3&quot;</span><span class="p">,</span>
+    <span class="s">'host1:22'</span><span class="p">:</span> <span class="s">"pwdofhost1"</span><span class="p">,</span>
+    <span class="s">'host2:22'</span><span class="p">:</span> <span class="s">"pwdofhost2"</span><span class="p">,</span>
+    <span class="s">'host3:22'</span><span class="p">:</span> <span class="s">"pwdofhost3"</span><span class="p">,</span>
 <span class="p">}</span>
 </pre></div>
-
-
 <p>3.2 根据key解析成map嵌套，放到deploy中</p>
-<p>另外命令其实也可以固化成一个cmds列表的…..</p>
+<p>另外命令其实也可以固化成一个cmds列表的&hellip;..</p>
 <p>粗略就用到这些，后续有更多需求的时候再去捞文档了，话说文档里好东西真多，就是太多了，看了晕。。。</p>
 <p>TODO:</p>
 <div class="codehilite"><pre>装饰器作用？
@@ -353,17 +323,13 @@ fab -f             -- 指定入口文件，fab默认入口文件是：fabfile/fa
 
 更复杂的操作
 </pre></div>
-
-
-<hr />
+<hr/>
 <p>update log</p>
 <div class="codehilite"><pre>2014-10-26 fix error of local/lcd
 </pre></div>
-
-
-<hr />
+<hr/>
 <p>The end!</p>
-<p>To be continue….</p>
+<p>To be continue&hellip;.</p>
 <p>wklken</p>
 <p>Email: wklken@yeah.net</p>
 <p>Blog:  http://www.wklken.com</p>

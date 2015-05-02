@@ -73,9 +73,13 @@
         <div class="meta"> &nbsp; </div>
         <h1> Nginx基础笔记 </h1>
     </section>
+
+        <section id="toc">
+            <html><body><div id="toc"><ul><li><a class="toc-href" href="#" title="Nginx基础笔记">Nginx基础笔记</a><ul><li><a class="toc-href" href="#_1" title="资源">资源</a></li><li><a class="toc-href" href="#_3" title="安装">安装</a><ul><li><a class="toc-href" href="#ubuntu" title="ubuntu下">ubuntu下</a></li><li><a class="toc-href" href="#_4" title="编译安装">编译安装</a></li></ul></li><li><a class="toc-href" href="#_6" title="基本操作">基本操作</a></li><li><a class="toc-href" href="#http" title="HTTP基本配置">HTTP基本配置</a><ul><li><a class="toc-href" href="#_7" title="配置说明">配置说明</a></li><li><a class="toc-href" href="#_8" title="配置文件目录结构">配置文件目录结构</a></li><li><a class="toc-href" href="#_9" title="配置文件结构">配置文件结构</a></li></ul></li><li><a class="toc-href" href="#_11" title="模块">模块</a><ul><li><a class="toc-href" href="#_12" title="模块化">模块化</a></li><li><a class="toc-href" href="#index" title="index模块">index模块</a></li><li><a class="toc-href" href="#log" title="Log模块">Log模块</a></li><li><a class="toc-href" href="#real-ip" title="Real IP模块">Real IP模块</a></li><li><a class="toc-href" href="#access" title="Access模块">Access模块</a></li><li><a class="toc-href" href="#rewrite" title="Rewrite模块">Rewrite模块</a></li><li><a class="toc-href" href="#proxy" title="Proxy模块">Proxy模块</a></li><li><a class="toc-href" href="#upstream" title="upstream模块">upstream模块</a></li></ul></li><li><a class="toc-href" href="#_14" title="其他">其他</a><ul><li><a class="toc-href" href="#_15" title="配置静态化目录">配置静态化目录</a></li><li><a class="toc-href" href="#_16" title="负载均衡">负载均衡</a></li><li><a class="toc-href" href="#_17" title="控制页面缓存">控制页面缓存</a></li><li><a class="toc-href" href="#nginx" title="nginx的内置变量">nginx的内置变量</a></li></ul></li></ul></li></ul></div></body></html>
+        </section>
     <section id="content">
         <p>nginx小结</p>
-<h3>资源</h3>
+<h3 id="_1">资源</h3>
 <blockquote>
 <p>资源</p>
 </blockquote>
@@ -95,8 +99,8 @@
 <p>Nginx模块开发入门 <a href="http://blog.codinglabs.org/articles/intro-of-nginx-module-development.html">入口</a></p>
 <p>解析Nginx负载均衡 <a href="http://stblog.baidu-tech.com/?p=2027">入口</a></p>
 <p>Nginx Rewrite研究笔记 <a href="http://blog.cafeneko.info/2010/10/nginx_rewrite_note/">入口</a></p>
-<h2>安装</h2>
-<h3>ubuntu下</h3>
+<h2 id="_3">安装</h2>
+<h3 id="ubuntu">ubuntu下</h3>
 <div class="codehilite"><pre>sudo apt-get install nginx
 
 启动
@@ -106,9 +110,7 @@ sudo service nginx start#通过ubuntu的服务管理器启动
 配置文件位置
 /etc/nginx/nginx.conf
 </pre></div>
-
-
-<h3>编译安装</h3>
+<h3 id="_4">编译安装</h3>
 <p>1.先决条件</p>
 <div class="codehilite"><pre>1.gcc
 apt-get install gcc
@@ -121,14 +123,10 @@ apt-get install openssl opensll-dev
 
 #如果非apt，可以使用下载包手动编译安装的方式处理
 </pre></div>
-
-
 <p>2.下载包</p>
 <div class="codehilite"><pre>www.nginx.net 下载稳定版
 wget http://nginx.org/download/nginx-1.4.4.tar.gz
 </pre></div>
-
-
 <p>3.解压安装</p>
 <div class="codehilite"><pre>tar -xzvf nginx-1.4.4.tar.gz
 #默认，安装目录/usr/local/nginx
@@ -143,21 +141,15 @@ make install
 
 安装后查看下目录下的Configuration summary
 </pre></div>
-
-
 <p>4.init脚本</p>
 <div class="codehilite"><pre>需要给nginx建立一个init脚本
 从网上捞一个，放入/etc/init.d/nginx
 </pre></div>
-
-
 <p>推荐编译配置</p>
 <div class="codehilite"><pre>1.使用不同prefix，方便指定不同版本,也便于升级
 ./configure --prefix=/usr/local/nginx-1.4.4
 </pre></div>
-
-
-<h2>基本操作</h2>
+<h2 id="_6">基本操作</h2>
 <div class="codehilite"><pre>查看帮助
 /usr/local/nginx/sbin/nginx -h
 
@@ -175,10 +167,8 @@ make install
 /usr/local/nginx/sbin/nginx -t #生产路径下的
 /usr/local/nginx/sbin/nginx -t -c /home/ken/tmp/test.conf #可以测试某个临时文件
 </pre></div>
-
-
-<h2>HTTP基本配置</h2>
-<h3>配置说明</h3>
+<h2 id="http">HTTP基本配置</h2>
+<h3 id="_7">配置说明</h3>
 <div class="codehilite"><pre>注释，#
 每条指令总是以分好结束(;)
 配置继承：在一个区块中嵌套其他区段，那么被嵌套的区段会继承其父区段的设置
@@ -186,9 +176,7 @@ make install
 单位：大小(k/K m/M) 时间值(ms/s/m/h/d/w/M/y 默认s)
 模块提供各种变量值，可以进行读取和赋值（每个模块提供变量列表需要自己去查）
 </pre></div>
-
-
-<h3>配置文件目录结构</h3>
+<h3 id="_8">配置文件目录结构</h3>
 <div class="codehilite"><pre>/usr/local/nginx/conf/
 
 - mime.types 一个文件扩展列表，它们与MIME类型关联
@@ -205,9 +193,7 @@ make install
 include sites/*.conf;
 include sites/*/*.conf;
 </pre></div>
-
-
-<h3>配置文件结构</h3>
+<h3 id="_9">配置文件结构</h3>
 <div class="codehilite"><pre>http { #嵌入配置文件的根部， 一个http里可以配置多个server
 
     server { #声明一个站点
@@ -244,41 +230,31 @@ include sites/*/*.conf;
     }
 }
 </pre></div>
-
-
-<h2>模块</h2>
-<h3>模块化</h3>
+<h2 id="_11">模块</h2>
+<h3 id="_12">模块化</h3>
 <p>nginx真正的魅力在于它的模块，整个应用程序建立在一个模块化系统之上，在编译时，可以对每一个模块进行启用或者禁用</p>
-<h3>index模块</h3>
+<h3 id="index">index模块</h3>
 <p>定义往回走哪index页</p>
 <div class="codehilite"><pre>index index.php index.html /data/website/index.html;
 #可以指定多个，但是ngxin提供第一个找到的文件
 </pre></div>
-
-
-<h3>Log模块</h3>
+<h3 id="log">Log模块</h3>
 <div class="codehilite"><pre>access_log /file/path;
 error_log /file/path error;  #level: debug/info/notice/warn/error/crit
 </pre></div>
-
-
 <p>日志格式</p>
-<div class="codehilite"><pre><span class="x">log_format main &#39;</span><span class="p">$</span><span class="nv">remote_addr</span><span class="x"> - </span><span class="p">$</span><span class="nv">remote_user</span><span class="x"> [</span><span class="p">$</span><span class="nv">time_local</span><span class="x">] &quot;</span><span class="p">$</span><span class="nv">request</span><span class="x">&quot; &#39;</span>
-<span class="x">&#39;</span><span class="p">$</span><span class="nv">status</span><span class="x"> </span><span class="p">$</span><span class="nv">body_bytes_sent</span><span class="x"> &quot;</span><span class="p">$</span><span class="nv">http_referer</span><span class="x">&quot; &#39;</span>
-<span class="x">&#39;&quot;</span><span class="p">$</span><span class="nv">http_user_agent</span><span class="x">&quot; </span><span class="p">$</span><span class="nv">http_x_forwarded_for</span><span class="x">&#39;;</span>
+<div class="codehilite"><pre><span class="x">log_format main '</span><span class="p">$</span><span class="nv">remote_addr</span><span class="x"> - </span><span class="p">$</span><span class="nv">remote_user</span><span class="x"> [</span><span class="p">$</span><span class="nv">time_local</span><span class="x">] "</span><span class="p">$</span><span class="nv">request</span><span class="x">" '</span>
+<span class="x">'</span><span class="p">$</span><span class="nv">status</span><span class="x"> </span><span class="p">$</span><span class="nv">body_bytes_sent</span><span class="x"> "</span><span class="p">$</span><span class="nv">http_referer</span><span class="x">" '</span>
+<span class="x">'"</span><span class="p">$</span><span class="nv">http_user_agent</span><span class="x">" </span><span class="p">$</span><span class="nv">http_x_forwarded_for</span><span class="x">';</span>
 
 <span class="x">access_log /var/log/test.log main;</span>
 </pre></div>
-
-
-<h3>Real IP模块</h3>
+<h3 id="real-ip">Real IP模块</h3>
 <p>默认编译nginx不包含这个模块</p>
 <p>当通过nginx将用户请求进行转发时，接收请求的应用要拿到用户的真实IP(经转发拿到的是服务器的IP)</p>
 <div class="codehilite"><pre>real_ip_header X-Forwarded-For;
 </pre></div>
-
-
-<h3>Access模块</h3>
+<h3 id="access">Access模块</h3>
 <p>可以禁用ip段</p>
 <p>语法</p>
 <div class="codehilite"><pre>#如果规则之间有冲突，会以最前面匹配的规则为准
@@ -291,8 +267,6 @@ deny    all;
 # allow all ips
 allow    all;
 </pre></div>
-
-
 <p>配置一个blockips.conf,然后在nginx.conf中include</p>
 <p>e.g</p>
 <div class="codehilite"><pre>location {
@@ -300,9 +274,7 @@ allow    all;
     deny all; #禁止其他ip
 }
 </pre></div>
-
-
-<h3>Rewrite模块</h3>
+<h3 id="rewrite">Rewrite模块</h3>
 <p>作用：执行URL重定向,允许你去掉带有恶意的URL，包含多个参数（修改）</p>
 <p>利用正则的匹配，分组和引用，达到目的</p>
 <p>break/return/set等</p>
@@ -317,8 +289,6 @@ allow    all;
 <span class="x">    rewrite ^ /search.php?q=</span><span class="p">$</span><span class="nv">query</span><span class="x">?;</span>
 <span class="x">}</span>
 </pre></div>
-
-
 <p>例子</p>
 <div class="codehilite"><pre><span class="n">A</span><span class="o">:</span><span class="n">http</span><span class="o">://</span><span class="n">website</span><span class="o">.</span><span class="na">com</span><span class="sr">/search/s</span><span class="n">ome</span><span class="o">-</span><span class="n">search</span><span class="o">-</span><span class="n">keywords</span>
 <span class="n">B</span><span class="o">:</span><span class="n">http</span><span class="o">://</span><span class="n">website</span><span class="o">.</span><span class="na">com</span><span class="o">/</span><span class="n">search</span><span class="o">.</span><span class="na">php</span><span class="o">?</span><span class="n">q</span><span class="o">=</span><span class="n">some</span><span class="o">-</span><span class="n">search</span><span class="o">-</span><span class="n">keywords</span>
@@ -332,8 +302,6 @@ allow    all;
 <span class="n">B</span><span class="o">:</span><span class="n">http</span><span class="o">://</span><span class="n">website</span><span class="o">.</span><span class="na">com</span><span class="sr">/index.php/</span><span class="o">?</span><span class="n">p1</span><span class="o">=</span><span class="n">param1</span><span class="o">&amp;</span><span class="n">p2</span><span class="o">=</span><span class="n">param2</span><span class="o">&amp;</span><span class="n">p3</span><span class="o">=</span><span class="n">param3</span>
 <span class="n">rewrite</span> <span class="o">^/</span><span class="n">index</span><span class="o">.</span><span class="na">php</span><span class="sr">/(.*)/(.*)/(.*)$ /i</span><span class="n">ndex</span><span class="o">.</span><span class="na">php</span><span class="o">?</span><span class="n">p1</span><span class="o">=</span><span class="n">$1</span><span class="o">&amp;</span><span class="n">p2</span><span class="o">=</span><span class="n">$2</span><span class="o">&amp;</span><span class="n">p3</span><span class="o">=</span><span class="n">$3</span><span class="o">?;</span>
 </pre></div>
-
-
 <p>rewrite语法</p>
 <div class="codehilite"><pre>rewrite A B option;
 options:
@@ -342,9 +310,7 @@ options:
         redirect:返回302临时重定向，地址栏会显示跳转后的地址
         permanent:返回301永久重定向，地址栏会显示跳转后的地址
 </pre></div>
-
-
-<h3>Proxy模块</h3>
+<h3 id="proxy">Proxy模块</h3>
 <p>默认模块，允许你讲客户端的HTTP请求转到后端服务器</p>
 <div class="codehilite"><pre><span class="nt">location</span> <span class="o">/</span> <span class="p">{</span>
     <span class="n">proxy_pass_header</span> <span class="n">Server</span><span class="p">;</span>  <span class="err">#该指令强制一些被忽略的头传递到客户端</span>
@@ -355,9 +321,7 @@ options:
     <span class="n">proxy_pass</span> <span class="n">http</span><span class="o">://</span><span class="n">localhost</span><span class="o">:</span><span class="m">8080</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
-
-
-<h3>upstream模块</h3>
+<h3 id="upstream">upstream模块</h3>
 <div class="codehilite"><pre><span class="nt">upstream</span> <span class="nt">up_name</span> <span class="p">{</span>
     <span class="n">server</span> <span class="m">192</span><span class="o">.</span><span class="m">168</span><span class="o">.</span><span class="m">0</span><span class="o">.</span><span class="m">1</span><span class="o">:</span><span class="m">9000</span> <span class="n">weight</span><span class="o">=</span><span class="m">5</span><span class="p">;</span> <span class="err">#权重</span>
     <span class="n">server</span> <span class="m">192</span><span class="o">.</span><span class="m">168</span><span class="o">.</span><span class="m">0</span><span class="o">.</span><span class="m">2</span><span class="o">:</span><span class="m">9000</span> <span class="n">weight</span><span class="o">=</span><span class="m">5</span> <span class="n">max_fails</span><span class="o">=</span><span class="m">5</span> <span class="n">fail_timeout</span><span class="o">=</span><span class="m">60s</span><span class="p">;</span> <span class="err">#在</span><span class="m">60s</span><span class="err">内，其错误通信超过</span><span class="m">5</span><span class="err">次</span><span class="o">,</span><span class="err">认为该服务失效</span>
@@ -365,19 +329,15 @@ options:
     <span class="n">server</span> <span class="m">192</span><span class="o">.</span><span class="m">168</span><span class="o">.</span><span class="m">0</span><span class="o">.</span><span class="m">4</span><span class="o">:</span><span class="m">9000</span> <span class="n">backup</span><span class="p">;</span> <span class="err">#备份服务器，其他全部宕机了才启用</span>
 <span class="p">}</span>
 </pre></div>
-
-
-<h2>其他</h2>
-<h3>配置静态化目录</h3>
+<h2 id="_14">其他</h2>
+<h3 id="_15">配置静态化目录</h3>
 <div class="codehilite"><pre>    location /static/
     {
         root /var/www/app/;
         autoindex off;
     }
 </pre></div>
-
-
-<h3>负载均衡</h3>
+<h3 id="_16">负载均衡</h3>
 <div class="codehilite"><pre><span class="nt">http</span> <span class="p">{</span>
     <span class="n">include</span> <span class="n">mime</span><span class="o">.</span><span class="n">types</span><span class="p">;</span>
     <span class="n">default_type</span> <span class="n">application</span><span class="o">/</span><span class="n">octet</span><span class="o">-</span><span class="n">stream</span><span class="p">;</span>
@@ -406,9 +366,7 @@ options:
 
 <span class="err">}</span>
 </pre></div>
-
-
-<h3>控制页面缓存</h3>
+<h3 id="_17">控制页面缓存</h3>
 <div class="codehilite"><pre><span class="nt">location</span> <span class="o">~</span> <span class="err">\</span><span class="o">.(</span><span class="nt">htm</span><span class="o">|</span><span class="nt">html</span><span class="o">|</span><span class="nt">gif</span><span class="o">|</span><span class="nt">jpg</span><span class="o">|</span><span class="nt">jpeg</span><span class="o">|</span><span class="nt">png</span><span class="o">|</span><span class="nt">bmp</span><span class="o">|</span><span class="nt">ico</span><span class="o">|</span><span class="nt">css</span><span class="o">|</span><span class="nt">js</span><span class="o">|</span><span class="nt">txt</span><span class="o">)$</span> <span class="p">{</span>
     <span class="n">root</span> <span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">webapp</span><span class="p">;</span>
     <span class="n">expires</span> <span class="m">24</span><span class="n">h</span><span class="p">;</span>
@@ -422,9 +380,7 @@ options:
 <span class="nt">expires</span> <span class="nt">max</span><span class="o">;</span>
 <span class="nt">expires</span> <span class="nt">off</span><span class="o">;</span>
 </pre></div>
-
-
-<h3>nginx的内置变量</h3>
+<h3 id="nginx">nginx的内置变量</h3>
 <div class="codehilite"><pre><span class="o">$</span><span class="nt">arg_PARAMETER</span> <span class="err">这个变量包含在查询字符串时</span><span class="nt">GET</span><span class="err">请求</span><span class="nt">PARAMETER</span><span class="err">的值。</span>
 <span class="o">$</span><span class="nt">args</span> <span class="err">这个变量等于请求行中的参数。</span>
 <span class="o">$</span><span class="nt">binary_remote_addr</span> <span class="err">二进制码形式的客户端地址。</span>
@@ -435,7 +391,7 @@ options:
 <span class="o">$</span><span class="nt">document_root</span> <span class="err">当前请求在</span><span class="nt">root</span><span class="err">指令中指定的值。</span>
 <span class="o">$</span><span class="nt">document_uri</span> <span class="err">与</span><span class="o">$</span><span class="nt">uri</span><span class="err">相同。</span>
 <span class="o">$</span><span class="nt">host</span> <span class="err">请求中的主机头字段，如果请求中的主机头不可用，则为服务器处理请求的服务器名称。</span>
-<span class="o">$</span><span class="nt">is_args</span> <span class="err">如果</span><span class="o">$</span><span class="nt">args</span><span class="err">设置，值为</span><span class="s2">&quot;?&quot;</span><span class="err">，否则为</span><span class="s2">&quot;&quot;</span><span class="err">。</span>
+<span class="o">$</span><span class="nt">is_args</span> <span class="err">如果</span><span class="o">$</span><span class="nt">args</span><span class="err">设置，值为</span><span class="s2">"?"</span><span class="err">，否则为</span><span class="s2">""</span><span class="err">。</span>
 <span class="o">$</span><span class="nt">limit_rate</span> <span class="err">这个变量可以限制连接速率。</span>
 <span class="o">$</span><span class="nt">nginx_version</span> <span class="err">当前运行的</span><span class="nt">nginx</span><span class="err">版本号。</span>
 <span class="o">$</span><span class="nt">query_string</span> <span class="err">与</span><span class="o">$</span><span class="nt">args</span><span class="err">相同。</span>

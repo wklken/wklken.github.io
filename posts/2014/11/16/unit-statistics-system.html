@@ -73,15 +73,19 @@
         <div class="meta"> &nbsp; </div>
         <h1> 基于 PostgreSQL 的数据统计系统 </h1>
     </section>
+
+        <section id="toc">
+            <html><body><div id="toc"><ul><li><a class="toc-href" href="#" title="基于 PostgreSQL 的数据统计系统">基于 PostgreSQL 的数据统计系统</a><ul><li><a class="toc-href" href="#_1" title="一. 场景">一. 场景</a></li><li><a class="toc-href" href="#_2" title="二. 处理思路">二. 处理思路</a></li><li><a class="toc-href" href="#_3" title="三. 具体">三. 具体</a></li><li><a class="toc-href" href="#0" title="0. 基本架构">0. 基本架构</a></li><li><a class="toc-href" href="#1" title="1. 日志格式">1. 日志格式</a></li><li><a class="toc-href" href="#2" title="2. 日志收集汇总">2. 日志收集汇总</a></li><li><a class="toc-href" href="#3" title="3. 导入容器处理">3. 导入容器处理</a></li><li><a class="toc-href" href="#4" title="4. 容器">4. 容器</a></li><li><a class="toc-href" href="#5" title="5. 批处理">5. 批处理</a></li><li><a class="toc-href" href="#6" title="6. 输出">6. 输出</a></li><li><a class="toc-href" href="#7" title="7. 统一查询层">7. 统一查询层</a></li><li><a class="toc-href" href="#8" title="8. 前端框架及展现">8. 前端框架及展现</a></li><li><a class="toc-href" href="#9" title="9. 图表">9. 图表</a></li><li><a class="toc-href" href="#10" title="10. 过程日志及监控">10. 过程日志及监控</a></li><li><a class="toc-href" href="#_4" title="四. 小结">四. 小结</a></li></ul></li></ul></div></body></html>
+        </section>
     <section id="content">
         <p>看到标题就知道我要写什么了, 这是之前一个项目的小结吧, 自己对统计的一些认识和看法.</p>
 <p>当时从前到后, 包括技术选型, 花了接近一个月的时间, 也在生产上用了两三个月, 一致在持续维护, 做完图表配置化已然接近完工, 无奈后来离开了, 不过目前应该还在运转</p>
 <p>至于源代码, 暂时不考虑开源, 太渣(其中在看了几天js情况下, 自己撸了1000行js的前端框架, 质量堪忧), 全套用python实现.</p>
 <p>提供一种快速实现运营统计需求的思路.</p>
 <p>(图为百度 echarts 示例)</p>
-<p><img alt="statistics" src="/imgs/system/statistics.png" /></p>
-<hr />
-<h3>一. 场景</h3>
+<p><img alt="statistics" src="/imgs/system/statistics.png"/></p>
+<hr/>
+<h3 id="_1">一. 场景</h3>
 <ul>
 <li>统计</li>
 </ul>
@@ -95,19 +99,15 @@
 </ul>
 <div class="codehilite"><pre>分析统计需求 -&gt; 修改项目记录日志内容和格式(到磁盘) -&gt; 自行将日志汇总到一台机器(rsync) -&gt; crontab脚本分析日志(要删或备份历史数据) -&gt; 新建db表, 存储统计结果 -&gt; 写管理后台, 查询统计结果(最繁琐) -&gt; 处理分页/图表等
 </pre></div>
-
-
 <p>虽然每次耗时或许并不会太长(0.5-2d, 视需求大小), 但对于不同项目和需求变更, 这些工作都是纯体力毫无技术含量的枯燥工作, 可以说是无意义的资源浪费.</p>
 <ul>
 <li>新的方式</li>
 </ul>
 <div class="codehilite"><pre>分析统计需求 -&gt; 确认日志内容和格式  -&gt; 统计后台配置输入/处理/输出逻辑 -&gt; 查看结果
 </pre></div>
-
-
 <p>说白了就是, 处理统计需求变成了 <code>写sql</code> + <code>配置</code></p>
-<hr />
-<h3>二. 处理思路</h3>
+<hr/>
+<h3 id="_2">二. 处理思路</h3>
 <ul>
 <li>大体思路如下(从后往前):</li>
 </ul>
@@ -120,8 +120,6 @@
 7. 提供前端框架组件, 可以通过配置调用统一查询接口, 并对数据进行分页及图表化
 8. 提供配置入口, 可以配置日志入口, 处理逻辑, 展现逻辑. 即完全地配置化
 </pre></div>
-
-
 <ul>
 <li>需要统一的地方:</li>
 </ul>
@@ -131,18 +129,14 @@
 查询接口
 前端组件
 </pre></div>
-
-
 <ul>
 <li>系统成型后</li>
 </ul>
 <div class="codehilite"><pre>增加/修改统计需求: 只需要在后台配置数据来源(日志), 处理逻辑(一段 sql), 展示逻辑(一段前端 json配置), 就可以实现图标
 </pre></div>
-
-
-<hr />
-<h3>三. 具体</h3>
-<h3>0. 基本架构</h3>
+<hr/>
+<h3 id="_3">三. 具体</h3>
+<h3 id="0">0. 基本架构</h3>
 <div class="codehilite"><pre>             ----------------------------------------------
             |      日志(UniteStats or ApplicationLogs)     |
              ----------------------------------------------
@@ -174,17 +168,15 @@
             |      [自定义前端-使用统一库-配置生成]   |
              ------------------------------------
 </pre></div>
-
-
-<h3>1. 日志格式</h3>
+<h3 id="1">1. 日志格式</h3>
 <p>日志, 即文本.</p>
-<p>但是文本存在各种格式, 例如常见的’\t’分隔的列, csv, json, xml等等.</p>
+<p>但是文本存在各种格式, 例如常见的&rsquo;\t&rsquo;分隔的列, csv, json, xml等等.</p>
 <p>这里的要求是: 一定要满足自描述, 易读(人), 易处理(生成和解析).</p>
 <p>最终选择了<code>json</code>. 将原先无结构数据转成半结构化数据.</p>
 <p>原因之一, <code>容器</code>对半结构化的数据支持已经非常完善了, 例如postgresql, mongodb等, 对于后续计算很重要.</p>
 <p>原因之二, 作为一个统一的平台, 我只在乎数据是一份日志, 但是不在乎, 日志里存了些什么, 每个字段的意义, 这些只有平台的使用者需要知道. 否则带来很大一个问题是, 对于使用者在新增或变更一份日志格式时, 需要明确告诉系统这份日志各个字段是什么(名称和类型), 复杂化了</p>
 <p>到这里, 我们统一了日志的格式, 记录为json, 每条记录一行.</p>
-<h3>2. 日志收集汇总</h3>
+<h3 id="2">2. 日志收集汇总</h3>
 <p>目的: 将日志汇总到同一台机器上, 便于统一处理</p>
 <p>命名规则: <code>$THE_LOG_PATH/{projectName}/{projectName}_{moduleName}_{ip}_{yyMMdd}.log</code> (示例)</p>
 <p>日志汇总的方案有很多:</p>
@@ -193,27 +185,21 @@ rsync
 nfs
 logstash
 </pre></div>
-
-
 <p>最终的处理方案: 数据量小, 同一个机房, 使用NFS将日志汇总到目录, 不同机房, 使用rsync进行汇总. 如果数据量大, 可以考虑使用logstash, 直接将日志经过节点处理实时写到一台机器上(就不要分别记录到各自磁盘了).</p>
 <p>扩展: 使用多台机器, 只要保证最终导入同一个库即可.(同一个项目, 同一天存在一张表, 不同机器的日志导入之)</p>
 <p>到这里, 我们将所有json格式的日志汇集到了一起</p>
-<h3>3. 导入容器处理</h3>
+<h3 id="3">3. 导入容器处理</h3>
 <p>目前每个项目的日志格式是,</p>
 <div class="codehilite"><pre>{projectName}/{projectName}_{moduleName}_{ip}_{yyMMdd}.log
 </pre></div>
-
-
 <p>我们会将同一个项目, 可能来自不同机器的日志导入同一张表</p>
 <div class="codehilite"><pre>{projectName}/{projectName}_{moduleName}_*_{yyMMdd}.log
 =&gt;
 table: projectName_moduleName_yyMMdd
 </pre></div>
-
-
 <p>处理方式: 批量入库, 并且清理保留日期外的表</p>
 <p>建议使用批量导入的方式, 速度杠杠的. Postgresql请使用copy命令</p>
-<h3>4. 容器</h3>
+<h3 id="4">4. 容器</h3>
 <p>一个计算容器, 仅此而已</p>
 <p>技术选型时, 考虑过Mysql/Mongdb/Redis/MariaDB/OrientDB/CouchDB/RethinkDB等等, 最终敲定使用postgresql, 无它, 对json的完美支持, 满足业务: 一定的数据量, 足够简单的统计方式, 足够稳定, 简单易运维等</p>
 <p>提下<code>redis</code>, 当时做了整套的<code>redis</code>方案(接口文档都明确完了就差写代码了), 但是后来毙掉了. (典型的拿着锤子满世界都是钉子的案例). 思想是: 流式日志处理, 根据业务需求使用redis counter, 主从, 后台从redis直接取counter进行展示. 脑洞很大, 可以搞定实时/非实时情况, 还可以顺带把各类业务中的counter需求给做了, 以及更为灵活的展现方式, 但是学习成本较高, 对每个写统计的人要求较高(素质, 具备正确的统计思维, 否则会悲剧掉). 再加上业务本身要求实时性并不高, 所以废弃.</p>
@@ -226,59 +212,45 @@ table: projectName_moduleName_yyMMdd
 4. 运维简单
 5. 对于开发而言几乎没有学习成本, 会sql再学习下postgresql的json查询
 </pre></div>
-
-
 <p>示例:
 假设搜索日志:</p>
-<div class="codehilite"><pre>{‘ip’: ‘127.0.0.1’,
- ‘keyword’: ‘test’,
- ‘result_count’: ‘1’,
+<div class="codehilite"><pre>{&lsquo;ip&rsquo;: &lsquo;127.0.0.1&rsquo;,
+ &lsquo;keyword&rsquo;: &lsquo;test&rsquo;,
+ &lsquo;result_count&rsquo;: &lsquo;1&rsquo;,
 }
 </pre></div>
-
-
 <p>统计 pv</p>
-<div class="codehilite"><pre>select count(data-&gt;&#39;ip&#39;) from search_20141101;
+<div class="codehilite"><pre>select count(data-&gt;'ip') from search_20141101;
 </pre></div>
-
-
 <p>统计 uv</p>
-<div class="codehilite"><pre>select count(DISTINCT data-&gt;&gt;&#39;ip&#39;) from search_20141101;
+<div class="codehilite"><pre>select count(DISTINCT data-&gt;&gt;'ip') from search_20141101;
 </pre></div>
-
-
 <p>无结果数</p>
-<div class="codehilite"><pre>select count(*) from search_20141101 where data-&gt;&gt;&#39;result_count&#39; = &#39;0&#39;;
+<div class="codehilite"><pre>select count(*) from search_20141101 where data-&gt;&gt;'result_count' = '0';
 </pre></div>
-
-
 <p>搜索热词排行榜</p>
-<div class="codehilite"><pre>select data-&gt;&gt;’keyword’, count(*)
+<div class="codehilite"><pre>select data-&gt;&gt;&rsquo;keyword&rsquo;, count(*)
 from search_20141101
-where data-&gt;&gt;&#39;result_count&#39; != &#39;0&#39;
-group by data-&gt;&gt;’keyword’
+where data-&gt;&gt;'result_count' != '0'
+group by data-&gt;&gt;&rsquo;keyword&rsquo;
 order by count(*) desc
 limit 100;
 </pre></div>
-
-
-<h3>5. 批处理</h3>
+<h3 id="5">5. 批处理</h3>
 <p>这里要做的事情, 需要有一个管理后台, 让开发可以配置上传自己的处理脚本, 设定脚本执行时间, 执行参数(处理日期/报告表名), 甚至是执行依赖.</p>
 <p>这里需要形成一个约定</p>
 <div class="codehilite"><pre>报告表名: projectName_statsModuleName
 报告表一些字段名(因为统一查询接口需要用到): 日期 date,
 其他约定字段
 </pre></div>
-
-
 <p>每天, 系统会扫描并调度任务, 执行, 处理得到统计结果, 存入报告表.</p>
 <p>到这里, 我们每天的统计结果都存入到了报告表中</p>
-<h3>6. 输出</h3>
+<h3 id="6">6. 输出</h3>
 <p>报告表, 是以时间为维度的, 每条记录带有日期, 每条记录细化到要统计到的精确维度.(具体表现是一个维度会多一列字段), 原则是, 需求分析时充分考虑当前及后续可能的统计需求(要预见还是蛮容易的), 直接将统计维度最细化.</p>
 <p>当然, 如果无法最细化, 后面存在变更, 可以修改统计脚本, 根据情况对历史数据进行重新统计.</p>
-<h3>7. 统一查询层</h3>
+<h3 id="7">7. 统一查询层</h3>
 <p>一层通用的接口, 支持传入表名, 条件, 需要结果字段, 格式等, 可以对系统中各类报告表进行各种形式的查询, 获取统计结果.</p>
-<h3>8. 前端框架及展现</h3>
+<h3 id="8">8. 前端框架及展现</h3>
 <p>是一整套的js款干啊</p>
 <p>分成几块</p>
 <ul>
@@ -287,43 +259,39 @@ limit 100;
 <p>配置示例:</p>
 <div class="codehilite"><pre>// 产生条件html
     var condition_configs = {
-        title: &quot;频道访问统计摘要&quot;,
+        title: "频道访问统计摘要",
         conditions: [
                 {
-                    type: &quot;date_begin_to_end&quot;, //开始结束日期选择框
+                    type: "date_begin_to_end", //开始结束日期选择框
                 },
                 {
-                    type: &quot;select&quot;,   //下拉框
-                    label: &quot;频道&quot;,
-                    id: &quot;channel&quot;,
+                    type: "select",   //下拉框
+                    label: "频道",
+                    id: "channel",
                     options: [
                         {
-                            text: &quot;所有&quot;,
-                            value: &quot;&quot;,
+                            text: "所有",
+                            value: "",
                         },
                         {
-                            text: &quot;快速访问&quot;,
-                            value: &quot;quickaccess&quot;,
+                            text: "快速访问",
+                            value: "quickaccess",
                         },
 
                     ]
                 },
                 {
-                    type: &quot;version&quot;, //文档框
+                    type: "version", //文档框
                 },
         ]
     };
 </pre></div>
-
-
 <p>就会自动生成表单</p>
 <div class="codehilite"><pre><span class="n">begin_date</span><span class="o">:</span>
 <span class="n">end_date</span><span class="o">:</span>
 <span class="n">channel</span><span class="o">:</span>
 <span class="n">version</span><span class="o">:</span>
 </pre></div>
-
-
 <ul>
 <li>
 <p>组合查询条件: 表单提交时, 根据json配置, 将表单内容/字段/值/表等, 拼接成统一查询层接口需要的请求串</p>
@@ -335,51 +303,49 @@ limit 100;
 <p>一个配置示例:</p>
 <div class="codehilite"><pre><span class="x">一般文本</span>
 <span class="err">{</span><span class="x"></span>
-<span class="x">    &#39;column&#39;: &#39;date&#39;,</span>
-<span class="x">    &#39;name&#39;: &#39;日期&#39;,</span>
-<span class="x">    &#39;type&#39;: &#39;text&#39;,</span>
+<span class="x">    'column': 'date',</span>
+<span class="x">    'name': '日期',</span>
+<span class="x">    'type': 'text',</span>
 <span class="x">},</span>
 
 <span class="x">百分比 </span><span class="p">$</span><span class="x">后面跟的是sql查询结果列名</span>
 <span class="err">{</span><span class="x"></span>
-<span class="x">    &#39;column&#39;: &#39;uninstall_ratio&#39;,</span>
-<span class="x">    &#39;name&#39;: &#39;卸载率&#39;,</span>
-<span class="x">    &#39;type&#39;: &#39;ratio&#39;,</span>
-<span class="x">    &#39;value&#39;: &#39;</span><span class="p">$</span><span class="nv">uninstall_pv</span><span class="x">/</span><span class="p">$</span><span class="nv">install_pv</span><span class="x">&#39;</span>
+<span class="x">    'column': 'uninstall_ratio',</span>
+<span class="x">    'name': '卸载率',</span>
+<span class="x">    'type': 'ratio',</span>
+<span class="x">    'value': '</span><span class="p">$</span><span class="nv">uninstall_pv</span><span class="x">/</span><span class="p">$</span><span class="nv">install_pv</span><span class="x">'</span>
 <span class="x">},</span>
 
 <span class="x">公式计算</span>
 <span class="err">{</span><span class="x"></span>
-<span class="x">    &#39;column&#39;: &#39;the_qvod_link_pv&#39;,</span>
-<span class="x">    &#39;name&#39;: &#39;导入链接数&#39;,</span>
-<span class="x">    &#39;type&#39;: &#39;calculate&#39;,</span>
-<span class="x">    &#39;value&#39;: &#39;</span><span class="p">$</span><span class="nv">qvod_link_pv</span><span class="x"> + </span><span class="p">$</span><span class="nv">qvod_start_pv</span><span class="x">&#39;</span>
+<span class="x">    'column': 'the_qvod_link_pv',</span>
+<span class="x">    'name': '导入链接数',</span>
+<span class="x">    'type': 'calculate',</span>
+<span class="x">    'value': '</span><span class="p">$</span><span class="nv">qvod_link_pv</span><span class="x"> + </span><span class="p">$</span><span class="nv">qvod_start_pv</span><span class="x">'</span>
 <span class="x">},</span>
 
 <span class="x">列值翻译</span>
 <span class="err">{</span><span class="x"></span>
-<span class="x">    &#39;column&#39;: &#39;channel&#39;,</span>
-<span class="x">    &#39;name&#39;: &#39;渠道&#39;,</span>
-<span class="x">    &#39;type&#39;: &#39;text&#39;,</span>
-<span class="x">    &#39;translation&#39;: </span><span class="err">{</span><span class="x"></span>
-<span class="x">        &quot;all&quot;: &quot;all&quot;,</span>
-<span class="x">        &quot;player&quot;: &quot;播放器&quot;,</span>
-<span class="x">        &quot;zx&quot;: &quot;资讯&quot;,</span>
-<span class="x">        &quot;other&quot;: &quot;其他导入&quot;,</span>
+<span class="x">    'column': 'channel',</span>
+<span class="x">    'name': '渠道',</span>
+<span class="x">    'type': 'text',</span>
+<span class="x">    'translation': </span><span class="err">{</span><span class="x"></span>
+<span class="x">        "all": "all",</span>
+<span class="x">        "player": "播放器",</span>
+<span class="x">        "zx": "资讯",</span>
+<span class="x">        "other": "其他导入",</span>
 <span class="x">    }</span>
 <span class="x">},</span>
 </pre></div>
-
-
-<h3>9. 图表</h3>
+<h3 id="9">9. 图表</h3>
 <p>使用百度 <a href="http://echarts.baidu.com/">echats</a></p>
 <p>可以根据配置, 将统一查询层的接口返回数据直接灌入echats, 生成表单</p>
-<h3>10. 过程日志及监控</h3>
+<h3 id="10">10. 过程日志及监控</h3>
 <p>需要一组管理表, 进行任务配置/调度/执行/执行结果, 整个过程中的操作可以配置和查看, 用于监控.</p>
-<hr />
-<h3>四. 小结</h3>
+<hr/>
+<h3 id="_4">四. 小结</h3>
 <blockquote>
-<p>It’s Simple, but it works.</p>
+<p>It&rsquo;s Simple, but it works.</p>
 </blockquote>
 <p>数据情况, 当时大概每天 10G 日志 load 到库(处理前&gt;10G), 每天日志数据大概是五千万条, 具体业务上了大概40个的样子, 每天30分钟左右处理完. 对于开发的改进是, 将原先0.5-2d的工作, 缩减到了1-2小时, 对生产力的提升较为显著.(对于日志数多且单一日志量较小的情况处理尤为便捷)</p>
 <p>适用范围: 对于一般团队应该足够了(流量百万级别), 每个项目每天3-5百万访问量, 日志数据10-20G, 当然, 一直没机会测试上限, 不过只要PostGresql能抗住, 量再大些应该也ok.(可以考虑上elasticsearch)</p>

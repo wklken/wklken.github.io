@@ -73,13 +73,17 @@
         <div class="meta"> &nbsp; </div>
         <h1> 如何书写shell脚本 </h1>
     </section>
+
+        <section id="toc">
+            <html><body><div id="toc"><ul><li><a class="toc-href" href="#" title="如何书写shell脚本">如何书写shell脚本</a><ul><li><a class="toc-href" href="#_1" title="第一部分 一些概念">第一部分 一些概念</a></li><li><a class="toc-href" href="#shell" title="第二部分 shell脚本">第二部分 shell脚本</a></li><li><a class="toc-href" href="#_2" title="第三部分 变量">第三部分 变量</a><ul><li><a class="toc-href" href="#1" title="1.变量赋值">1.变量赋值</a></li><li><a class="toc-href" href="#2" title="2.分类">2.分类</a></li><li><a class="toc-href" href="#3" title="3.环境变量">3.环境变量</a></li><li><a class="toc-href" href="#4" title="4.本地变量">4.本地变量</a></li><li><a class="toc-href" href="#5" title="5.位置变量">5.位置变量</a></li><li><a class="toc-href" href="#6" title="6.字符串处理">6.字符串处理</a></li><li><a class="toc-href" href="#7" title="7.数值处理">7.数值处理</a></li></ul></li><li><a class="toc-href" href="#_4" title="第四部分 控制流">第四部分 控制流</a><ul><li><a class="toc-href" href="#1_1" title="1.条件测试">1.条件测试</a></li><li><a class="toc-href" href="#2if-elsecase" title="2.分支if-else/case">2.分支if-else/case</a></li><li><a class="toc-href" href="#3forwhileuntil" title="3.循环for/while/until">3.循环for/while/until</a></li></ul></li><li><a class="toc-href" href="#_6" title="第五部分 函数">第五部分 函数</a><ul><li><a class="toc-href" href="#1_2" title="1.函数定义">1.函数定义</a></li><li><a class="toc-href" href="#2_2" title="2.参数传递">2.参数传递</a></li><li><a class="toc-href" href="#3_1" title="3.返回值和退出状态">3.返回值和退出状态</a></li></ul></li><li><a class="toc-href" href="#_8" title="第四部分 高级">第四部分 高级</a></li><li><a class="toc-href" href="#_9" title="第五部分 其他">第五部分 其他</a></li></ul></li></ul></div></body></html>
+        </section>
     <section id="content">
         <p>关于Linux基础命令，可以查看另一篇博文 <a href="http://wklken.me/posts/2013/07/04/note-of-linux-shell-scripting-cookbook.html">Linux Shell脚本攻略笔记</a></p>
 <p>以下内容，主要是，了解书写shell脚本所需要的大部分知识,主要内容来自于书籍和网络</p>
 <p>目的是，能快速书写出需要的shell脚本</p>
 <p>开始</p>
 <p>version 0.1 2014-01-12 基本内容, 完成度30%</p>
-<hr />
+<hr/>
 <p>资源</p>
 <p><a href="http://google-styleguide.googlecode.com/svn/trunk/shell.xml">google shell style guide</a></p>
 <p><a href="http://wklken.me/posts/2013/07/04/note-of-linux-shell-scripting-cookbook.html">Linux Shell脚本攻略笔记</a></p>
@@ -87,16 +91,14 @@
 <p><a href="http://kodango.com/bash-pitfalls-part-1">Bash编程易犯的错误 1234</a></p>
 <p><a href="http://blog.jobbole.com/16604/">关于shell脚本编程的10个最佳实践</a></p>
 <p><a href="http://bash.cumulonim.biz/BashPitfalls.html">Bash Pitfalls</a></p>
-<hr />
-<h2>第一部分 一些概念</h2>
+<hr/>
+<h2 id="_1">第一部分 一些概念</h2>
 <p>标准IO</p>
 <div class="codehilite"><pre>文件描述符
 0 标准输入 默认键盘
 1 标准输出 默认终端
 2 标准错误 默认终端
 </pre></div>
-
-
 <p>重定向</p>
 <div class="codehilite"><pre>&gt; 输出重定向
 &gt;&gt; 追加到输出重定向
@@ -107,22 +109,16 @@ ls -l &gt; /tmp/a
 
 cmd &gt;/dev/null 2&gt;&amp;1 #输出到垃圾桶
 </pre></div>
-
-
 <p>管道</p>
 <div class="codehilite"><pre>前后连接两个命令
 
 ls -l | grep test
 </pre></div>
-
-
 <p>引号</p>
 <div class="codehilite"><pre><span class="x">双引号：可以除了字符</span><span class="p">$</span><span class="x">`\外地任何字符或字符串</span>
 <span class="x">单引号：忽略任何引用值，将引号里的所有字符作为一个字符串 </span><span class="p">$</span><span class="nv">var</span><span class="x"> 不能被解析</span>
 <span class="x">反引号：设置系统命令输出到变量</span>
 </pre></div>
-
-
 <p>shell脚本识别三种基本命令：内建命令，shell函数和外部命令</p>
 <p>基本的命令查找:shell会沿着查找路径$PATH来寻找命令</p>
 <div class="codehilite"><pre><span class="x">echo </span><span class="p">$</span><span class="nv">PATH</span><span class="x"></span>
@@ -130,8 +126,6 @@ ls -l | grep test
 <span class="x">可以在.profile文件中修改</span>
 <span class="x">export PATH=</span><span class="p">$</span><span class="nv">PATH</span><span class="x">:</span><span class="p">$</span><span class="nv">HOME</span><span class="x">/bin</span>
 </pre></div>
-
-
 <p>and/or</p>
 <div class="codehilite"><pre>expression1 &amp;&amp; expression2 &amp;&amp; expression3
 只有前面一条命令执行成功，才执行下一条
@@ -141,10 +135,8 @@ expression1执行成功，才执行expression2
 expression1 || expression2 || expression3
 执行命令，直到有一条成功为止
 </pre></div>
-
-
-<hr />
-<h2>第二部分 shell脚本</h2>
+<hr/>
+<h2 id="shell">第二部分 shell脚本</h2>
 <p>首行声明使用bash(声明脚本执行解释器)</p>
 <div class="codehilite"><pre><span class="c">#!/bin/bash</span>
 
@@ -152,8 +144,6 @@ expression1 || expression2 || expression3
 
 <span class="nb">exit </span>0/n
 </pre></div>
-
-
 <p>运行</p>
 <div class="codehilite"><pre>sh xx.sh
 bash xx.sh #大部分情况下两个一样，某些命令只有bash有，只能用这个
@@ -163,8 +153,6 @@ or
 chmod u+x xx.sh
 ./xx.sh
 </pre></div>
-
-
 <p>调试</p>
 <div class="codehilite"><pre><span class="err">#</span><span class="x">查看运行时，每个命令回显，执行之后回显</span>
 <span class="x">sh -x xx.sh</span>
@@ -179,13 +167,11 @@ chmod u+x xx.sh
 <span class="x">sh -u xx.sh</span>
 
 <span class="err">#</span><span class="x">调试部分脚本</span>
-<span class="x">echo &quot;Hello </span><span class="p">$</span><span class="nv">USER</span><span class="x">,&quot;</span>
+<span class="x">echo "Hello </span><span class="p">$</span><span class="nv">USER</span><span class="x">,"</span>
 <span class="x">set -x</span>
-<span class="x">echo &quot;Today is </span><span class="p">$(</span><span class="err">date</span> <span class="err">%Y-%m-%d</span><span class="p">)</span><span class="x">&quot;</span>
+<span class="x">echo "Today is </span><span class="p">$(</span><span class="err">date</span> <span class="err">%Y-%m-%d</span><span class="p">)</span><span class="x">"</span>
 <span class="x">set +x</span>
 </pre></div>
-
-
 <p>判断执行结果</p>
 <div class="codehilite"><pre>N=$?  #0 &lt;= N &lt;= 255
 
@@ -196,40 +182,34 @@ chmod u+x xx.sh
     127命令找不到
     &gt;128命令因收到信号而死亡
 </pre></div>
-
-
 <p>获取目录名和文件名</p>
 <div class="codehilite"><pre><span class="err">#</span><span class="x"> To find base directory</span>
-<span class="x">APP_ROOT=`dirname &quot;</span><span class="p">$</span><span class="x">0&quot;`</span>
+<span class="x">APP_ROOT=`dirname "</span><span class="p">$</span><span class="x">0"`</span>
 
 <span class="err">#</span><span class="x"> To find the file name</span>
-<span class="x">filename=`basename &quot;</span><span class="p">$</span><span class="nv">filepath</span><span class="x">&quot;`</span>
+<span class="x">filename=`basename "</span><span class="p">$</span><span class="nv">filepath</span><span class="x">"`</span>
 
 <span class="err">#</span><span class="x"> To find the file name without extension</span>
-<span class="x">filename=`basename &quot;</span><span class="p">$</span><span class="nv">filepath</span><span class="x">&quot; .html`</span>
+<span class="x">filename=`basename "</span><span class="p">$</span><span class="nv">filepath</span><span class="x">" .html`</span>
 
 <span class="x">e.g.</span>
 <span class="x">BASEDIR=</span><span class="p">$(</span><span class="err">dirname</span> <span class="p">$</span><span class="m">0</span><span class="p">)</span><span class="x"></span>
 <span class="x">cd </span><span class="p">$</span><span class="nv">BASEDIR</span><span class="x"></span>
 <span class="x">CURRENT_DIR=`pwd`</span>
 </pre></div>
-
-
 <p>日期</p>
 <div class="codehilite"><pre><span class="x">TODAY=`date +%Y%m%d`</span>
-<span class="x">DAY_1_AGO=`date -d &quot;</span><span class="p">$</span><span class="nv">TODAY</span><span class="x"> 1 days ago&quot; +%Y%m%d`</span>
+<span class="x">DAY_1_AGO=`date -d "</span><span class="p">$</span><span class="nv">TODAY</span><span class="x"> 1 days ago" +%Y%m%d`</span>
 
 <span class="x">常用接受日期/使用默认日期处理</span>
 
-<span class="x">if [ -n &quot;</span><span class="p">$</span><span class="x">1&quot; ]</span>
+<span class="x">if [ -n "</span><span class="p">$</span><span class="x">1" ]</span>
 <span class="x">then</span>
-<span class="x">    TODAY=&quot;</span><span class="p">$</span><span class="x">1&quot;</span>
+<span class="x">    TODAY="</span><span class="p">$</span><span class="x">1"</span>
 <span class="x">else</span>
 <span class="x">    TODAY=`date +%Y%m%d`</span>
 <span class="x">fi</span>
 </pre></div>
-
-
 <p>crontab调度</p>
 <div class="codehilite"><pre>查看
 crontab -l
@@ -257,19 +237,15 @@ n1-n2   时段，一个时段内
 0 1,5 * * * sh run.sh 每天1点和5点
 * * * * * sh run.sh 每分钟执行一次
 </pre></div>
-
-
-<hr />
-<h2>第三部分 变量</h2>
-<h4>1.变量赋值</h4>
-<div class="codehilite"><pre>varname=&quot;value&quot;
+<hr/>
+<h2 id="_2">第三部分 变量</h2>
+<h4 id="1">1.变量赋值</h4>
+<div class="codehilite"><pre>varname="value"
 varname=`expression`
 
 注意，等号两边必须不能包含空格
 </pre></div>
-
-
-<h4>2.分类</h4>
+<h4 id="2">2.分类</h4>
 <div class="codehilite"><pre>四种变量：环境变量、本地变量、位置变量、特定变量参数
 
 环境变量可作用于所有子进程
@@ -277,20 +253,18 @@ varname=`expression`
 位置变量：作为程序参数
 特定变量：特殊作用
 </pre></div>
-
-
-<h4>3.环境变量</h4>
+<h4 id="3">3.环境变量</h4>
 <div class="codehilite"><pre><span class="x">设置</span>
-<span class="x">MYVAR=&quot;test&quot;</span>
+<span class="x">MYVAR="test"</span>
 <span class="x">expirt MYVAR</span>
 <span class="x">or</span>
-<span class="x">export MYVAR=&quot;test&quot;</span>
+<span class="x">export MYVAR="test"</span>
 
 <span class="x">只读</span>
-<span class="x">MYVAR=&quot;test&quot;</span>
+<span class="x">MYVAR="test"</span>
 <span class="x">readonly MYVAR</span>
 <span class="x">or</span>
-<span class="x">readonly MYVAR=&quot;test&quot;</span>
+<span class="x">readonly MYVAR="test"</span>
 
 <span class="x">显示</span>
 <span class="x">export -p</span>
@@ -300,29 +274,23 @@ varname=`expression`
 <span class="x">消除</span>
 <span class="x">unset MYVAR</span>
 </pre></div>
-
-
-<h4>4.本地变量</h4>
+<h4 id="4">4.本地变量</h4>
 <div class="codehilite"><pre>设置
-LOCAL_VAR=&quot;test&quot;
+LOCAL_VAR="test"
 or
-LOCAL_VAR=&quot;test&quot;
+LOCAL_VAR="test"
 readonly LOCAL_VAR #设置只读
 
 还可以使用declare命令定义
 </pre></div>
-
-
-<h4>5.位置变量</h4>
+<h4 id="5">5.位置变量</h4>
 <div class="codehilite"><pre><span class="p">$</span><span class="x">0 脚本名称</span>
 <span class="p">$</span><span class="err">#</span><span class="x"> 传递到脚本参数个数</span>
 <span class="p">$$</span><span class="x"> shell脚本运行当前进程ID</span>
 <span class="p">$</span><span class="x">? 退出状态</span>
 <span class="p">$</span><span class="nv">N</span><span class="x"> N&gt;=1，第n个参数</span>
 </pre></div>
-
-
-<h4>6.字符串处理</h4>
+<h4 id="6">6.字符串处理</h4>
 <p>长度</p>
 <div class="codehilite"><pre><span class="cp">${</span><span class="c">#VARIABLE_NAME</span><span class="cp">}</span> 可以给出字符串的长度。
 
@@ -331,40 +299,30 @@ then
     return <span class="nv">$FAIL</span>
 fi
 </pre></div>
-
-
 <p>拼接字符串</p>
-<div class="codehilite"><pre><span class="x">echo &quot;</span><span class="p">$</span><span class="nv">x</span><span class="p">$</span><span class="nv">y</span><span class="x">&quot;</span>
+<div class="codehilite"><pre><span class="x">echo "</span><span class="p">$</span><span class="nv">x</span><span class="p">$</span><span class="nv">y</span><span class="x">"</span>
 </pre></div>
-
-
 <p>字符串切片</p>
 <div class="codehilite"><pre><span class="cp">${</span><span class="err">变量名</span><span class="p">:</span><span class="err">起始</span><span class="p">:</span><span class="err">长度</span><span class="cp">}</span>得到子字符串
 
-$ test=&#39;I love china&#39;
+$ test='I love china'
 $ echo <span class="cp">${</span><span class="n">test</span><span class="p">:</span><span class="mi">5</span><span class="cp">}</span>
 e china
 $ echo <span class="cp">${</span><span class="n">test</span><span class="p">:</span><span class="mi">5</span><span class="p">:</span><span class="mi">10</span><span class="cp">}</span>
 e china
 
-str=&quot;hello world&quot;
+str="hello world"
 echo <span class="cp">${</span><span class="nb">str</span><span class="p">:</span><span class="mi">6</span><span class="cp">}</span>  # <span class="cp">${</span><span class="n">var</span><span class="p">:</span><span class="n">offset</span><span class="p">:</span><span class="n">length</span><span class="cp">}</span>
 </pre></div>
-
-
 <p>字符串替换</p>
-<div class="codehilite"><pre><span class="cp">${</span><span class="err">变量</span><span class="o">/</span><span class="err">查找</span><span class="o">/</span><span class="err">替换值</span><span class="cp">}</span> 一个“/”表示替换第一个，”//”表示替换所有,当查找中出现了：”/”请加转义符”\/”表示
+<div class="codehilite"><pre><span class="cp">${</span><span class="err">变量</span><span class="o">/</span><span class="err">查找</span><span class="o">/</span><span class="err">替换值</span><span class="cp">}</span> 一个&ldquo;/&rdquo;表示替换第一个，&rdquo;//&rdquo;表示替换所有,当查找中出现了：&rdquo;/&rdquo;请加转义符&rdquo;\/&rdquo;表示
 echo <span class="cp">${</span><span class="nb">str</span><span class="o">/</span><span class="n">foo</span><span class="o">/</span><span class="n">bar</span><span class="cp">}</span> #首个
 echo <span class="cp">${</span><span class="nb">str</span><span class="o">//</span><span class="n">foo</span><span class="o">/</span><span class="n">bar</span><span class="cp">}</span> #所有
 </pre></div>
-
-
 <p>正则匹配</p>
 <div class="codehilite"><pre><span class="x">if [[ </span><span class="p">$</span><span class="nv">str</span><span class="x"> =~ [0-9]+\.[0-9]+ ]]</span>
 </pre></div>
-
-
-<h4>7.数值处理</h4>
+<h4 id="7">7.数值处理</h4>
 <p>自增</p>
 <div class="codehilite"><pre>a=1
 a=`expr a + 1`
@@ -375,52 +333,40 @@ a=1
 let a++
 let a+=2
 </pre></div>
-
-
 <p>let</p>
 <div class="codehilite"><pre>no1=4
 no2=5
 let result=no1+no2
 </pre></div>
-
-
 <p>expr</p>
 <div class="codehilite"><pre><span class="x">result=`expr 3 + 4`</span>
 <span class="x">result=</span><span class="p">$(</span><span class="err">expr</span> <span class="p">$</span><span class="nv">no1</span> <span class="err">+</span> <span class="m">5</span><span class="p">)</span><span class="x"></span>
 </pre></div>
-
-
 <p>其他</p>
 <div class="codehilite"><pre><span class="x">result=</span><span class="p">$</span><span class="x">[ no1 + no2 ]</span>
 <span class="x">result=</span><span class="p">$</span><span class="x">[ </span><span class="p">$</span><span class="nv">no</span><span class="x"> + 5 ]</span>
 
 <span class="x">result=</span><span class="p">$((</span> <span class="err">no1</span> <span class="err">+</span> <span class="m">5</span> <span class="p">))</span><span class="x"></span>
 </pre></div>
-
-
 <p>浮点数</p>
-<div class="codehilite"><pre>echo &quot;4 * 0.56&quot; | bc
+<div class="codehilite"><pre>echo "4 * 0.56" | bc
 设定精度
-echo &quot;scale=2;3/8&quot; | bc
+echo "scale=2;3/8" | bc
 进制转换
-echo &quot;obase=2;100&quot; | bc
+echo "obase=2;100" | bc
 平方
-echo &quot;sqrt(100)&quot; | bc
+echo "sqrt(100)" | bc
 </pre></div>
-
-
 <p>数组和map</p>
-<hr />
-<h2>第四部分 控制流</h2>
-<h4>1.条件测试</h4>
+<hr/>
+<h2 id="_4">第四部分 控制流</h2>
+<h4 id="1_1">1.条件测试</h4>
 <p>语法</p>
 <div class="codehilite"><pre>test condition
 [ condition ] #注意两边加空格
 
 $? #获取判断结果，0表示condition=true
 </pre></div>
-
-
 <p>条件测试中的逻辑</p>
 <div class="codehilite"><pre><span class="x">-a 与</span>
 <span class="x">-o 或</span>
@@ -428,22 +374,18 @@ $? #获取判断结果，0表示condition=true
 <span class="x">&amp;&amp;</span>
 <span class="x">||</span>
 
-<span class="x">if [ -n &quot;</span><span class="p">$</span><span class="nv">str</span><span class="x">&quot; -a -f &quot;</span><span class="p">$</span><span class="nv">file</span><span class="x">&quot; ]</span>
-<span class="x">if [ -n &quot;</span><span class="p">$</span><span class="nv">str</span><span class="x">&quot; ] &amp;&amp; [ -f &quot;</span><span class="p">$</span><span class="nv">file</span><span class="x">&quot; ]</span>
+<span class="x">if [ -n "</span><span class="p">$</span><span class="nv">str</span><span class="x">" -a -f "</span><span class="p">$</span><span class="nv">file</span><span class="x">" ]</span>
+<span class="x">if [ -n "</span><span class="p">$</span><span class="nv">str</span><span class="x">" ] &amp;&amp; [ -f "</span><span class="p">$</span><span class="nv">file</span><span class="x">" ]</span>
 </pre></div>
-
-
 <p>字符串测试</p>
 <div class="codehilite"><pre><span class="x">=   两字符串相等</span>
 <span class="x">!=  两字符串不等</span>
 <span class="x">-z  空串 [zero]</span>
 <span class="x">-n  非空串 [nozero]</span>
 
-<span class="x">[ -z &quot;</span><span class="p">$</span><span class="nv">EDITOR</span><span class="x">&quot; ]</span>
-<span class="x">[ &quot;</span><span class="p">$</span><span class="nv">EDITOR</span><span class="x">&quot; = &quot;vi&quot; ]</span>
+<span class="x">[ -z "</span><span class="p">$</span><span class="nv">EDITOR</span><span class="x">" ]</span>
+<span class="x">[ "</span><span class="p">$</span><span class="nv">EDITOR</span><span class="x">" = "vi" ]</span>
 </pre></div>
-
-
 <p>数值测试</p>
 <div class="codehilite"><pre><span class="x">-eq  数值相等（equal）</span>
 <span class="x">-ne  不等（not equal）</span>
@@ -453,10 +395,8 @@ $? #获取判断结果，0表示condition=true
 <span class="x">-ge  A&gt;=B（greater、equal）</span>
 
 <span class="x">N=130</span>
-<span class="x">[ &quot;</span><span class="p">$</span><span class="nv">N</span><span class="x">&quot; -eq 130 ]</span>
+<span class="x">[ "</span><span class="p">$</span><span class="nv">N</span><span class="x">" -eq 130 ]</span>
 </pre></div>
-
-
 <p>文件测试</p>
 <div class="codehilite"><pre>-d目录
 -f 普通文件（Regular file）
@@ -476,9 +416,7 @@ $? #获取判断结果，0表示condition=true
 -g 如果文件的set-group-id位被设置则结果为真
 -u 文件有suid位设置
 </pre></div>
-
-
-<h4>2.分支if-else/case</h4>
+<h4 id="2if-elsecase">2.分支if-else/case</h4>
 <p>if-else语法</p>
 <div class="codehilite"><pre>if condition1
 then
@@ -496,24 +434,20 @@ if condition; then
 # do something
 fi
 </pre></div>
-
-
 <p>case语法</p>
 <div class="codehilite"><pre><span class="x">case </span><span class="p">$</span><span class="nv">VAR</span><span class="x"> in</span>
 <span class="x">    1)</span>
-<span class="x">        echo &quot;abc&quot;</span>
+<span class="x">        echo "abc"</span>
 <span class="x">        ;;</span>
 <span class="x">    2|3|4)</span>
-<span class="x">        echo &quot;def&quot;</span>
+<span class="x">        echo "def"</span>
 <span class="x">        ;;</span>
 <span class="x">    *)</span>
-<span class="x">        echo &quot;last&quot;</span>
+<span class="x">        echo "last"</span>
 <span class="x">        ;;</span>
 <span class="x">esac</span>
 </pre></div>
-
-
-<h4>3.循环for/while/until</h4>
+<h4 id="3forwhileuntil">3.循环for/while/until</h4>
 <p>for语法</p>
 <div class="codehilite"><pre><span class="x">for VARIABLE in 1 2 3 4 5 .. N</span>
 <span class="x">do</span>
@@ -542,10 +476,10 @@ fi
 <span class="x">done</span>
 
 <span class="err">#</span><span class="x">!/bin/bash</span>
-<span class="x">echo &quot;Bash version&quot;</span>
+<span class="x">echo "Bash version"</span>
 <span class="x">for i in </span><span class="p">$(</span><span class="err">seq</span> <span class="m">1</span> <span class="m">2</span> <span class="m">20</span><span class="p">)</span><span class="x"></span>
 <span class="x">do</span>
-<span class="x">   echo &quot;Welcome </span><span class="p">$</span><span class="nv">i</span><span class="x"> times&quot;</span>
+<span class="x">   echo "Welcome </span><span class="p">$</span><span class="nv">i</span><span class="x"> times"</span>
 <span class="x">done</span>
 
 <span class="x">for i in </span><span class="err">{</span><span class="x">1..5}; do</span>
@@ -553,10 +487,10 @@ fi
 <span class="x">done</span>
 
 <span class="err">#</span><span class="x">!/bin/bash</span>
-<span class="x">echo &quot;Bash version&quot;</span>
+<span class="x">echo "Bash version"</span>
 <span class="x">for i in </span><span class="err">{</span><span class="x">0..10..2}</span>
 <span class="x">do</span>
-<span class="x">    echo &quot;Welcome </span><span class="p">$</span><span class="nv">i</span><span class="x"> times&quot;</span>
+<span class="x">    echo "Welcome </span><span class="p">$</span><span class="nv">i</span><span class="x"> times"</span>
 <span class="x">done</span>
 
 <span class="x">for ((i=1; i&lt;=10; i++)); do</span>
@@ -567,11 +501,9 @@ fi
 <span class="err">#</span><span class="x">!/bin/bash</span>
 <span class="x">for (( ; ; ))</span>
 <span class="x">do</span>
-<span class="x">   echo &quot;infinite loops [ hit CTRL+C to stop]&quot;</span>
+<span class="x">   echo "infinite loops [ hit CTRL+C to stop]"</span>
 <span class="x">done</span>
 </pre></div>
-
-
 <p>while</p>
 <div class="codehilite"><pre><span class="x">while condition</span>
 <span class="x">do</span>
@@ -592,8 +524,6 @@ fi
 <span class="x">    //</span>
 <span class="x">done</span>
 </pre></div>
-
-
 <p>until</p>
 <div class="codehilite"><pre>#执行命令，直到条件为真，至少执行一次，可以用来做监控，condition每次都回去检查
 until condition
@@ -601,8 +531,6 @@ do
     //do something
 done
 </pre></div>
-
-
 <p>break/continue</p>
 <div class="codehilite"><pre>break
 允许跳出循环，通常在进行一些列处理后退出循环或case语句
@@ -612,11 +540,9 @@ continue
 不会跳出循环，只是跳过此循环步
 命令是程序在本循体内忽略下面的语句,从循环头开始执行
 </pre></div>
-
-
-<hr />
-<h2>第五部分 函数</h2>
-<h4>1.函数定义</h4>
+<hr/>
+<h2 id="_6">第五部分 函数</h2>
+<h4 id="1_2">1.函数定义</h4>
 <div class="codehilite"><pre><span class="kd">function</span> <span class="nx">func_name</span><span class="p">()</span> <span class="p">{</span>
 
 <span class="p">}</span>
@@ -625,14 +551,10 @@ continue
     <span class="c1">//do some thing</span>
 <span class="p">}</span>
 </pre></div>
-
-
 <p>注意</p>
 <div class="codehilite"><pre>函数名，在脚本中必须唯一
 函数必须，先定义，后使用
 </pre></div>
-
-
 <p>return</p>
 <div class="codehilite"><pre><span class="kd">function</span> <span class="nx">equal</span><span class="p">()</span> <span class="p">{</span>
     <span class="k">return</span> <span class="mi">1</span>
@@ -641,9 +563,7 @@ continue
 <span class="nx">equal</span>
 <span class="nx">echo</span> <span class="nx">$</span><span class="o">?</span> <span class="err">#</span><span class="nx">got</span> <span class="mi">1</span>
 </pre></div>
-
-
-<h3>2.参数传递</h3>
+<h3 id="2_2">2.参数传递</h3>
 <div class="codehilite"><pre><span class="err">#</span><span class="nx">位置参数</span>
 <span class="kd">function</span> <span class="nx">copyfile</span><span class="p">()</span> <span class="p">{</span>
     <span class="nx">cp</span> <span class="nx">$1</span> <span class="nx">$2</span>
@@ -656,17 +576,13 @@ continue
 <span class="nx">or获取返回值</span>
 <span class="nx">result</span><span class="o">=</span><span class="err">`</span><span class="nx">copyfile</span> <span class="o">/</span><span class="nx">tmp</span><span class="o">/</span><span class="nx">a</span> <span class="o">/</span><span class="nx">tmp</span><span class="o">/</span><span class="nx">b</span><span class="err">`</span>
 </pre></div>
-
-
 <p>位置参数</p>
 <div class="codehilite"><pre>$1 - $9，当参数超过10个时，需要使用<span class="cp">${</span><span class="mi">10</span><span class="cp">}</span>
 $# 参数个数
-$* 将所有参数视为一个字符串=&quot;$1 $2 ...&quot;
-$@ 将所有参数视为个体=&quot;$1&quot; &quot;$2&quot; &quot;$3&quot;
+$* 将所有参数视为一个字符串="$1 $2 ..."
+$@ 将所有参数视为个体="$1" "$2" "$3"
 </pre></div>
-
-
-<h3>3.返回值和退出状态</h3>
+<h3 id="3_1">3.返回值和退出状态</h3>
 <div class="codehilite"><pre><span class="err">#</span><span class="nx">返回值</span>
 <span class="kd">function</span> <span class="nx">func_a</span><span class="p">()</span> <span class="p">{</span>
     <span class="k">return</span> <span class="mi">1</span>
@@ -675,7 +591,7 @@ $@ 将所有参数视为个体=&quot;$1&quot; &quot;$2&quot; &quot;$3&quot;
 <span class="nx">result</span><span class="o">=</span><span class="err">`</span><span class="nx">func_a</span><span class="err">`</span>
 <span class="k">if</span> <span class="cp">[</span> <span class="nx">result</span> <span class="o">!=</span> <span class="mi">0</span> <span class="cp">]</span>
 <span class="nx">then</span>
-    <span class="nx">echo</span> <span class="s2">&quot;Error&quot;</span>
+    <span class="nx">echo</span> <span class="s2">"Error"</span>
 <span class="nx">fi</span>
 
 <span class="err">#</span><span class="nx">退出状态</span>
@@ -686,23 +602,21 @@ $@ 将所有参数视为个体=&quot;$1&quot; &quot;$2&quot; &quot;$3&quot;
 <span class="nx">func_b</span>
 <span class="k">if</span> <span class="cp">[</span> <span class="err">$</span><span class="o">?</span> <span class="na">-eq</span> <span class="mi">0</span> <span class="cp">]</span>
 <span class="nx">then</span>
-    <span class="nx">echo</span> <span class="s2">&quot;Success&quot;</span>
+    <span class="nx">echo</span> <span class="s2">"Success"</span>
 <span class="k">else</span>
-    <span class="nx">echo</span> <span class="s2">&quot;Error&quot;</span>
+    <span class="nx">echo</span> <span class="s2">"Error"</span>
 <span class="nx">fi</span>
 
 <span class="err">#</span><span class="nx">更简洁</span>
 <span class="k">if</span> <span class="nx">func_b</span><span class="p">;</span> <span class="nx">then</span>
-    <span class="nx">echo</span> <span class="s2">&quot;Success&quot;</span>
+    <span class="nx">echo</span> <span class="s2">"Success"</span>
 <span class="k">else</span>
-    <span class="nx">echo</span> <span class="s2">&quot;Error&quot;</span>
+    <span class="nx">echo</span> <span class="s2">"Error"</span>
 <span class="nx">fi</span>
 
-<span class="nx">func_b</span> <span class="o">&amp;&amp;</span> <span class="nx">echo</span> <span class="s2">&quot;Success&quot;</span> <span class="o">||</span> <span class="nx">echo</span> <span class="s2">&quot;Error&quot;</span>
+<span class="nx">func_b</span> <span class="o">&amp;&amp;</span> <span class="nx">echo</span> <span class="s2">"Success"</span> <span class="o">||</span> <span class="nx">echo</span> <span class="s2">"Error"</span>
 </pre></div>
-
-
-<h2>第四部分 高级</h2>
+<h2 id="_8">第四部分 高级</h2>
 <p>bash中参数展开-展开运算符</p>
 <div class="codehilite"><pre><span class="err">$</span><span class="p">{</span><span class="nn">varname</span><span class="p">:</span><span class="o">-</span><span class="s-Atom">word</span><span class="p">}</span> <span class="s-Atom">如果变量未定义，返回默认值</span><span class="p">.</span>  <span class="err">$</span><span class="p">{</span><span class="nn">noexist</span><span class="p">:</span><span class="o">-</span><span class="mi">0</span><span class="p">}</span><span class="s-Atom">返回0</span>
 <span class="err">$</span><span class="p">{</span><span class="nn">varname</span><span class="p">:</span><span class="o">=</span><span class="s-Atom">word</span><span class="p">}</span> <span class="s-Atom">如果变量未定义，设置变量为默认值</span>  <span class="err">$</span><span class="p">{</span><span class="nn">noexists</span><span class="p">:</span><span class="o">=</span><span class="mi">0</span><span class="p">};</span> <span class="s-Atom">echo</span> <span class="err">$</span><span class="p">{</span><span class="s-Atom">noexists</span><span class="p">};</span> <span class="s-Atom">得到0</span>
@@ -710,15 +624,11 @@ $@ 将所有参数视为个体=&quot;$1&quot; &quot;$2&quot; &quot;$3&quot;
 <span class="err">$</span><span class="p">{</span><span class="nn">varname</span><span class="p">:</span><span class="s-Atom">?message</span><span class="p">}</span> <span class="s-Atom">若未定义，显示varname:message并退出当前的命令或脚本</span>
 <span class="err">$</span><span class="p">{</span><span class="nn">varname</span><span class="p">:</span><span class="o">+</span><span class="s-Atom">word</span><span class="p">}</span> <span class="s-Atom">若存在且非null，返回word，否则返回null</span>
 </pre></div>
-
-
 <p>模式匹配</p>
 <div class="codehilite"><pre><span class="cp">${</span><span class="n">variable</span><span class="c">##pattern</span><span class="cp">}</span>
 <span class="cp">${</span><span class="n">variable</span><span class="o">%</span><span class="n">pattern</span><span class="cp">}</span>
 </pre></div>
-
-
-<h2>第五部分 其他</h2>
+<h2 id="_9">第五部分 其他</h2>
 <p>读文件</p>
 <div class="codehilite"><pre><span class="x">while read -r line; do</span>
 <span class="x">    echo </span><span class="p">$</span><span class="nv">line</span><span class="x"></span>
@@ -729,8 +639,6 @@ $@ 将所有参数视为个体=&quot;$1&quot; &quot;$2&quot; &quot;$3&quot;
 <span class="x">    echo </span><span class="p">$</span><span class="nv">line</span><span class="x"></span>
 <span class="x">done</span>
 </pre></div>
-
-
 <p>一些内置命令</p>
 <div class="codehilite"><pre><span class="x">:</span>
 <span class="x">空命令，类似python的pass</span>
@@ -776,87 +684,67 @@ $@ 将所有参数视为个体=&quot;$1&quot; &quot;$2&quot; &quot;$3&quot;
 <span class="x">unset</span>
 <span class="x">从环境变量中删除变量或函数</span>
 </pre></div>
-
-
 <p>BP:</p>
 <div class="codehilite"><pre>使用$() 代替反引号``
 $(()) 代替expr运算符
 </pre></div>
-
-
 <p>bash</p>
 <div class="codehilite"><pre>GNU Bash 主页
 http://www.gnu.org/software/bash/
 GNU Bash 手册
 http://www.gnu.org/software/bash/manual/
 </pre></div>
-
-
 <p>更多的特性</p>
 <div class="codehilite"><pre>$((3 + 4))          而不需要 expr 3 + 4, 算术展开
 /usr/{bin,local/bin}  而不需要 /usr/bin /usr/local/bin
-<span class="cp">${</span><span class="nb">str</span><span class="o">/</span><span class="n">src</span><span class="o">/</span><span class="n">dst</span><span class="cp">}</span>       而不需要 echo <span class="nv">$str</span> | sed ”s/<span class="nv">$src</span>/<span class="nv">$dst</span>/”
+<span class="cp">${</span><span class="nb">str</span><span class="o">/</span><span class="n">src</span><span class="o">/</span><span class="n">dst</span><span class="cp">}</span>       而不需要 echo <span class="nv">$str</span> | sed &rdquo;s/<span class="nv">$src</span>/<span class="nv">$dst</span>/&rdquo;
 </pre></div>
-
-
 <p>更方便的语法</p>
 <div class="codehilite"><pre>for (( expr1; expr2; expr3 )); do
         commands
 done
-for (( i = 0; i &lt; 100; i++ )); do … done
+for (( i = 0; i &lt; 100; i++ )); do &hellip; done
 echo a{b,c,d}e  ==&gt; abe ace ade
 </pre></div>
-
-
 <p>表达式求值</p>
 <div class="codehilite"><pre><span class="p">$</span><span class="x">[]    []</span><span class="p">$</span><span class="x">中间可以加表达式  eg: echo </span><span class="p">$</span><span class="x">[</span><span class="p">$</span><span class="nv">a</span><span class="x">+</span><span class="p">$</span><span class="nv">b</span><span class="x">]</span>
 <span class="p">$(())</span><span class="x">   (())中间可以加表达式。Eg： total=</span><span class="p">$(($</span><span class="nv">a</span><span class="err">*</span><span class="p">$</span><span class="nv">b</span><span class="p">))</span><span class="x"></span>
 </pre></div>
-
-
 <p>正则</p>
 <div class="codehilite"><pre><span class="x">bash的正则表达式</span>
-<span class="x">str=&#39;hello, world&#39;</span>
-<span class="x">if [[ </span><span class="p">$</span><span class="nv">str</span><span class="x"> =~ &#39;\s+world</span><span class="p">$</span><span class="x">&#39; ]]; then</span>
+<span class="x">str='hello, world'</span>
+<span class="x">if [[ </span><span class="p">$</span><span class="nv">str</span><span class="x"> =~ '\s+world</span><span class="p">$</span><span class="x">' ]]; then</span>
 <span class="x">    echo match!</span>
 <span class="x">fi</span>
-<span class="x">if echo &quot;</span><span class="p">$</span><span class="nv">str</span><span class="x">&quot; | grep -E &#39;[ ]+world</span><span class="p">$</span><span class="x">&#39;; then</span>
+<span class="x">if echo "</span><span class="p">$</span><span class="nv">str</span><span class="x">" | grep -E '[ ]+world</span><span class="p">$</span><span class="x">'; then</span>
 <span class="x">    echo match!</span>
 <span class="x">fi</span>
 </pre></div>
-
-
 <p>获取软连接指向的真实文件名</p>
 <div class="codehilite"><pre>#注:有些系统没有这个命令
 readlink /usr/bin/python
 </pre></div>
-
-
 <p>增加debug</p>
 <div class="codehilite"><pre><span class="kd">function</span> <span class="nx">debug</span><span class="p">()</span> <span class="p">{</span>
     <span class="k">if</span> <span class="cp">[</span><span class="err">[</span> <span class="nv">$DEBUG</span> <span class="cp">]</span><span class="p">]</span>
     <span class="nx">then</span>
-        <span class="nx">echo</span> <span class="s2">&quot;&gt;&gt;&gt; $*&quot;</span>
+        <span class="nx">echo</span> <span class="s2">"&gt;&gt;&gt; $*"</span>
     <span class="nx">fi</span>
 <span class="p">}</span>
 
 <span class="err">#</span> <span class="nx">For</span> <span class="nx">any</span> <span class="nx">debug</span> <span class="nx">message</span>
-<span class="nx">debug</span> <span class="s2">&quot;Trying to find config file&quot;</span>
+<span class="nx">debug</span> <span class="s2">"Trying to find config file"</span>
 
 <span class="nx">还有来自于一些很酷的Geeks的单行debug函数</span><span class="err">：</span>
 
-<span class="kd">function</span> <span class="nx">debug</span><span class="p">()</span> <span class="p">{</span> <span class="p">((</span><span class="nx">DEBUG</span><span class="p">))</span> <span class="o">&amp;&amp;</span> <span class="nx">echo</span> <span class="s2">&quot;&gt;&gt;&gt; $*&quot;</span><span class="p">;</span> <span class="p">}</span>
-<span class="kd">function</span> <span class="nx">debug</span><span class="p">()</span> <span class="p">{</span> <span class="cp">[</span> <span class="s2">&quot;$DEBUG&quot;</span> <span class="cp">]</span> <span class="o">&amp;&amp;</span> <span class="nx">echo</span> <span class="s2">&quot;&gt;&gt;&gt; $*&quot;</span><span class="p">;</span> <span class="p">}</span>
+<span class="kd">function</span> <span class="nx">debug</span><span class="p">()</span> <span class="p">{</span> <span class="p">((</span><span class="nx">DEBUG</span><span class="p">))</span> <span class="o">&amp;&amp;</span> <span class="nx">echo</span> <span class="s2">"&gt;&gt;&gt; $*"</span><span class="p">;</span> <span class="p">}</span>
+<span class="kd">function</span> <span class="nx">debug</span><span class="p">()</span> <span class="p">{</span> <span class="cp">[</span> <span class="s2">"$DEBUG"</span> <span class="cp">]</span> <span class="o">&amp;&amp;</span> <span class="nx">echo</span> <span class="s2">"&gt;&gt;&gt; $*"</span><span class="p">;</span> <span class="p">}</span>
 </pre></div>
-
-
 <p>将执行日志全部写到某个文件</p>
-<div class="codehilite"><pre><span class="x">exec &gt;&gt;&quot;</span><span class="p">$</span><span class="nv">LOGPATH</span><span class="x">&quot;/xx.log.</span><span class="p">$</span><span class="nv">TODAY</span><span class="x"> 2&gt;&amp;1</span>
+<div class="codehilite"><pre><span class="x">exec &gt;&gt;"</span><span class="p">$</span><span class="nv">LOGPATH</span><span class="x">"/xx.log.</span><span class="p">$</span><span class="nv">TODAY</span><span class="x"> 2&gt;&amp;1</span>
 <span class="cp">#</span><span class="nf">begin</span><span class="x"> of code</span>
 </pre></div>
-
-
-<hr />
+<hr/>
     </section>
 
     <section id="copyright">

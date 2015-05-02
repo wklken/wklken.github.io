@@ -73,13 +73,17 @@
         <div class="meta"> &nbsp; </div>
         <h1> Python 源码阅读 - dict </h1>
     </section>
+
+        <section id="toc">
+            <html><body><div id="toc"><ul><li><a class="toc-href" href="#" title="Python 源码阅读 - dict">Python 源码阅读 - dict</a><ul><li><a class="toc-href" href="#pydictobject" title="PyDictObject的存储策略">PyDictObject的存储策略</a></li><li><a class="toc-href" href="#pydictentry" title="基本键值PyDictEntry">基本键值PyDictEntry</a></li><li><a class="toc-href" href="#pydictobject_1" title="PyDictObject定义">PyDictObject定义</a></li><li><a class="toc-href" href="#_1" title="构造过程">构造过程</a></li><li><a class="toc-href" href="#_2" title="销毁过程">销毁过程</a></li><li><a class="toc-href" href="#pydictobject_2" title="PyDictObject对象缓冲池">PyDictObject对象缓冲池</a></li><li><a class="toc-href" href="#dict" title="Dict 操作">Dict 操作</a></li></ul></li></ul></div></body></html>
+        </section>
     <section id="content">
         <p>基本类型实现的最后一篇, 先告一段落, 专心找工作去......搞定工作后再开始扫后面的</p>
-<hr />
+<hr/>
 <p>源码位置 <a href="https://github.com/wklken/Python-2.7.8/blob/master/Include/dictobject.h">Include/dictobject.h</a> |
          <a href="https://github.com/wklken/Python-2.7.8/blob/master/Objects/dictobject.c">Objects/dictobject.c</a></p>
-<hr />
-<h1>PyDictObject的存储策略</h1>
+<hr/>
+<h1 id="pydictobject">PyDictObject的存储策略</h1>
 <div class="codehilite"><pre>1. 使用散列表进行存储
 
 2. 使用开放定址法处理冲突
@@ -90,33 +94,27 @@
 
     2.3 删除, 如果对象在探测链上, 不能直接删除, 否则会破坏整个结构(所以不是真的删)
 </pre></div>
-
-
 <p>关于 hash表的 <a href="http://zh.wikipedia.org/wiki/%E5%93%88%E5%B8%8C%E8%A1%A8">wiki</a></p>
-<hr />
-<h1>基本键值PyDictEntry</h1>
+<hr/>
+<h1 id="pydictentry">基本键值PyDictEntry</h1>
 <div class="codehilite"><pre>typedef struct {
     Py_ssize_t me_hash;
     PyObject *me_key;
     PyObject *me_value;
 } PyDictEntry;
 </pre></div>
-
-
 <p>说明</p>
 <div class="codehilite"><pre>1. PyDictEntry 用于存储键值对信息
 
 2. Py_ssize_t me_hash
 存储了me_key计算得到的hash值, 不重复计算
 </pre></div>
-
-
 <p>结构</p>
-<p><img alt="PyDictEntry" src="/imgs/python-source/PyDictEntry.png" /></p>
+<p><img alt="PyDictEntry" src="/imgs/python-source/PyDictEntry.png"/></p>
 <p>PyDictEntry的三个状态(图片引自-Python源码剖析)</p>
-<p><img alt="PyDictEntryState" src="/imgs/python-source/PyDictEntryState.png" /></p>
-<hr />
-<h1>PyDictObject定义</h1>
+<p><img alt="PyDictEntryState" src="/imgs/python-source/PyDictEntryState.png"/></p>
+<hr/>
+<h1 id="pydictobject_1">PyDictObject定义</h1>
 <p>定义</p>
 <div class="codehilite"><pre>typedef struct _dictobject PyDictObject;
 struct _dictobject {
@@ -131,8 +129,6 @@ struct _dictobject {
     PyDictEntry ma_smalltable[PyDict_MINSIZE];
 };
 </pre></div>
-
-
 <p>说明</p>
 <div class="codehilite"><pre>1. PyObject_HEAD
 反而声明为定长对象, 因为ob_size在这里用不上, 使用ma_fill和ma_used计数
@@ -157,18 +153,14 @@ struct _dictobject {
 6. PyDictEntry ma_smalltable[PyDict_MINSIZE];
 小dict, 大小8, 小于8个键值对的字典会直接存放在这里, 超出后再从内存分配空间
 </pre></div>
-
-
 <p>结构</p>
-<p><img alt="PyDictObject" src="/imgs/python-source/PyDictObject.png" /></p>
+<p><img alt="PyDictObject" src="/imgs/python-source/PyDictObject.png"/></p>
 <p>结论</p>
 <div class="codehilite"><pre>1. PyDictObject在生命周期内, 需要维护ma_fill/ma_used/ma_mask 三个计数值
 
 2. 初始化创建是ma_smalltable, 超过大小后, 会使用外部分配的空间
 </pre></div>
-
-
-<h1>构造过程</h1>
+<h1 id="_1">构造过程</h1>
 <p>定义</p>
 <div class="codehilite"><pre><span class="n">PyObject</span> *
 <span class="n">PyDict_New</span>(<span class="nb">void</span>)
@@ -177,7 +169,7 @@ struct _dictobject {
 
     // <span class="n">初始化dummy</span>
     <span class="k">if</span> (<span class="n">dummy</span> == <span class="n">NULL</span>) {
-        <span class="n">dummy</span> = <span class="n">PyString_FromString</span>(<span class="s">&quot;&lt;dummy key&gt;&quot;</span>);
+        <span class="n">dummy</span> = <span class="n">PyString_FromString</span>(<span class="s">"&lt;dummy key&gt;"</span>);
         <span class="k">if</span> (<span class="n">dummy</span> == <span class="n">NULL</span>)
             <span class="k">return</span> <span class="n">NULL</span>;
 
@@ -248,8 +240,6 @@ struct _dictobject {
     <span class="k">return</span> (<span class="n">PyObject</span> *)<span class="n">mp</span>;
 }
 </pre></div>
-
-
 <p>简化步骤</p>
 <div class="codehilite"><pre>1. 如果PyDictObject对象缓冲池有, 从里面直接取, 初始化
 
@@ -259,16 +249,12 @@ struct _dictobject {
 
 4. 返回
 </pre></div>
-
-
 <p>结论</p>
 <div class="codehilite"><pre>1. 关注对象缓冲池
 
 2. 关注lookdict_string
 </pre></div>
-
-
-<h1>销毁过程</h1>
+<h1 id="_2">销毁过程</h1>
 <p>方法定义</p>
 <div class="codehilite"><pre>static void
 dict_dealloc(register PyDictObject *mp)
@@ -300,10 +286,8 @@ dict_dealloc(register PyDictObject *mp)
     Py_TRASHCAN_SAFE_END(mp)
 }
 </pre></div>
-
-
-<hr />
-<h1>PyDictObject对象缓冲池</h1>
+<hr/>
+<h1 id="pydictobject_2">PyDictObject对象缓冲池</h1>
 <p>定义</p>
 <div class="codehilite"><pre>#ifndef PyDict_MAXFREELIST
 #define PyDict_MAXFREELIST 80
@@ -312,10 +296,8 @@ dict_dealloc(register PyDictObject *mp)
 static PyDictObject *free_list[PyDict_MAXFREELIST];
 static int numfree = 0;
 </pre></div>
-
-
 <p>对象缓冲池的结构(跟PyListObject对象缓冲池结构基本一样)</p>
-<p><img alt="PyDictObjectPool" src="/imgs/python-source/PyDictObjectPool.png" /></p>
+<p><img alt="PyDictObjectPool" src="/imgs/python-source/PyDictObjectPool.png"/></p>
 <p>结论</p>
 <div class="codehilite"><pre>1. 最多会缓存80个对象
 
@@ -323,12 +305,10 @@ static int numfree = 0;
 
 3. 缓存对象进去, 旧有的值没有变化, 取出来用的时候初始化时才改变
 </pre></div>
-
-
-<hr />
-<h1>Dict 操作</h1>
+<hr/>
+<h1 id="dict">Dict 操作</h1>
 <p>查找/插入/resize/删除, 下个版本补</p>
-<hr />
+<hr/>
 <p>changelog</p>
 <div class="codehilite"><pre>2014-08-11 first version
 </pre></div>

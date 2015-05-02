@@ -73,9 +73,13 @@
         <div class="meta"> &nbsp; </div>
         <h1> Python 源码阅读 - tuple </h1>
     </section>
+
+        <section id="toc">
+            <html><body><div id="toc"><ul><li><a class="toc-href" href="#" title="Python 源码阅读 - tuple">Python 源码阅读 - tuple</a><ul><li><a class="toc-href" href="#_1" title="结构">结构</a></li><li><a class="toc-href" href="#_2" title="构造">构造</a></li><li><a class="toc-href" href="#_3" title="回收">回收</a></li><li><a class="toc-href" href="#tuple" title="tuple对象缓冲池">tuple对象缓冲池</a></li></ul></li></ul></div></body></html>
+        </section>
     <section id="content">
         <p>还差一篇......写完写简历&gt;_&lt;#</p>
-<hr />
+<hr/>
 <p>示例</p>
 <div class="codehilite"><pre>&gt;&gt;&gt; a = ()
 &gt;&gt;&gt; b = ()
@@ -87,12 +91,10 @@ True
 &gt;&gt;&gt; id(a) == id(b)
 False
 </pre></div>
-
-
 <p>源码位置 <a href="https://github.com/wklken/Python-2.7.8/blob/master/Include/tupleobject.h">Include/tupleobject.h</a> |
          <a href="https://github.com/wklken/Python-2.7.8/blob/master/Objects/tupleobject.c">Objects/tupleobject.c</a></p>
-<hr />
-<h1>结构</h1>
+<hr/>
+<h1 id="_1">结构</h1>
 <p>定义</p>
 <div class="codehilite"><pre>typedef struct {
     PyObject_VAR_HEAD
@@ -100,8 +102,6 @@ False
 
 } PyTupleObject;
 </pre></div>
-
-
 <p>说明</p>
 <div class="codehilite"><pre>1. PyObject_VAR_HEAD
 PyTupleObject在底层是个变长对象(需要存储列表元素个数).
@@ -112,17 +112,13 @@ PyTupleObject在底层是个变长对象(需要存储列表元素个数).
 
 3.
 </pre></div>
-
-
 <p>结构</p>
-<p><img alt="PyTupleObject" src="/imgs/python-source/PyTupleObject.png" /></p>
+<p><img alt="PyTupleObject" src="/imgs/python-source/PyTupleObject.png"/></p>
 <p>构造方法</p>
 <div class="codehilite"><pre>PyAPI_FUNC(PyObject *) PyTuple_New(Py_ssize_t size);
 </pre></div>
-
-
-<hr />
-<h1>构造</h1>
+<hr/>
+<h1 id="_2">构造</h1>
 <p>看下构造方法定义</p>
 <div class="codehilite"><pre><span class="n">PyObject</span> <span class="o">*</span>
 <span class="nf">PyTuple_New</span><span class="p">(</span><span class="k">register</span> <span class="n">Py_ssize_t</span> <span class="n">size</span><span class="p">)</span>
@@ -210,8 +206,6 @@ PyTupleObject在底层是个变长对象(需要存储列表元素个数).
     <span class="k">return</span> <span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="p">)</span> <span class="n">op</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
-
-
 <p>简化步骤</p>
 <div class="codehilite"><pre>1. 如果size=0, 从free_list[0]取, 直接返回
 
@@ -221,10 +215,8 @@ PyTupleObject在底层是个变长对象(需要存储列表元素个数).
 
 4. 初始化, 返回
 </pre></div>
-
-
-<hr />
-<h1>回收</h1>
+<hr/>
+<h1 id="_3">回收</h1>
 <p>定义</p>
 <div class="codehilite"><pre>static void
 tupledealloc(register PyTupleObject *op)
@@ -264,8 +256,6 @@ done:
     Py_TRASHCAN_SAFE_END(op)
 }
 </pre></div>
-
-
 <p>简化流程</p>
 <div class="codehilite"><pre>1. 回收ob_item每个元素
 
@@ -273,10 +263,8 @@ done:
 
 3. 否则, 回收
 </pre></div>
-
-
-<hr />
-<h1>tuple对象缓冲池</h1>
+<hr/>
+<h1 id="tuple">tuple对象缓冲池</h1>
 <p>定义</p>
 <div class="codehilite"><pre><span class="cm">/* Speed optimization to avoid frequent malloc/free of small tuples */</span><span class="w"></span>
 <span class="err">#</span>ifndef<span class="w"> </span>PyTuple_MAXSAVESIZE<span class="w"></span>
@@ -293,8 +281,6 @@ static<span class="w"> </span>PyTupleObject<span class="w"> </span><span class="
 static<span class="w"> </span>int<span class="w"> </span>numfree<span class="err">[</span>PyTuple_MAXSAVESIZE<span class="err">];</span><span class="w"></span>
 <span class="err">#</span>endif<span class="w"></span>
 </pre></div>
-
-
 <p>结论</p>
 <div class="codehilite"><pre>1. 作用: 优化小tuple的mall/free
 
@@ -312,26 +298,20 @@ numfree, 一个计数数组, 存储free_list对应位置的单链表长度
 
 6. free_list[0], 指向空数组, 有且仅有一个
 </pre></div>
-
-
 <p>free_list的结构</p>
-<p><img alt="PyTupleObjectPool" src="/imgs/python-source/PyTupleObjectPool.png" /></p>
+<p><img alt="PyTupleObjectPool" src="/imgs/python-source/PyTupleObjectPool.png"/></p>
 <p>回头看回收跟对象缓冲池相关的逻辑</p>
 <p>条件:</p>
 <div class="codehilite"><pre>if (len &lt; PyTuple_MAXSAVESIZE &amp;&amp;         // len &lt; 20
     numfree[len] &lt; PyTuple_MAXFREELIST &amp;&amp; // numfree[len] &lt; 2000
     Py_TYPE(op) == &amp;PyTuple_Type) // 是tuple类型
 </pre></div>
-
-
 <p>操作</p>
 <div class="codehilite"><pre>op-&gt;ob_item[0] = (PyObject *) free_list[len]; //ob_item指向free_list[len] 单链表头
 numfree[len]++;  // len位置计数+1
 free_list[len] = op; // op变成单链表的头
 goto done; /* return */
 </pre></div>
-
-
 <p>即过程</p>
 <div class="codehilite"><pre>1. 如果size=0, 直接从free_list[0]取
 
@@ -350,16 +330,12 @@ goto done; /* return */
 
 如果size&lt;20, 且free_list对应位置单链表长度没达到上限(2000), 将对象放入到单链表头
 </pre></div>
-
-
 <p>注意</p>
 <div class="codehilite"><pre>1. 回收时, ob_item都会被回收, 只是本身对象缓存下来
 
 2. 这里free_list, 复用ob_item作为链表指针, 指向下一个位置(通用整数对象池也是复用指针的方式, 不过用的是ob_type)
 </pre></div>
-
-
-<hr />
+<hr/>
 <p>changelog</p>
 <div class="codehilite"><pre>2014-08-10 first version
 </pre></div>

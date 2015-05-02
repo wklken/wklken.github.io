@@ -73,20 +73,22 @@
         <div class="meta"> &nbsp; </div>
         <h1> 一些nginx配置 </h1>
     </section>
+
+        <section id="toc">
+            <html><body><div id="toc"><ul><li><a class="toc-href" href="#" title="一些nginx配置">一些nginx配置</a><ul><li><a class="toc-href" href="#include" title="使用独立目录, 然后include具体配置">使用独立目录, 然后include具体配置</a><ul><li><a class="toc-href" href="#gzip-on" title="gzip on">gzip on</a></li></ul></li><li><a class="toc-href" href="#for-multi-processers_1" title="for multi processers">for multi processers</a></li><li><a class="toc-href" href="#static-file-cache" title="static file cache">static file cache</a></li><li><a class="toc-href" href="#proxy-pass" title="proxy pass">proxy pass</a></li><li><a class="toc-href" href="#or" title="静态目录 or 文件">静态目录 or 文件</a></li><li><a class="toc-href" href="#_1" title="静态站">静态站</a></li><li><a class="toc-href" href="#return" title="return">return</a></li><li><a class="toc-href" href="#for-mobile" title="for mobile">for mobile</a></li><li><a class="toc-href" href="#redirect-to-www" title="redirect to www">redirect to www</a></li><li><a class="toc-href" href="#allow-and-deny" title="allow and deny">allow and deny</a></li><li><a class="toc-href" href="#_2" title="负载均衡">负载均衡</a></li><li><a class="toc-href" href="#centos-service-cmds" title="centos service cmds">centos service cmds</a></li></ul></li></ul></div></body></html>
+        </section>
     <section id="content">
         <p>nginx配置</p>
 <p>开年第一篇, 梳理笔记本中....</p>
 <p>没啥, 一些用到以及后面可能用到的<code>nginx</code>配置, 记录一下, 备查备用</p>
 <p>ps. 之前一篇 <a href="http://www.wklken.me/posts/2013/11/23/nginx-base.html">nginx基础笔记</a></p>
-<h2>使用独立目录, 然后include具体配置</h2>
+<h2 id="include">使用独立目录, 然后include具体配置</h2>
 <p>目录</p>
 <div class="codehilite"><pre>nginx.conf
 site/
     a.conf
     b.conf
 </pre></div>
-
-
 <p>nginx.conf</p>
 <div class="codehilite"><pre>http {
 
@@ -95,9 +97,7 @@ site/
     include sites/*.conf;
 }
 </pre></div>
-
-
-<h3>gzip on</h3>
+<h3 id="gzip-on">gzip on</h3>
 <p>加到<code>http</code>模块中, 开启<code>gzip</code>, 注意<code>gzip_types</code>配置得是压缩的资源类型</p>
 <p>nginx.conf</p>
 <div class="codehilite"><pre>http {
@@ -114,9 +114,7 @@ site/
     gzip_vary on;
 }
 </pre></div>
-
-
-<h2>for multi processers</h2>
+<h2 id="for-multi-processers_1">for multi processers</h2>
 <p>nginx.conf</p>
 <div class="codehilite"><pre>worker_processes  4;
 events {
@@ -127,20 +125,16 @@ events {
 
 worker_rlimit_nofile 100000;
 </pre></div>
-
-
-<h2>static file cache</h2>
+<h2 id="static-file-cache">static file cache</h2>
 <div class="codehilite"><pre>    <span class="nt">location</span> <span class="o">~*</span> <span class="err">\</span><span class="o">.(?</span><span class="nd">:css</span><span class="o">|</span><span class="nt">js</span><span class="o">)$</span> <span class="p">{</span>
       <span class="n">expires</span> <span class="m">12</span><span class="n">h</span><span class="p">;</span>
       <span class="n">access_log</span> <span class="n">off</span><span class="p">;</span>
-      <span class="n">add_header</span> <span class="n">Cache</span><span class="o">-</span><span class="n">Control</span> <span class="s2">&quot;public&quot;</span><span class="p">;</span>
+      <span class="n">add_header</span> <span class="n">Cache</span><span class="o">-</span><span class="n">Control</span> <span class="s2">"public"</span><span class="p">;</span>
       <span class="n">proxy_pass</span> <span class="n">http</span><span class="o">://</span><span class="m">127</span><span class="o">.</span><span class="m">0</span><span class="o">.</span><span class="m">0</span><span class="o">.</span><span class="m">1</span><span class="o">:</span><span class="m">5000</span><span class="p">;</span>
       <span class="n">proxy_redirect</span> <span class="n">off</span><span class="p">;</span>
     <span class="p">}</span>
 </pre></div>
-
-
-<h2>proxy pass</h2>
+<h2 id="proxy-pass">proxy pass</h2>
 <div class="codehilite"><pre>    <span class="nt">location</span> <span class="o">/</span>
     <span class="p">{</span>
         <span class="n">proxy_pass</span> <span class="n">http</span><span class="o">://</span><span class="m">127</span><span class="o">.</span><span class="m">0</span><span class="o">.</span><span class="m">0</span><span class="o">.</span><span class="m">1</span><span class="o">:</span><span class="m">8000</span><span class="p">;</span>
@@ -152,16 +146,12 @@ worker_rlimit_nofile 100000;
         <span class="n">proxy_redirect</span> <span class="n">off</span><span class="p">;</span>
     <span class="p">}</span>
 </pre></div>
-
-
 <p>可以设置超时时间</p>
 <div class="codehilite"><pre>        proxy_connect_timeout 500s;
         proxy_read_timeout 500s;
         proxy_send_timeout 500s;
 </pre></div>
-
-
-<h2>静态目录 or 文件</h2>
+<h2 id="or">静态目录 or 文件</h2>
 <div class="codehilite"><pre>    location /movies/ {
         alias /Volumes/Media/Movies/;
         allow all;
@@ -173,9 +163,7 @@ worker_rlimit_nofile 100000;
         access_log off;
     }
 </pre></div>
-
-
-<h2>静态站</h2>
+<h2 id="_1">静态站</h2>
 <div class="codehilite"><pre><span class="nt">server</span> <span class="p">{</span>
     <span class="n">listen</span>       <span class="m">192</span><span class="o">.</span><span class="m">168</span><span class="o">.</span><span class="m">1</span><span class="o">.</span><span class="m">1</span><span class="o">:</span><span class="m">80</span><span class="p">;</span>
     <span class="n">server_name</span>  <span class="n">www</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">com</span><span class="p">;</span>
@@ -189,16 +177,12 @@ worker_rlimit_nofile 100000;
 
 <span class="p">}</span>
 </pre></div>
-
-
-<h2>return</h2>
+<h2 id="return">return</h2>
 <p>直接<code>return</code></p>
 <p>语法</p>
 <div class="codehilite"><pre>return http_code;
-return http_code &quot;content&quot;;
+return http_code "content";
 </pre></div>
-
-
 <p>e.g.</p>
 <div class="codehilite"><pre>location /api/test/ {
     return 403;
@@ -212,9 +196,7 @@ location /ping/ {
     return 200;
 }
 </pre></div>
-
-
-<h2>for mobile</h2>
+<h2 id="for-mobile">for mobile</h2>
 <p>移动端和网站端互相跳转</p>
 <div class="codehilite"><pre>    <span class="nt">location</span> <span class="o">=</span> <span class="o">/</span> <span class="p">{</span>
         <span class="n">try_files</span> <span class="err">$</span><span class="n">uri</span> <span class="o">@</span><span class="n">mobile_rewrite</span><span class="p">;</span>
@@ -227,18 +209,18 @@ location /ping/ {
 
     <span class="nt">location</span> <span class="k">@mobile_rewrite</span> <span class="p">{</span>
 
-        <span class="nt">if</span> <span class="o">($</span><span class="nt">http_user_agent</span> <span class="o">~*</span> <span class="s2">&quot;(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows (ce|phone)|xda|xiino&quot;</span><span class="o">)</span> <span class="p">{</span>
+        <span class="nt">if</span> <span class="o">($</span><span class="nt">http_user_agent</span> <span class="o">~*</span> <span class="s2">"(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows (ce|phone)|xda|xiino"</span><span class="o">)</span> <span class="p">{</span>
             <span class="n">set</span> <span class="err">$</span><span class="n">mobile_rewrite</span> <span class="n">perform</span><span class="p">;</span>
         <span class="p">}</span>
-        <span class="nt">if</span> <span class="o">($</span><span class="nt">http_user_agent</span> <span class="o">~*</span> <span class="s2">&quot;^(1207|6310|6590|3gso|4thp|50</span><span class="cp">[</span><span class="mi">1</span><span class="o">-</span><span class="mi">6</span><span class="cp">]</span><span class="s2">i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez(</span><span class="cp">[</span><span class="mi">4</span><span class="o">-</span><span class="mi">7</span><span class="cp">]</span><span class="s2">0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-</span><span class="cp">[</span><span class="nx">a</span><span class="na">-w</span><span class="cp">]</span><span class="s2">)|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10</span><span class="cp">[</span><span class="mi">0</span><span class="o">-</span><span class="mi">2</span><span class="cp">]</span><span class="s2">|n20</span><span class="cp">[</span><span class="mi">2</span><span class="o">-</span><span class="mi">3</span><span class="cp">]</span><span class="s2">|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-(</span><span class="cp">[</span><span class="mi">1</span><span class="o">-</span><span class="mi">8</span><span class="cp">]</span><span class="s2">|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-</span><span class="cp">[</span><span class="mi">2</span><span class="o">-</span><span class="mi">7</span><span class="cp">]</span><span class="s2">|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5</span><span class="cp">[</span><span class="mi">0</span><span class="o">-</span><span class="mi">3</span><span class="cp">]</span><span class="s2">|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-)&quot;</span><span class="o">)</span> <span class="p">{</span>
+        <span class="nt">if</span> <span class="o">($</span><span class="nt">http_user_agent</span> <span class="o">~*</span> <span class="s2">"^(1207|6310|6590|3gso|4thp|50</span><span class="cp">[</span><span class="mi">1</span><span class="o">-</span><span class="mi">6</span><span class="cp">]</span><span class="s2">i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez(</span><span class="cp">[</span><span class="mi">4</span><span class="o">-</span><span class="mi">7</span><span class="cp">]</span><span class="s2">0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-</span><span class="cp">[</span><span class="nx">a</span><span class="na">-w</span><span class="cp">]</span><span class="s2">)|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10</span><span class="cp">[</span><span class="mi">0</span><span class="o">-</span><span class="mi">2</span><span class="cp">]</span><span class="s2">|n20</span><span class="cp">[</span><span class="mi">2</span><span class="o">-</span><span class="mi">3</span><span class="cp">]</span><span class="s2">|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-(</span><span class="cp">[</span><span class="mi">1</span><span class="o">-</span><span class="mi">8</span><span class="cp">]</span><span class="s2">|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-</span><span class="cp">[</span><span class="mi">2</span><span class="o">-</span><span class="mi">7</span><span class="cp">]</span><span class="s2">|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5</span><span class="cp">[</span><span class="mi">0</span><span class="o">-</span><span class="mi">3</span><span class="cp">]</span><span class="s2">|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-)"</span><span class="o">)</span> <span class="p">{</span>
             <span class="n">set</span> <span class="err">$</span><span class="n">mobile_rewrite</span> <span class="n">perform</span><span class="p">;</span>
         <span class="p">}</span>
 
-        <span class="nt">if</span> <span class="o">($</span><span class="nt">arg_mobile</span> <span class="o">=</span> <span class="s1">&#39;no&#39;</span><span class="o">)</span> <span class="p">{</span>
+        <span class="nt">if</span> <span class="o">($</span><span class="nt">arg_mobile</span> <span class="o">=</span> <span class="s1">'no'</span><span class="o">)</span> <span class="p">{</span>
             <span class="n">set</span> <span class="err">$</span><span class="n">mobile_rewrite</span> <span class="n">do_not_perform</span><span class="p">;</span>
         <span class="p">}</span>
 
-        <span class="nt">if</span> <span class="o">($</span><span class="nt">arg_mobile</span> <span class="o">=</span> <span class="s1">&#39;yes&#39;</span><span class="o">)</span> <span class="p">{</span>
+        <span class="nt">if</span> <span class="o">($</span><span class="nt">arg_mobile</span> <span class="o">=</span> <span class="s1">'yes'</span><span class="o">)</span> <span class="p">{</span>
             <span class="n">set</span> <span class="err">$</span><span class="n">mobile_rewrite</span> <span class="n">perform</span><span class="p">;</span>
         <span class="p">}</span>
 
@@ -260,10 +242,10 @@ location /ping/ {
     <span class="p">{</span>
 
         <span class="n">set</span> <span class="err">$</span><span class="n">pc_rewrite</span> <span class="m">1</span><span class="p">;</span>
-        <span class="n">if</span> <span class="p">(</span><span class="err">$</span><span class="n">http_user_agent</span> <span class="o">~*</span> <span class="s2">&quot;(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows (ce|phone)|xda|xiino&quot;</span><span class="p">)</span> <span class="err">{</span>
+        <span class="n">if</span> <span class="p">(</span><span class="err">$</span><span class="n">http_user_agent</span> <span class="o">~*</span> <span class="s2">"(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows (ce|phone)|xda|xiino"</span><span class="p">)</span> <span class="err">{</span>
             <span class="n">set</span> <span class="err">$</span><span class="n">pc_rewrite</span> <span class="m">0</span><span class="p">;</span>
         <span class="p">}</span>
-        <span class="nt">if</span> <span class="o">($</span><span class="nt">http_user_agent</span> <span class="o">~*</span> <span class="s2">&quot;^(1207|6310|6590|3gso|4thp|50</span><span class="cp">[</span><span class="mi">1</span><span class="o">-</span><span class="mi">6</span><span class="cp">]</span><span class="s2">i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez(</span><span class="cp">[</span><span class="mi">4</span><span class="o">-</span><span class="mi">7</span><span class="cp">]</span><span class="s2">0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-</span><span class="cp">[</span><span class="nx">a</span><span class="na">-w</span><span class="cp">]</span><span class="s2">)|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10</span><span class="cp">[</span><span class="mi">0</span><span class="o">-</span><span class="mi">2</span><span class="cp">]</span><span class="s2">|n20</span><span class="cp">[</span><span class="mi">2</span><span class="o">-</span><span class="mi">3</span><span class="cp">]</span><span class="s2">|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-(</span><span class="cp">[</span><span class="mi">1</span><span class="o">-</span><span class="mi">8</span><span class="cp">]</span><span class="s2">|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-</span><span class="cp">[</span><span class="mi">2</span><span class="o">-</span><span class="mi">7</span><span class="cp">]</span><span class="s2">|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5</span><span class="cp">[</span><span class="mi">0</span><span class="o">-</span><span class="mi">3</span><span class="cp">]</span><span class="s2">|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-)&quot;</span><span class="o">)</span> <span class="p">{</span>
+        <span class="nt">if</span> <span class="o">($</span><span class="nt">http_user_agent</span> <span class="o">~*</span> <span class="s2">"^(1207|6310|6590|3gso|4thp|50</span><span class="cp">[</span><span class="mi">1</span><span class="o">-</span><span class="mi">6</span><span class="cp">]</span><span class="s2">i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez(</span><span class="cp">[</span><span class="mi">4</span><span class="o">-</span><span class="mi">7</span><span class="cp">]</span><span class="s2">0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-</span><span class="cp">[</span><span class="nx">a</span><span class="na">-w</span><span class="cp">]</span><span class="s2">)|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10</span><span class="cp">[</span><span class="mi">0</span><span class="o">-</span><span class="mi">2</span><span class="cp">]</span><span class="s2">|n20</span><span class="cp">[</span><span class="mi">2</span><span class="o">-</span><span class="mi">3</span><span class="cp">]</span><span class="s2">|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-(</span><span class="cp">[</span><span class="mi">1</span><span class="o">-</span><span class="mi">8</span><span class="cp">]</span><span class="s2">|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-</span><span class="cp">[</span><span class="mi">2</span><span class="o">-</span><span class="mi">7</span><span class="cp">]</span><span class="s2">|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5</span><span class="cp">[</span><span class="mi">0</span><span class="o">-</span><span class="mi">3</span><span class="cp">]</span><span class="s2">|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-)"</span><span class="o">)</span> <span class="p">{</span>
             <span class="n">set</span> <span class="err">$</span><span class="n">pc_rewrite</span> <span class="m">0</span><span class="p">;</span>
         <span class="p">}</span>
         <span class="nt">if</span> <span class="o">($</span><span class="nt">pc_rewrite</span> <span class="o">=</span> <span class="nt">1</span><span class="o">)</span> <span class="p">{</span>
@@ -277,17 +259,13 @@ location /ping/ {
         <span class="nt">proxy_redirect</span> <span class="nt">off</span><span class="o">;</span>
     <span class="err">}</span>
 </pre></div>
-
-
-<h2>redirect to www</h2>
+<h2 id="redirect-to-www">redirect to www</h2>
 <div class="codehilite"><pre><span class="nt">server</span> <span class="p">{</span>
     <span class="n">server_name</span>  <span class="n">abc</span><span class="o">.</span><span class="n">com</span><span class="p">;</span>
     <span class="n">rewrite</span> <span class="o">^</span><span class="p">(</span><span class="o">.*</span><span class="p">)</span> <span class="n">http</span><span class="o">://</span><span class="n">www</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">com</span><span class="err">$</span><span class="m">1</span> <span class="n">permanent</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
-
-
-<h2>allow and deny</h2>
+<h2 id="allow-and-deny">allow and deny</h2>
 <p>访问ip控制</p>
 <div class="codehilite"><pre>location /test/ {
     allow 192.168.1.1;
@@ -295,9 +273,7 @@ location /ping/ {
 
 }
 </pre></div>
-
-
-<h2>负载均衡</h2>
+<h2 id="_2">负载均衡</h2>
 <p>nginx.conf</p>
 <div class="codehilite"><pre><span class="nt">http</span> <span class="p">{</span>
 
@@ -307,8 +283,6 @@ location /ping/ {
     <span class="p">}</span>
 <span class="err">}</span>
 </pre></div>
-
-
 <p>sites/a.conf</p>
 <div class="codehilite"><pre>server {
 
@@ -318,11 +292,9 @@ location /ping/ {
 
 }
 </pre></div>
-
-
-<hr />
+<hr/>
 <p>其他</p>
-<h2>centos service cmds</h2>
+<h2 id="centos-service-cmds">centos service cmds</h2>
 <div class="codehilite"><pre>检查配置文件正确性
 service nginx configtest
 

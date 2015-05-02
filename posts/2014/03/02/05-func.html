@@ -73,17 +73,19 @@
         <div class="meta"> &nbsp; </div>
         <h1> Golang笔记-05-函数 </h1>
     </section>
+
+        <section id="toc">
+            <html><body><div id="toc"><ul><li><a class="toc-href" href="#" title="Golang笔记-05-函数">Golang笔记-05-函数</a><ul><li><a class="toc-href" href="#_1" title="函数">函数</a></li><li><a class="toc-href" href="#_2" title="基本语法">基本语法</a></li><li><a class="toc-href" href="#_3" title="多返回值及命名返回参数">多返回值及命名返回参数</a></li><li><a class="toc-href" href="#_4" title="参数传递:传值与传指针">参数传递:传值与传指针</a></li><li><a class="toc-href" href="#_5" title="参数传递:可变参数">参数传递:可变参数</a></li><li><a class="toc-href" href="#_6" title="匿名函数">匿名函数</a></li><li><a class="toc-href" href="#_7" title="函数作为值、类型">函数作为值、类型</a></li></ul></li></ul></div></body></html>
+        </section>
     <section id="content">
-        <h3>函数</h3>
+        <h3 id="_1">函数</h3>
 <p>Go语言里面的核心设计，通过关键字func来声明</p>
 <div class="codehilite"><pre>func funcName(input type1, input2 type2) (output1 type1, output2 type2) {
     //logical code
     return value1, value2
 }
 </pre></div>
-
-
-<h3>基本语法</h3>
+<h3 id="_2">基本语法</h3>
 <p>1.语法</p>
 <div class="codehilite"><pre>//一般函数
 func func_name(a int) {
@@ -109,11 +111,9 @@ func SumAndProduct(A, B int) (int, int) {
     return A+B, A*B
 }
 </pre></div>
-
-
 <p>2.说明：</p>
 <div class="codehilite"><pre>关键字func声明
-可以有一个或多个参数，每个参数后面带有类型,通过&quot;,&quot;分隔函数可以返回多个值
+可以有一个或多个参数，每个参数后面带有类型,通过","分隔函数可以返回多个值
 返回值声明，可以只声明类型
     如果没有返回值，可以省略最后的返回信息
     如果有返回值，必须在外层添加return
@@ -131,10 +131,8 @@ Go函数不支持嵌套(nested),重载（overload）和默认参数(default para
 注意：
     函数使用func开头，左大括号不能另起一行
 </pre></div>
-
-
 <p>小写字母开头的函数指在本包内可见，大写字母开头的函数才能被其他包调用</p>
-<h3>多返回值及命名返回参数</h3>
+<h3 id="_3">多返回值及命名返回参数</h3>
 <p>可以像python那样返回多个结果，只是非tuple</p>
 <p>对于不想要的返回值，可以扔垃圾桶_</p>
 <p>如果用命名返回参数，return语句可以为空。return 不为空，返回值顺序是return的顺序而非在函数头声明的顺序</p>
@@ -155,11 +153,9 @@ func main(){
     c, d := change(a, b)
     println(c, d)
 </pre></div>
-
-
 <p>如果命名返回参数被代码块中的同名变量覆盖了，就必须使用显式return返回结果</p>
 <p>不需要强制命名返回值，但是命名后的返回值可以让代码更加清晰，可读性更强</p>
-<h3>参数传递:传值与传指针</h3>
+<h3 id="_4">参数传递:传值与传指针</h3>
 <p>指针, Go保留指针，用"."而非"-&gt;"操作指针目标对象成员
 操作符</p>
 <div class="codehilite"><pre>&amp; 取变量地址
@@ -185,15 +181,13 @@ x1 := add2(&amp;x)
 x // 4
 x1 // 4
 </pre></div>
-
-
 <p>传指针多个函数能操作同一个对象</p>
 <p>传指针比较轻量级(8byte)，只是传内存地址，我饿们可以用指针来传递体积大的结构体</p>
 <p>Go语言中，string,slice,map这三种类型的实现机制类似指针，所以可以直接传递，而不用取地址后传指针</p>
 <p>注意，若函数需要改变 slice长度，仍需要取地址传指针</p>
-<h3>参数传递:可变参数</h3>
+<h3 id="_5">参数传递:可变参数</h3>
 <p>变参本质上就是一个slice，且必须是最后一个形参</p>
-<p>将slice传递给变参函数时，注意用…展开，否则会被当做dang单个参数处理，和python类似</p>
+<p>将slice传递给变参函数时，注意用&hellip;展开，否则会被当做dang单个参数处理，和python类似</p>
 <div class="codehilite"><pre>package main
 
 func sum(s string, args ...int)  {
@@ -204,37 +198,29 @@ func sum(s string, args ...int)  {
     println(s, x)
 }
 func main(){
-   sum(&quot;1+2+3=&quot;, 1, 2, 3)
+   sum("1+2+3=", 1, 2, 3)
 
    x := []int{0,1,2,3,4}
-   sum(&quot;0+1+2+3=&quot;, x[:4]...)
+   sum("0+1+2+3=", x[:4]...)
 }
 
 ...type类型只能作为函数的参数类型存在，并且是最后一个参数
 本质上是一个数组切片，即[]type
 </pre></div>
-
-
 <p>任意类型的不定参数</p>
 <div class="codehilite"><pre>func Printf(format string, args ...interface{}) {
 }
 </pre></div>
-
-
-<h3>匿名函数</h3>
+<h3 id="_6">匿名函数</h3>
 <div class="codehilite"><pre>f := func(x,y int) int {
     return x + y
 }
 </pre></div>
-
-
-<h3>函数作为值、类型</h3>
+<h3 id="_7">函数作为值、类型</h3>
 <p>在Go语言中，函数也是一种变量，可以通过type来定义它,它的类型就是所有拥有相同的参数，相同的返回值</p>
 <div class="codehilite"><pre>语法
 type typeName func (input1 inputType1, input2 inputType2 [, ....]) (result1 resultType1 [,....])
 </pre></div>
-
-
 <p>用法e.g.1</p>
 <div class="codehilite"><pre>type testInt func(int) bool //声明了一个函数类型
 
@@ -256,8 +242,6 @@ func isOdd(integer int) bool {
 
 filter(a, isOdd)
 </pre></div>
-
-
 <p>这种用法，在写接口的时候非常有用</p>
 <p>用法e.g.2</p>
 <p>可以定义函数类型，也可以将函数作为值进行传递(默认值nil)</p>
@@ -278,14 +262,12 @@ func main(){
     cb = func(s string) {
         println(s)
     }
-    cb(&quot;hello world&quot;)
+    cb("hello world")
 
     //演示2
     test(1, 2, func(a, b int) int {return a + b})
 }
 </pre></div>
-
-
 <p>结果：</p>
 <div class="codehilite"><pre>hello world
 3

@@ -73,39 +73,39 @@
         <div class="meta"> &nbsp; </div>
         <h1> Python-进阶-编码处理小结 </h1>
     </section>
+
+        <section id="toc">
+            <html><body><div id="toc"><ul><li><a class="toc-href" href="#" title="Python-进阶-编码处理小结">Python-进阶-编码处理小结</a><ul><li><a class="toc-href" href="#_1" title="开始">开始</a></li><li><a class="toc-href" href="#_2" title="首先">首先</a></li><li><a class="toc-href" href="#str-unicode" title="str 和 unicode">str 和 unicode</a></li><li><a class="toc-href" href="#ide" title="文件处理,IDE和控制台">文件处理,IDE和控制台</a></li><li><a class="toc-href" href="#_3" title="建议">建议</a></li><li><a class="toc-href" href="#_4" title="相关模块及一些方法">相关模块及一些方法</a></li></ul></li></ul></div></body></html>
+        </section>
     <section id="content">
         <p>整理下python编码相关的内容</p>
 <p>注意: 以下讨论为Python2.x版本, Py3k的待尝试</p>
-<hr />
-<h2>开始</h2>
+<hr/>
+<h2 id="_1">开始</h2>
 <p>用python处理中文时，读取文件或消息，http参数等等</p>
 <p>一运行，发现乱码(字符串处理，读写文件，print)</p>
 <p>然后，大多数人的做法是，调用encode/decode进行调试，并没有明确思考为何出现乱码</p>
 <p>所以调试时最常出现的错误</p>
 <p>错误1</p>
 <div class="codehilite"><pre>Traceback (most recent call last):
-File &quot;&lt;stdin&gt;&quot;, line 1, in &lt;module&gt;
-UnicodeDecodeError: &#39;ascii&#39; codec can&#39;t decode byte 0xe6 in position 0: ordinal not in range(128)
+File "&lt;stdin&gt;", line 1, in &lt;module&gt;
+UnicodeDecodeError: 'ascii' codec can't decode byte 0xe6 in position 0: ordinal not in range(128)
 </pre></div>
-
-
 <p>错误2</p>
 <div class="codehilite"><pre>Traceback (most recent call last):
-File &quot;&lt;stdin&gt;&quot;, line 1, in &lt;module&gt;
-File &quot;/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/encodings/utf_8.py&quot;, line 16, in decode
+File "&lt;stdin&gt;", line 1, in &lt;module&gt;
+File "/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/encodings/utf_8.py", line 16, in decode
     return codecs.utf_8_decode(input, errors, True)
-UnicodeEncodeError: &#39;ascii&#39; codec can&#39;t encode characters in position 0-1: ordinal not in range(128)
+UnicodeEncodeError: 'ascii' codec can't encode characters in position 0-1: ordinal not in range(128)
 </pre></div>
-
-
-<hr />
-<h2>首先</h2>
+<hr/>
+<h2 id="_2">首先</h2>
 <p>必须有大体概念，了解下字符集，<a href="http://zh.wikipedia.org/wiki/%E5%AD%97%E7%AC%A6%E7%BC%96%E7%A0%81">字符编码</a></p>
 <p><a href="http://zh.wikipedia.org/zh/ASCII">ASCII</a> | <a href="http://zh.wikipedia.org/zh/Unicode">Unicode</a> | <a href="http://zh.wikipedia.org/zh/UTF-8">UTF-8</a> | 等等</p>
 <p><a href="http://www.ruanyifeng.com/blog/2007/10/ascii_unicode_and_utf-8.html"> 字符编码笔记：ASCII，Unicode和UTF-8 </a></p>
 <p><a href="http://www.searchtb.com/2012/04/chinese_encode.html">淘宝搜索技术博客-中文编码杂谈</a></p>
-<hr />
-<h2>str 和 unicode</h2>
+<hr/>
+<h2 id="str-unicode">str 和 unicode</h2>
 <blockquote>
 <p>str和unicode都是basestring的子类</p>
 </blockquote>
@@ -113,98 +113,80 @@ UnicodeEncodeError: &#39;ascii&#39; codec can&#39;t encode characters in positio
 <div class="codehilite"><pre><span class="k">def</span> <span class="nf">is_str</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
     <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">)</span>
 </pre></div>
-
-
 <blockquote>
 <p>str和unicode 转换</p>
 </blockquote>
 <p>decode <a href="http://www.tutorialspoint.com/python/string_decode.htm">文档</a></p>
 <p>encode <a href="http://www.tutorialspoint.com/python/string_encode.htm">文档</a></p>
-<div class="codehilite"><pre>str  -&gt; decode(&#39;the_coding_of_str&#39;) -&gt; unicode
-unicode -&gt; encode(&#39;the_coding_you_want&#39;) -&gt; str
+<div class="codehilite"><pre>str  -&gt; decode('the_coding_of_str') -&gt; unicode
+unicode -&gt; encode('the_coding_you_want') -&gt; str
 </pre></div>
-
-
 <blockquote>
 <p>区别</p>
 </blockquote>
 <p>str是字节串，由unicode经过编码(encode)后的字节组成的</p>
 <p>声明方式</p>
-<div class="codehilite"><pre>s = &#39;中文&#39;
-s = u&#39;中文&#39;.encode(&#39;utf-8&#39;)
+<div class="codehilite"><pre>s = '中文'
+s = u'中文'.encode('utf-8')
 
-&gt;&gt;&gt; type(&#39;中文&#39;)
-&lt;type &#39;str&#39;&gt;
+&gt;&gt;&gt; type('中文')
+&lt;type 'str'&gt;
 </pre></div>
-
-
 <p>求长度(返回字节数)</p>
-<div class="codehilite"><pre>&gt;&gt;&gt; u&#39;中文&#39;.encode(&#39;utf-8&#39;)
-&#39;\xe4\xb8\xad\xe6\x96\x87&#39;
-&gt;&gt;&gt; len(u&#39;中文&#39;.encode(&#39;utf-8&#39;))
+<div class="codehilite"><pre>&gt;&gt;&gt; u'中文'.encode('utf-8')
+'\xe4\xb8\xad\xe6\x96\x87'
+&gt;&gt;&gt; len(u'中文'.encode('utf-8'))
 6
 </pre></div>
-
-
 <p>unicode才是真正意义上的字符串，由字符组成</p>
 <p>声明方式</p>
-<div class="codehilite"><pre>s = u&#39;中文&#39;
-s = &#39;中文&#39;.decode(&#39;utf-8&#39;)
-s = unicode(&#39;中文&#39;, &#39;utf-8&#39;)
+<div class="codehilite"><pre>s = u'中文'
+s = '中文'.decode('utf-8')
+s = unicode('中文', 'utf-8')
 
-&gt;&gt;&gt; type(u&#39;中文&#39;)
-&lt;type &#39;unicode&#39;&gt;
+&gt;&gt;&gt; type(u'中文')
+&lt;type 'unicode'&gt;
 </pre></div>
-
-
 <p>求长度(返回字符数),在逻辑中真正想要用的</p>
-<div class="codehilite"><pre>&gt;&gt;&gt; u&#39;中文&#39;
-u&#39;\u4e2d\u6587&#39;
-&gt;&gt;&gt; len(u&#39;中文&#39;)
+<div class="codehilite"><pre>&gt;&gt;&gt; u'中文'
+u'\u4e2d\u6587'
+&gt;&gt;&gt; len(u'中文')
 2
 </pre></div>
-
-
 <blockquote>
 <p>结论</p>
 </blockquote>
 <p>搞明白要处理的是str还是unicode, 使用对的处理方法(str.decode/unicode.encode)</p>
 <p>下面是判断是否为unicode/str的方法</p>
-<div class="codehilite"><pre>&gt;&gt;&gt; isinstance(u&#39;中文&#39;, unicode)
+<div class="codehilite"><pre>&gt;&gt;&gt; isinstance(u'中文', unicode)
 True
-&gt;&gt;&gt; isinstance(&#39;中文&#39;, unicode)
+&gt;&gt;&gt; isinstance('中文', unicode)
 False
 
-&gt;&gt;&gt; isinstance(&#39;中文&#39;, str)
+&gt;&gt;&gt; isinstance('中文', str)
 True
-&gt;&gt;&gt; isinstance(u&#39;中文&#39;, str)
+&gt;&gt;&gt; isinstance(u'中文', str)
 False
 </pre></div>
-
-
 <p>简单原则：不要对str使用encode，不要对unicode使用decode (事实上可以对str进行encode的，具体见最后，为了保证简单，不建议)</p>
-<div class="codehilite"><pre>&gt;&gt;&gt; &#39;中文&#39;.encode(&#39;utf-8&#39;)
+<div class="codehilite"><pre>&gt;&gt;&gt; '中文'.encode('utf-8')
 Traceback (most recent call last):
-File &quot;&lt;stdin&gt;&quot;, line 1, in &lt;module&gt;
-UnicodeDecodeError: &#39;ascii&#39; codec can&#39;t decode byte 0xe4 in position 0: ordinal not in range(128)
+File "&lt;stdin&gt;", line 1, in &lt;module&gt;
+UnicodeDecodeError: 'ascii' codec can't decode byte 0xe4 in position 0: ordinal not in range(128)
 
-&gt;&gt;&gt; u&#39;中文&#39;.decode(&#39;utf-8&#39;)
+&gt;&gt;&gt; u'中文'.decode('utf-8')
 Traceback (most recent call last):
-File &quot;&lt;stdin&gt;&quot;, line 1, in &lt;module&gt;
-File &quot;/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/encodings/utf_8.py&quot;, line 16, in decode
+File "&lt;stdin&gt;", line 1, in &lt;module&gt;
+File "/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/encodings/utf_8.py", line 16, in decode
     return codecs.utf_8_decode(input, errors, True)
-UnicodeEncodeError: &#39;ascii&#39; codec can&#39;t encode characters in position 0-1: ordinal not in range(128)
+UnicodeEncodeError: 'ascii' codec can't encode characters in position 0-1: ordinal not in range(128)
 </pre></div>
-
-
 <p>不同编码转换,使用unicode作为中间编码</p>
 <div class="codehilite"><pre><span class="c">#s是code_A的str</span>
-<span class="n">s</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;code_A&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;code_B&#39;</span><span class="p">)</span>
+<span class="n">s</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">'code_A'</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">'code_B'</span><span class="p">)</span>
 </pre></div>
-
-
-<hr />
-<h2>文件处理,IDE和控制台</h2>
+<hr/>
+<h2 id="ide">文件处理,IDE和控制台</h2>
 <p>处理流程，可以这么使用，把python看做一个水池，一个入口，一个出口</p>
 <p>入口处，全部转成unicode, 池里全部使用unicode处理，出口处，再转成目标编码(当然，有例外，处理逻辑中要用到具体编码的情况)</p>
 <div class="codehilite"><pre>读文件
@@ -217,19 +199,15 @@ encode转成需要的目标编码
 
 写到目标输出(文件或控制台)
 </pre></div>
-
-
 <p>IDE和控制台报错，原因是print时，编码和IDE自身编码不一致导致</p>
 <p>输出时将编码转换成一致的就可以正常输出</p>
-<div class="codehilite"><pre>&gt;&gt;&gt; print u&#39;中文&#39;.encode(&#39;gbk&#39;)
+<div class="codehilite"><pre>&gt;&gt;&gt; print u'中文'.encode('gbk')
 ����
-&gt;&gt;&gt; print u&#39;中文&#39;.encode(&#39;utf-8&#39;)
+&gt;&gt;&gt; print u'中文'.encode('utf-8')
 中文
 </pre></div>
-
-
-<hr />
-<h2>建议</h2>
+<hr/>
+<h2 id="_3">建议</h2>
 <blockquote>
 <p>规范编码</p>
 </blockquote>
@@ -241,18 +219,14 @@ encode转成需要的目标编码
 <p>这个很重要</p>
 <p>py文件默认编码是ASCII, 在源代码文件中，如果用到非ASCII字符，需要在文件头部进行编码声明 <a href="http://www.python.org/dev/peps/pep-0263/">文档</a></p>
 <p>不声明的话，输入非ASCII会遇到的错误,必须放在文件第一行或第二行</p>
-<div class="codehilite"><pre><span class="nt">File</span> <span class="s2">&quot;XXX.py&quot;</span><span class="o">,</span> <span class="nt">line</span> <span class="nt">3</span>
-<span class="nt">SyntaxError</span><span class="o">:</span> <span class="nt">Non-ASCII</span> <span class="nt">character</span> <span class="s1">&#39;\xd6&#39;</span> <span class="nt">in</span> <span class="nt">file</span> <span class="nt">c</span><span class="nc">.py</span> <span class="nt">on</span> <span class="nt">line</span> <span class="nt">3</span><span class="o">,</span> <span class="nt">but</span> <span class="nt">no</span> <span class="nt">encoding</span> <span class="nt">declared</span><span class="o">;</span> <span class="nt">see</span> <span class="nt">http</span><span class="o">://</span><span class="nt">www</span><span class="nc">.python.org</span><span class="o">/</span><span class="nt">peps</span><span class="o">/</span><span class="nt">pep-0263</span><span class="nc">.html</span> <span class="nt">for</span> <span class="nt">details</span>
+<div class="codehilite"><pre><span class="nt">File</span> <span class="s2">"XXX.py"</span><span class="o">,</span> <span class="nt">line</span> <span class="nt">3</span>
+<span class="nt">SyntaxError</span><span class="o">:</span> <span class="nt">Non-ASCII</span> <span class="nt">character</span> <span class="s1">'\xd6'</span> <span class="nt">in</span> <span class="nt">file</span> <span class="nt">c</span><span class="nc">.py</span> <span class="nt">on</span> <span class="nt">line</span> <span class="nt">3</span><span class="o">,</span> <span class="nt">but</span> <span class="nt">no</span> <span class="nt">encoding</span> <span class="nt">declared</span><span class="o">;</span> <span class="nt">see</span> <span class="nt">http</span><span class="o">://</span><span class="nt">www</span><span class="nc">.python.org</span><span class="o">/</span><span class="nt">peps</span><span class="o">/</span><span class="nt">pep-0263</span><span class="nc">.html</span> <span class="nt">for</span> <span class="nt">details</span>
 </pre></div>
-
-
 <p>声明方法</p>
 <div class="codehilite"><pre># -*- coding: utf-8 -*-
 或者
 #coding=utf-8
 </pre></div>
-
-
 <p>若头部声明coding=utf-8, a = '中文' 其编码为utf-8</p>
 <p>若头部声明coding=gb2312, a = '中文' 其编码为gbk</p>
 <p>so, 同一项目中所有源文件头部统一一个编码,并且声明的编码要和源文件保存的编码一致(编辑器相关)</p>
@@ -260,12 +234,10 @@ encode转成需要的目标编码
 <p>在源代码用作处理的硬编码字符串，统一用unicode</p>
 </blockquote>
 <p>将其类型和源文件本身的编码隔离开, 独立无依赖方便流程中各个位置处理</p>
-<div class="codehilite"><pre><span class="k">if</span> <span class="n">s</span> <span class="o">==</span> <span class="s">u&#39;中文&#39;</span><span class="p">:</span>  <span class="c">#而不是 s == &#39;中文&#39;</span>
+<div class="codehilite"><pre><span class="k">if</span> <span class="n">s</span> <span class="o">==</span> <span class="s">u'中文'</span><span class="p">:</span>  <span class="c">#而不是 s == '中文'</span>
     <span class="k">pass</span>
 <span class="c">#注意这里 s到这里时，确保转为unicode</span>
 </pre></div>
-
-
 <p>以上几步搞定后，你只需要关注两个 unicode和 你设定的编码(一般使用utf-8)</p>
 <blockquote>
 <p>处理顺序</p>
@@ -274,71 +246,61 @@ encode转成需要的目标编码
 2. Unicode everywhere
 3. Encode later
 </pre></div>
-
-
-<h2>相关模块及一些方法</h2>
+<h2 id="_4">相关模块及一些方法</h2>
 <blockquote>
 <p>获得和设置系统默认编码</p>
 </blockquote>
 <div class="codehilite"><pre><span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">sys</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">sys</span><span class="o">.</span><span class="n">getdefaultencoding</span><span class="p">()</span>
-<span class="s">&#39;ascii&#39;</span>
+<span class="s">'ascii'</span>
 
 <span class="o">&gt;&gt;&gt;</span> <span class="nb">reload</span><span class="p">(</span><span class="n">sys</span><span class="p">)</span>
-<span class="o">&lt;</span><span class="n">module</span> <span class="s">&#39;sys&#39;</span> <span class="p">(</span><span class="n">built</span><span class="o">-</span><span class="ow">in</span><span class="p">)</span><span class="o">&gt;</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">sys</span><span class="o">.</span><span class="n">setdefaultencoding</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span>
+<span class="o">&lt;</span><span class="n">module</span> <span class="s">'sys'</span> <span class="p">(</span><span class="n">built</span><span class="o">-</span><span class="ow">in</span><span class="p">)</span><span class="o">&gt;</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">sys</span><span class="o">.</span><span class="n">setdefaultencoding</span><span class="p">(</span><span class="s">'utf-8'</span><span class="p">)</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">sys</span><span class="o">.</span><span class="n">getdefaultencoding</span><span class="p">()</span>
-<span class="s">&#39;utf-8&#39;</span>
+<span class="s">'utf-8'</span>
 </pre></div>
-
-
 <blockquote>
 <p>str.encode('other_coding')</p>
 </blockquote>
 <p>在python中，直接将某种编码的str进行encode成另一种编码str</p>
 <div class="codehilite"><pre><span class="c">#str_A为utf-8</span>
-<span class="n">str_A</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;gbk&#39;</span><span class="p">)</span>
+<span class="n">str_A</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">'gbk'</span><span class="p">)</span>
 
 <span class="err">执行的操作是</span>
-<span class="n">str_A</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;sys_codec&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;gbk&#39;</span><span class="p">)</span>
+<span class="n">str_A</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">'sys_codec'</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">'gbk'</span><span class="p">)</span>
 <span class="err">这里</span><span class="n">sys_codec</span><span class="err">即为上一步</span> <span class="n">sys</span><span class="o">.</span><span class="n">getdefaultencoding</span><span class="p">()</span> <span class="err">的编码</span>
 </pre></div>
-
-
 <p>'获得和设置系统默认编码'和这里的str.encode是相关的，但我一般很少这么用，主要是觉得复杂不可控,还是输入明确decode，输出明确encode来得简单些(个人观点)</p>
 <blockquote>
 <p>chardet</p>
 </blockquote>
 <p>文件编码检测，<a href="https://pypi.python.org/pypi/chardet">下载</a></p>
 <div class="codehilite"><pre><span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">chardet</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s">&#39;test.txt&#39;</span><span class="p">,</span><span class="s">&#39;r&#39;</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s">'test.txt'</span><span class="p">,</span><span class="s">'r'</span><span class="p">)</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">result</span> <span class="o">=</span> <span class="n">chardet</span><span class="o">.</span><span class="n">detect</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">result</span>
-<span class="p">{</span><span class="s">&#39;confidence&#39;</span><span class="p">:</span> <span class="mf">0.99</span><span class="p">,</span> <span class="s">&#39;encoding&#39;</span><span class="p">:</span> <span class="s">&#39;utf-8&#39;</span><span class="p">}</span>
+<span class="p">{</span><span class="s">'confidence'</span><span class="p">:</span> <span class="mf">0.99</span><span class="p">,</span> <span class="s">'encoding'</span><span class="p">:</span> <span class="s">'utf-8'</span><span class="p">}</span>
 </pre></div>
-
-
 <blockquote>
 <p>\u字符串转对应unicode字符串</p>
 </blockquote>
-<div class="codehilite"><pre>&gt;&gt;&gt; u&#39;中&#39;
-u&#39;\u4e2d&#39;
+<div class="codehilite"><pre>&gt;&gt;&gt; u'中'
+u'\u4e2d'
 
-&gt;&gt;&gt; s = &#39;\u4e2d&#39;
-&gt;&gt;&gt; print s.decode(&#39;unicode_escape&#39;)
+&gt;&gt;&gt; s = '\u4e2d'
+&gt;&gt;&gt; print s.decode('unicode_escape')
 中
 
-&gt;&gt;&gt; a = &#39;\\u4fee\\u6539\\u8282\\u70b9\\u72b6\\u6001\\u6210\\u529f&#39;
-&gt;&gt;&gt; a.decode(&#39;unicode_escape&#39;)
-u&#39;\u4fee\u6539\u8282\u70b9\u72b6\u6001\u6210\u529f&#39;
+&gt;&gt;&gt; a = '\\u4fee\\u6539\\u8282\\u70b9\\u72b6\\u6001\\u6210\\u529f'
+&gt;&gt;&gt; a.decode('unicode_escape')
+u'\u4fee\u6539\u8282\u70b9\u72b6\u6001\u6210\u529f'
 </pre></div>
-
-
 <blockquote>
 <p>python unicode文档</p>
 </blockquote>
 <p><a href="http://docs.python.org/2/tutorial/introduction.html#unicode-strings">入口</a></p>
-<hr />
+<hr/>
 <p>好了，暂时就这么多，希望讲清楚了</p>
 <p>thx</p>
 <p>wklken</p>

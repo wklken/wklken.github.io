@@ -73,11 +73,15 @@
         <div class="meta"> &nbsp; </div>
         <h1> Golang笔记-06-struct </h1>
     </section>
+
+        <section id="toc">
+            <html><body><div id="toc"><ul><li><a class="toc-href" href="#" title="Golang笔记-06-struct">Golang笔记-06-struct</a><ul><li><a class="toc-href" href="#struct" title="struct">struct</a><ul><li><a class="toc-href" href="#1" title="1.声明及初始化">1.声明及初始化</a></li><li><a class="toc-href" href="#2struct" title="2.struct的匿名字段(继承)">2.struct的匿名字段(继承)</a></li><li><a class="toc-href" href="#3method" title="3.method">3.method</a></li></ul></li><li><a class="toc-href" href="#4method_1" title="4.method继承和重写">4.method继承和重写</a></li></ul></li></ul></div></body></html>
+        </section>
     <section id="content">
-        <h3>struct</h3>
+        <h3 id="struct">struct</h3>
 <p>struct，一组字段的集合，类似其他语言的class</p>
 <p>放弃了大量包括继承在内的面向对象特性，只保留了组合(composition)这个最基础的特性</p>
-<h4>1.声明及初始化</h4>
+<h4 id="1">1.声明及初始化</h4>
 <div class="codehilite"><pre>type person struct {
     name string
     age  int
@@ -88,20 +92,18 @@
 func main() {
     var P person
 
-    P.name = &quot;tom&quot;
+    P.name = "tom"
     P.age = 25
     fmt.Println(P.name)
 
-    P1 := person{&quot;Tom1&quot;, 25}
+    P1 := person{"Tom1", 25}
     fmt.Println(P1.name)
 
-    P2 := person{age: 24, name: &quot;Tom&quot;}
+    P2 := person{age: 24, name: "Tom"}
     fmt.Println(P2.name)
 }
 </pre></div>
-
-
-<h4>2.struct的匿名字段(继承)</h4>
+<h4 id="2struct">2.struct的匿名字段(继承)</h4>
 <div class="codehilite"><pre>type Human struct {
     name string
     age int
@@ -113,21 +115,17 @@ tyep Student struct {
     speciality string
 }
 
-mark := Student(Human{&quot;mark&quot;, 25, 120}, &quot;Computer Science&quot;)
+mark := Student(Human{"mark", 25, 120}, "Computer Science")
 
 mark.name
 mark.age
 </pre></div>
-
-
 <p>能够实现字段继承，当字段名重复的时候，优先取外层的,可以通过指定struct名还决定取哪个</p>
-<div class="codehilite"><pre>mark.Human = Human{&quot;a&quot;, 55, 220}
+<div class="codehilite"><pre>mark.Human = Human{"a", 55, 220}
 mark.Human.age -= 1
 </pre></div>
-
-
 <p>struct不仅可以使用struct作为匿名字段，自定义类型、内置类型都可以作为匿名字段,而且可以在相应字段上做函数操作</p>
-<h4>3.method</h4>
+<h4 id="3method">3.method</h4>
 <div class="codehilite"><pre>type Rect struct {
     x, y float64
     width, height float64
@@ -152,9 +150,7 @@ func (b *Box) SetColor(c Color) {
     b.color = c
 }
 </pre></div>
-
-
-<h3>4.method继承和重写</h3>
+<h3 id="4method_1">4.method继承和重写</h3>
 <p>采用组合的方式实现继承</p>
 <div class="codehilite"><pre>type Human struct {
     name string
@@ -171,17 +167,15 @@ func (h *Human) SayHi() {
 
 //则Student和Employee的实例可以调用
 func main() {
-    h := Human{name: &quot;human&quot;}
+    h := Human{name: "human"}
     fmt.Print(h.name)
     h.SayHi()
 
-    s := Student{Human{&quot;student&quot;}}
+    s := Student{Human{"student"}}
     s.SayHi()
 
 }
 </pre></div>
-
-
 <p>还可以进行方法重写</p>
 <div class="codehilite"><pre>funct (e *Student) SayHi() {
     e.Human.SayHi()

@@ -73,42 +73,44 @@
         <div class="meta"> &nbsp; </div>
         <h1> Python 源码阅读 - 类型 </h1>
     </section>
+
+        <section id="toc">
+            <html><body><div id="toc"><ul><li><a class="toc-href" href="#" title="Python 源码阅读 - 类型">Python 源码阅读 - 类型</a><ul><li><a class="toc-href" href="#1-pytypeobject" title="1. 首先, 定义一种类型叫PyTypeObject">1. 首先, 定义一种类型叫PyTypeObject</a></li><li><a class="toc-href" href="#2-pytypeobjectpytype_type" title="2. 然后, 用PyTypeObject初始化得到一个对象PyType_Type">2. 然后, 用PyTypeObject初始化得到一个对象PyType_Type</a></li><li><a class="toc-href" href="#3-pyint_type" title="3. 再然后, 定义具体的类型, 这里以PyInt_Type为例子">3. 再然后, 定义具体的类型, 这里以PyInt_Type为例子</a></li><li><a class="toc-href" href="#4-int" title="4. 最后, 生成一个整数对象int">4. 最后, 生成一个整数对象int</a></li><li><a class="toc-href" href="#_1" title="到这里, 总结下">到这里, 总结下</a></li><li><a class="toc-href" href="#_2" title="多态是如何实现的?">多态是如何实现的?</a></li></ul></li></ul></div></body></html>
+        </section>
     <section id="content">
         <p>这篇主要涉及Python对象的类型机制</p>
 <p>有点绕, 一定要思维清晰的时候再看哦:)</p>
-<hr />
+<hr/>
 <p>一个例子</p>
 <div class="codehilite"><pre>&gt;&gt;&gt; a = 1
 &gt;&gt;&gt; a
 1
 
 &gt;&gt;&gt; type(a)
-&lt;type &#39;int&#39;&gt;
+&lt;type 'int'&gt;
 
 #等价的两个
 &gt;&gt;&gt; type(type(a))
-&lt;type &#39;type&#39;&gt;
+&lt;type 'type'&gt;
 &gt;&gt;&gt; type(int)
-&lt;type &#39;type&#39;&gt;
+&lt;type 'type'&gt;
 
 #还是等价的两个
 &gt;&gt;&gt; type(type(type(a)))
-&lt;type &#39;type&#39;&gt;
+&lt;type 'type'&gt;
 &gt;&gt;&gt; type(type(int))
-&lt;type &#39;type&#39;&gt;
+&lt;type 'type'&gt;
 </pre></div>
-
-
 <p>我们反向推导一个<code>int</code>对象是怎么生成的.</p>
-<hr />
-<h3>1. 首先, 定义一种类型叫PyTypeObject</h3>
+<hr/>
+<h3 id="1-pytypeobject">1. 首先, 定义一种类型叫PyTypeObject</h3>
 <p>代码位置 <a href="https://github.com/wklken/Python-2.7.8/blob/master/Include/object.h">Include/object.h</a></p>
 <p>定义</p>
 <div class="codehilite"><pre> typedef struct _typeobject {
 
   /* MARK: base, 注意, 是个变长对象*/
   PyObject_VAR_HEAD
-  const char *tp_name; /* For printing, in format &quot;&lt;module&gt;.&lt;name&gt;&quot; */
+  const char *tp_name; /* For printing, in format "&lt;module&gt;.&lt;name&gt;" */
   Py_ssize_t tp_basicsize, tp_itemsize; /* For allocation */
 
 
@@ -127,8 +129,6 @@
 
 } PyTypeObject;
 </pre></div>
-
-
 <p>说明</p>
 <div class="codehilite"><pre>1. PyObject_VAR_HEAD
 变长对象
@@ -136,15 +136,13 @@
 2. const char *tp_name
 tp_name, 类型名字符串数组
 </pre></div>
-
-
-<hr />
-<h3>2. 然后, 用PyTypeObject初始化得到一个对象PyType_Type</h3>
+<hr/>
+<h3 id="2-pytypeobjectpytype_type">2. 然后, 用PyTypeObject初始化得到一个对象PyType_Type</h3>
 <p>代码位置 <a href="https://github.com/wklken/Python-2.7.8/blob/master/Objects/typeobject.c">Objects/typeobject.c</a></p>
 <p>定义</p>
 <div class="codehilite"><pre>PyTypeObject PyType_Type = {
   PyVarObject_HEAD_INIT(&amp;PyType_Type, 0)
-  &quot;type&quot;,                                     /* tp_name */
+  "type",                                     /* tp_name */
   sizeof(PyHeapTypeObject),                   /* tp_basicsize */
   sizeof(PyMemberDef),                        /* tp_itemsize */
   (destructor)type_dealloc,                   /* tp_dealloc */
@@ -154,11 +152,9 @@ tp_name, 类型名字符串数组
 
 };
 </pre></div>
-
-
 <p>说明</p>
 <div class="codehilite"><pre>1. tp_name
-类型名, 这里是&quot;type&quot;
+类型名, 这里是"type"
 
 2. PyVarObject_HEAD_INIT(&amp;PyType_Type, 0)
 PyVarObject_HEAD_INIT, 这个方法在 Include/object.h中,
@@ -169,31 +165,27 @@ PyVarObject_HEAD_INIT, 这个方法在 Include/object.h中,
 
 即, PyType_Type的类型是其本身!
 </pre></div>
-
-
 <p>结构</p>
 <p>第一张图, 箭头表示<code>实例化</code>(google doc用不是很熟找不到对应类型的箭头)
-<img alt="PyType_Type" src="/imgs/python-source/PyType_Type.png" /></p>
+<img alt="PyType_Type" src="/imgs/python-source/PyType_Type.png"/></p>
 <p>第二张图, 箭头表示<code>指向</code>
-<img alt="PyType_Type2" src="/imgs/python-source/PyType_Type2.png" /></p>
+<img alt="PyType_Type2" src="/imgs/python-source/PyType_Type2.png"/></p>
 <p>使用</p>
 <div class="codehilite"><pre># 1. int 的 类型 是`type`
 &gt;&gt;&gt; type(int)
-&lt;type &#39;type&#39;&gt;
+&lt;type 'type'&gt;
 
 # 2. type 的类型 还是`type`, 对应上面说明第二点
 &gt;&gt;&gt; type(type(int))
-&lt;type &#39;type&#39;&gt;
+&lt;type 'type'&gt;
 </pre></div>
-
-
-<hr />
-<h3>3. 再然后, 定义具体的类型, 这里以PyInt_Type为例子</h3>
+<hr/>
+<h3 id="3-pyint_type">3. 再然后, 定义具体的类型, 这里以PyInt_Type为例子</h3>
 <p>代码位置 <a href="https://github.com/wklken/Python-2.7.8/blob/master/Objects/intobject.c">Objects/intobject.c</a></p>
 <p>定义</p>
 <div class="codehilite"><pre>PyTypeObject PyInt_Type = {
   PyVarObject_HEAD_INIT(&amp;PyType_Type, 0)
-  &quot;int&quot;,
+  "int",
   sizeof(PyIntObject),
   0,
 
@@ -204,10 +196,8 @@ PyVarObject_HEAD_INIT, 这个方法在 Include/object.h中,
 
 };
 </pre></div>
-
-
 <p>说明</p>
-<div class="codehilite"><pre>1. &quot;int&quot;
+<div class="codehilite"><pre>1. "int"
 PyInt_Type的类型名是int
 
 2.PyVarObject_HEAD_INIT(&amp;PyType_Type, 0)
@@ -215,21 +205,17 @@ PyInt_Type的
 
     *ob_type = &amp;PyType_Type
 </pre></div>
-
-
 <p>结构</p>
-<p><img alt="PyType_Type2" src="/imgs/python-source/PyType_Type3.png" /></p>
+<p><img alt="PyType_Type2" src="/imgs/python-source/PyType_Type3.png"/></p>
 <p>使用</p>
 <div class="codehilite"><pre>&gt;&gt;&gt; type(1)
-&lt;type &#39;int&#39;&gt;
+&lt;type 'int'&gt;
 
 &gt;&gt;&gt; type(type(1))
-&lt;type &#39;type&#39;&gt;
+&lt;type 'type'&gt;
 </pre></div>
-
-
-<hr />
-<h3>4. 最后, 生成一个整数对象int</h3>
+<hr/>
+<h3 id="4-int">4. 最后, 生成一个整数对象int</h3>
 <p>代码位置 <a href="https://github.com/wklken/Python-2.7.8/blob/master/Include/intobject.h">Include/intobject.h</a></p>
 <p>定义</p>
 <div class="codehilite"><pre>typedef struct {
@@ -237,20 +223,16 @@ PyInt_Type的
     long ob_ival;
 } PyIntObject;
 </pre></div>
-
-
 <p>结构</p>
-<p><img alt="PyType_Type2" src="/imgs/python-source/PyType_Type4.png" /></p>
+<p><img alt="PyType_Type2" src="/imgs/python-source/PyType_Type4.png"/></p>
 <div class="codehilite"><pre>1. PyIntObject为整数类型
 
 2. 声明一个整数后得到整数对象
 
 3. 对象ob_type指向PyInt_type对象
 </pre></div>
-
-
-<hr />
-<h3>到这里, 总结下</h3>
+<hr/>
+<h3 id="_1">到这里, 总结下</h3>
 <div class="codehilite"><pre> 1. 一切都是对象
 
  2. PyType_Type / PyInt_Type / PyString_Type ....等
@@ -265,18 +247,14 @@ PyInt_Type的
  5. 每个object, 例如PyIntObject都属于一种`类型`
  object初始化时进行关联
 </pre></div>
-
-
-<hr />
-<h3>多态是如何实现的?</h3>
+<hr/>
+<h3 id="_2">多态是如何实现的?</h3>
 <p>对象的多态, 例如hash</p>
 <div class="codehilite"><pre>&gt;&gt;&gt; hash(1)
 1
-&gt;&gt;&gt; hash(&quot;abc&quot;)
+&gt;&gt;&gt; hash("abc")
 1453079729188098211
 </pre></div>
-
-
 <p>从上面数据结构可以看到, 方法及属性, 在不同Type实例化时就确定了</p>
 <div class="codehilite"><pre>PyTypeObject PyInt_Type = {
     ...
@@ -291,14 +269,10 @@ PyTypeObject PyString_Type = {
     ...
 }
 </pre></div>
-
-
 <p>Python内部传递的是泛型指针<code>PyObject *</code>, 函数调用时, 找到其类型<code>* ob_type</code>, 然后调用</p>
 <div class="codehilite"><pre>object -&gt; ob_type -&gt; tp_hash
 </pre></div>
-
-
-<hr />
+<hr/>
 <p>changelog</p>
 <div class="codehilite"><pre>2014-08-05 first version
 </pre></div>

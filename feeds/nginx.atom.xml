@@ -3,15 +3,13 @@
 &lt;p&gt;开年第一篇, 梳理笔记本中....&lt;/p&gt;
 &lt;p&gt;没啥, 一些用到以及后面可能用到的&lt;code&gt;nginx&lt;/code&gt;配置, 记录一下, 备查备用&lt;/p&gt;
 &lt;p&gt;ps. 之前一篇 &lt;a href="http://www.wklken.me/posts/2013/11/23/nginx-base.html"&gt;nginx基础笔记&lt;/a&gt;&lt;/p&gt;
-&lt;h2&gt;使用独立目录, 然后include具体配置&lt;/h2&gt;
+&lt;h2 id="include"&gt;使用独立目录, 然后include具体配置&lt;/h2&gt;
 &lt;p&gt;目录&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;nginx.conf
 site/
     a.conf
     b.conf
 &lt;/pre&gt;&lt;/div&gt;
-
-
 &lt;p&gt;nginx.conf&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;http {
 
@@ -20,9 +18,7 @@ site/
     include sites/*.conf;
 }
 &lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;h3&gt;gzip on&lt;/h3&gt;
+&lt;h3 id="gzip-on"&gt;gzip on&lt;/h3&gt;
 &lt;p&gt;加到&lt;code&gt;http&lt;/code&gt;模块中, 开启&lt;code&gt;gzip&lt;/code&gt;, 注意&lt;code&gt;gzip_types&lt;/code&gt;配置得是压缩的资源类型&lt;/p&gt;
 &lt;p&gt;nginx.conf&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;http {
@@ -39,9 +35,7 @@ site/
     gzip_vary on;
 }
 &lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;h2&gt;for multi processers&lt;/h2&gt;
+&lt;h2 id="for-multi-processers_1"&gt;for multi processers&lt;/h2&gt;
 &lt;p&gt;nginx.conf&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;worker_processes  4;
 events {
@@ -52,20 +46,16 @@ events {
 
 worker_rlimit_nofile 100000;
 &lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;h2&gt;static file cache&lt;/h2&gt;
+&lt;h2 id="static-file-cache"&gt;static file cache&lt;/h2&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;    &lt;span class="nt"&gt;location&lt;/span&gt; &lt;span class="o"&gt;~*&lt;/span&gt; &lt;span class="err"&gt;\&lt;/span&gt;&lt;span class="o"&gt;.(?&lt;/span&gt;&lt;span class="nd"&gt;:css&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="nt"&gt;js&lt;/span&gt;&lt;span class="o"&gt;)$&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
       &lt;span class="n"&gt;expires&lt;/span&gt; &lt;span class="m"&gt;12&lt;/span&gt;&lt;span class="n"&gt;h&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
       &lt;span class="n"&gt;access_log&lt;/span&gt; &lt;span class="n"&gt;off&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-      &lt;span class="n"&gt;add_header&lt;/span&gt; &lt;span class="n"&gt;Cache&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;Control&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;public&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+      &lt;span class="n"&gt;add_header&lt;/span&gt; &lt;span class="n"&gt;Cache&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;Control&lt;/span&gt; &lt;span class="s2"&gt;"public"&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
       &lt;span class="n"&gt;proxy_pass&lt;/span&gt; &lt;span class="n"&gt;http&lt;/span&gt;&lt;span class="o"&gt;://&lt;/span&gt;&lt;span class="m"&gt;127&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="m"&gt;1&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="m"&gt;5000&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
       &lt;span class="n"&gt;proxy_redirect&lt;/span&gt; &lt;span class="n"&gt;off&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
     &lt;span class="p"&gt;}&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;h2&gt;proxy pass&lt;/h2&gt;
+&lt;h2 id="proxy-pass"&gt;proxy pass&lt;/h2&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;    &lt;span class="nt"&gt;location&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;
     &lt;span class="p"&gt;{&lt;/span&gt;
         &lt;span class="n"&gt;proxy_pass&lt;/span&gt; &lt;span class="n"&gt;http&lt;/span&gt;&lt;span class="o"&gt;://&lt;/span&gt;&lt;span class="m"&gt;127&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="m"&gt;1&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="m"&gt;8000&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
@@ -77,16 +67,12 @@ worker_rlimit_nofile 100000;
         &lt;span class="n"&gt;proxy_redirect&lt;/span&gt; &lt;span class="n"&gt;off&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
     &lt;span class="p"&gt;}&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
-
-
 &lt;p&gt;可以设置超时时间&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;        proxy_connect_timeout 500s;
         proxy_read_timeout 500s;
         proxy_send_timeout 500s;
 &lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;h2&gt;静态目录 or 文件&lt;/h2&gt;
+&lt;h2 id="or"&gt;静态目录 or 文件&lt;/h2&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;    location /movies/ {
         alias /Volumes/Media/Movies/;
         allow all;
@@ -98,9 +84,7 @@ worker_rlimit_nofile 100000;
         access_log off;
     }
 &lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;h2&gt;静态站&lt;/h2&gt;
+&lt;h2 id="_1"&gt;静态站&lt;/h2&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="nt"&gt;server&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
     &lt;span class="n"&gt;listen&lt;/span&gt;       &lt;span class="m"&gt;192&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="m"&gt;168&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="m"&gt;1&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="m"&gt;1&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="m"&gt;80&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
     &lt;span class="n"&gt;server_name&lt;/span&gt;  &lt;span class="n"&gt;www&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;abc&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;com&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
@@ -114,16 +98,12 @@ worker_rlimit_nofile 100000;
 
 &lt;span class="p"&gt;}&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;h2&gt;return&lt;/h2&gt;
+&lt;h2 id="return"&gt;return&lt;/h2&gt;
 &lt;p&gt;直接&lt;code&gt;return&lt;/code&gt;&lt;/p&gt;
 &lt;p&gt;语法&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;return http_code;
-return http_code &amp;quot;content&amp;quot;;
+return http_code "content";
 &lt;/pre&gt;&lt;/div&gt;
-
-
 &lt;p&gt;e.g.&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;location /api/test/ {
     return 403;
@@ -137,9 +117,7 @@ location /ping/ {
     return 200;
 }
 &lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;h2&gt;for mobile&lt;/h2&gt;
+&lt;h2 id="for-mobile"&gt;for mobile&lt;/h2&gt;
 &lt;p&gt;移动端和网站端互相跳转&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;    &lt;span class="nt"&gt;location&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
         &lt;span class="n"&gt;try_files&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;uri&lt;/span&gt; &lt;span class="o"&gt;@&lt;/span&gt;&lt;span class="n"&gt;mobile_rewrite&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
@@ -152,18 +130,18 @@ location /ping/ {
 
     &lt;span class="nt"&gt;location&lt;/span&gt; &lt;span class="k"&gt;@mobile_rewrite&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
 
-        &lt;span class="nt"&gt;if&lt;/span&gt; &lt;span class="o"&gt;($&lt;/span&gt;&lt;span class="nt"&gt;http_user_agent&lt;/span&gt; &lt;span class="o"&gt;~*&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows (ce|phone)|xda|xiino&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="nt"&gt;if&lt;/span&gt; &lt;span class="o"&gt;($&lt;/span&gt;&lt;span class="nt"&gt;http_user_agent&lt;/span&gt; &lt;span class="o"&gt;~*&lt;/span&gt; &lt;span class="s2"&gt;"(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows (ce|phone)|xda|xiino"&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
             &lt;span class="n"&gt;set&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;mobile_rewrite&lt;/span&gt; &lt;span class="n"&gt;perform&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
         &lt;span class="p"&gt;}&lt;/span&gt;
-        &lt;span class="nt"&gt;if&lt;/span&gt; &lt;span class="o"&gt;($&lt;/span&gt;&lt;span class="nt"&gt;http_user_agent&lt;/span&gt; &lt;span class="o"&gt;~*&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;^(1207|6310|6590|3gso|4thp|50&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;6&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="s2"&gt;i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez(&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;4&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;7&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="s2"&gt;0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="nx"&gt;a&lt;/span&gt;&lt;span class="na"&gt;-w&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="s2"&gt;)|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="s2"&gt;|n20&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="s2"&gt;|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-(&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="s2"&gt;|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;7&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="s2"&gt;|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="s2"&gt;|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-)&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="nt"&gt;if&lt;/span&gt; &lt;span class="o"&gt;($&lt;/span&gt;&lt;span class="nt"&gt;http_user_agent&lt;/span&gt; &lt;span class="o"&gt;~*&lt;/span&gt; &lt;span class="s2"&gt;"^(1207|6310|6590|3gso|4thp|50&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;6&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="s2"&gt;i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez(&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;4&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;7&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="s2"&gt;0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="nx"&gt;a&lt;/span&gt;&lt;span class="na"&gt;-w&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="s2"&gt;)|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="s2"&gt;|n20&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="s2"&gt;|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-(&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="s2"&gt;|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;7&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="s2"&gt;|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="s2"&gt;|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-)"&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
             &lt;span class="n"&gt;set&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;mobile_rewrite&lt;/span&gt; &lt;span class="n"&gt;perform&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
         &lt;span class="p"&gt;}&lt;/span&gt;
 
-        &lt;span class="nt"&gt;if&lt;/span&gt; &lt;span class="o"&gt;($&lt;/span&gt;&lt;span class="nt"&gt;arg_mobile&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;no&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="nt"&gt;if&lt;/span&gt; &lt;span class="o"&gt;($&lt;/span&gt;&lt;span class="nt"&gt;arg_mobile&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s1"&gt;'no'&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
             &lt;span class="n"&gt;set&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;mobile_rewrite&lt;/span&gt; &lt;span class="n"&gt;do_not_perform&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
         &lt;span class="p"&gt;}&lt;/span&gt;
 
-        &lt;span class="nt"&gt;if&lt;/span&gt; &lt;span class="o"&gt;($&lt;/span&gt;&lt;span class="nt"&gt;arg_mobile&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;yes&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="nt"&gt;if&lt;/span&gt; &lt;span class="o"&gt;($&lt;/span&gt;&lt;span class="nt"&gt;arg_mobile&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s1"&gt;'yes'&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
             &lt;span class="n"&gt;set&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;mobile_rewrite&lt;/span&gt; &lt;span class="n"&gt;perform&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
         &lt;span class="p"&gt;}&lt;/span&gt;
 
@@ -185,10 +163,10 @@ location /ping/ {
     &lt;span class="p"&gt;{&lt;/span&gt;
 
         &lt;span class="n"&gt;set&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;pc_rewrite&lt;/span&gt; &lt;span class="m"&gt;1&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-        &lt;span class="n"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;http_user_agent&lt;/span&gt; &lt;span class="o"&gt;~*&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows (ce|phone)|xda|xiino&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="err"&gt;{&lt;/span&gt;
+        &lt;span class="n"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;http_user_agent&lt;/span&gt; &lt;span class="o"&gt;~*&lt;/span&gt; &lt;span class="s2"&gt;"(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows (ce|phone)|xda|xiino"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="err"&gt;{&lt;/span&gt;
             &lt;span class="n"&gt;set&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;pc_rewrite&lt;/span&gt; &lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
         &lt;span class="p"&gt;}&lt;/span&gt;
-        &lt;span class="nt"&gt;if&lt;/span&gt; &lt;span class="o"&gt;($&lt;/span&gt;&lt;span class="nt"&gt;http_user_agent&lt;/span&gt; &lt;span class="o"&gt;~*&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;^(1207|6310|6590|3gso|4thp|50&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;6&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="s2"&gt;i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez(&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;4&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;7&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="s2"&gt;0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="nx"&gt;a&lt;/span&gt;&lt;span class="na"&gt;-w&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="s2"&gt;)|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="s2"&gt;|n20&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="s2"&gt;|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-(&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="s2"&gt;|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;7&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="s2"&gt;|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="s2"&gt;|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-)&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="nt"&gt;if&lt;/span&gt; &lt;span class="o"&gt;($&lt;/span&gt;&lt;span class="nt"&gt;http_user_agent&lt;/span&gt; &lt;span class="o"&gt;~*&lt;/span&gt; &lt;span class="s2"&gt;"^(1207|6310|6590|3gso|4thp|50&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;6&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="s2"&gt;i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez(&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;4&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;7&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="s2"&gt;0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="nx"&gt;a&lt;/span&gt;&lt;span class="na"&gt;-w&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="s2"&gt;)|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="s2"&gt;|n20&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="s2"&gt;|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-(&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="s2"&gt;|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;7&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="s2"&gt;|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="s2"&gt;|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-)"&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
             &lt;span class="n"&gt;set&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;pc_rewrite&lt;/span&gt; &lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
         &lt;span class="p"&gt;}&lt;/span&gt;
         &lt;span class="nt"&gt;if&lt;/span&gt; &lt;span class="o"&gt;($&lt;/span&gt;&lt;span class="nt"&gt;pc_rewrite&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nt"&gt;1&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
@@ -202,17 +180,13 @@ location /ping/ {
         &lt;span class="nt"&gt;proxy_redirect&lt;/span&gt; &lt;span class="nt"&gt;off&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
     &lt;span class="err"&gt;}&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;h2&gt;redirect to www&lt;/h2&gt;
+&lt;h2 id="redirect-to-www"&gt;redirect to www&lt;/h2&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="nt"&gt;server&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
     &lt;span class="n"&gt;server_name&lt;/span&gt;  &lt;span class="n"&gt;abc&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;com&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
     &lt;span class="n"&gt;rewrite&lt;/span&gt; &lt;span class="o"&gt;^&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;.*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;http&lt;/span&gt;&lt;span class="o"&gt;://&lt;/span&gt;&lt;span class="n"&gt;www&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;abc&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;com&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="m"&gt;1&lt;/span&gt; &lt;span class="n"&gt;permanent&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
 &lt;span class="p"&gt;}&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;h2&gt;allow and deny&lt;/h2&gt;
+&lt;h2 id="allow-and-deny"&gt;allow and deny&lt;/h2&gt;
 &lt;p&gt;访问ip控制&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;location /test/ {
     allow 192.168.1.1;
@@ -220,9 +194,7 @@ location /ping/ {
 
 }
 &lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;h2&gt;负载均衡&lt;/h2&gt;
+&lt;h2 id="_2"&gt;负载均衡&lt;/h2&gt;
 &lt;p&gt;nginx.conf&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="nt"&gt;http&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
 
@@ -232,8 +204,6 @@ location /ping/ {
     &lt;span class="p"&gt;}&lt;/span&gt;
 &lt;span class="err"&gt;}&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
-
-
 &lt;p&gt;sites/a.conf&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;server {
 
@@ -243,11 +213,9 @@ location /ping/ {
 
 }
 &lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;hr /&gt;
+&lt;hr/&gt;
 &lt;p&gt;其他&lt;/p&gt;
-&lt;h2&gt;centos service cmds&lt;/h2&gt;
+&lt;h2 id="centos-service-cmds"&gt;centos service cmds&lt;/h2&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;检查配置文件正确性
 service nginx configtest
 
@@ -255,7 +223,7 @@ service nginx configtest
 重新加载配置
 service nginx reload
 &lt;/pre&gt;&lt;/div&gt;</summary><category term="linux"></category><category term="nginx"></category></entry><entry><title>Nginx基础笔记</title><link href="http://www.wklken.me/posts/2013/11/23/nginx-base.html" rel="alternate"></link><updated>2013-11-23T00:00:00+08:00</updated><author><name>wklken</name></author><id>tag:www.wklken.me,2013-11-23:posts/2013/11/23/nginx-base.html</id><summary type="html">&lt;p&gt;nginx小结&lt;/p&gt;
-&lt;h3&gt;资源&lt;/h3&gt;
+&lt;h3 id="_1"&gt;资源&lt;/h3&gt;
 &lt;blockquote&gt;
 &lt;p&gt;资源&lt;/p&gt;
 &lt;/blockquote&gt;
@@ -275,8 +243,8 @@ service nginx reload
 &lt;p&gt;Nginx模块开发入门 &lt;a href="http://blog.codinglabs.org/articles/intro-of-nginx-module-development.html"&gt;入口&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;解析Nginx负载均衡 &lt;a href="http://stblog.baidu-tech.com/?p=2027"&gt;入口&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;Nginx Rewrite研究笔记 &lt;a href="http://blog.cafeneko.info/2010/10/nginx_rewrite_note/"&gt;入口&lt;/a&gt;&lt;/p&gt;
-&lt;h2&gt;安装&lt;/h2&gt;
-&lt;h3&gt;ubuntu下&lt;/h3&gt;
+&lt;h2 id="_3"&gt;安装&lt;/h2&gt;
+&lt;h3 id="ubuntu"&gt;ubuntu下&lt;/h3&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;sudo apt-get install nginx
 
 启动
@@ -286,9 +254,7 @@ sudo service nginx start#通过ubuntu的服务管理器启动
 配置文件位置
 /etc/nginx/nginx.conf
 &lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;h3&gt;编译安装&lt;/h3&gt;
+&lt;h3 id="_4"&gt;编译安装&lt;/h3&gt;
 &lt;p&gt;1.先决条件&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;1.gcc
 apt-get install gcc
@@ -301,14 +267,10 @@ apt-get install openssl opensll-dev
 
 #如果非apt，可以使用下载包手动编译安装的方式处理
 &lt;/pre&gt;&lt;/div&gt;
-
-
 &lt;p&gt;2.下载包&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;www.nginx.net 下载稳定版
 wget http://nginx.org/download/nginx-1.4.4.tar.gz
 &lt;/pre&gt;&lt;/div&gt;
-
-
 &lt;p&gt;3.解压安装&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;tar -xzvf nginx-1.4.4.tar.gz
 #默认，安装目录/usr/local/nginx
@@ -323,21 +285,15 @@ make install
 
 安装后查看下目录下的Configuration summary
 &lt;/pre&gt;&lt;/div&gt;
-
-
 &lt;p&gt;4.init脚本&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;需要给nginx建立一个init脚本
 从网上捞一个，放入/etc/init.d/nginx
 &lt;/pre&gt;&lt;/div&gt;
-
-
 &lt;p&gt;推荐编译配置&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;1.使用不同prefix，方便指定不同版本,也便于升级
 ./configure --prefix=/usr/local/nginx-1.4.4
 &lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;h2&gt;基本操作&lt;/h2&gt;
+&lt;h2 id="_6"&gt;基本操作&lt;/h2&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;查看帮助
 /usr/local/nginx/sbin/nginx -h
 
@@ -355,10 +311,8 @@ make install
 /usr/local/nginx/sbin/nginx -t #生产路径下的
 /usr/local/nginx/sbin/nginx -t -c /home/ken/tmp/test.conf #可以测试某个临时文件
 &lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;h2&gt;HTTP基本配置&lt;/h2&gt;
-&lt;h3&gt;配置说明&lt;/h3&gt;
+&lt;h2 id="http"&gt;HTTP基本配置&lt;/h2&gt;
+&lt;h3 id="_7"&gt;配置说明&lt;/h3&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;注释，#
 每条指令总是以分好结束(;)
 配置继承：在一个区块中嵌套其他区段，那么被嵌套的区段会继承其父区段的设置
@@ -366,9 +320,7 @@ make install
 单位：大小(k/K m/M) 时间值(ms/s/m/h/d/w/M/y 默认s)
 模块提供各种变量值，可以进行读取和赋值（每个模块提供变量列表需要自己去查）
 &lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;h3&gt;配置文件目录结构&lt;/h3&gt;
+&lt;h3 id="_8"&gt;配置文件目录结构&lt;/h3&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;/usr/local/nginx/conf/
 
 - mime.types 一个文件扩展列表，它们与MIME类型关联
@@ -385,9 +337,7 @@ make install
 include sites/*.conf;
 include sites/*/*.conf;
 &lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;h3&gt;配置文件结构&lt;/h3&gt;
+&lt;h3 id="_9"&gt;配置文件结构&lt;/h3&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;http { #嵌入配置文件的根部， 一个http里可以配置多个server
 
     server { #声明一个站点
@@ -424,41 +374,31 @@ include sites/*/*.conf;
     }
 }
 &lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;h2&gt;模块&lt;/h2&gt;
-&lt;h3&gt;模块化&lt;/h3&gt;
+&lt;h2 id="_11"&gt;模块&lt;/h2&gt;
+&lt;h3 id="_12"&gt;模块化&lt;/h3&gt;
 &lt;p&gt;nginx真正的魅力在于它的模块，整个应用程序建立在一个模块化系统之上，在编译时，可以对每一个模块进行启用或者禁用&lt;/p&gt;
-&lt;h3&gt;index模块&lt;/h3&gt;
+&lt;h3 id="index"&gt;index模块&lt;/h3&gt;
 &lt;p&gt;定义往回走哪index页&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;index index.php index.html /data/website/index.html;
 #可以指定多个，但是ngxin提供第一个找到的文件
 &lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;h3&gt;Log模块&lt;/h3&gt;
+&lt;h3 id="log"&gt;Log模块&lt;/h3&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;access_log /file/path;
 error_log /file/path error;  #level: debug/info/notice/warn/error/crit
 &lt;/pre&gt;&lt;/div&gt;
-
-
 &lt;p&gt;日志格式&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="x"&gt;log_format main &amp;#39;&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;remote_addr&lt;/span&gt;&lt;span class="x"&gt; - &lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;remote_user&lt;/span&gt;&lt;span class="x"&gt; [&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;time_local&lt;/span&gt;&lt;span class="x"&gt;] &amp;quot;&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;request&lt;/span&gt;&lt;span class="x"&gt;&amp;quot; &amp;#39;&lt;/span&gt;
-&lt;span class="x"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;status&lt;/span&gt;&lt;span class="x"&gt; &lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;body_bytes_sent&lt;/span&gt;&lt;span class="x"&gt; &amp;quot;&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;http_referer&lt;/span&gt;&lt;span class="x"&gt;&amp;quot; &amp;#39;&lt;/span&gt;
-&lt;span class="x"&gt;&amp;#39;&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;http_user_agent&lt;/span&gt;&lt;span class="x"&gt;&amp;quot; &lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;http_x_forwarded_for&lt;/span&gt;&lt;span class="x"&gt;&amp;#39;;&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="x"&gt;log_format main '&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;remote_addr&lt;/span&gt;&lt;span class="x"&gt; - &lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;remote_user&lt;/span&gt;&lt;span class="x"&gt; [&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;time_local&lt;/span&gt;&lt;span class="x"&gt;] "&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;request&lt;/span&gt;&lt;span class="x"&gt;" '&lt;/span&gt;
+&lt;span class="x"&gt;'&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;status&lt;/span&gt;&lt;span class="x"&gt; &lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;body_bytes_sent&lt;/span&gt;&lt;span class="x"&gt; "&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;http_referer&lt;/span&gt;&lt;span class="x"&gt;" '&lt;/span&gt;
+&lt;span class="x"&gt;'"&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;http_user_agent&lt;/span&gt;&lt;span class="x"&gt;" &lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;http_x_forwarded_for&lt;/span&gt;&lt;span class="x"&gt;';&lt;/span&gt;
 
 &lt;span class="x"&gt;access_log /var/log/test.log main;&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;h3&gt;Real IP模块&lt;/h3&gt;
+&lt;h3 id="real-ip"&gt;Real IP模块&lt;/h3&gt;
 &lt;p&gt;默认编译nginx不包含这个模块&lt;/p&gt;
 &lt;p&gt;当通过nginx将用户请求进行转发时，接收请求的应用要拿到用户的真实IP(经转发拿到的是服务器的IP)&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;real_ip_header X-Forwarded-For;
 &lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;h3&gt;Access模块&lt;/h3&gt;
+&lt;h3 id="access"&gt;Access模块&lt;/h3&gt;
 &lt;p&gt;可以禁用ip段&lt;/p&gt;
 &lt;p&gt;语法&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;#如果规则之间有冲突，会以最前面匹配的规则为准
@@ -471,8 +411,6 @@ deny    all;
 # allow all ips
 allow    all;
 &lt;/pre&gt;&lt;/div&gt;
-
-
 &lt;p&gt;配置一个blockips.conf,然后在nginx.conf中include&lt;/p&gt;
 &lt;p&gt;e.g&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;location {
@@ -480,9 +418,7 @@ allow    all;
     deny all; #禁止其他ip
 }
 &lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;h3&gt;Rewrite模块&lt;/h3&gt;
+&lt;h3 id="rewrite"&gt;Rewrite模块&lt;/h3&gt;
 &lt;p&gt;作用：执行URL重定向,允许你去掉带有恶意的URL，包含多个参数（修改）&lt;/p&gt;
 &lt;p&gt;利用正则的匹配，分组和引用，达到目的&lt;/p&gt;
 &lt;p&gt;break/return/set等&lt;/p&gt;
@@ -497,8 +433,6 @@ allow    all;
 &lt;span class="x"&gt;    rewrite ^ /search.php?q=&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;query&lt;/span&gt;&lt;span class="x"&gt;?;&lt;/span&gt;
 &lt;span class="x"&gt;}&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
-
-
 &lt;p&gt;例子&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;A&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="n"&gt;http&lt;/span&gt;&lt;span class="o"&gt;://&lt;/span&gt;&lt;span class="n"&gt;website&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;com&lt;/span&gt;&lt;span class="sr"&gt;/search/s&lt;/span&gt;&lt;span class="n"&gt;ome&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;search&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;keywords&lt;/span&gt;
 &lt;span class="n"&gt;B&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="n"&gt;http&lt;/span&gt;&lt;span class="o"&gt;://&lt;/span&gt;&lt;span class="n"&gt;website&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;com&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;search&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;php&lt;/span&gt;&lt;span class="o"&gt;?&lt;/span&gt;&lt;span class="n"&gt;q&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;some&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;search&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;keywords&lt;/span&gt;
@@ -512,8 +446,6 @@ allow    all;
 &lt;span class="n"&gt;B&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="n"&gt;http&lt;/span&gt;&lt;span class="o"&gt;://&lt;/span&gt;&lt;span class="n"&gt;website&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;com&lt;/span&gt;&lt;span class="sr"&gt;/index.php/&lt;/span&gt;&lt;span class="o"&gt;?&lt;/span&gt;&lt;span class="n"&gt;p1&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;param1&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;p2&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;param2&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;p3&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;param3&lt;/span&gt;
 &lt;span class="n"&gt;rewrite&lt;/span&gt; &lt;span class="o"&gt;^/&lt;/span&gt;&lt;span class="n"&gt;index&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;php&lt;/span&gt;&lt;span class="sr"&gt;/(.*)/(.*)/(.*)$ /i&lt;/span&gt;&lt;span class="n"&gt;ndex&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;php&lt;/span&gt;&lt;span class="o"&gt;?&lt;/span&gt;&lt;span class="n"&gt;p1&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;$1&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;p2&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;$2&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;p3&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;$3&lt;/span&gt;&lt;span class="o"&gt;?;&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
-
-
 &lt;p&gt;rewrite语法&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;rewrite A B option;
 options:
@@ -522,9 +454,7 @@ options:
         redirect:返回302临时重定向，地址栏会显示跳转后的地址
         permanent:返回301永久重定向，地址栏会显示跳转后的地址
 &lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;h3&gt;Proxy模块&lt;/h3&gt;
+&lt;h3 id="proxy"&gt;Proxy模块&lt;/h3&gt;
 &lt;p&gt;默认模块，允许你讲客户端的HTTP请求转到后端服务器&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="nt"&gt;location&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
     &lt;span class="n"&gt;proxy_pass_header&lt;/span&gt; &lt;span class="n"&gt;Server&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;  &lt;span class="err"&gt;#该指令强制一些被忽略的头传递到客户端&lt;/span&gt;
@@ -535,9 +465,7 @@ options:
     &lt;span class="n"&gt;proxy_pass&lt;/span&gt; &lt;span class="n"&gt;http&lt;/span&gt;&lt;span class="o"&gt;://&lt;/span&gt;&lt;span class="n"&gt;localhost&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="m"&gt;8080&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
 &lt;span class="p"&gt;}&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;h3&gt;upstream模块&lt;/h3&gt;
+&lt;h3 id="upstream"&gt;upstream模块&lt;/h3&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="nt"&gt;upstream&lt;/span&gt; &lt;span class="nt"&gt;up_name&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
     &lt;span class="n"&gt;server&lt;/span&gt; &lt;span class="m"&gt;192&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="m"&gt;168&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="m"&gt;1&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="m"&gt;9000&lt;/span&gt; &lt;span class="n"&gt;weight&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;5&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="err"&gt;#权重&lt;/span&gt;
     &lt;span class="n"&gt;server&lt;/span&gt; &lt;span class="m"&gt;192&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="m"&gt;168&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="m"&gt;2&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="m"&gt;9000&lt;/span&gt; &lt;span class="n"&gt;weight&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;5&lt;/span&gt; &lt;span class="n"&gt;max_fails&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;5&lt;/span&gt; &lt;span class="n"&gt;fail_timeout&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;60s&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="err"&gt;#在&lt;/span&gt;&lt;span class="m"&gt;60s&lt;/span&gt;&lt;span class="err"&gt;内，其错误通信超过&lt;/span&gt;&lt;span class="m"&gt;5&lt;/span&gt;&lt;span class="err"&gt;次&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt;&lt;span class="err"&gt;认为该服务失效&lt;/span&gt;
@@ -545,19 +473,15 @@ options:
     &lt;span class="n"&gt;server&lt;/span&gt; &lt;span class="m"&gt;192&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="m"&gt;168&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="m"&gt;4&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="m"&gt;9000&lt;/span&gt; &lt;span class="n"&gt;backup&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="err"&gt;#备份服务器，其他全部宕机了才启用&lt;/span&gt;
 &lt;span class="p"&gt;}&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;h2&gt;其他&lt;/h2&gt;
-&lt;h3&gt;配置静态化目录&lt;/h3&gt;
+&lt;h2 id="_14"&gt;其他&lt;/h2&gt;
+&lt;h3 id="_15"&gt;配置静态化目录&lt;/h3&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;    location /static/
     {
         root /var/www/app/;
         autoindex off;
     }
 &lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;h3&gt;负载均衡&lt;/h3&gt;
+&lt;h3 id="_16"&gt;负载均衡&lt;/h3&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="nt"&gt;http&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
     &lt;span class="n"&gt;include&lt;/span&gt; &lt;span class="n"&gt;mime&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;types&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
     &lt;span class="n"&gt;default_type&lt;/span&gt; &lt;span class="n"&gt;application&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;octet&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;stream&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
@@ -586,9 +510,7 @@ options:
 
 &lt;span class="err"&gt;}&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;h3&gt;控制页面缓存&lt;/h3&gt;
+&lt;h3 id="_17"&gt;控制页面缓存&lt;/h3&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="nt"&gt;location&lt;/span&gt; &lt;span class="o"&gt;~&lt;/span&gt; &lt;span class="err"&gt;\&lt;/span&gt;&lt;span class="o"&gt;.(&lt;/span&gt;&lt;span class="nt"&gt;htm&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="nt"&gt;html&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="nt"&gt;gif&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="nt"&gt;jpg&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="nt"&gt;jpeg&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="nt"&gt;png&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="nt"&gt;bmp&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="nt"&gt;ico&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="nt"&gt;css&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="nt"&gt;js&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="nt"&gt;txt&lt;/span&gt;&lt;span class="o"&gt;)$&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
     &lt;span class="n"&gt;root&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;opt&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;webapp&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
     &lt;span class="n"&gt;expires&lt;/span&gt; &lt;span class="m"&gt;24&lt;/span&gt;&lt;span class="n"&gt;h&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
@@ -602,9 +524,7 @@ options:
 &lt;span class="nt"&gt;expires&lt;/span&gt; &lt;span class="nt"&gt;max&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
 &lt;span class="nt"&gt;expires&lt;/span&gt; &lt;span class="nt"&gt;off&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;h3&gt;nginx的内置变量&lt;/h3&gt;
+&lt;h3 id="nginx"&gt;nginx的内置变量&lt;/h3&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;arg_PARAMETER&lt;/span&gt; &lt;span class="err"&gt;这个变量包含在查询字符串时&lt;/span&gt;&lt;span class="nt"&gt;GET&lt;/span&gt;&lt;span class="err"&gt;请求&lt;/span&gt;&lt;span class="nt"&gt;PARAMETER&lt;/span&gt;&lt;span class="err"&gt;的值。&lt;/span&gt;
 &lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;args&lt;/span&gt; &lt;span class="err"&gt;这个变量等于请求行中的参数。&lt;/span&gt;
 &lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;binary_remote_addr&lt;/span&gt; &lt;span class="err"&gt;二进制码形式的客户端地址。&lt;/span&gt;
@@ -615,7 +535,7 @@ options:
 &lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;document_root&lt;/span&gt; &lt;span class="err"&gt;当前请求在&lt;/span&gt;&lt;span class="nt"&gt;root&lt;/span&gt;&lt;span class="err"&gt;指令中指定的值。&lt;/span&gt;
 &lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;document_uri&lt;/span&gt; &lt;span class="err"&gt;与&lt;/span&gt;&lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;uri&lt;/span&gt;&lt;span class="err"&gt;相同。&lt;/span&gt;
 &lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;host&lt;/span&gt; &lt;span class="err"&gt;请求中的主机头字段，如果请求中的主机头不可用，则为服务器处理请求的服务器名称。&lt;/span&gt;
-&lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;is_args&lt;/span&gt; &lt;span class="err"&gt;如果&lt;/span&gt;&lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;args&lt;/span&gt;&lt;span class="err"&gt;设置，值为&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;?&amp;quot;&lt;/span&gt;&lt;span class="err"&gt;，否则为&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&amp;quot;&lt;/span&gt;&lt;span class="err"&gt;。&lt;/span&gt;
+&lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;is_args&lt;/span&gt; &lt;span class="err"&gt;如果&lt;/span&gt;&lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;args&lt;/span&gt;&lt;span class="err"&gt;设置，值为&lt;/span&gt;&lt;span class="s2"&gt;"?"&lt;/span&gt;&lt;span class="err"&gt;，否则为&lt;/span&gt;&lt;span class="s2"&gt;""&lt;/span&gt;&lt;span class="err"&gt;。&lt;/span&gt;
 &lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;limit_rate&lt;/span&gt; &lt;span class="err"&gt;这个变量可以限制连接速率。&lt;/span&gt;
 &lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;nginx_version&lt;/span&gt; &lt;span class="err"&gt;当前运行的&lt;/span&gt;&lt;span class="nt"&gt;nginx&lt;/span&gt;&lt;span class="err"&gt;版本号。&lt;/span&gt;
 &lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;query_string&lt;/span&gt; &lt;span class="err"&gt;与&lt;/span&gt;&lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;args&lt;/span&gt;&lt;span class="err"&gt;相同。&lt;/span&gt;

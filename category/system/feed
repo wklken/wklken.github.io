@@ -3,23 +3,19 @@
 &lt;p&gt;去年年初, 公司里已经在用, 当时自己还&lt;code&gt;山寨&lt;/code&gt;了一个统计系统(postgresql-echarts, 日志无结构化, json形式存储到postgresql, 构建统一前端配置生成, 调用统一查询接口, &lt;a href="http://www.wklken.me/posts/2014/11/16/unit-statistics-system.html"&gt;具体细节&lt;/a&gt;), 已经过了一年有余.&lt;/p&gt;
 &lt;p&gt;一年刚好, 发生了很多事, 那套系统不知现在如何了.&lt;/p&gt;
 &lt;p&gt;在新的公司, 一切都得从0到1, 近期开始关注日志/数据上报/统计, 以及后续的数据挖掘等.&lt;/p&gt;
-&lt;hr /&gt;
+&lt;hr/&gt;
 &lt;p&gt;搭建, 测试并上线了一套简单的系统, 初期将所有服务器的nginx日志, 以及搜索日志进行处理.&lt;/p&gt;
-&lt;p&gt;&lt;img alt="elk" src="/imgs/system/elk.png" /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img alt="elk" src="/imgs/system/elk.png"/&gt;&lt;/p&gt;
 &lt;p&gt;下面主要介绍对nginx日志进行处理的过程, 不是针对&lt;code&gt;elk&lt;/code&gt;的介绍, 所有涉及ip的地方都改成&lt;code&gt;127.0.0.1&lt;/code&gt;了, 根据自己环境进行修改&lt;/p&gt;
-&lt;h3&gt;1. nginx日志 -&amp;gt; logstash shipper -&amp;gt; redis&lt;/h3&gt;
+&lt;h3 id="1-nginx-logstash-shipper-redis"&gt;1. nginx日志 -&amp;gt; logstash shipper -&amp;gt; redis&lt;/h3&gt;
 &lt;p&gt;在&lt;code&gt;centos&lt;/code&gt;使用&lt;code&gt;yum&lt;/code&gt;安装&lt;code&gt;nginx&lt;/code&gt;后, 默认&lt;code&gt;/etc/nginx/nginx.conf&lt;/code&gt;中的日志格式定义为:&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="x"&gt;log_format  main  &amp;#39;&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;remote_addr&lt;/span&gt;&lt;span class="x"&gt; - &lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;remote_user&lt;/span&gt;&lt;span class="x"&gt; [&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;time_local&lt;/span&gt;&lt;span class="x"&gt;] &amp;quot;&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;request&lt;/span&gt;&lt;span class="x"&gt;&amp;quot; &amp;#39;&lt;/span&gt;
-&lt;span class="x"&gt;                  &amp;#39;&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;status&lt;/span&gt;&lt;span class="x"&gt; &lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;body_bytes_sent&lt;/span&gt;&lt;span class="x"&gt; &amp;quot;&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;http_referer&lt;/span&gt;&lt;span class="x"&gt;&amp;quot; &amp;#39;&lt;/span&gt;
-&lt;span class="x"&gt;                  &amp;#39;&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;http_user_agent&lt;/span&gt;&lt;span class="x"&gt;&amp;quot; &amp;quot;&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;http_x_forwarded_for&lt;/span&gt;&lt;span class="x"&gt;&amp;quot;&amp;#39;;&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="x"&gt;log_format  main  '&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;remote_addr&lt;/span&gt;&lt;span class="x"&gt; - &lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;remote_user&lt;/span&gt;&lt;span class="x"&gt; [&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;time_local&lt;/span&gt;&lt;span class="x"&gt;] "&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;request&lt;/span&gt;&lt;span class="x"&gt;" '&lt;/span&gt;
+&lt;span class="x"&gt;                  '&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;status&lt;/span&gt;&lt;span class="x"&gt; &lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;body_bytes_sent&lt;/span&gt;&lt;span class="x"&gt; "&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;http_referer&lt;/span&gt;&lt;span class="x"&gt;" '&lt;/span&gt;
+&lt;span class="x"&gt;                  '"&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;http_user_agent&lt;/span&gt;&lt;span class="x"&gt;" "&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;http_x_forwarded_for&lt;/span&gt;&lt;span class="x"&gt;"';&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
-
-
 &lt;p&gt;然后在具体&lt;code&gt;server&lt;/code&gt;配置中使用&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;access_log /data/logs/nginx/{PROJECT_NAME}_access.log main;
 &lt;/pre&gt;&lt;/div&gt;
-
-
 &lt;p&gt;此时, 我们需要做的是, 将&lt;code&gt;access log&lt;/code&gt;通过&lt;code&gt;logstash shipper&lt;/code&gt;读取, 转&lt;code&gt;json&lt;/code&gt;, 发送到&lt;code&gt;redis&lt;/code&gt;, 由后续的&lt;code&gt;logstash indexer&lt;/code&gt;进行处理&lt;/p&gt;
 &lt;p&gt;步骤&lt;/p&gt;
 &lt;p&gt;1.在日志所在机器部署&lt;code&gt;logstash&lt;/code&gt;&lt;/p&gt;
@@ -27,39 +23,35 @@
 &lt;p&gt;内容(与上面的&lt;code&gt;log_format&lt;/code&gt;相对应)&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;NGUSERNAME [a-zA-Z\.\@\-\+_%]+
 NGUSER %{NGUSERNAME}
-NGINXACCESS %{IPORHOST:clientip} - %{NOTSPACE:remote_user} \[%{HTTPDATE:timestamp}\] \&amp;quot;(?:%{WORD:verb} %{NOTSPACE:request}(?: HTTP/%{NUMBER:httpversion})?|%{DATA:rawrequest})\&amp;quot; %{NUMBER:response} (?:%{NUMBER:bytes}|-) %{QS:referrer} %{QS:agent} %{NOTSPACE:http_x_forwarded_for}
+NGINXACCESS %{IPORHOST:clientip} - %{NOTSPACE:remote_user} \[%{HTTPDATE:timestamp}\] \"(?:%{WORD:verb} %{NOTSPACE:request}(?: HTTP/%{NUMBER:httpversion})?|%{DATA:rawrequest})\" %{NUMBER:response} (?:%{NUMBER:bytes}|-) %{QS:referrer} %{QS:agent} %{NOTSPACE:http_x_forwarded_for}
 &lt;/pre&gt;&lt;/div&gt;
-
-
 &lt;p&gt;3.增加一个&lt;code&gt;logstash&lt;/code&gt;配置文件: &lt;code&gt;logstash-project-access-log.conf&lt;/code&gt;&lt;/p&gt;
 &lt;p&gt;注意, input的file, filter的grok, output的redis-key&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;input {
 file {
-    path =&amp;gt; [ &amp;quot;/data/logs/nginx/xxxx_access.log&amp;quot; ]
-    start_position =&amp;gt; &amp;quot;beginning&amp;quot;
+    path =&amp;gt; [ "/data/logs/nginx/xxxx_access.log" ]
+    start_position =&amp;gt; "beginning"
 }
 }
 
 filter {
-mutate { replace =&amp;gt; { &amp;quot;type&amp;quot; =&amp;gt; &amp;quot;nginx_access&amp;quot; } }
+mutate { replace =&amp;gt; { "type" =&amp;gt; "nginx_access" } }
 grok {
-    match =&amp;gt; { &amp;quot;message&amp;quot; =&amp;gt; &amp;quot;%{NGINXACCESS}&amp;quot; }
+    match =&amp;gt; { "message" =&amp;gt; "%{NGINXACCESS}" }
 }
 date {
-    match =&amp;gt; [ &amp;quot;timestamp&amp;quot; , &amp;quot;dd/MMM/YYYY:HH:mm:ss Z&amp;quot; ]
+    match =&amp;gt; [ "timestamp" , "dd/MMM/YYYY:HH:mm:ss Z" ]
 }
 geoip {
-    source =&amp;gt; &amp;quot;clientip&amp;quot;
+    source =&amp;gt; "clientip"
 }
 }
 
 
 output {
-redis { host =&amp;gt; &amp;quot;127.0.0.1&amp;quot; data_type =&amp;gt; &amp;quot;list&amp;quot; key =&amp;gt; &amp;quot;logstash:xxxx:access_log&amp;quot; }
+redis { host =&amp;gt; "127.0.0.1" data_type =&amp;gt; "list" key =&amp;gt; "logstash:xxxx:access_log" }
 }
 &lt;/pre&gt;&lt;/div&gt;
-
-
 &lt;p&gt;4.使用&lt;code&gt;supervisor&lt;/code&gt;启动&lt;code&gt;shipper&lt;/code&gt;.&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="k"&gt;[program:logstash_xxxx_shipper]&lt;/span&gt;
 &lt;span class="na"&gt;command&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;/var/shell/logstash/bin/logstash -f /var/shell/logstash/configs/nginx-xxxx-shipper.conf&lt;/span&gt;
@@ -70,40 +62,36 @@ redis { host =&amp;gt; &amp;quot;127.0.0.1&amp;quot; data_type =&amp;gt; &amp;qu
 &lt;span class="na"&gt;log_stderr&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;true&lt;/span&gt;
 &lt;span class="na"&gt;logfile&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;/data/logs/logstash/logstash_xxxx_access.log&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;h3&gt;2. redis -&amp;gt; logstash indexer -&amp;gt; elasticsearch&lt;/h3&gt;
+&lt;h3 id="2-redis-logstash-indexer-elasticsearch"&gt;2. redis -&amp;gt; logstash indexer -&amp;gt; elasticsearch&lt;/h3&gt;
 &lt;p&gt;注意, input的redis为上一步redis配置, key要对应, output的elasticsearch配置, &lt;code&gt;index&lt;/code&gt;指定了最终es中存储对应的index, 加日期, 方便对日志进行定期删除&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;input {
 redis {
-    host =&amp;gt; &amp;quot;127.0.0.1&amp;quot;
-    port =&amp;gt; &amp;quot;6379&amp;quot;
-    key =&amp;gt; &amp;quot;logstash:xxxx:access_log&amp;quot;
-    data_type =&amp;gt; &amp;quot;list&amp;quot;
-    codec  =&amp;gt; &amp;quot;json&amp;quot;
-    type =&amp;gt; &amp;quot;logstash-arthas-access&amp;quot;
-    tags =&amp;gt; [&amp;quot;arthas&amp;quot;]
+    host =&amp;gt; "127.0.0.1"
+    port =&amp;gt; "6379"
+    key =&amp;gt; "logstash:xxxx:access_log"
+    data_type =&amp;gt; "list"
+    codec  =&amp;gt; "json"
+    type =&amp;gt; "logstash-arthas-access"
+    tags =&amp;gt; ["arthas"]
 }
 }
 
 output {
 elasticsearch {
-    host =&amp;gt; &amp;quot;127.0.0.1&amp;quot;
-    index =&amp;gt; &amp;quot;logstash-arthas-access-%{+YYYY.MM.dd}&amp;quot;
+    host =&amp;gt; "127.0.0.1"
+    index =&amp;gt; "logstash-arthas-access-%{+YYYY.MM.dd}"
 }
 }
 &lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;h3&gt;3. elasticsearch -&amp;gt; kibana&lt;/h3&gt;
+&lt;h3 id="3-elasticsearch-kibana"&gt;3. elasticsearch -&amp;gt; kibana&lt;/h3&gt;
 &lt;p&gt;剩下的其实没什么了, 启动&lt;code&gt;kibana&lt;/code&gt;后, 配置好指向的&lt;code&gt;es&lt;/code&gt;, 就可以在&lt;code&gt;kibana&lt;/code&gt;中查看到实时的日志数据&lt;/p&gt;
 &lt;p&gt;demo环境截图&lt;/p&gt;
-&lt;p&gt;&lt;img alt="kibana-nginx" src="/imgs/system/kibana-nginx.png" /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img alt="kibana-nginx" src="/imgs/system/kibana-nginx.png"/&gt;&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;kibana&lt;/code&gt;中, 支持各种统计, 着实让人惊艳了一把.&lt;/p&gt;
 &lt;p&gt;除了基本的nginx日志, 还需要在各类url入口, 加入平台, 渠道等信息, 这样通过nginx访问日志, 可以统计到更多的信息&lt;/p&gt;
 &lt;p&gt;当然, 如果需要一些更为精确/特殊的统计, 需要自行进行数据上报的工作.&lt;/p&gt;
-&lt;hr /&gt;
-&lt;h2&gt;后续&lt;/h2&gt;
+&lt;hr/&gt;
+&lt;h2 id="_2"&gt;后续&lt;/h2&gt;
 &lt;ol&gt;
 &lt;li&gt;更多的类型的日志聚合, 包括各类访问日志, 统计上报日志等, 日志落地成文件, 永久留存, 转入es中, 只留存三个月&lt;/li&gt;
 &lt;li&gt;如何对各类数据进行拆分/汇总&lt;/li&gt;
@@ -111,9 +99,9 @@ elasticsearch {
 &lt;li&gt;基于ES日志的业务自定义统计后台(kibana无法满足一些具体业务的统计需求)&lt;/li&gt;
 &lt;li&gt;为什么不使用&lt;code&gt;logstash forwarder&lt;/code&gt;, 因为目前日志组成等较为简单, 简单处理 , 后续需要用到时再考虑&lt;/li&gt;
 &lt;/ol&gt;
-&lt;hr /&gt;
-&lt;h1&gt;其他&lt;/h1&gt;
-&lt;h2&gt;1. 关于&lt;code&gt;logformat&lt;/code&gt;和对应&lt;code&gt;grok&lt;/code&gt;的配置&lt;/h2&gt;
+&lt;hr/&gt;
+&lt;h1 id="_4"&gt;其他&lt;/h1&gt;
+&lt;h2 id="1-logformatgrok"&gt;1. 关于&lt;code&gt;logformat&lt;/code&gt;和对应&lt;code&gt;grok&lt;/code&gt;的配置&lt;/h2&gt;
 &lt;p&gt;&lt;code&gt;grok&lt;/code&gt;是&lt;code&gt;logstash&lt;/code&gt;的一个插件,  &lt;a href="http://logstash.net/docs/1.4.2/filters/grok"&gt;文档&lt;/a&gt;&lt;/p&gt;
 &lt;blockquote&gt;
 &lt;p&gt;Grok is currently the best way in logstash to parse crappy unstructured log data into something structured and queryable&lt;/p&gt;
@@ -121,27 +109,23 @@ elasticsearch {
 &lt;p&gt;所以, 我们在处理&lt;code&gt;nginx&lt;/code&gt;日志时, 需要根据具体&lt;code&gt;logformat&lt;/code&gt;定义对应的&lt;code&gt;grok&lt;/code&gt;表达式&lt;/p&gt;
 &lt;p&gt;除了上面例子中用的那套,  另一份&lt;/p&gt;
 &lt;p&gt;logformat&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="x"&gt;  log_format logstash &amp;#39;&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;http_host&lt;/span&gt;&lt;span class="x"&gt; &amp;#39;&lt;/span&gt;
-&lt;span class="x"&gt;                      &amp;#39;&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;remote_addr&lt;/span&gt;&lt;span class="x"&gt; [&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;time_local&lt;/span&gt;&lt;span class="x"&gt;] &amp;#39;&lt;/span&gt;
-&lt;span class="x"&gt;                      &amp;#39;&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;request&lt;/span&gt;&lt;span class="x"&gt;&amp;quot; &lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;status&lt;/span&gt;&lt;span class="x"&gt; &lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;body_bytes_sent&lt;/span&gt;&lt;span class="x"&gt; &amp;#39;&lt;/span&gt;
-&lt;span class="x"&gt;                      &amp;#39;&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;http_referer&lt;/span&gt;&lt;span class="x"&gt;&amp;quot; &amp;quot;&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;http_user_agent&lt;/span&gt;&lt;span class="x"&gt;&amp;quot; &amp;#39;&lt;/span&gt;
-&lt;span class="x"&gt;                      &amp;#39;&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;request_time&lt;/span&gt;&lt;span class="x"&gt; &amp;#39;&lt;/span&gt;
-&lt;span class="x"&gt;                      &amp;#39;&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;upstream_response_time&lt;/span&gt;&lt;span class="x"&gt;&amp;#39;;&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="x"&gt;  log_format logstash '&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;http_host&lt;/span&gt;&lt;span class="x"&gt; '&lt;/span&gt;
+&lt;span class="x"&gt;                      '&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;remote_addr&lt;/span&gt;&lt;span class="x"&gt; [&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;time_local&lt;/span&gt;&lt;span class="x"&gt;] '&lt;/span&gt;
+&lt;span class="x"&gt;                      '"&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;request&lt;/span&gt;&lt;span class="x"&gt;" &lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;status&lt;/span&gt;&lt;span class="x"&gt; &lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;body_bytes_sent&lt;/span&gt;&lt;span class="x"&gt; '&lt;/span&gt;
+&lt;span class="x"&gt;                      '"&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;http_referer&lt;/span&gt;&lt;span class="x"&gt;" "&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;http_user_agent&lt;/span&gt;&lt;span class="x"&gt;" '&lt;/span&gt;
+&lt;span class="x"&gt;                      '&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;request_time&lt;/span&gt;&lt;span class="x"&gt; '&lt;/span&gt;
+&lt;span class="x"&gt;                      '&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;upstream_response_time&lt;/span&gt;&lt;span class="x"&gt;';&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
-
-
 &lt;p&gt;patterns/nginx&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;NGUSERNAME [a-zA-Z\.\@\-\+_%]+
 NGUSER %{NGUSERNAME}
-NGINXACCESS %{IPORHOST:http_host} %{IPORHOST:clientip} \[%{HTTPDATE:timestamp}\] \&amp;quot;(?:%{WORD:verb} %{NOTSPACE:request}(?: HTTP/%{NUMBER:httpversion})?|%{DATA:rawrequest})\&amp;quot; %{NUMBER:response} (?:%{NUMBER:bytes}|-) %{QS:referrer} %{QS:agent} %{NUMBER:request_time:float} %{NUMBER:upstream_time:float}
-NGINXACCESS %{IPORHOST:http_host} %{IPORHOST:clientip} \[%{HTTPDATE:timestamp}\] \&amp;quot;(?:%{WORD:verb} %{NOTSPACE:request}(?: HTTP/%{NUMBER:httpversion})?|%{DATA:rawrequest})\&amp;quot; %{NUMBER:response} (?:%{NUMBER:bytes}|-) %{QS:referrer} %{QS:agent} %{NUMBER:request_time:float}
+NGINXACCESS %{IPORHOST:http_host} %{IPORHOST:clientip} \[%{HTTPDATE:timestamp}\] \"(?:%{WORD:verb} %{NOTSPACE:request}(?: HTTP/%{NUMBER:httpversion})?|%{DATA:rawrequest})\" %{NUMBER:response} (?:%{NUMBER:bytes}|-) %{QS:referrer} %{QS:agent} %{NUMBER:request_time:float} %{NUMBER:upstream_time:float}
+NGINXACCESS %{IPORHOST:http_host} %{IPORHOST:clientip} \[%{HTTPDATE:timestamp}\] \"(?:%{WORD:verb} %{NOTSPACE:request}(?: HTTP/%{NUMBER:httpversion})?|%{DATA:rawrequest})\" %{NUMBER:response} (?:%{NUMBER:bytes}|-) %{QS:referrer} %{QS:agent} %{NUMBER:request_time:float}
 &lt;/pre&gt;&lt;/div&gt;
-
-
 &lt;p&gt;如果想自行定义, 可以使用 &lt;a href="https://grokdebug.herokuapp.com/"&gt;grokdebug&lt;/a&gt;, 将要解析的日志和配置的正则放入, 可以查看最终得到的结构化数据&lt;/p&gt;
-&lt;h2&gt;2. elasticsearch插件&lt;/h2&gt;
+&lt;h2 id="2-elasticsearch"&gt;2. elasticsearch插件&lt;/h2&gt;
 &lt;p&gt;初期只安装了一个 &lt;a href="https://github.com/lmenezes/elasticsearch-kopf"&gt;kopf&lt;/a&gt;, web界面查看&lt;/p&gt;
-&lt;h2&gt;3. supervisor&lt;/h2&gt;
+&lt;h2 id="3-supervisor"&gt;3. supervisor&lt;/h2&gt;
 &lt;p&gt;建议使用&lt;code&gt;supervisor&lt;/code&gt;对&lt;code&gt;elk&lt;/code&gt;进行管理,(ps. 不要用yum自带的, 版本太旧好多坑, 浪费1小时......使用pip install安装最新版本即可)&lt;/p&gt;
 &lt;p&gt;配置示例&lt;code&gt;elk.conf&lt;/code&gt;&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="k"&gt;[program:elasticsearch]&lt;/span&gt;
@@ -165,22 +149,18 @@ NGINXACCESS %{IPORHOST:http_host} %{IPORHOST:clientip} \[%{HTTPDATE:timestamp}\]
 &lt;span class="na"&gt;log_stderr&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;true&lt;/span&gt;
 &lt;span class="na"&gt;logfile&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;/data/logs/elk/logstash/logstash_arthas_access.log&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;h2&gt;4. logstash坑&lt;/h2&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;start_position =&amp;gt; &amp;quot;beginning&amp;quot;
+&lt;h2 id="4-logstash"&gt;4. logstash坑&lt;/h2&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;start_position =&amp;gt; "beginning"
 &lt;/pre&gt;&lt;/div&gt;
-
-
 &lt;p&gt;logstash, 会记录一份文件读到的位置, 在$HOME/.sincedb_xxxxx 如果要让logstash重新读取文件, 删除之即可, 重启&lt;code&gt;shipper&lt;/code&gt;.&lt;/p&gt;
 &lt;p&gt;但是你可能发现es中重复记录了, 这是因为, 在&lt;code&gt;output&lt;/code&gt;中, 没有定义存储到es时使用的&lt;code&gt;document_id&lt;/code&gt;, es全部当成新纪录存入, 导致数据重复&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sun, 26 Apr 2015 00:00:00 +0800</pubDate><guid>tag:www.wklken.me,2015-04-26:posts/2015/04/26/elk-for-nginx-log.html</guid><category>system</category></item><item><title>基于 PostgreSQL 的数据统计系统</title><link>http://www.wklken.me/posts/2014/11/16/unit-statistics-system.html</link><description>&lt;p&gt;看到标题就知道我要写什么了, 这是之前一个项目的小结吧, 自己对统计的一些认识和看法.&lt;/p&gt;
 &lt;p&gt;当时从前到后, 包括技术选型, 花了接近一个月的时间, 也在生产上用了两三个月, 一致在持续维护, 做完图表配置化已然接近完工, 无奈后来离开了, 不过目前应该还在运转&lt;/p&gt;
 &lt;p&gt;至于源代码, 暂时不考虑开源, 太渣(其中在看了几天js情况下, 自己撸了1000行js的前端框架, 质量堪忧), 全套用python实现.&lt;/p&gt;
 &lt;p&gt;提供一种快速实现运营统计需求的思路.&lt;/p&gt;
 &lt;p&gt;(图为百度 echarts 示例)&lt;/p&gt;
-&lt;p&gt;&lt;img alt="statistics" src="/imgs/system/statistics.png" /&gt;&lt;/p&gt;
-&lt;hr /&gt;
-&lt;h3&gt;一. 场景&lt;/h3&gt;
+&lt;p&gt;&lt;img alt="statistics" src="/imgs/system/statistics.png"/&gt;&lt;/p&gt;
+&lt;hr/&gt;
+&lt;h3 id="_1"&gt;一. 场景&lt;/h3&gt;
 &lt;ul&gt;
 &lt;li&gt;统计&lt;/li&gt;
 &lt;/ul&gt;
@@ -194,19 +174,15 @@ NGINXACCESS %{IPORHOST:http_host} %{IPORHOST:clientip} \[%{HTTPDATE:timestamp}\]
 &lt;/ul&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;分析统计需求 -&amp;gt; 修改项目记录日志内容和格式(到磁盘) -&amp;gt; 自行将日志汇总到一台机器(rsync) -&amp;gt; crontab脚本分析日志(要删或备份历史数据) -&amp;gt; 新建db表, 存储统计结果 -&amp;gt; 写管理后台, 查询统计结果(最繁琐) -&amp;gt; 处理分页/图表等
 &lt;/pre&gt;&lt;/div&gt;
-
-
 &lt;p&gt;虽然每次耗时或许并不会太长(0.5-2d, 视需求大小), 但对于不同项目和需求变更, 这些工作都是纯体力毫无技术含量的枯燥工作, 可以说是无意义的资源浪费.&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;新的方式&lt;/li&gt;
 &lt;/ul&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;分析统计需求 -&amp;gt; 确认日志内容和格式  -&amp;gt; 统计后台配置输入/处理/输出逻辑 -&amp;gt; 查看结果
 &lt;/pre&gt;&lt;/div&gt;
-
-
 &lt;p&gt;说白了就是, 处理统计需求变成了 &lt;code&gt;写sql&lt;/code&gt; + &lt;code&gt;配置&lt;/code&gt;&lt;/p&gt;
-&lt;hr /&gt;
-&lt;h3&gt;二. 处理思路&lt;/h3&gt;
+&lt;hr/&gt;
+&lt;h3 id="_2"&gt;二. 处理思路&lt;/h3&gt;
 &lt;ul&gt;
 &lt;li&gt;大体思路如下(从后往前):&lt;/li&gt;
 &lt;/ul&gt;
@@ -219,8 +195,6 @@ NGINXACCESS %{IPORHOST:http_host} %{IPORHOST:clientip} \[%{HTTPDATE:timestamp}\]
 7. 提供前端框架组件, 可以通过配置调用统一查询接口, 并对数据进行分页及图表化
 8. 提供配置入口, 可以配置日志入口, 处理逻辑, 展现逻辑. 即完全地配置化
 &lt;/pre&gt;&lt;/div&gt;
-
-
 &lt;ul&gt;
 &lt;li&gt;需要统一的地方:&lt;/li&gt;
 &lt;/ul&gt;
@@ -230,18 +204,14 @@ NGINXACCESS %{IPORHOST:http_host} %{IPORHOST:clientip} \[%{HTTPDATE:timestamp}\]
 查询接口
 前端组件
 &lt;/pre&gt;&lt;/div&gt;
-
-
 &lt;ul&gt;
 &lt;li&gt;系统成型后&lt;/li&gt;
 &lt;/ul&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;增加/修改统计需求: 只需要在后台配置数据来源(日志), 处理逻辑(一段 sql), 展示逻辑(一段前端 json配置), 就可以实现图标
 &lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;hr /&gt;
-&lt;h3&gt;三. 具体&lt;/h3&gt;
-&lt;h3&gt;0. 基本架构&lt;/h3&gt;
+&lt;hr/&gt;
+&lt;h3 id="_3"&gt;三. 具体&lt;/h3&gt;
+&lt;h3 id="0"&gt;0. 基本架构&lt;/h3&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;             ----------------------------------------------
             |      日志(UniteStats or ApplicationLogs)     |
              ----------------------------------------------
@@ -273,17 +243,15 @@ NGINXACCESS %{IPORHOST:http_host} %{IPORHOST:clientip} \[%{HTTPDATE:timestamp}\]
             |      [自定义前端-使用统一库-配置生成]   |
              ------------------------------------
 &lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;h3&gt;1. 日志格式&lt;/h3&gt;
+&lt;h3 id="1"&gt;1. 日志格式&lt;/h3&gt;
 &lt;p&gt;日志, 即文本.&lt;/p&gt;
-&lt;p&gt;但是文本存在各种格式, 例如常见的’\t’分隔的列, csv, json, xml等等.&lt;/p&gt;
+&lt;p&gt;但是文本存在各种格式, 例如常见的&amp;rsquo;\t&amp;rsquo;分隔的列, csv, json, xml等等.&lt;/p&gt;
 &lt;p&gt;这里的要求是: 一定要满足自描述, 易读(人), 易处理(生成和解析).&lt;/p&gt;
 &lt;p&gt;最终选择了&lt;code&gt;json&lt;/code&gt;. 将原先无结构数据转成半结构化数据.&lt;/p&gt;
 &lt;p&gt;原因之一, &lt;code&gt;容器&lt;/code&gt;对半结构化的数据支持已经非常完善了, 例如postgresql, mongodb等, 对于后续计算很重要.&lt;/p&gt;
 &lt;p&gt;原因之二, 作为一个统一的平台, 我只在乎数据是一份日志, 但是不在乎, 日志里存了些什么, 每个字段的意义, 这些只有平台的使用者需要知道. 否则带来很大一个问题是, 对于使用者在新增或变更一份日志格式时, 需要明确告诉系统这份日志各个字段是什么(名称和类型), 复杂化了&lt;/p&gt;
 &lt;p&gt;到这里, 我们统一了日志的格式, 记录为json, 每条记录一行.&lt;/p&gt;
-&lt;h3&gt;2. 日志收集汇总&lt;/h3&gt;
+&lt;h3 id="2"&gt;2. 日志收集汇总&lt;/h3&gt;
 &lt;p&gt;目的: 将日志汇总到同一台机器上, 便于统一处理&lt;/p&gt;
 &lt;p&gt;命名规则: &lt;code&gt;$THE_LOG_PATH/{projectName}/{projectName}_{moduleName}_{ip}_{yyMMdd}.log&lt;/code&gt; (示例)&lt;/p&gt;
 &lt;p&gt;日志汇总的方案有很多:&lt;/p&gt;
@@ -292,27 +260,21 @@ rsync
 nfs
 logstash
 &lt;/pre&gt;&lt;/div&gt;
-
-
 &lt;p&gt;最终的处理方案: 数据量小, 同一个机房, 使用NFS将日志汇总到目录, 不同机房, 使用rsync进行汇总. 如果数据量大, 可以考虑使用logstash, 直接将日志经过节点处理实时写到一台机器上(就不要分别记录到各自磁盘了).&lt;/p&gt;
 &lt;p&gt;扩展: 使用多台机器, 只要保证最终导入同一个库即可.(同一个项目, 同一天存在一张表, 不同机器的日志导入之)&lt;/p&gt;
 &lt;p&gt;到这里, 我们将所有json格式的日志汇集到了一起&lt;/p&gt;
-&lt;h3&gt;3. 导入容器处理&lt;/h3&gt;
+&lt;h3 id="3"&gt;3. 导入容器处理&lt;/h3&gt;
 &lt;p&gt;目前每个项目的日志格式是,&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;{projectName}/{projectName}_{moduleName}_{ip}_{yyMMdd}.log
 &lt;/pre&gt;&lt;/div&gt;
-
-
 &lt;p&gt;我们会将同一个项目, 可能来自不同机器的日志导入同一张表&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;{projectName}/{projectName}_{moduleName}_*_{yyMMdd}.log
 =&amp;gt;
 table: projectName_moduleName_yyMMdd
 &lt;/pre&gt;&lt;/div&gt;
-
-
 &lt;p&gt;处理方式: 批量入库, 并且清理保留日期外的表&lt;/p&gt;
 &lt;p&gt;建议使用批量导入的方式, 速度杠杠的. Postgresql请使用copy命令&lt;/p&gt;
-&lt;h3&gt;4. 容器&lt;/h3&gt;
+&lt;h3 id="4"&gt;4. 容器&lt;/h3&gt;
 &lt;p&gt;一个计算容器, 仅此而已&lt;/p&gt;
 &lt;p&gt;技术选型时, 考虑过Mysql/Mongdb/Redis/MariaDB/OrientDB/CouchDB/RethinkDB等等, 最终敲定使用postgresql, 无它, 对json的完美支持, 满足业务: 一定的数据量, 足够简单的统计方式, 足够稳定, 简单易运维等&lt;/p&gt;
 &lt;p&gt;提下&lt;code&gt;redis&lt;/code&gt;, 当时做了整套的&lt;code&gt;redis&lt;/code&gt;方案(接口文档都明确完了就差写代码了), 但是后来毙掉了. (典型的拿着锤子满世界都是钉子的案例). 思想是: 流式日志处理, 根据业务需求使用redis counter, 主从, 后台从redis直接取counter进行展示. 脑洞很大, 可以搞定实时/非实时情况, 还可以顺带把各类业务中的counter需求给做了, 以及更为灵活的展现方式, 但是学习成本较高, 对每个写统计的人要求较高(素质, 具备正确的统计思维, 否则会悲剧掉). 再加上业务本身要求实时性并不高, 所以废弃.&lt;/p&gt;
@@ -325,59 +287,45 @@ table: projectName_moduleName_yyMMdd
 4. 运维简单
 5. 对于开发而言几乎没有学习成本, 会sql再学习下postgresql的json查询
 &lt;/pre&gt;&lt;/div&gt;
-
-
 &lt;p&gt;示例:
 假设搜索日志:&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;{‘ip’: ‘127.0.0.1’,
- ‘keyword’: ‘test’,
- ‘result_count’: ‘1’,
+&lt;div class="codehilite"&gt;&lt;pre&gt;{&amp;lsquo;ip&amp;rsquo;: &amp;lsquo;127.0.0.1&amp;rsquo;,
+ &amp;lsquo;keyword&amp;rsquo;: &amp;lsquo;test&amp;rsquo;,
+ &amp;lsquo;result_count&amp;rsquo;: &amp;lsquo;1&amp;rsquo;,
 }
 &lt;/pre&gt;&lt;/div&gt;
-
-
 &lt;p&gt;统计 pv&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;select count(data-&amp;gt;&amp;#39;ip&amp;#39;) from search_20141101;
+&lt;div class="codehilite"&gt;&lt;pre&gt;select count(data-&amp;gt;'ip') from search_20141101;
 &lt;/pre&gt;&lt;/div&gt;
-
-
 &lt;p&gt;统计 uv&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;select count(DISTINCT data-&amp;gt;&amp;gt;&amp;#39;ip&amp;#39;) from search_20141101;
+&lt;div class="codehilite"&gt;&lt;pre&gt;select count(DISTINCT data-&amp;gt;&amp;gt;'ip') from search_20141101;
 &lt;/pre&gt;&lt;/div&gt;
-
-
 &lt;p&gt;无结果数&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;select count(*) from search_20141101 where data-&amp;gt;&amp;gt;&amp;#39;result_count&amp;#39; = &amp;#39;0&amp;#39;;
+&lt;div class="codehilite"&gt;&lt;pre&gt;select count(*) from search_20141101 where data-&amp;gt;&amp;gt;'result_count' = '0';
 &lt;/pre&gt;&lt;/div&gt;
-
-
 &lt;p&gt;搜索热词排行榜&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;select data-&amp;gt;&amp;gt;’keyword’, count(*)
+&lt;div class="codehilite"&gt;&lt;pre&gt;select data-&amp;gt;&amp;gt;&amp;rsquo;keyword&amp;rsquo;, count(*)
 from search_20141101
-where data-&amp;gt;&amp;gt;&amp;#39;result_count&amp;#39; != &amp;#39;0&amp;#39;
-group by data-&amp;gt;&amp;gt;’keyword’
+where data-&amp;gt;&amp;gt;'result_count' != '0'
+group by data-&amp;gt;&amp;gt;&amp;rsquo;keyword&amp;rsquo;
 order by count(*) desc
 limit 100;
 &lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;h3&gt;5. 批处理&lt;/h3&gt;
+&lt;h3 id="5"&gt;5. 批处理&lt;/h3&gt;
 &lt;p&gt;这里要做的事情, 需要有一个管理后台, 让开发可以配置上传自己的处理脚本, 设定脚本执行时间, 执行参数(处理日期/报告表名), 甚至是执行依赖.&lt;/p&gt;
 &lt;p&gt;这里需要形成一个约定&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;报告表名: projectName_statsModuleName
 报告表一些字段名(因为统一查询接口需要用到): 日期 date,
 其他约定字段
 &lt;/pre&gt;&lt;/div&gt;
-
-
 &lt;p&gt;每天, 系统会扫描并调度任务, 执行, 处理得到统计结果, 存入报告表.&lt;/p&gt;
 &lt;p&gt;到这里, 我们每天的统计结果都存入到了报告表中&lt;/p&gt;
-&lt;h3&gt;6. 输出&lt;/h3&gt;
+&lt;h3 id="6"&gt;6. 输出&lt;/h3&gt;
 &lt;p&gt;报告表, 是以时间为维度的, 每条记录带有日期, 每条记录细化到要统计到的精确维度.(具体表现是一个维度会多一列字段), 原则是, 需求分析时充分考虑当前及后续可能的统计需求(要预见还是蛮容易的), 直接将统计维度最细化.&lt;/p&gt;
 &lt;p&gt;当然, 如果无法最细化, 后面存在变更, 可以修改统计脚本, 根据情况对历史数据进行重新统计.&lt;/p&gt;
-&lt;h3&gt;7. 统一查询层&lt;/h3&gt;
+&lt;h3 id="7"&gt;7. 统一查询层&lt;/h3&gt;
 &lt;p&gt;一层通用的接口, 支持传入表名, 条件, 需要结果字段, 格式等, 可以对系统中各类报告表进行各种形式的查询, 获取统计结果.&lt;/p&gt;
-&lt;h3&gt;8. 前端框架及展现&lt;/h3&gt;
+&lt;h3 id="8"&gt;8. 前端框架及展现&lt;/h3&gt;
 &lt;p&gt;是一整套的js款干啊&lt;/p&gt;
 &lt;p&gt;分成几块&lt;/p&gt;
 &lt;ul&gt;
@@ -386,43 +334,39 @@ limit 100;
 &lt;p&gt;配置示例:&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;// 产生条件html
     var condition_configs = {
-        title: &amp;quot;频道访问统计摘要&amp;quot;,
+        title: "频道访问统计摘要",
         conditions: [
                 {
-                    type: &amp;quot;date_begin_to_end&amp;quot;, //开始结束日期选择框
+                    type: "date_begin_to_end", //开始结束日期选择框
                 },
                 {
-                    type: &amp;quot;select&amp;quot;,   //下拉框
-                    label: &amp;quot;频道&amp;quot;,
-                    id: &amp;quot;channel&amp;quot;,
+                    type: "select",   //下拉框
+                    label: "频道",
+                    id: "channel",
                     options: [
                         {
-                            text: &amp;quot;所有&amp;quot;,
-                            value: &amp;quot;&amp;quot;,
+                            text: "所有",
+                            value: "",
                         },
                         {
-                            text: &amp;quot;快速访问&amp;quot;,
-                            value: &amp;quot;quickaccess&amp;quot;,
+                            text: "快速访问",
+                            value: "quickaccess",
                         },
 
                     ]
                 },
                 {
-                    type: &amp;quot;version&amp;quot;, //文档框
+                    type: "version", //文档框
                 },
         ]
     };
 &lt;/pre&gt;&lt;/div&gt;
-
-
 &lt;p&gt;就会自动生成表单&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;begin_date&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
 &lt;span class="n"&gt;end_date&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
 &lt;span class="n"&gt;channel&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
 &lt;span class="n"&gt;version&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
-
-
 &lt;ul&gt;
 &lt;li&gt;
 &lt;p&gt;组合查询条件: 表单提交时, 根据json配置, 将表单内容/字段/值/表等, 拼接成统一查询层接口需要的请求串&lt;/p&gt;
@@ -434,51 +378,49 @@ limit 100;
 &lt;p&gt;一个配置示例:&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="x"&gt;一般文本&lt;/span&gt;
 &lt;span class="err"&gt;{&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
-&lt;span class="x"&gt;    &amp;#39;column&amp;#39;: &amp;#39;date&amp;#39;,&lt;/span&gt;
-&lt;span class="x"&gt;    &amp;#39;name&amp;#39;: &amp;#39;日期&amp;#39;,&lt;/span&gt;
-&lt;span class="x"&gt;    &amp;#39;type&amp;#39;: &amp;#39;text&amp;#39;,&lt;/span&gt;
+&lt;span class="x"&gt;    'column': 'date',&lt;/span&gt;
+&lt;span class="x"&gt;    'name': '日期',&lt;/span&gt;
+&lt;span class="x"&gt;    'type': 'text',&lt;/span&gt;
 &lt;span class="x"&gt;},&lt;/span&gt;
 
 &lt;span class="x"&gt;百分比 &lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="x"&gt;后面跟的是sql查询结果列名&lt;/span&gt;
 &lt;span class="err"&gt;{&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
-&lt;span class="x"&gt;    &amp;#39;column&amp;#39;: &amp;#39;uninstall_ratio&amp;#39;,&lt;/span&gt;
-&lt;span class="x"&gt;    &amp;#39;name&amp;#39;: &amp;#39;卸载率&amp;#39;,&lt;/span&gt;
-&lt;span class="x"&gt;    &amp;#39;type&amp;#39;: &amp;#39;ratio&amp;#39;,&lt;/span&gt;
-&lt;span class="x"&gt;    &amp;#39;value&amp;#39;: &amp;#39;&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;uninstall_pv&lt;/span&gt;&lt;span class="x"&gt;/&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;install_pv&lt;/span&gt;&lt;span class="x"&gt;&amp;#39;&lt;/span&gt;
+&lt;span class="x"&gt;    'column': 'uninstall_ratio',&lt;/span&gt;
+&lt;span class="x"&gt;    'name': '卸载率',&lt;/span&gt;
+&lt;span class="x"&gt;    'type': 'ratio',&lt;/span&gt;
+&lt;span class="x"&gt;    'value': '&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;uninstall_pv&lt;/span&gt;&lt;span class="x"&gt;/&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;install_pv&lt;/span&gt;&lt;span class="x"&gt;'&lt;/span&gt;
 &lt;span class="x"&gt;},&lt;/span&gt;
 
 &lt;span class="x"&gt;公式计算&lt;/span&gt;
 &lt;span class="err"&gt;{&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
-&lt;span class="x"&gt;    &amp;#39;column&amp;#39;: &amp;#39;the_qvod_link_pv&amp;#39;,&lt;/span&gt;
-&lt;span class="x"&gt;    &amp;#39;name&amp;#39;: &amp;#39;导入链接数&amp;#39;,&lt;/span&gt;
-&lt;span class="x"&gt;    &amp;#39;type&amp;#39;: &amp;#39;calculate&amp;#39;,&lt;/span&gt;
-&lt;span class="x"&gt;    &amp;#39;value&amp;#39;: &amp;#39;&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;qvod_link_pv&lt;/span&gt;&lt;span class="x"&gt; + &lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;qvod_start_pv&lt;/span&gt;&lt;span class="x"&gt;&amp;#39;&lt;/span&gt;
+&lt;span class="x"&gt;    'column': 'the_qvod_link_pv',&lt;/span&gt;
+&lt;span class="x"&gt;    'name': '导入链接数',&lt;/span&gt;
+&lt;span class="x"&gt;    'type': 'calculate',&lt;/span&gt;
+&lt;span class="x"&gt;    'value': '&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;qvod_link_pv&lt;/span&gt;&lt;span class="x"&gt; + &lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;qvod_start_pv&lt;/span&gt;&lt;span class="x"&gt;'&lt;/span&gt;
 &lt;span class="x"&gt;},&lt;/span&gt;
 
 &lt;span class="x"&gt;列值翻译&lt;/span&gt;
 &lt;span class="err"&gt;{&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
-&lt;span class="x"&gt;    &amp;#39;column&amp;#39;: &amp;#39;channel&amp;#39;,&lt;/span&gt;
-&lt;span class="x"&gt;    &amp;#39;name&amp;#39;: &amp;#39;渠道&amp;#39;,&lt;/span&gt;
-&lt;span class="x"&gt;    &amp;#39;type&amp;#39;: &amp;#39;text&amp;#39;,&lt;/span&gt;
-&lt;span class="x"&gt;    &amp;#39;translation&amp;#39;: &lt;/span&gt;&lt;span class="err"&gt;{&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
-&lt;span class="x"&gt;        &amp;quot;all&amp;quot;: &amp;quot;all&amp;quot;,&lt;/span&gt;
-&lt;span class="x"&gt;        &amp;quot;player&amp;quot;: &amp;quot;播放器&amp;quot;,&lt;/span&gt;
-&lt;span class="x"&gt;        &amp;quot;zx&amp;quot;: &amp;quot;资讯&amp;quot;,&lt;/span&gt;
-&lt;span class="x"&gt;        &amp;quot;other&amp;quot;: &amp;quot;其他导入&amp;quot;,&lt;/span&gt;
+&lt;span class="x"&gt;    'column': 'channel',&lt;/span&gt;
+&lt;span class="x"&gt;    'name': '渠道',&lt;/span&gt;
+&lt;span class="x"&gt;    'type': 'text',&lt;/span&gt;
+&lt;span class="x"&gt;    'translation': &lt;/span&gt;&lt;span class="err"&gt;{&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;        "all": "all",&lt;/span&gt;
+&lt;span class="x"&gt;        "player": "播放器",&lt;/span&gt;
+&lt;span class="x"&gt;        "zx": "资讯",&lt;/span&gt;
+&lt;span class="x"&gt;        "other": "其他导入",&lt;/span&gt;
 &lt;span class="x"&gt;    }&lt;/span&gt;
 &lt;span class="x"&gt;},&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;h3&gt;9. 图表&lt;/h3&gt;
+&lt;h3 id="9"&gt;9. 图表&lt;/h3&gt;
 &lt;p&gt;使用百度 &lt;a href="http://echarts.baidu.com/"&gt;echats&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;可以根据配置, 将统一查询层的接口返回数据直接灌入echats, 生成表单&lt;/p&gt;
-&lt;h3&gt;10. 过程日志及监控&lt;/h3&gt;
+&lt;h3 id="10"&gt;10. 过程日志及监控&lt;/h3&gt;
 &lt;p&gt;需要一组管理表, 进行任务配置/调度/执行/执行结果, 整个过程中的操作可以配置和查看, 用于监控.&lt;/p&gt;
-&lt;hr /&gt;
-&lt;h3&gt;四. 小结&lt;/h3&gt;
+&lt;hr/&gt;
+&lt;h3 id="_4"&gt;四. 小结&lt;/h3&gt;
 &lt;blockquote&gt;
-&lt;p&gt;It’s Simple, but it works.&lt;/p&gt;
+&lt;p&gt;It&amp;rsquo;s Simple, but it works.&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;p&gt;数据情况, 当时大概每天 10G 日志 load 到库(处理前&amp;gt;10G), 每天日志数据大概是五千万条, 具体业务上了大概40个的样子, 每天30分钟左右处理完. 对于开发的改进是, 将原先0.5-2d的工作, 缩减到了1-2小时, 对生产力的提升较为显著.(对于日志数多且单一日志量较小的情况处理尤为便捷)&lt;/p&gt;
 &lt;p&gt;适用范围: 对于一般团队应该足够了(流量百万级别), 每个项目每天3-5百万访问量, 日志数据10-20G, 当然, 一直没机会测试上限, 不过只要PostGresql能抗住, 量再大些应该也ok.(可以考虑上elasticsearch)&lt;/p&gt;
@@ -487,14 +429,14 @@ limit 100;
 &lt;p&gt;这套系统从开始设计到最终完成, 前前后后花了3个月的样子(计算所有时间投入), 也算是做得感觉比较完善的一套系统.&lt;/p&gt;
 &lt;p&gt;上线接近一年, 支持快玩游戏搜索业务(快玩盒子/快玩网站/移动端等), 系统每天百万级的搜索(峰值在250w左右, 应用层两台机器负载均衡, 单机核心层, 单机引擎), 很遗憾, 由于业务所限, 一直没有看到这套系统能支持的量上限, 即使在峰值, 核心层qps大概也才50左右, 预计搜索量到千万级应该没什么压力, 当然, 优化的余地还很多.&lt;/p&gt;
 &lt;p&gt;外面正在狂风骤雨, 开始吧&lt;/p&gt;
-&lt;hr /&gt;
-&lt;h3&gt;目标&lt;/h3&gt;
+&lt;hr/&gt;
+&lt;h3 id="_1"&gt;目标&lt;/h3&gt;
 &lt;p&gt;当系统数据达到一定量时, 搜索就成为了除类目以外的第二大入口.&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;更好的搜索结果(指标: 召回率, 转化率, 排序效果)&lt;/li&gt;
 &lt;li&gt;更好的用户体验(下拉提示点击率,相关搜索准确率等)&lt;/li&gt;
 &lt;/ol&gt;
-&lt;h3&gt;搜索流程&lt;/h3&gt;
+&lt;h3 id="_2"&gt;搜索流程&lt;/h3&gt;
 &lt;ol&gt;
 &lt;li&gt;用户在输入框输入关键词, 此时输入框会下拉提示一些词, 用户可以选择进行搜索&lt;/li&gt;
 &lt;li&gt;用户点击, 进行搜索, 前端调用搜索接口&lt;/li&gt;
@@ -504,18 +446,16 @@ limit 100;
 3.2 查询缓存是否存在, 存在直接返回缓存内容. 此时, 会记录搜索日志
 3.3 不存在缓存, 调用解析输入, 调用核心层接口
 &lt;/pre&gt;&lt;/div&gt;
-
-
 &lt;/li&gt;
 &lt;li&gt;
 &lt;p&gt;核心层, 调用引擎接口, 获取搜索结果, 并整合信息, 返回应用层&lt;/p&gt;
 &lt;/li&gt;
 &lt;li&gt;应用层, 获取结果, 此时根据需要, 可能调用相关搜索和热门词服务, 获取必要信息, 最终进行页面渲染, 记录日志, 返回给客户端&lt;/li&gt;
 &lt;/ol&gt;
-&lt;h3&gt;系统结构图&lt;/h3&gt;
+&lt;h3 id="_3"&gt;系统结构图&lt;/h3&gt;
 &lt;p&gt;实现: java(solr)只需配置 + python(所有服务) + golang(suggestion)&lt;/p&gt;
-&lt;p&gt;&lt;img alt="search system" src="/imgs/system/search.png" /&gt;&lt;/p&gt;
-&lt;h3&gt;系统组成(简单描述)&lt;/h3&gt;
+&lt;p&gt;&lt;img alt="search system" src="/imgs/system/search.png"/&gt;&lt;/p&gt;
+&lt;h3 id="_4"&gt;系统组成(简单描述)&lt;/h3&gt;
 &lt;blockquote&gt;
 &lt;p&gt;对外服务  &lt;/p&gt;
 &lt;/blockquote&gt;
@@ -566,13 +506,13 @@ limit 100;
 &lt;/blockquote&gt;
 &lt;p&gt;对日志进行统计, 计算搜索pv/uv, 无结果率, 搜索关键词排行, 下拉提示点击率等等&lt;/p&gt;
 &lt;p&gt;用于关键性指标的统计, 方便针对性优化&lt;/p&gt;
-&lt;hr /&gt;
+&lt;hr/&gt;
 &lt;p&gt;接下去, 分块简要说明下&lt;/p&gt;
-&lt;h3&gt;搜索服务-数据层&lt;/h3&gt;
+&lt;h3 id="-"&gt;搜索服务-数据层&lt;/h3&gt;
 &lt;p&gt;数据存储跟各自业务有关系, 信息录入渠道主要是运营录入或者抓取导入等, 存储使用&lt;code&gt;mysql/postgresql&lt;/code&gt;等数据库&lt;/p&gt;
 &lt;p&gt;rank data 主要是由日志系统统计出一些根据涉及排序相关的数据, 例如用户点击次数, 玩次, 评分等等, 会直接影响到结果排序&lt;/p&gt;
 &lt;p&gt;注意, 由于这些数据都会存在变更, 所以, 需要存储update_time, 用于引擎增量建立索引.&lt;/p&gt;
-&lt;h3&gt;搜索服务-引擎&lt;/h3&gt;
+&lt;h3 id="-_1"&gt;搜索服务-引擎&lt;/h3&gt;
 &lt;p&gt;实现上, 使用的是开源的 &lt;a href="http://lucene.apache.org/solr/"&gt;apache solr&lt;/a&gt;, 版本4.5, 刚才看了下最新版到了4.8了. &lt;/p&gt;
 &lt;p&gt;曾经一度想自己去实现, 结果发现复杂化了, 系统设计中, 切忌把实现问题的手段当做问题本身去处理.&lt;/p&gt;
 &lt;p&gt;还有很多同类引擎, 可以去对比下.&lt;/p&gt;
@@ -584,47 +524,45 @@ limit 100;
 &lt;/ol&gt;
 &lt;p&gt;对于引擎, 很重要一块是搜索结果排序, &lt;code&gt;solr&lt;/code&gt; 可以很方便地支持自定义排序, 可以依赖于输入数据中的排序字段, 进行公式计算, 得到最终的加权和, 用于决定排序. 这里的公式需要针对业务中影响排序的因素进行分析, 然后不断调整因素的权重, 得到最终的排序效果.&lt;/p&gt;
 &lt;p&gt;如果要进行一些其他处理, 可以在应用层或核心层进行额外处理.&lt;/p&gt;
-&lt;h3&gt;下拉提示服务&lt;/h3&gt;
+&lt;h3 id="_5"&gt;下拉提示服务&lt;/h3&gt;
 &lt;p&gt;前后做了两个版本, 一个版本基于&lt;code&gt;分词-统计-cache&lt;/code&gt;实现的, 后面一个版本基于 &lt;code&gt;trie树-cache&lt;/code&gt;实现.&lt;/p&gt;
 &lt;p&gt;元信息直接导出, 以游戏为例, 游戏名+图标+类型+玩次等信息&lt;/p&gt;
 &lt;p&gt;主要是针对游戏名进行处理:(原词+拼音+拼音首字母)&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;植物大战僵尸 -&amp;gt; [植物大战僵尸, zhiwudazhanjiangshi, zwdzjs]
 &lt;/pre&gt;&lt;/div&gt;
-
-
 &lt;p&gt;然后, 在内存中建立前缀树. 这里使用的是&lt;code&gt;double-arry-trie&lt;/code&gt;实现&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;double-array-trie&lt;/code&gt;文章: &lt;a href="http://en.wikipedia.org/wiki/Trie"&gt;What is Trie&lt;/a&gt; | &lt;a href="http://linux.thai.net/~thep/datrie/datrie.html"&gt;An Implementation of Double-Array Trie&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;用户输入query, 没发生一次变化, 发送请求到下拉提示服务, 首先会去命中缓存, 未命中, 进入trie树搜索前缀, 获取此前缀所有后缀, 即获取提示关键词集合, 排序获取权重最高的进行返回(是这个流程, 但实际上没那么简单, 要考虑性能).&lt;/p&gt;
 &lt;p&gt;如果不开缓存，实时计算的话，对cpu占用率非常高，每次都要搜索&lt;code&gt;trie&lt;/code&gt;树，所以开启了memcached外部缓存.&lt;/p&gt;
 &lt;p&gt;开源了一份, 但并不是线上的实现, 而是优化版本, 但是一直没有机会上到线上看下效果, 有兴趣可以看下 &lt;a href="https://github.com/wklken/suggestion"&gt;suggestion&lt;/a&gt;&lt;/p&gt;
-&lt;h3&gt;相关搜索服务&lt;/h3&gt;
+&lt;h3 id="_6"&gt;相关搜索服务&lt;/h3&gt;
 &lt;p&gt;目前做得比较简单, 使用同一个用户的搜索关键词链进行分析, 处理成
 &lt;code&gt;[ 搜索关键词-后继搜索关键词]&lt;/code&gt;, 并进行统计, 最终获取统计结果.&lt;/p&gt;
 &lt;p&gt;这个服务一直没有进行优化, 导致相关搜索的结果并不好, 存在很多bad case(推荐重复的内容/单字符推荐等).&lt;/p&gt;
 &lt;p&gt;可以基于算法进行重构.&lt;/p&gt;
-&lt;h3&gt;关键词改写&lt;/h3&gt;
+&lt;h3 id="_7"&gt;关键词改写&lt;/h3&gt;
 &lt;p&gt;关键词改写, 主要分成两类, 一类是输入关键字错误导致无结果(错别字/缺字/多字等), 另一类是输入关键字是业务上某些名称的别名, 系统内没有, 需要转换.&lt;/p&gt;
 &lt;p&gt;通过改写, 可以实现纠错以及转换的目的, 使用户能正确获取结果&lt;/p&gt;
 &lt;p&gt;关于纠错, 目前处理方式, 用户搜索关键词链, 处理成 &lt;code&gt;[无结果词 - 有结果词]&lt;/code&gt;, 另外还有用户下拉提示点击 &lt;code&gt;[无结果输入词 - 有结果点击词]&lt;/code&gt;, 然后进行统计, 根据一系列规则进行筛选, 获取改写列表.(目前是基于规则的, 优化空间还很大)&lt;/p&gt;
 &lt;p&gt;关于业务上的改写, 需要提供入口, 提供给运营人员针对一些术语进行改写, 例如&lt;code&gt;[gta -&amp;gt; 侠盗猎车手]&lt;/code&gt;&lt;/p&gt;
 &lt;p&gt;这个服务比较简单粗暴, 计算完成后直接将键值对刷入缓存, 对外提供服务.&lt;/p&gt;
 &lt;p&gt;关键词改写需要进行持续的优化, 定期获取新的日志进行批量处理, 加入列表. 优化余地很大, 可以有效降低无结果率.&lt;/p&gt;
-&lt;h3&gt;统计&lt;/h3&gt;
+&lt;h3 id="_8"&gt;统计&lt;/h3&gt;
 &lt;p&gt;主要对每日的搜索日志进行统计, 得到两部分信息:&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;报表数据: 不同平台不同渠道的每日pv/uv, 无结果率, 下拉提示点击率等&lt;/li&gt;
 &lt;li&gt;排行数据: 不同纬度下搜索排行, 用于反向作用于搜索引擎排序&lt;/li&gt;
 &lt;/ol&gt;
-&lt;hr /&gt;
-&lt;h3&gt;一些坑&lt;/h3&gt;
+&lt;hr/&gt;
+&lt;h3 id="_9"&gt;一些坑&lt;/h3&gt;
 &lt;ol&gt;
 &lt;li&gt;系统使用的&lt;code&gt;memcached&lt;/code&gt;集群作为缓存, 遇到一些坑, 例如&lt;code&gt;key&lt;/code&gt;最大长度250,   &lt;code&gt;key&lt;/code&gt;不能包含空格和控制字符, 存储数据最大1M. 即, 默认对用户的输入不信任(看日志才知道有多少奇葩的搜索query). 切成redis或许会好一些.&lt;/li&gt;
 &lt;li&gt;关于备份. 由于业务初期流量一直不大, 所以除了应用层使用&lt;code&gt;nginx&lt;/code&gt;做负载均衡外, 核心层和&lt;code&gt;solr&lt;/code&gt;都使用单机实例. 带来的问题是, 虽然整体负载不高, 但是没有备份, 出现过一次&lt;code&gt;solr&lt;/code&gt;引擎挂到导致搜索整体失效30分钟的故障, 后面对每个单机服务都进行了服务备份, 失效启用.&lt;/li&gt;
 &lt;li&gt;需要对整体系统进行监控, 使用&lt;code&gt;sentry&lt;/code&gt;和&lt;code&gt;statsd&lt;/code&gt;, 可以实时监测到流量变化以及程序错误.&lt;/li&gt;
 &lt;li&gt;日志很重要, 要针对自己需要了解的指标以及需要统计分析的字段, 设计尽可能完整的日志记录.&lt;/li&gt;
 &lt;/ol&gt;
-&lt;hr /&gt;
-&lt;h3&gt;一些感想&lt;/h3&gt;
+&lt;hr/&gt;
+&lt;h3 id="_10"&gt;一些感想&lt;/h3&gt;
 &lt;p&gt;需要确认整体目标, 然后建立关键性指标, 实现基础方案, 上线, 并持续地关注数据, 分析日志以及bad case, 然后进行优化, 观察指标变化. 记得系统最初的召回率84%, 后来一步步提升到了92%. 这是一个长期的, 不断优化的过程.&lt;/p&gt;
 &lt;p&gt;很多东西, 都需要自己一步步去摸索和尝试.&lt;/p&gt;
 &lt;p&gt;当然, 这只是一个小型的搜索系统, 其中每一个模块都可以针对性地扩展和优化, 使用更好的算法, 达到更好的效果.&lt;/p&gt;
@@ -633,7 +571,7 @@ limit 100;
 &lt;/blockquote&gt;
 &lt;p&gt;系统总是跟随业务逐渐成长变化的, 很可惜, 业务夭折, 这个系统可能失去了在这里继续进化的可能. &lt;/p&gt;
 &lt;p&gt;希望提供一些可供大家借鉴的方法. That's all.&lt;/p&gt;
-&lt;hr /&gt;
+&lt;hr/&gt;
 &lt;p&gt;先这样吧&lt;/p&gt;
 &lt;p&gt;wklken&lt;/p&gt;
 &lt;p&gt;2014-06-09 于深圳&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Mon, 09 Jun 2014 00:00:00 +0800</pubDate><guid>tag:www.wklken.me,2014-06-09:posts/2014/06/09/search-system.html</guid><category>system</category></item></channel></rss>
