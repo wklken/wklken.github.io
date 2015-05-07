@@ -1,5 +1,105 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>wklken's blog</title><link href="http://www.wklken.me/" rel="alternate"></link><link href="http://127.0.0.1:8000/feeds/all.atom.xml" rel="self"></link><id>http://www.wklken.me/</id><updated>2015-05-05T00:00:00+08:00</updated><entry><title>k-vim 更新9.0版本</title><link href="http://www.wklken.me/posts/2015/05/05/k-vim-update-v9.html" rel="alternate"></link><updated>2015-05-05T00:00:00+08:00</updated><author><name>wklken</name></author><id>tag:www.wklken.me,2015-05-05:posts/2015/05/05/k-vim-update-v9.html</id><summary type="html">&lt;p&gt;&lt;a href="https://github.com/wklken/k-vim"&gt;直达链接&lt;/a&gt;&lt;/p&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>wklken's blog</title><link href="http://www.wklken.me/" rel="alternate"></link><link href="http://127.0.0.1:8000/feeds/all.atom.xml" rel="self"></link><id>http://www.wklken.me/</id><updated>2015-05-08T00:00:00+08:00</updated><entry><title>Logstash+ElasticSearch+Kibana- 实现相对通用的数据收集分析</title><link href="http://www.wklken.me/posts/2015/05/08/elk-data-collect.html" rel="alternate"></link><updated>2015-05-08T00:00:00+08:00</updated><author><name>wklken</name></author><id>tag:www.wklken.me,2015-05-08:posts/2015/05/08/elk-data-collect.html</id><summary type="html">&lt;p&gt;ElasticSearch + Logstash + Kibana, 目前应该算是一套完整的日志收集/存储/统计解决方案. &lt;/p&gt;
+&lt;p&gt;在上一篇 &lt;a href="http://www.wklken.me/posts/2015/04/26/elk-for-nginx-log.html"&gt;Logstash+ElasticSearch+Kibana处理nginx访问日志&lt;/a&gt; 中, 介绍了如何统一处理&lt;code&gt;nginx&lt;/code&gt;日志&lt;/p&gt;
+&lt;p&gt;最近正好在做应用日志及上报日志的汇聚和统计工作, 分享下处理方式.&lt;/p&gt;
+&lt;p&gt;目标是: 一次搭建, 后面只需要关心输入(日志记录)以及输出(Kibana统计展示)&lt;/p&gt;
+&lt;h2 id="_1"&gt;日志&lt;/h2&gt;
+&lt;p&gt;日志的来源:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;1. 服务日志: 服务端记录下来的日志, 例如搜索日志等, 内容较为详尽
+2. 上报日志: 来自于前端/android/ios/桌面端等, 根据用户操作行为, 上报一些数据, 例如按钮点击量, 转化率等, 也可以上报崩溃日志
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;其中, 上报日志, 可以制定一套协议, 不同端统一走上报服务接口. 这个服务对性能有要求, 具体协议需要足够灵活, 支持各类统计分析需求. 使用golang写了一个 &lt;a href="https://github.com/wklken/http_json_logger"&gt;http_json_logger&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;日志在不同应用/机器记录后, 可以通过&lt;code&gt;rsync&lt;/code&gt;/&lt;code&gt;nfs&lt;/code&gt;/&lt;code&gt;scp&lt;/code&gt;等, 汇总到一个地方进行统一处理, 也可以通过多个&lt;code&gt;logstash shipper&lt;/code&gt;进行汇聚&lt;/p&gt;
+&lt;p&gt;关于日志格式,  统一使用&lt;code&gt;json&lt;/code&gt;格式, 落地过程中包含平台&lt;code&gt;{platform}&lt;/code&gt;, 以及 项目&lt;code&gt;{project}&lt;/code&gt;, 模块&lt;code&gt;{module}&lt;/code&gt;,  落地时间&lt;code&gt;ts&lt;/code&gt;等&lt;/p&gt;
+&lt;p&gt;为什么要落地: 落地成文件, 定时压缩备份存档, 不论日志处理系统是否有问题, 都能保证数据已经存下来了.&lt;/p&gt;
+&lt;p&gt;当然, 也可以考虑使用logstash监听端口, 分别落地到文件及转入es, 没具体实践过.&lt;/p&gt;
+&lt;p&gt;在这一步, 我的处理方案是:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;1. 使用统一上报接口, 日志落地到上报服务的数据盘
+
+2. 服务端服务日志, 同一台机器在相同数据盘, 使用同一个logstash shipper进行汇聚
+
+对日志文件名等, 不强求一致性, 你可以认为, 不同项目/不同模块的json都可以直接记录到同一个日志文件(虽然不鼓励这么做), 通过日志body内容而不是日志文件名来处理 
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h2 id="logstash-shipper"&gt;汇聚: logstash shipper&lt;/h2&gt;
+&lt;p&gt;不得不说, logstash的确是神器&lt;/p&gt;
+&lt;p&gt;上一步, 日志中强制日志中每一行是一条json记录.  同时json body中记录了时间戳(timestamp, &lt;code&gt;ts&lt;/code&gt;字段)&lt;/p&gt;
+&lt;p&gt;这一步, 配置 &lt;code&gt;logstash&lt;/code&gt;将某些目录下的所有日志文件进行汇聚&lt;/p&gt;
+&lt;p&gt;配置示例:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;input {
+  file {
+    path =&amp;gt; [ "/data/collect/ios/*.log", "/data/collect/android/*.log", "/data/collect/web/*.log", "/data/collect/wap/*.log" ]
+    start_position =&amp;gt; "beginning"
+    codec =&amp;gt; json
+  }
+}
+
+# make ts to @timestamp
+filter {
+  date {
+    match =&amp;gt; [ "ts" , "dd/MMM/YYYY:HH:mm:ss Z", "UNIX" ]
+  }
+}
+
+
+output {
+    redis { host =&amp;gt; "127.0.0.1" data_type =&amp;gt; "list" key =&amp;gt; "logstash:collect:log" }
+}
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;这时候, 所有日志集中到了一个地方&lt;/p&gt;
+&lt;h2 id="es"&gt;处理并存储到es&lt;/h2&gt;
+&lt;p&gt;首先, 从redis中读取消息体, 检查并丢弃一些信息, 然后,  根据消息体内&lt;code&gt;platform&lt;/code&gt;/ &lt;code&gt;project&lt;/code&gt;/&lt;code&gt;module&lt;/code&gt;, 分配到es不同的&lt;code&gt;index&lt;/code&gt;
+可以根据需要控制粒度&lt;/p&gt;
+&lt;p&gt;配置示例&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;input {
+  redis {
+    host =&amp;gt; "127.0.0.1"
+    port =&amp;gt; "6379"
+    key =&amp;gt; "logstash:collect:log"
+    data_type =&amp;gt; "list"
+    codec  =&amp;gt; "json"
+    type =&amp;gt; "logstash-collect-log"
+    tags =&amp;gt; ["collect"]
+  }
+}
+
+
+# drop invalid record
+filter {
+    if ![platform] {
+        drop {}
+    }
+    if ![project] {
+        drop {}
+    }
+    if ![module] {
+        drop {}
+    }
+}
+
+output {
+    elasticsearch {
+      host =&amp;gt; "127.0.0.1"
+      index =&amp;gt; "%{platform}-%{project}-%{module}-%{+YYYY.MM.dd}"
+    }
+}
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h2 id="es_1"&gt;ES&lt;/h2&gt;
+&lt;p&gt;你会发现, es已经的index中已经有了具体的数据. json中的每个字段都有......&lt;/p&gt;
+&lt;h2 id="_2"&gt;然后呢?&lt;/h2&gt;
+&lt;p&gt;整套调通之后, 接下来的工作呢?&lt;/p&gt;
+&lt;p&gt;假设来了个统计需求&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;分析需求, 拆解, 确定统计维度, 需要上报的字段等, 根据协议, 确定&lt;code&gt;{platform}/{project}/{module}&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;前端/客户端等, 根据协议, 调用上报接口, 执行数据上报&lt;/li&gt;
+&lt;li&gt;到&lt;code&gt;kibana&lt;/code&gt;,  找到对应&lt;code&gt;index&lt;/code&gt;, 根据需求配置对应的展现&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;所有的一般性统计需求, 都可以通过&lt;code&gt;三板斧&lt;/code&gt;直接搞定, 只需处理输入以及输出, 没有任何额外工作.&lt;/p&gt;
+&lt;h2 id="_3"&gt;最后&lt;/h2&gt;
+&lt;p&gt;目前量不大, 完美解决了快速迭代中各类原先处理起来十分困难的统计需求和日志分析(原来要自己上报汇聚数据, 自己拷贝到同一台机器, 自己写统计脚本, 存库, 还得自己撸前端, 搞完之后还被黑说: &lt;code&gt;花了那么多时间, 只搞出个这么反人类的/丑/不是我想要的.....界面&lt;/code&gt;)&lt;/p&gt;
+&lt;p&gt;当然, 随着业务发展, 各类日志的量都会逐渐上来, 对性能/存储的要求会越来越高, 但是&lt;code&gt;elk&lt;/code&gt;本身对横向扩容只是非常完美, 在相当长一段时间内, 应该可以&lt;code&gt;hold&lt;/code&gt;住.(老大, 我要加机器/硬盘/内存/CPU)&lt;/p&gt;
+&lt;p&gt;ok, 先这些&lt;/p&gt;
+&lt;p&gt;wklken&lt;/p&gt;
+&lt;p&gt;2015-05-08 于深圳&lt;/p&gt;</summary><category term="system"></category></entry><entry><title>k-vim 更新9.0版本</title><link href="http://www.wklken.me/posts/2015/05/05/k-vim-update-v9.html" rel="alternate"></link><updated>2015-05-05T00:00:00+08:00</updated><author><name>wklken</name></author><id>tag:www.wklken.me,2015-05-05:posts/2015/05/05/k-vim-update-v9.html</id><summary type="html">&lt;p&gt;&lt;a href="https://github.com/wklken/k-vim"&gt;直达链接&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;趁着近期有点时间, 将积累几个月的改进/痛点/更新等处理了一把, &lt;code&gt;k-vim&lt;/code&gt;正式更新到9.0版本.&lt;/p&gt;
 &lt;p&gt;如果喜欢, 欢迎star/fork, 欢迎提pr.&lt;/p&gt;
 &lt;p&gt;本次更新:  &lt;a href="https://github.com/wklken/k-vim/blob/master/UPDATE_LOG.md"&gt;完整更新日志&lt;/a&gt;&lt;/p&gt;
