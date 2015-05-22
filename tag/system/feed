@@ -1,5 +1,127 @@
 <?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>wklken's blog</title><link>http://www.wklken.me/</link><description></description><atom:link href="http://www.wklken.me/tag/system/feed" rel="self"></atom:link><lastBuildDate>Fri, 08 May 2015 00:00:00 +0800</lastBuildDate><item><title>Logstash+ElasticSearch+Kibana- 实现相对通用的数据收集分析</title><link>http://www.wklken.me/posts/2015/05/08/elk-data-collect.html</link><description>&lt;p&gt;ElasticSearch + Logstash + Kibana, 目前应该算是一套完整的日志收集/存储/统计解决方案. &lt;/p&gt;
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>wklken's blog</title><link>http://www.wklken.me/</link><description></description><atom:link href="http://www.wklken.me/tag/system/feed" rel="self"></atom:link><lastBuildDate>Sat, 23 May 2015 00:00:00 +0800</lastBuildDate><item><title>Elasticsearch几个问题的解决</title><link>http://www.wklken.me/posts/2015/05/23/elasticsearch-issues.html</link><description>&lt;p&gt;今天惯例看统计报表, 才发现es集群悲剧了......昨天下午到今天早上, 持续报错, 写了1G的错误日志&amp;gt;_&amp;lt;#(暂无监控....)&lt;/p&gt;
+&lt;p&gt;当前状态: 单台机器, 单节点(空集群), 200W 数据, 500+shrads,  约3G大小&lt;/p&gt;
+&lt;p&gt;以下是几个问题的处理过程&lt;/p&gt;
+&lt;h3 id="unassigned-shards"&gt;大量unassigned shards&lt;/h3&gt;
+&lt;p&gt;其实刚搭完运行时就是&lt;code&gt;status: yellow&lt;/code&gt;(所有主分片可用，但存在不可用的从分片), 只有一个节点, 主分片启动并运行正常, 可以成功处理请求, 但是存在&lt;code&gt;unassigned_shards&lt;/code&gt;, 即存在没有被分配到节点的从分片.(只有一个节点.....)&lt;/p&gt;
+&lt;p&gt;.当时数据量小, 就暂时没关注. 然后, 随着时间推移,  出现了大量unassigned shards&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;curl -XGET http://localhost:9200/_cluster/health\?pretty
+{
+  "cluster_name" : "elasticsearch",
+  "status" : "yellow",
+  "timed_out" : false,
+  "number_of_nodes" : 2,
+  "number_of_data_nodes" : 1,
+  "active_primary_shards" : 538,
+  "active_shards" : 538,
+  "relocating_shards" : 0,
+  "initializing_shards" : 0,
+  "unassigned_shards" : 558,
+"number_of_pending_tasks" : 0
+}
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;处理方式:  找了台内网机器, 部署另一个节点(保证&lt;code&gt;cluster.name&lt;/code&gt;一致即可, 自动发现, 赞一个). 当然, 如果你资源有限只有一台机器,  使用相同命令再启动一个es实例也行. 再次检查集群健康, 发现&lt;code&gt;unassigned_shards&lt;/code&gt;减少, &lt;code&gt;active_shards&lt;/code&gt;增多.&lt;/p&gt;
+&lt;p&gt;操作完后, 集群健康从&lt;code&gt;yellow&lt;/code&gt;恢复到 &lt;code&gt;green&lt;/code&gt;&lt;/p&gt;
+&lt;h3 id="status-red"&gt;status: red&lt;/h3&gt;
+&lt;p&gt;集群健康恶化了......&lt;/p&gt;
+&lt;p&gt;这次检查发现是&lt;code&gt;status: red&lt;/code&gt;(存在不可用的主要分片)&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;curl -XGET http://localhost:9200/_cluster/health\?pretty
+{
+  "cluster_name" : "elasticsearch",
+  "status" : "red",    // missing some primary shards
+  "timed_out" : false,
+  "number_of_nodes" : 4,
+  "number_of_data_nodes" : 2,
+  "active_primary_shards" : 538,
+  "active_shards" : 1076,
+  "relocating_shards" : 0,
+  "initializing_shards" : 0,
+  "unassigned_shards" : 20,  // where your lost primary shards are.
+  "number_of_pending_tasks" : 0
+}
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h3 id="fix-unassigned-shards"&gt;fix unassigned shards&lt;/h3&gt;
+&lt;p&gt;开始着手修复&lt;/p&gt;
+&lt;p&gt;查看所有分片状态&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;curl -XGET http://localhost:9200/_cat/shards
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;找出&lt;code&gt;UNASSIGNED&lt;/code&gt;分片&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;curl -s "http://localhost:9200/_cat/shards" | grep UNASSIGNED
+pv-2015.05.22                 3 p UNASSIGNED
+pv-2015.05.22                 3 r UNASSIGNED
+pv-2015.05.22                 1 p UNASSIGNED
+pv-2015.05.22                 1 r UNASSIGNED
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;查询得到master节点的唯一标识&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;curl 'localhost:9200/_nodes/process?pretty'
+
+{
+  "cluster_name" : "elasticsearch",
+  "nodes" : {
+    "AfUyuXmGTESHXpwi4OExxx" : {
+      "name" : "Master",
+     ....
+      "attributes" : {
+        "master" : "true"
+      },
+.....
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;执行reroute(分多次, 变更shard的值为&lt;code&gt;UNASSIGNED&lt;/code&gt;查询结果中编号, 上一步查询结果是1和3)&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;curl -XPOST 'localhost:9200/_cluster/reroute' -d '{
+        "commands" : [ {
+              "allocate" : {
+                  "index" : "pv-2015.05.22",
+                  "shard" : 1,
+                  "node" : "AfUyuXmGTESHXpwi4OExxx",
+                  "allow_primary" : true
+              }
+            }
+        ]
+    }'
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;批量处理的脚本(当数量很多的话, 注意替换node的名字)&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="c"&gt;#!/bin/bash&lt;/span&gt;
+
+&lt;span class="k"&gt;for&lt;/span&gt; index in &lt;span class="k"&gt;$(&lt;/span&gt;curl  -s &lt;span class="s1"&gt;'http://localhost:9200/_cat/shards'&lt;/span&gt; &lt;span class="p"&gt;|&lt;/span&gt; grep UNASSIGNED &lt;span class="p"&gt;|&lt;/span&gt; awk &lt;span class="s1"&gt;'{print $1}'&lt;/span&gt; &lt;span class="p"&gt;|&lt;/span&gt; sort &lt;span class="p"&gt;|&lt;/span&gt; uniq&lt;span class="k"&gt;)&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="k"&gt;do&lt;/span&gt;
+    &lt;span class="k"&gt;for&lt;/span&gt; shard in &lt;span class="k"&gt;$(&lt;/span&gt;curl  -s &lt;span class="s1"&gt;'http://localhost:9200/_cat/shards'&lt;/span&gt; &lt;span class="p"&gt;|&lt;/span&gt; grep UNASSIGNED &lt;span class="p"&gt;|&lt;/span&gt; grep &lt;span class="nv"&gt;$index&lt;/span&gt; &lt;span class="p"&gt;|&lt;/span&gt; awk &lt;span class="s1"&gt;'{print $2}'&lt;/span&gt; &lt;span class="p"&gt;|&lt;/span&gt; sort &lt;span class="p"&gt;|&lt;/span&gt; uniq&lt;span class="k"&gt;)&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="k"&gt;do&lt;/span&gt;
+        &lt;span class="nb"&gt;echo&lt;/span&gt;  &lt;span class="nv"&gt;$index&lt;/span&gt; &lt;span class="nv"&gt;$shard&lt;/span&gt;
+
+        curl -XPOST &lt;span class="s1"&gt;'localhost:9200/_cluster/reroute'&lt;/span&gt; -d &lt;span class="s2"&gt;"{&lt;/span&gt;
+&lt;span class="s2"&gt;            'commands' : [ {&lt;/span&gt;
+&lt;span class="s2"&gt;                  'allocate' : {&lt;/span&gt;
+&lt;span class="s2"&gt;                      'index' : &lt;/span&gt;&lt;span class="nv"&gt;$index&lt;/span&gt;&lt;span class="s2"&gt;,&lt;/span&gt;
+&lt;span class="s2"&gt;                      'shard' : &lt;/span&gt;&lt;span class="nv"&gt;$shard&lt;/span&gt;&lt;span class="s2"&gt;,&lt;/span&gt;
+&lt;span class="s2"&gt;                      'node' : 'Master',&lt;/span&gt;
+&lt;span class="s2"&gt;                      'allow_primary' : true&lt;/span&gt;
+&lt;span class="s2"&gt;                  }&lt;/span&gt;
+&lt;span class="s2"&gt;                }&lt;/span&gt;
+&lt;span class="s2"&gt;            ]&lt;/span&gt;
+&lt;span class="s2"&gt;        }"&lt;/span&gt;
+
+        sleep 5
+    &lt;span class="k"&gt;done&lt;/span&gt;
+&lt;span class="k"&gt;done&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h3 id="too-many-open-files"&gt;&amp;ldquo;Too many open files&amp;rdquo;&lt;/h3&gt;
+&lt;p&gt;发现日志中大量出现这个错误&lt;/p&gt;
+&lt;p&gt;执行&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;curl http://localhost:9200/_nodes/process\?pretty
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;可以看到&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;"max_file_descriptors" : 4096,
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;而此时, 可以在系统级做修改, 然后全局生效&lt;/p&gt;
+&lt;p&gt;最简单的做法, 在&lt;code&gt;bin/elasticsearch&lt;/code&gt;文件开始的位置加入&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;ulimit -n 64000
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;然后重启es, 再次查询看到&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;"max_file_descriptors" : 64000,
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;问题解决&lt;/p&gt;
+&lt;hr/&gt;
+&lt;p&gt;待续, 目测还有很多坑, 而且随着数据量上来, 会遇到越来越多的坑......&lt;/p&gt;
+&lt;p&gt;2015-05-23
+于深圳&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sat, 23 May 2015 00:00:00 +0800</pubDate><guid>tag:www.wklken.me,2015-05-23:posts/2015/05/23/elasticsearch-issues.html</guid><category>system</category></item><item><title>Logstash+ElasticSearch+Kibana- 实现相对通用的数据收集分析</title><link>http://www.wklken.me/posts/2015/05/08/elk-data-collect.html</link><description>&lt;p&gt;ElasticSearch + Logstash + Kibana, 目前应该算是一套完整的日志收集/存储/统计解决方案. &lt;/p&gt;
 &lt;p&gt;在上一篇 &lt;a href="http://www.wklken.me/posts/2015/04/26/elk-for-nginx-log.html"&gt;Logstash+ElasticSearch+Kibana处理nginx访问日志&lt;/a&gt; 中, 介绍了如何统一处理&lt;code&gt;nginx&lt;/code&gt;日志&lt;/p&gt;
 &lt;p&gt;最近正好在做应用日志及上报日志的汇聚和统计工作, 分享下处理方式.&lt;/p&gt;
 &lt;p&gt;目标是: 一次搭建, 后面只需要关心输入(日志记录)以及输出(Kibana统计展示)&lt;/p&gt;
