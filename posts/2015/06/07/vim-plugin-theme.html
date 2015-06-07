@@ -6,7 +6,7 @@
 
 <head>
     <meta name="google-site-verification" content="SzE6WCs23qFevgBzRIuG9vcfLU0lW_Vd5hFT-cJOLBE" />
-    <title>Elasticsearch几个问题的解决</title>
+    <title>vim插件: theme[主题]</title>
     <meta charset="utf-8" />
     <meta name="description" content="">
     <meta name="keywords" content="" />
@@ -67,144 +67,50 @@
 <article id="article">
     <section id="header">
         <!--
-        <div class="meta">2015年05月23日</div>
-        <h1 id="title"> Elasticsearch几个问题的解决 </h1>
+        <div class="meta">2015年06月07日</div>
+        <h1 id="title"> vim插件: theme[主题] </h1>
         -->
         <div class="meta"> &nbsp; </div>
-        <h1> Elasticsearch几个问题的解决 </h1>
+        <h1> vim插件: theme[主题] </h1>
     </section>
 
         <section id="toc">
-            <html><body><div id="toc"><ul><li><a class="toc-href" href="#" title="Elasticsearch几个问题的解决">Elasticsearch几个问题的解决</a><ul><li><a class="toc-href" href="#unassigned-shards" title="大量unassigned shards">大量unassigned shards</a></li><li><a class="toc-href" href="#status-red" title="status: red">status: red</a></li><li><a class="toc-href" href="#fix-unassigned-shards" title="fix unassigned shards">fix unassigned shards</a></li><li><a class="toc-href" href="#too-many-open-files" title="&ldquo;Too many open files&rdquo;">&ldquo;Too many open files&rdquo;</a></li></ul></li></ul></div></body></html>
+            <html><body><div id="toc"><ul><li><a class="toc-href" href="#" title="vim插件: theme[主题]">vim插件: theme[主题]</a><ul><li><a class="toc-href" href="#1-solarize" title="1. solarize">1. solarize</a></li><li><a class="toc-href" href="#2-molokai" title="2. molokai">2. molokai</a></li><li><a class="toc-href" href="#_1" title="启用:">启用:</a></li><li><a class="toc-href" href="#_2" title="建议">建议</a></li></ul></li></ul></div></body></html>
         </section>
     <section id="content">
-        <p>今天惯例看统计报表, 才发现es集群悲剧了......昨天下午到今天早上, 持续报错, 写了1G的错误日志&gt;_&lt;#(暂无监控....)</p>
-<p>当前状态: 单台机器, 单节点(空集群), 200W 数据, 500+shrads,  约3G大小</p>
-<p>以下是几个问题的处理过程</p>
-<h3 id="unassigned-shards">大量unassigned shards</h3>
-<p>其实刚搭完运行时就是<code>status: yellow</code>(所有主分片可用，但存在不可用的从分片), 只有一个节点, 主分片启动并运行正常, 可以成功处理请求, 但是存在<code>unassigned_shards</code>, 即存在没有被分配到节点的从分片.(只有一个节点.....)</p>
-<p>.当时数据量小, 就暂时没关注. 然后, 随着时间推移,  出现了大量unassigned shards</p>
-<div class="codehilite"><pre>curl -XGET http://localhost:9200/_cluster/health\?pretty
-{
-  "cluster_name" : "elasticsearch",
-  "status" : "yellow",
-  "timed_out" : false,
-  "number_of_nodes" : 2,
-  "number_of_data_nodes" : 1,
-  "active_primary_shards" : 538,
-  "active_shards" : 538,
-  "relocating_shards" : 0,
-  "initializing_shards" : 0,
-  "unassigned_shards" : 558,
-"number_of_pending_tasks" : 0
-}
-</pre></div>
-<p>处理方式:  找了台内网机器, 部署另一个节点(保证<code>cluster.name</code>一致即可, 自动发现, 赞一个). 当然, 如果你资源有限只有一台机器,  使用相同命令再启动一个es实例也行. 再次检查集群健康, 发现<code>unassigned_shards</code>减少, <code>active_shards</code>增多.</p>
-<p>操作完后, 集群健康从<code>yellow</code>恢复到 <code>green</code></p>
-<h3 id="status-red">status: red</h3>
-<p>集群健康恶化了......</p>
-<p>这次检查发现是<code>status: red</code>(存在不可用的主要分片)</p>
-<div class="codehilite"><pre>curl -XGET http://localhost:9200/_cluster/health\?pretty
-{
-  "cluster_name" : "elasticsearch",
-  "status" : "red",    // missing some primary shards
-  "timed_out" : false,
-  "number_of_nodes" : 4,
-  "number_of_data_nodes" : 2,
-  "active_primary_shards" : 538,
-  "active_shards" : 1076,
-  "relocating_shards" : 0,
-  "initializing_shards" : 0,
-  "unassigned_shards" : 20,  // where your lost primary shards are.
-  "number_of_pending_tasks" : 0
-}
-</pre></div>
-<h3 id="fix-unassigned-shards">fix unassigned shards</h3>
-<p>开始着手修复</p>
-<p>查看所有分片状态</p>
-<div class="codehilite"><pre>curl -XGET http://localhost:9200/_cat/shards
-</pre></div>
-<p>找出<code>UNASSIGNED</code>分片</p>
-<div class="codehilite"><pre>curl -s "http://localhost:9200/_cat/shards" | grep UNASSIGNED
-pv-2015.05.22                 3 p UNASSIGNED
-pv-2015.05.22                 3 r UNASSIGNED
-pv-2015.05.22                 1 p UNASSIGNED
-pv-2015.05.22                 1 r UNASSIGNED
-</pre></div>
-<p>查询得到master节点的唯一标识</p>
-<div class="codehilite"><pre>curl 'localhost:9200/_nodes/process?pretty'
-
-{
-  "cluster_name" : "elasticsearch",
-  "nodes" : {
-    "AfUyuXmGTESHXpwi4OExxx" : {
-      "name" : "Master",
-     ....
-      "attributes" : {
-        "master" : "true"
-      },
-.....
-</pre></div>
-<p>执行reroute(分多次, 变更shard的值为<code>UNASSIGNED</code>查询结果中编号, 上一步查询结果是1和3)</p>
-<div class="codehilite"><pre>curl -XPOST 'localhost:9200/_cluster/reroute' -d '{
-        "commands" : [ {
-              "allocate" : {
-                  "index" : "pv-2015.05.22",
-                  "shard" : 1,
-                  "node" : "AfUyuXmGTESHXpwi4OExxx",
-                  "allow_primary" : true
-              }
-            }
-        ]
-    }'
-</pre></div>
-<p>批量处理的脚本(当数量很多的话, 注意替换node的名字)</p>
-<div class="codehilite"><pre><span class="c">#!/bin/bash</span>
-
-<span class="k">for</span> index in <span class="k">$(</span>curl  -s <span class="s1">'http://localhost:9200/_cat/shards'</span> <span class="p">|</span> grep UNASSIGNED <span class="p">|</span> awk <span class="s1">'{print $1}'</span> <span class="p">|</span> sort <span class="p">|</span> uniq<span class="k">)</span><span class="p">;</span> <span class="k">do</span>
-    <span class="k">for</span> shard in <span class="k">$(</span>curl  -s <span class="s1">'http://localhost:9200/_cat/shards'</span> <span class="p">|</span> grep UNASSIGNED <span class="p">|</span> grep <span class="nv">$index</span> <span class="p">|</span> awk <span class="s1">'{print $2}'</span> <span class="p">|</span> sort <span class="p">|</span> uniq<span class="k">)</span><span class="p">;</span> <span class="k">do</span>
-        <span class="nb">echo</span>  <span class="nv">$index</span> <span class="nv">$shard</span>
-
-        curl -XPOST <span class="s1">'localhost:9200/_cluster/reroute'</span> -d <span class="s2">"{</span>
-<span class="s2">            'commands' : [ {</span>
-<span class="s2">                  'allocate' : {</span>
-<span class="s2">                      'index' : </span><span class="nv">$index</span><span class="s2">,</span>
-<span class="s2">                      'shard' : </span><span class="nv">$shard</span><span class="s2">,</span>
-<span class="s2">                      'node' : 'Master',</span>
-<span class="s2">                      'allow_primary' : true</span>
-<span class="s2">                  }</span>
-<span class="s2">                }</span>
-<span class="s2">            ]</span>
-<span class="s2">        }"</span>
-
-        sleep 5
-    <span class="k">done</span>
-<span class="k">done</span>
-</pre></div>
-<h3 id="too-many-open-files">&ldquo;Too many open files&rdquo;</h3>
-<p>发现日志中大量出现这个错误</p>
-<p>执行</p>
-<div class="codehilite"><pre>curl http://localhost:9200/_nodes/process\?pretty
-</pre></div>
-<p>可以看到</p>
-<div class="codehilite"><pre>"max_file_descriptors" : 4096,
-</pre></div>
-<p>官方文档中</p>
-<blockquote>
-<p>Make sure to increase the number of open files descriptors on the machine (or for the user running elasticsearch). Setting it to 32k or even 64k is recommended.</p>
-</blockquote>
-<p>而此时, 可以在系统级做修改, 然后全局生效</p>
-<p>最简单的做法, 在<code>bin/elasticsearch</code>文件开始的位置加入</p>
-<div class="codehilite"><pre>ulimit -n 64000
-</pre></div>
-<p>然后重启es, 再次查询看到</p>
-<div class="codehilite"><pre>"max_file_descriptors" : 64000,
-</pre></div>
-<p>问题解决</p>
+        <p>k-vim配置 <a href="https://github.com/wklken/k-vim">github</a></p>
 <hr/>
-<p>待续, 目测还有很多坑, 而且随着数据量上来, 会遇到越来越多的坑......</p>
-<p>2015-05-23
-于深圳</p>
+<p>主题, 在<code>k-vim</code>中, 默认配置了两个</p>
+<h3 id="1-solarize">1. solarize</h3>
+<p>github: <a href="https://github.com/altercation/vim-colors-solarized">solarized</a></p>
+<p><img alt="solarized.png" src="/imgs/vim/solarized.png"/></p>
+<p>配置</p>
+<div class="codehilite"><pre>Bundle 'altercation/vim-colors-solarized'
+let g:solarized_termtrans=1
+let g:solarized_contrast="normal"
+let g:solarized_visibility="normal"
+</pre></div>
+<h3 id="2-molokai">2. molokai</h3>
+<p>github: <a href="https://github.com/tomasr/molokai">molokai</a></p>
+<p><img alt="molokai.png" src="/imgs/vim/molokai.png"/></p>
+<p>配置</p>
+<div class="codehilite"><pre>Bundle 'tomasr/molokai'
+" monokai原始背景色
+let g:molokai_original = 1
+</pre></div>
+<hr/>
+<h3 id="_1">启用:</h3>
+<p><code>Bundle</code>之后安装, 仅仅是安装, 要启用哪个主题, 需要在<code>vimrc</code>中显式指定</p>
+<div class="codehilite"><pre>set background=dark
+set t_Co=256
+colorscheme solarized
+" colorscheme molokai
+" colorscheme desert
+</pre></div>
+<h3 id="_2">建议</h3>
+<ol>
+<li>有包含大部分主题的插件, 但是就个人而言, 够用就行, 所以<code>k-vim</code>中只保留了两个, 曾经习惯<code>monokai</code>, 后来转到<code>solarized</code>, 自己喜欢的才是最好的</li>
+</ol>
     </section>
 
     <section id="copyright">
@@ -223,11 +129,11 @@ pv-2015.05.22                 1 r UNASSIGNED
 
     <section id="neighbors">
         <div>
-                        <a class="left" href="http://www.wklken.me/posts/2015/05/10/vim-intro.html">
-                            上一篇:  分享一份 Vim 简介PPT
+                        <a class="left" href="http://www.wklken.me/posts/2015/06/07/vim-plugin-tagbar.html">
+                            上一篇:  vim插件: tagbar[大纲式导航]
                         </a>
-                        <a class="right" href="http://www.wklken.me/posts/2015/06/07/vim-plugin-vundle.html">
-                            下一篇: vim插件: vundle[管理插件]
+                        <a class="right" href="http://www.wklken.me/posts/2015/06/07/vim-plugin-airline.html">
+                            下一篇: vim插件: airline[状态栏增强]
                         </a>
         </div>
     </section>
@@ -242,7 +148,7 @@ pv-2015.05.22                 1 r UNASSIGNED
         <div class="comments">
             <div id="disqus_thread"></div>
             <script type="text/javascript">
-                var disqus_identifier = "posts/2015/05/23/elasticsearch-issues.html";
+                var disqus_identifier = "posts/2015/06/07/vim-plugin-theme.html";
                 (function() {
                 var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
                 dsq.src = 'http://wklken.disqus.com/embed.js';
@@ -253,7 +159,7 @@ pv-2015.05.22                 1 r UNASSIGNED
     </div>
     <div id="tabs-duoshuo">
         <!-- 多说评论框 start -->
-            <div class="ds-thread" data-thread-key="Elasticsearch几个问题的解决" data-title="Elasticsearch几个问题的解决" data-url="posts/2015/05/23/elasticsearch-issues.html"></div>
+            <div class="ds-thread" data-thread-key="vim插件: theme[主题]" data-title="vim插件: theme[主题]" data-url="posts/2015/06/07/vim-plugin-theme.html"></div>
         <!-- 多说评论框 end -->
         <!-- 多说公共JS代码 start (一个网页只需插入一次) -->
         <script type="text/javascript">
