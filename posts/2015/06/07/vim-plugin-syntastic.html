@@ -6,7 +6,7 @@
 
 <head>
     <meta name="google-site-verification" content="SzE6WCs23qFevgBzRIuG9vcfLU0lW_Vd5hFT-cJOLBE" />
-    <title>vim插件: delimitmate[符号自动补全]</title>
+    <title>vim插件: syntastic[语法检查]</title>
     <meta charset="utf-8" />
     <meta name="description" content="">
     <meta name="keywords" content="" />
@@ -68,63 +68,64 @@
     <section id="header">
         <!--
         <div class="meta">2015年06月07日</div>
-        <h1 id="title"> vim插件: delimitmate[符号自动补全] </h1>
+        <h1 id="title"> vim插件: syntastic[语法检查] </h1>
         -->
         <div class="meta"> &nbsp; </div>
-        <h1> vim插件: delimitmate[符号自动补全] </h1>
+        <h1> vim插件: syntastic[语法检查] </h1>
     </section>
 
         <section id="toc">
-            <html><body><div id="toc"><ul><li><a class="toc-href" href="#" title="vim插件: delimitmate[符号自动补全]">vim插件: delimitmate[符号自动补全]</a><ul><li><a class="toc-href" href="#_1" title="安装">安装</a></li><li><a class="toc-href" href="#_2" title="使用">使用</a></li><li><a class="toc-href" href="#_3" title="最终配置">最终配置</a></li><li><a class="toc-href" href="#_4" title="建议">建议</a></li></ul></li></ul></div></body></html>
+            <html><body><div id="toc"><ul><li><a class="toc-href" href="#" title="vim插件: syntastic[语法检查]">vim插件: syntastic[语法检查]</a><ul><li><a class="toc-href" href="#_1" title="安装">安装</a></li><li><a class="toc-href" href="#_2" title="使用">使用</a></li><li><a class="toc-href" href="#_3" title="最终配置">最终配置</a></li><li><a class="toc-href" href="#_4" title="建议">建议</a></li></ul></li></ul></div></body></html>
         </section>
     <section id="content">
-        <p>作用: 自动补全引号(单引号/双引号/反引号), 括号(<code>()[]{}</code>)</p>
-<p>github: <a href="https://github.com/Raimondi/delimitMate">delimitMate</a></p>
+        <p>作用: 语法检查, 支持大部分的语言</p>
+<p>github: <a href="https://github.com/scrooloose/syntastic">syntastic</a></p>
 <h2 id="_1">安装</h2>
-<div class="codehilite"><pre>Bundle 'Raimondi/delimitMate'
+<div class="codehilite"><pre>Bundle 'scrooloose/syntastic'
 </pre></div>
 <h2 id="_2">使用</h2>
-<p>被动技能, 在编辑输入的时候触发</p>
-<p><img alt="delimitmate.gif" src="/imgs/vim/delimitmate.gif"/></p>
-<blockquote>
-<p>问题: 如何在结束输入后, 自动跳转到符号后面</p>
-</blockquote>
-<p>触发后, 假设你要跳到补全后的符号后面继续编辑, 按<code>Shift-Tab</code></p>
-<div class="codehilite"><pre># 1. 按", 自动补全
-"|"
-
-# 2.输入`hello`
-"hello|"
-
-# 3. 按 shift-tab, 跳到补全的符号后面, 还是insert-mode
-"hello"|
+<p>被动技能, 设置打开时开启, 则打开对应文件的时候, 会自动进行语法检查, 高亮错误位置</p>
+<p>注意, 针对某些具体语言, 指定了checker, 需要对应安装外部依赖, 例如<code>pyflakes</code>/<code>pep8</code>/<code>jshint</code>等等</p>
+<p>主动技能, <code>k-vim</code>中配置绑定了<code>&lt;leader&gt;s</code>打开错误列表面板</p>
+<p><img alt="syntastic.png" src="/imgs/vim/syntastic.png"/></p>
+<p>默认</p>
+<div class="codehilite"><pre>:Errors 显示错误面板
+:lnext  到下一个错误
+:lprevious 到上一个错误
 </pre></div>
 <h2 id="_3">最终配置</h2>
-<div class="codehilite"><pre>" 自动补全单引号，双引号等
-Bundle 'Raimondi/delimitMate'
+<div class="codehilite"><pre><span class="nx">Bundle</span> <span class="s1">'scrooloose/syntastic'</span>
+<span class="kd">let</span> <span class="nx">g</span><span class="o">:</span><span class="nx">syntastic_error_symbol</span><span class="o">=</span><span class="s1">'&gt;&gt;'</span>
+<span class="kd">let</span> <span class="nx">g</span><span class="o">:</span><span class="nx">syntastic_warning_symbol</span><span class="o">=</span><span class="s1">'&gt;'</span>
+<span class="kd">let</span> <span class="nx">g</span><span class="o">:</span><span class="nx">syntastic_check_on_open</span><span class="o">=</span><span class="mi">1</span>
+<span class="kd">let</span> <span class="nx">g</span><span class="o">:</span><span class="nx">syntastic_check_on_wq</span><span class="o">=</span><span class="mi">0</span>
+<span class="kd">let</span> <span class="nx">g</span><span class="o">:</span><span class="nx">syntastic_enable_highlighting</span><span class="o">=</span><span class="mi">1</span>
+<span class="kd">let</span> <span class="nx">g</span><span class="o">:</span><span class="nx">syntastic_python_checkers</span><span class="o">=</span><span class="cp">[</span><span class="s1">'pyflakes'</span><span class="cp">]</span> <span class="s2">" 使用pyflakes,速度比pylint快</span>
+<span class="s2">let g:syntastic_javascript_checkers = </span><span class="cp">[</span><span class="s1">'jsl'</span><span class="p">,</span> <span class="s1">'jshint'</span><span class="cp">]</span><span class="s2"></span>
+<span class="s2">let g:syntastic_html_checkers=</span><span class="cp">[</span><span class="s1">'tidy'</span><span class="p">,</span> <span class="s1">'jshint'</span><span class="cp">]</span><span class="s2"></span>
+<span class="s2">"</span> <span class="nx">修改高亮的背景色</span><span class="p">,</span> <span class="nx">适应主题</span>
+<span class="nx">highlight</span> <span class="nx">SyntasticErrorSign</span> <span class="nx">guifg</span><span class="o">=</span><span class="nx">white</span> <span class="nx">guibg</span><span class="o">=</span><span class="nx">black</span>
 
-" for python docstring ", 特别有用
-au FileType python let b:delimitMate_nesting_quotes = ['"']
-" 关闭某些类型文件的自动补全
-"au FileType mail let b:delimitMate_autoclose = 0
+<span class="s2">" to see error location list</span>
+<span class="s2">let g:syntastic_always_populate_loc_list = 0</span>
+<span class="s2">let g:syntastic_auto_loc_list = 0</span>
+<span class="s2">let g:syntastic_loc_list_height = 5</span>
+<span class="s2">function! ToggleErrors()</span>
+<span class="s2">    let old_last_winnr = winnr('$')</span>
+<span class="s2">    lclose</span>
+<span class="s2">    if old_last_winnr == winnr('$')</span>
+<span class="s2">        "</span> <span class="nx">Nothing</span> <span class="nx">was</span> <span class="nx">closed</span><span class="p">,</span> <span class="nx">open</span> <span class="nx">syntastic</span> <span class="nx">error</span> <span class="nx">location</span> <span class="nx">panel</span>
+        <span class="nx">Errors</span>
+    <span class="nx">endif</span>
+<span class="nx">endfunction</span>
+<span class="nx">nnoremap</span> <span class="o">&lt;</span><span class="nx">Leader</span><span class="o">&gt;</span><span class="nx">s</span> <span class="o">:</span><span class="nx">call</span> <span class="nx">ToggleErrors</span><span class="p">()</span><span class="o">&lt;</span><span class="nx">cr</span><span class="o">&gt;</span>
+<span class="s2">" nnoremap &lt;Leader&gt;sn :lnext&lt;cr&gt;</span>
+<span class="s2">"</span> <span class="nx">nnoremap</span> <span class="o">&lt;</span><span class="nx">Leader</span><span class="o">&gt;</span><span class="nx">sp</span> <span class="o">:</span><span class="nx">lprevious</span><span class="o">&lt;</span><span class="nx">cr</span><span class="o">&gt;</span>
 </pre></div>
 <h2 id="_4">建议</h2>
 <ol>
-<li>
-<p>有很多款括号等自动补全的插件, 这款在功能和可配上都不错, 需要自定义的可以看文档</p>
-</li>
-<li>
-<p>同类插件</p>
-</li>
+<li>支持语言的列表, 见 <a href="https://github.com/scrooloose/syntastic#1-introduction">这里</a></li>
 </ol>
-<div class="codehilite"><pre>smartinput https://github.com/kana/vim-smartinput
-lexima https://github.com/cohama/lexima.vim  类似多光标替换
-auto-pairs https://github.com/jiangmiao/auto-pairs
-autoclose  https://github.com/Townk/vim-autoclose
-</pre></div>
-<p>TODO:</p>
-<div class="codehilite"><pre>粘贴代码的时候自动补全括号这个特性怎么去掉?
-</pre></div>
     </section>
 
     <section id="copyright">
@@ -143,11 +144,11 @@ autoclose  https://github.com/Townk/vim-autoclose
 
     <section id="neighbors">
         <div>
-                        <a class="left" href="http://www.wklken.me/posts/2015/06/07/vim-plugin-matchit.html">
-                            上一篇:  vim插件: match[成对标签跳转]
+                        <a class="left" href="http://www.wklken.me/posts/2015/06/07/vim-plugin-delimitmate.html">
+                            上一篇:  vim插件: delimitmate[符号自动补全]
                         </a>
-                        <a class="right" href="http://www.wklken.me/posts/2015/06/07/vim-plugin-syntastic.html">
-                            下一篇: vim插件: syntastic[语法检查]
+                        <a class="right" href="http://www.wklken.me/posts/2015/06/07/vim-plugin-rainbowparentheses.html">
+                            下一篇: vim插件: rainbow_parentheses[括号高亮]
                         </a>
         </div>
     </section>
@@ -162,7 +163,7 @@ autoclose  https://github.com/Townk/vim-autoclose
         <div class="comments">
             <div id="disqus_thread"></div>
             <script type="text/javascript">
-                var disqus_identifier = "posts/2015/06/07/vim-plugin-delimitmate.html";
+                var disqus_identifier = "posts/2015/06/07/vim-plugin-syntastic.html";
                 (function() {
                 var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
                 dsq.src = 'http://wklken.disqus.com/embed.js';
@@ -173,7 +174,7 @@ autoclose  https://github.com/Townk/vim-autoclose
     </div>
     <div id="tabs-duoshuo">
         <!-- 多说评论框 start -->
-            <div class="ds-thread" data-thread-key="vim插件: delimitmate[符号自动补全]" data-title="vim插件: delimitmate[符号自动补全]" data-url="posts/2015/06/07/vim-plugin-delimitmate.html"></div>
+            <div class="ds-thread" data-thread-key="vim插件: syntastic[语法检查]" data-title="vim插件: syntastic[语法检查]" data-url="posts/2015/06/07/vim-plugin-syntastic.html"></div>
         <!-- 多说评论框 end -->
         <!-- 多说公共JS代码 start (一个网页只需插入一次) -->
         <script type="text/javascript">
