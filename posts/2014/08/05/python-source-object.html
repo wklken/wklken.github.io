@@ -75,7 +75,7 @@
     </section>
 
         <section id="toc">
-            <html><body><div id="toc"><ul><li><a class="toc-href" href="#" title="Python 源码阅读 - 对象">Python 源码阅读 - 对象</a><ul><li><a class="toc-href" href="#pyobject_head" title="PyObject_HEAD">PyObject_HEAD</a></li><li><a class="toc-href" href="#pyobject" title="PyObject">PyObject</a></li><li><a class="toc-href" href="#pyvarobject" title="PyVarObject">PyVarObject</a></li><li><a class="toc-href" href="#_1" title="几个方法">几个方法</a></li></ul></li></ul></div></body></html>
+            <html><body><div id="toc"><ul><li><a class="toc-href" href="#" title="Python 源码阅读 - 对象">Python 源码阅读 - 对象</a><ul><li><a class="toc-href" href="#pyobject_head" title="PyObject_HEAD">PyObject_HEAD</a></li><li><a class="toc-href" href="#pyobject" title="PyObject">PyObject</a></li><li><a class="toc-href" href="#pyvarobject" title="PyVarObject">PyVarObject</a></li><li><a class="toc-href" href="#_1" title="代码关系">代码关系</a></li><li><a class="toc-href" href="#_2" title="几个方法">几个方法</a></li><li><a class="toc-href" href="#_3" title="其他">其他</a></li></ul></li></ul></div></body></html>
         </section>
     <section id="content">
         <p>结束休息期, 开始准备面试事宜了, 发现要准备的东西好多(╯‵□&prime;)╯︵┻━┻,  顺手整理下Python源码阅读笔记(力争在写完前找到工作)</p>
@@ -149,7 +149,9 @@ ob_refcnt, 引用计数, 跟Python的内存管理机制相关(基于引用计数
 </pre></div>
 <p>结构</p>
 <p><img alt="PyVarObject" src="/imgs/python-source/PyVarObject.png"/></p>
-<h3 id="_1">几个方法</h3>
+<h3 id="_1">代码关系</h3>
+<p><img alt="PyObjectCode" src="/imgs/python-source/PyObjectCode.png"/></p>
+<h3 id="_2">几个方法</h3>
 <p>跟对象相关的方法</p>
 <div class="codehilite"><pre>#define Py_REFCNT(ob)           (((PyObject*)(ob))-&gt;ob_refcnt)
 读取引用计数
@@ -166,6 +168,11 @@ ob_refcnt, 引用计数, 跟Python的内存管理机制相关(基于引用计数
 Py_DECREF(op)  减少对象引用计数, 如果计数位0, 调用_Py_Dealloc
 
 _Py_Dealloc(op) 调用对应类型的 tp_dealloc 方法(每种类型回收行为不一样的, 各种缓存池机制, 后面看)
+</pre></div>
+<h3 id="_3">其他</h3>
+<p>几个参数涉及</p>
+<div class="codehilite"><pre>ob_refcnt 引用计数, 与内存管理/垃圾回收相关
+ob_type   类型, 涉及Python的类型系统
 </pre></div>
 <hr/>
 <p>changelog:</p>

@@ -110,8 +110,8 @@
 
   /* MARK: base, 注意, 是个变长对象*/
   PyObject_VAR_HEAD
-  const char *tp_name; /* For printing, in format "&lt;module&gt;.&lt;name&gt;" */
-  Py_ssize_t tp_basicsize, tp_itemsize; /* For allocation */
+  const char *tp_name; /* For printing, in format "&lt;module&gt;.&lt;name&gt;" */ //类型名
+  Py_ssize_t tp_basicsize, tp_itemsize; /* For allocation */ // 创建该类型对象时分配的内存空间大小
 
 
   // 一堆方法定义, 函数和指针
@@ -120,9 +120,9 @@
   hashfunc tp_hash;
 
   /* Method suites for standard classes */
-  PyNumberMethods *tp_as_number;
-  PySequenceMethods *tp_as_sequence;
-  PyMappingMethods *tp_as_mapping;
+  PyNumberMethods *tp_as_number;   // 数值对象操作
+  PySequenceMethods *tp_as_sequence; // 序列对象操作
+  PyMappingMethods *tp_as_mapping; // 字典对象操作
 
   // 一堆属性定义
   ....
@@ -136,6 +136,7 @@
 2. const char *tp_name
 tp_name, 类型名字符串数组
 </pre></div>
+<p>所有Type都是PyTypeObject的"实例": PyType_Type/PyInt_Type</p>
 <hr/>
 <h3 id="2-pytypeobjectpytype_type">2. 然后, 用PyTypeObject初始化得到一个对象PyType_Type</h3>
 <p>代码位置 <a href="https://github.com/wklken/Python-2.7.8/blob/master/Objects/typeobject.c">Objects/typeobject.c</a></p>
@@ -179,6 +180,7 @@ PyVarObject_HEAD_INIT, 这个方法在 Include/object.h中,
 &gt;&gt;&gt; type(type(int))
 &lt;type 'type'&gt;
 </pre></div>
+<p>注意: 无论任何时候, ob_type指向的是 PyTypeObject的实例: PyType_Type/PyInt_Type...</p>
 <hr/>
 <h3 id="3-pyint_type">3. 再然后, 定义具体的类型, 这里以PyInt_Type为例子</h3>
 <p>代码位置 <a href="https://github.com/wklken/Python-2.7.8/blob/master/Objects/intobject.c">Objects/intobject.c</a></p>
@@ -272,6 +274,7 @@ PyTypeObject PyString_Type = {
 <p>Python内部传递的是泛型指针<code>PyObject *</code>, 函数调用时, 找到其类型<code>* ob_type</code>, 然后调用</p>
 <div class="codehilite"><pre>object -&gt; ob_type -&gt; tp_hash
 </pre></div>
+<p>即: 大量函数指针决定了该类型的具体行为</p>
 <hr/>
 <p>changelog</p>
 <div class="codehilite"><pre>2014-08-05 first version

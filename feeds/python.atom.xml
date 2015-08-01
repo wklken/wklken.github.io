@@ -515,6 +515,8 @@ PyListObject是变长对象
 
 3. Py_ssize_t allocated;
 allocated列表分配的空间, ob_size为已使用的空间
+allocated 总的申请到的内存数量
+ob_size 实际使用内存数量
 
 等式:
 
@@ -568,7 +570,7 @@ allocated列表分配的空间, ob_size为已使用的空间
 &lt;span class="cp"&gt;#endif&lt;/span&gt;
     &lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="k"&gt;else&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
 
-        &lt;span class="c1"&gt;// GC_New分配内存空间&lt;/span&gt;
+        &lt;span class="c1"&gt;// 否则, GC_New分配内存空间&lt;/span&gt;
         &lt;span class="n"&gt;op&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;PyObject_GC_New&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;PyListObject&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;PyList_Type&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
 
         &lt;span class="c1"&gt;// 分配失败&lt;/span&gt;
@@ -695,7 +697,7 @@ list_dealloc(PyListObject *op)
     if (numfree &amp;lt; PyList_MAXFREELIST &amp;amp;&amp;amp; PyList_CheckExact(op))
         free_list[numfree++] = op;
     else
-        // 否则回收
+        // free_list已经满了, 则回收内存
         Py_TYPE(op)-&amp;gt;tp_free((PyObject *)op);
 
     Py_TRASHCAN_SAFE_END(op)
@@ -1383,8 +1385,8 @@ python3.x不用担心这个问题
 
   /* MARK: base, 注意, 是个变长对象*/
   PyObject_VAR_HEAD
-  const char *tp_name; /* For printing, in format "&amp;lt;module&amp;gt;.&amp;lt;name&amp;gt;" */
-  Py_ssize_t tp_basicsize, tp_itemsize; /* For allocation */
+  const char *tp_name; /* For printing, in format "&amp;lt;module&amp;gt;.&amp;lt;name&amp;gt;" */ //类型名
+  Py_ssize_t tp_basicsize, tp_itemsize; /* For allocation */ // 创建该类型对象时分配的内存空间大小
 
 
   // 一堆方法定义, 函数和指针
@@ -1393,9 +1395,9 @@ python3.x不用担心这个问题
   hashfunc tp_hash;
 
   /* Method suites for standard classes */
-  PyNumberMethods *tp_as_number;
-  PySequenceMethods *tp_as_sequence;
-  PyMappingMethods *tp_as_mapping;
+  PyNumberMethods *tp_as_number;   // 数值对象操作
+  PySequenceMethods *tp_as_sequence; // 序列对象操作
+  PyMappingMethods *tp_as_mapping; // 字典对象操作
 
   // 一堆属性定义
   ....
@@ -1409,6 +1411,7 @@ python3.x不用担心这个问题
 2. const char *tp_name
 tp_name, 类型名字符串数组
 &lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;所有Type都是PyTypeObject的"实例": PyType_Type/PyInt_Type&lt;/p&gt;
 &lt;hr/&gt;
 &lt;h3 id="2-pytypeobjectpytype_type"&gt;2. 然后, 用PyTypeObject初始化得到一个对象PyType_Type&lt;/h3&gt;
 &lt;p&gt;代码位置 &lt;a href="https://github.com/wklken/Python-2.7.8/blob/master/Objects/typeobject.c"&gt;Objects/typeobject.c&lt;/a&gt;&lt;/p&gt;
@@ -1452,6 +1455,7 @@ PyVarObject_HEAD_INIT, 这个方法在 Include/object.h中,
 &amp;gt;&amp;gt;&amp;gt; type(type(int))
 &amp;lt;type 'type'&amp;gt;
 &lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;注意: 无论任何时候, ob_type指向的是 PyTypeObject的实例: PyType_Type/PyInt_Type...&lt;/p&gt;
 &lt;hr/&gt;
 &lt;h3 id="3-pyint_type"&gt;3. 再然后, 定义具体的类型, 这里以PyInt_Type为例子&lt;/h3&gt;
 &lt;p&gt;代码位置 &lt;a href="https://github.com/wklken/Python-2.7.8/blob/master/Objects/intobject.c"&gt;Objects/intobject.c&lt;/a&gt;&lt;/p&gt;
@@ -1545,6 +1549,7 @@ PyTypeObject PyString_Type = {
 &lt;p&gt;Python内部传递的是泛型指针&lt;code&gt;PyObject *&lt;/code&gt;, 函数调用时, 找到其类型&lt;code&gt;* ob_type&lt;/code&gt;, 然后调用&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;object -&amp;gt; ob_type -&amp;gt; tp_hash
 &lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;即: 大量函数指针决定了该类型的具体行为&lt;/p&gt;
 &lt;hr/&gt;
 &lt;p&gt;changelog&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;2014-08-05 first version
@@ -1619,7 +1624,9 @@ ob_refcnt, 引用计数, 跟Python的内存管理机制相关(基于引用计数
 &lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;结构&lt;/p&gt;
 &lt;p&gt;&lt;img alt="PyVarObject" src="/imgs/python-source/PyVarObject.png"/&gt;&lt;/p&gt;
-&lt;h3 id="_1"&gt;几个方法&lt;/h3&gt;
+&lt;h3 id="_1"&gt;代码关系&lt;/h3&gt;
+&lt;p&gt;&lt;img alt="PyObjectCode" src="/imgs/python-source/PyObjectCode.png"/&gt;&lt;/p&gt;
+&lt;h3 id="_2"&gt;几个方法&lt;/h3&gt;
 &lt;p&gt;跟对象相关的方法&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;#define Py_REFCNT(ob)           (((PyObject*)(ob))-&amp;gt;ob_refcnt)
 读取引用计数
@@ -1636,6 +1643,11 @@ ob_refcnt, 引用计数, 跟Python的内存管理机制相关(基于引用计数
 Py_DECREF(op)  减少对象引用计数, 如果计数位0, 调用_Py_Dealloc
 
 _Py_Dealloc(op) 调用对应类型的 tp_dealloc 方法(每种类型回收行为不一样的, 各种缓存池机制, 后面看)
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h3 id="_3"&gt;其他&lt;/h3&gt;
+&lt;p&gt;几个参数涉及&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;ob_refcnt 引用计数, 与内存管理/垃圾回收相关
+ob_type   类型, 涉及Python的类型系统
 &lt;/pre&gt;&lt;/div&gt;
 &lt;hr/&gt;
 &lt;p&gt;changelog:&lt;/p&gt;

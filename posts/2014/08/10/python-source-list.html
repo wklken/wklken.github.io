@@ -101,6 +101,8 @@ PyListObject是变长对象
 
 3. Py_ssize_t allocated;
 allocated列表分配的空间, ob_size为已使用的空间
+allocated 总的申请到的内存数量
+ob_size 实际使用内存数量
 
 等式:
 
@@ -154,7 +156,7 @@ allocated列表分配的空间, ob_size为已使用的空间
 <span class="cp">#endif</span>
     <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
 
-        <span class="c1">// GC_New分配内存空间</span>
+        <span class="c1">// 否则, GC_New分配内存空间</span>
         <span class="n">op</span> <span class="o">=</span> <span class="n">PyObject_GC_New</span><span class="p">(</span><span class="n">PyListObject</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">PyList_Type</span><span class="p">);</span>
 
         <span class="c1">// 分配失败</span>
@@ -281,7 +283,7 @@ list_dealloc(PyListObject *op)
     if (numfree &lt; PyList_MAXFREELIST &amp;&amp; PyList_CheckExact(op))
         free_list[numfree++] = op;
     else
-        // 否则回收
+        // free_list已经满了, 则回收内存
         Py_TYPE(op)-&gt;tp_free((PyObject *)op);
 
     Py_TRASHCAN_SAFE_END(op)
