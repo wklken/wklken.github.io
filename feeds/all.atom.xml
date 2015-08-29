@@ -1,5 +1,561 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>wklken's blog</title><link href="http://www.wklken.me/" rel="alternate"></link><link href="http://www.wklken.me/feeds/all.atom.xml" rel="self"></link><id>http://www.wklken.me/</id><updated>2015-08-29T00:00:00+08:00</updated><entry><title>Python源码阅读-内存管理机制(一)</title><link href="http://www.wklken.me/posts/2015/08/29/python-source-memory-1.html" rel="alternate"></link><updated>2015-08-29T00:00:00+08:00</updated><author><name>wklken</name></author><id>tag:www.wklken.me,2015-08-29:posts/2015/08/29/python-source-memory-1.html</id><summary type="html">&lt;p&gt;==========================&lt;/p&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>wklken's blog</title><link href="http://www.wklken.me/" rel="alternate"></link><link href="http://www.wklken.me/feeds/all.atom.xml" rel="self"></link><id>http://www.wklken.me/</id><updated>2015-08-29T20:54:00+08:00</updated><entry><title>Python源码阅读-内存管理机制(二)</title><link href="http://www.wklken.me/posts/2015/08/29/python-source-memory-2.html" rel="alternate"></link><updated>2015-08-29T20:54:00+08:00</updated><author><name>wklken</name></author><id>tag:www.wklken.me,2015-08-29:posts/2015/08/29/python-source-memory-2.html</id><summary type="html">&lt;h2 id="python"&gt;Python 的内存分配策略&lt;/h2&gt;
+&lt;h3 id="arena"&gt;arena&lt;/h3&gt;
+&lt;p&gt;arena: 多个pool聚合的结果&lt;/p&gt;
+&lt;h4 id="arena-size"&gt;arena size&lt;/h4&gt;
+&lt;p&gt;pool的大小默认值位4KB&lt;/p&gt;
+&lt;p&gt;arena的大小默认值256KB, 能放置 256/4=64 个pool&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;obmalloc.c&lt;/code&gt;中代码&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;#define ARENA_SIZE              (256 &amp;lt;&amp;lt; 10)     /* 256KB */
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h4 id="arena_1"&gt;arena 结构&lt;/h4&gt;
+&lt;blockquote&gt;
+&lt;p&gt;一个完整的arena = arena_object + pool集合&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;typedef uchar block;
+
+/* Record keeping for arenas. */
+struct arena_object {
+    /* The address of the arena, as returned by malloc.  Note that 0
+     * will never be returned by a successful malloc, and is used
+     * here to mark an arena_object that doesn't correspond to an
+     * allocated arena.
+     */
+    uptr address;
+
+    /* Pool-aligned pointer to the next pool to be carved off. */
+    block* pool_address;
+
+    /* The number of available pools in the arena:  free pools + never-
+     * allocated pools.
+     */
+    uint nfreepools;
+
+    /* The total number of pools in the arena, whether or not available. */
+    uint ntotalpools;
+
+    /* Singly-linked list of available pools. */
+    // 单链表, 可用pool集合
+    struct pool_header* freepools;
+
+    /* Whenever this arena_object is not associated with an allocated
+     * arena, the nextarena member is used to link all unassociated
+     * arena_objects in the singly-linked `unused_arena_objects` list.
+     * The prevarena member is unused in this case.
+     *
+     * When this arena_object is associated with an allocated arena
+     * with at least one available pool, both members are used in the
+     * doubly-linked `usable_arenas` list, which is maintained in
+     * increasing order of `nfreepools` values.
+     *
+     * Else this arena_object is associated with an allocated arena
+     * all of whose pools are in use.  `nextarena` and `prevarena`
+     * are both meaningless in this case.
+     */
+    // arena链表
+    struct arena_object* nextarena;
+    struct arena_object* prevarena;
+};
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;arena_object的作用&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;1. 与其他arena连接, 组成双向链表
+2. 维护arena中可用的pool, 单链表
+3. 其他信息
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;&lt;code&gt;pool_header&lt;/code&gt; 与 &lt;code&gt;arena_object&lt;/code&gt;&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;pool_header和管理的blocks内存是一块连续的内存 =&amp;gt; pool_header被申请时, 其管理的block集合的内存一并被申请
+arena_object和其管理的内存是分离的 =&amp;gt; arena_object被申请时, 其管理的pool集合的内存没有被申请, 而是在某一时刻建立的联系
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;&lt;img alt="arena" src="/imgs/python-source/python-memory-arena.png"/&gt;&lt;/p&gt;
+&lt;h4 id="arena_2"&gt;arena的两种状态&lt;/h4&gt;
+&lt;p&gt;arena存在两种状态: 未使用(没有建立联系)/可用(建立了联系)&lt;/p&gt;
+&lt;p&gt;全局由两个链表维护着&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="cm"&gt;/* The head of the singly-linked, NULL-terminated list of available&lt;/span&gt;
+&lt;span class="cm"&gt; * arena_objects.&lt;/span&gt;
+&lt;span class="cm"&gt; */&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="o"&gt;//&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="err"&gt;单链表&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+static&lt;span class="w"&gt; &lt;/span&gt;struct&lt;span class="w"&gt; &lt;/span&gt;arena_object&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;unused_arena_objects&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;NULL&lt;span class="err"&gt;;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+
+&lt;span class="cm"&gt;/* The head of the doubly-linked, NULL-terminated at each end, list of&lt;/span&gt;
+&lt;span class="cm"&gt; * arena_objects associated with arenas that have pools available.&lt;/span&gt;
+&lt;span class="cm"&gt; */&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="o"&gt;//&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="err"&gt;双向链表&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+static&lt;span class="w"&gt; &lt;/span&gt;struct&lt;span class="w"&gt; &lt;/span&gt;arena_object&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;usable_arenas&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;NULL&lt;span class="err"&gt;;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h4 id="arena_3"&gt;arena的初始化&lt;/h4&gt;
+&lt;p&gt;首先, 来看下初始化相关的一些参数定义&lt;/p&gt;
+&lt;p&gt;代码&lt;code&gt;obmalloc.c&lt;/code&gt;&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="cm"&gt;/* Array of objects used to track chunks of memory (arenas). */&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="o"&gt;//&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;arena_object&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="err"&gt;数组&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+static&lt;span class="w"&gt; &lt;/span&gt;struct&lt;span class="w"&gt; &lt;/span&gt;arena_object&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;arenas&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;NULL&lt;span class="err"&gt;;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+
+&lt;span class="cm"&gt;/* Number of slots currently allocated in the `arenas` vector. */&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="o"&gt;//&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="err"&gt;当前&lt;/span&gt;arenas&lt;span class="err"&gt;中管理的&lt;/span&gt;arena_object&lt;span class="err"&gt;的个数&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="err"&gt;初始化时&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+static&lt;span class="w"&gt; &lt;/span&gt;uint&lt;span class="w"&gt; &lt;/span&gt;maxarenas&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="err"&gt;;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+
+&lt;span class="cm"&gt;/* How many arena_objects do we initially allocate?&lt;/span&gt;
+&lt;span class="cm"&gt; * 16 = can allocate 16 arenas = 16 * ARENA_SIZE = 4MB before growing the&lt;/span&gt;
+&lt;span class="cm"&gt; * `arenas` vector.&lt;/span&gt;
+&lt;span class="cm"&gt; */&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="o"&gt;//&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="err"&gt;初始化时申请的&lt;/span&gt;arena_object&lt;span class="err"&gt;个数&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="err"&gt;#&lt;/span&gt;define&lt;span class="w"&gt; &lt;/span&gt;INITIAL_ARENA_OBJECTS&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="m"&gt;16&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+
+&lt;span class="cm"&gt;/* Number of arenas allocated that haven't been free()'d. */&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+static&lt;span class="w"&gt; &lt;/span&gt;size_t&lt;span class="w"&gt; &lt;/span&gt;narenas_currently_allocated&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="err"&gt;;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+
+
+&lt;span class="cm"&gt;/* The head of the singly-linked, NULL-terminated list of available&lt;/span&gt;
+&lt;span class="cm"&gt; * arena_objects.&lt;/span&gt;
+&lt;span class="cm"&gt; */&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="o"&gt;//&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="err"&gt;未使用状态&lt;/span&gt;arena&lt;span class="err"&gt;的单链表&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+static&lt;span class="w"&gt; &lt;/span&gt;struct&lt;span class="w"&gt; &lt;/span&gt;arena_object&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;unused_arena_objects&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;NULL&lt;span class="err"&gt;;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+
+&lt;span class="cm"&gt;/* The head of the doubly-linked, NULL-terminated at each end, list of&lt;/span&gt;
+&lt;span class="cm"&gt; * arena_objects associated with arenas that have pools available.&lt;/span&gt;
+&lt;span class="cm"&gt; */&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="o"&gt;//&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="err"&gt;可用状态&lt;/span&gt;arena&lt;span class="err"&gt;的双向链表&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+static&lt;span class="w"&gt; &lt;/span&gt;struct&lt;span class="w"&gt; &lt;/span&gt;arena_object&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;usable_arenas&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;NULL&lt;span class="err"&gt;;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;然后, 看下&lt;code&gt;obmalloc.c&lt;/code&gt;中&lt;code&gt;arena&lt;/code&gt;初始化的代码&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="o"&gt;/*&lt;/span&gt; Allocate a new arena.  If we run out of memory&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="kr"&gt;return&lt;/span&gt; NULL.  Else
+ &lt;span class="o"&gt;*&lt;/span&gt; allocate a new arena&lt;span class="p"&gt;,&lt;/span&gt; and &lt;span class="kr"&gt;return&lt;/span&gt; the address of an arena_object
+ &lt;span class="o"&gt;*&lt;/span&gt; describing the new arena.  It&lt;span class="s"&gt;'s expected that the caller will set&lt;/span&gt;
+&lt;span class="s"&gt; * `usable_arenas` to the return value.&lt;/span&gt;
+&lt;span class="s"&gt; */&lt;/span&gt;
+&lt;span class="s"&gt;static struct arena_object*&lt;/span&gt;
+&lt;span class="s"&gt;new_arena(void)&lt;/span&gt;
+&lt;span class="s"&gt;{&lt;/span&gt;
+&lt;span class="s"&gt;    struct arena_object* arenaobj;&lt;/span&gt;
+&lt;span class="s"&gt;    uint excess;        /* number of bytes above pool alignment */&lt;/span&gt;
+&lt;span class="s"&gt;    void *address;&lt;/span&gt;
+&lt;span class="s"&gt;    int err;&lt;/span&gt;
+
+&lt;span class="s"&gt;    // 判断是否需要扩充"未使用"的arena_object列表&lt;/span&gt;
+&lt;span class="s"&gt;    if (unused_arena_objects == NULL) {&lt;/span&gt;
+&lt;span class="s"&gt;        uint i;&lt;/span&gt;
+&lt;span class="s"&gt;        uint numarenas;&lt;/span&gt;
+&lt;span class="s"&gt;        size_t nbytes;&lt;/span&gt;
+
+&lt;span class="s"&gt;        /* Double the number of arena objects on each allocation.&lt;/span&gt;
+&lt;span class="s"&gt;         * Note that it'&lt;/span&gt;s possible &lt;span class="kr"&gt;for&lt;/span&gt; &lt;span class="sb"&gt;`numarenas`&lt;/span&gt; to overflow.
+         &lt;span class="o"&gt;*/&lt;/span&gt;
+        &lt;span class="o"&gt;//&lt;/span&gt; 确定需要申请的个数&lt;span class="p"&gt;,&lt;/span&gt; 首次初始化&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="m"&gt;16&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; 之后每次翻倍
+        numarenas &lt;span class="o"&gt;=&lt;/span&gt; maxarenas &lt;span class="o"&gt;?&lt;/span&gt; maxarenas &lt;span class="o"&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class="m"&gt;1&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; INITIAL_ARENA_OBJECTS&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="kr"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;numarenas &lt;span class="o"&gt;&amp;lt;=&lt;/span&gt; maxarenas&lt;span class="p"&gt;)&lt;/span&gt;
+            &lt;span class="kr"&gt;return&lt;/span&gt; &lt;span class="kc"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;                &lt;span class="o"&gt;/*&lt;/span&gt; overflow &lt;span class="o"&gt;*/&lt;/span&gt;  &lt;span class="o"&gt;//&lt;/span&gt;溢出了
+
+        &lt;span class="m"&gt;.&lt;/span&gt;&lt;span class="kc"&gt;...&lt;/span&gt;
+
+        nbytes &lt;span class="o"&gt;=&lt;/span&gt; numarenas &lt;span class="o"&gt;*&lt;/span&gt; sizeof&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;arenas&lt;span class="p"&gt;);&lt;/span&gt;
+        &lt;span class="o"&gt;//&lt;/span&gt; 申请内存
+        arenaobj &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;struct arena_object &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;realloc&lt;span class="p"&gt;(&lt;/span&gt;arenas&lt;span class="p"&gt;,&lt;/span&gt; nbytes&lt;span class="p"&gt;);&lt;/span&gt;
+        &lt;span class="kr"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;arenaobj &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="kc"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+            &lt;span class="kr"&gt;return&lt;/span&gt; &lt;span class="kc"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        arenas &lt;span class="o"&gt;=&lt;/span&gt; arenaobj&lt;span class="p"&gt;;&lt;/span&gt;
+
+        &lt;span class="o"&gt;/*&lt;/span&gt; We might need to fix pointers that were copied.  However&lt;span class="p"&gt;,&lt;/span&gt;
+         &lt;span class="o"&gt;*&lt;/span&gt; new_arena only gets called when all the pages &lt;span class="kr"&gt;in&lt;/span&gt; the
+         &lt;span class="o"&gt;*&lt;/span&gt; previous arenas are full.  Thus&lt;span class="p"&gt;,&lt;/span&gt; there are &lt;span class="o"&gt;*&lt;/span&gt;no&lt;span class="o"&gt;*&lt;/span&gt; pointers
+         &lt;span class="o"&gt;*&lt;/span&gt; into the old array. Thus&lt;span class="p"&gt;,&lt;/span&gt; we don&lt;span class="s"&gt;'&lt;/span&gt;&lt;span class="err"&gt;t have to worry about&lt;/span&gt;
+         &lt;span class="o"&gt;*&lt;/span&gt; invalid pointers.  Just to be sure&lt;span class="p"&gt;,&lt;/span&gt; some asserts&lt;span class="o"&gt;:&lt;/span&gt;
+         &lt;span class="o"&gt;*/&lt;/span&gt;
+        assert&lt;span class="p"&gt;(&lt;/span&gt;usable_arenas &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="kc"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+        assert&lt;span class="p"&gt;(&lt;/span&gt;unused_arena_objects &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="kc"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+
+        &lt;span class="o"&gt;//&lt;/span&gt; 初始化
+        &lt;span class="o"&gt;/*&lt;/span&gt; Put the new arenas on the unused_arena_objects list. &lt;span class="o"&gt;*/&lt;/span&gt;
+        &lt;span class="kr"&gt;for&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;i &lt;span class="o"&gt;=&lt;/span&gt; maxarenas&lt;span class="p"&gt;;&lt;/span&gt; i &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; numarenas&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="o"&gt;++&lt;/span&gt;i&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+            arenas&lt;span class="p"&gt;[&lt;/span&gt;i&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="m"&gt;.&lt;/span&gt;address &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;              &lt;span class="o"&gt;/*&lt;/span&gt; mark as unassociated &lt;span class="o"&gt;*/&lt;/span&gt;
+            &lt;span class="o"&gt;//&lt;/span&gt; 新申请的一律为&lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; 标识着这个arena处于&lt;span class="s"&gt;"未使用"&lt;/span&gt;
+            arenas&lt;span class="p"&gt;[&lt;/span&gt;i&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="m"&gt;.&lt;/span&gt;nextarena &lt;span class="o"&gt;=&lt;/span&gt; i &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; numarenas &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="m"&gt;1&lt;/span&gt; &lt;span class="o"&gt;?&lt;/span&gt;
+                                   &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;arenas&lt;span class="p"&gt;[&lt;/span&gt;i&lt;span class="m"&gt;+1&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="kc"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="p"&gt;}&lt;/span&gt;
+
+        &lt;span class="o"&gt;//&lt;/span&gt; 将其放入unused_arena_objects链表中
+        &lt;span class="o"&gt;//&lt;/span&gt; unused_arena_objects 为新分配内存空间的开头
+        &lt;span class="o"&gt;/*&lt;/span&gt; Update globals. &lt;span class="o"&gt;*/&lt;/span&gt;
+        unused_arena_objects &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;arenas&lt;span class="p"&gt;[&lt;/span&gt;maxarenas&lt;span class="p"&gt;];&lt;/span&gt;
+
+        &lt;span class="o"&gt;//&lt;/span&gt; 更新数量
+        maxarenas &lt;span class="o"&gt;=&lt;/span&gt; numarenas&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+
+    &lt;span class="o"&gt;/*&lt;/span&gt; Take the &lt;span class="kr"&gt;next&lt;/span&gt; available arena object off the head of the list. &lt;span class="o"&gt;*/&lt;/span&gt;
+    assert&lt;span class="p"&gt;(&lt;/span&gt;unused_arena_objects &lt;span class="o"&gt;!=&lt;/span&gt; &lt;span class="kc"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+
+    &lt;span class="o"&gt;//&lt;/span&gt; 从unused_arena_objects中&lt;span class="p"&gt;,&lt;/span&gt; 获取一个未使用的object
+    arenaobj &lt;span class="o"&gt;=&lt;/span&gt; unused_arena_objects&lt;span class="p"&gt;;&lt;/span&gt;
+    unused_arena_objects &lt;span class="o"&gt;=&lt;/span&gt; arenaobj&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;nextarena&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="o"&gt;//&lt;/span&gt; 更新链表
+
+    &lt;span class="o"&gt;//&lt;/span&gt; 开始处理这个 arenaobject
+
+    assert&lt;span class="p"&gt;(&lt;/span&gt;arenaobj&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;address &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="o"&gt;//&lt;/span&gt; 申请内存&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="m"&gt;256&lt;/span&gt;KB&lt;span class="p"&gt;,&lt;/span&gt; 内存地址赋值给arena的address. 这块内存可用
+&lt;span class="c1"&gt;#ifdef ARENAS_USE_MMAP&lt;/span&gt;
+    address &lt;span class="o"&gt;=&lt;/span&gt; mmap&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kc"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; ARENA_SIZE&lt;span class="p"&gt;,&lt;/span&gt; PROT_READ&lt;span class="o"&gt;|&lt;/span&gt;PROT_WRITE&lt;span class="p"&gt;,&lt;/span&gt;
+                   MAP_PRIVATE&lt;span class="o"&gt;|&lt;/span&gt;MAP_ANONYMOUS&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="m"&gt;-1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    err &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;address &lt;span class="o"&gt;==&lt;/span&gt; MAP_FAILED&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="c1"&gt;#else&lt;/span&gt;
+    address &lt;span class="o"&gt;=&lt;/span&gt; malloc&lt;span class="p"&gt;(&lt;/span&gt;ARENA_SIZE&lt;span class="p"&gt;);&lt;/span&gt;
+    err &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;address &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="c1"&gt;#endif&lt;/span&gt;
+    &lt;span class="kr"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;err&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="o"&gt;/*&lt;/span&gt; The allocation failed&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="kr"&gt;return&lt;/span&gt; &lt;span class="kc"&gt;NULL&lt;/span&gt; after putting the
+         &lt;span class="o"&gt;*&lt;/span&gt; arenaobj back.
+         &lt;span class="o"&gt;*/&lt;/span&gt;
+        arenaobj&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;nextarena &lt;span class="o"&gt;=&lt;/span&gt; unused_arena_objects&lt;span class="p"&gt;;&lt;/span&gt;
+        unused_arena_objects &lt;span class="o"&gt;=&lt;/span&gt; arenaobj&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="kr"&gt;return&lt;/span&gt; &lt;span class="kc"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+    arenaobj&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;address &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;uptr&lt;span class="p"&gt;)&lt;/span&gt;address&lt;span class="p"&gt;;&lt;/span&gt;
+
+    &lt;span class="o"&gt;++&lt;/span&gt;narenas_currently_allocated&lt;span class="p"&gt;;&lt;/span&gt;
+
+    &lt;span class="o"&gt;//&lt;/span&gt; 设置pool集合相关信息
+    arenaobj&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;freepools &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="kc"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;  &lt;span class="o"&gt;//&lt;/span&gt; 设置为&lt;span class="kc"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; 只有在释放一个pool的时候才有用
+    &lt;span class="o"&gt;/*&lt;/span&gt; pool_address &lt;span class="o"&gt;&amp;lt;-&lt;/span&gt; first pool&lt;span class="o"&gt;-&lt;/span&gt;aligned address &lt;span class="kr"&gt;in&lt;/span&gt; the arena
+       nfreepools &lt;span class="o"&gt;&amp;lt;-&lt;/span&gt; number of whole pools that fit after alignment &lt;span class="o"&gt;*/&lt;/span&gt;
+    arenaobj&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;pool_address &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;block&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;arenaobj&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;address&lt;span class="p"&gt;;&lt;/span&gt;
+    arenaobj&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;nfreepools &lt;span class="o"&gt;=&lt;/span&gt; ARENA_SIZE &lt;span class="o"&gt;/&lt;/span&gt; POOL_SIZE&lt;span class="p"&gt;;&lt;/span&gt;
+
+    assert&lt;span class="p"&gt;(&lt;/span&gt;POOL_SIZE &lt;span class="o"&gt;*&lt;/span&gt; arenaobj&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;nfreepools &lt;span class="o"&gt;==&lt;/span&gt; ARENA_SIZE&lt;span class="p"&gt;);&lt;/span&gt;
+
+    &lt;span class="o"&gt;//&lt;/span&gt; 将pool的起始地址调整为系统页的边界
+    &lt;span class="o"&gt;//&lt;/span&gt; 申请到 &lt;span class="m"&gt;256&lt;/span&gt;KB&lt;span class="p"&gt;,&lt;/span&gt; 放弃了一些内存&lt;span class="p"&gt;,&lt;/span&gt; 而将可使用的内存边界pool_address调整到了与系统页对齐
+    excess &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;uint&lt;span class="p"&gt;)(&lt;/span&gt;arenaobj&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;address &lt;span class="o"&gt;&amp;amp;&lt;/span&gt; POOL_SIZE_MASK&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="kr"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;excess &lt;span class="o"&gt;!=&lt;/span&gt; &lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="o"&gt;--&lt;/span&gt;arenaobj&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;nfreepools&lt;span class="p"&gt;;&lt;/span&gt;
+        arenaobj&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;pool_address &lt;span class="o"&gt;+=&lt;/span&gt; POOL_SIZE &lt;span class="o"&gt;-&lt;/span&gt; excess&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+    arenaobj&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;ntotalpools &lt;span class="o"&gt;=&lt;/span&gt; arenaobj&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;nfreepools&lt;span class="p"&gt;;&lt;/span&gt;
+
+    &lt;span class="kr"&gt;return&lt;/span&gt; arenaobj&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;图示: 初始化arenas数组, 初始化后的所有arena都在&lt;code&gt;unused_arena_objects&lt;/code&gt;单链表里面&lt;/p&gt;
+&lt;p&gt;&lt;img alt="arena" src="/imgs/python-source/python-memory-arena2.png"/&gt;&lt;/p&gt;
+&lt;p&gt;图示: 从arenas取一个arena进行初始化&lt;/p&gt;
+&lt;p&gt;&lt;img alt="arena" src="/imgs/python-source/python-memory-arena3.png"/&gt;&lt;/p&gt;
+&lt;h4 id="arena_4"&gt;没有可用的arena?&lt;/h4&gt;
+&lt;p&gt;此时&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;    // 判断成立
+    if (unused_arena_objects == NULL) {
+        ....
+        // 确定需要申请的个数, 首次初始化, 16, 之后每次翻倍
+        numarenas = maxarenas ? maxarenas &amp;lt;&amp;lt; 1 : INITIAL_ARENA_OBJECTS;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;然后, 假设第一次分配了16个, 发现没有arena之后, 第二次处理结果: &lt;code&gt;numarenas = 32&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;即, 数组扩大了一倍&lt;/p&gt;
+&lt;h4 id="arena_5"&gt;arena分配&lt;/h4&gt;
+&lt;p&gt;&lt;code&gt;new&lt;/code&gt;了一个全新的 arena之后,&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;  void *
+  PyObject_Malloc(size_t nbytes)
+  {
+            // 刚开始没有可用的arena
+            if (usable_arenas == NULL) {
+              // new一个, 作为双向链表的表头
+              usable_arenas = new_arena();
+              if (usable_arenas == NULL) {
+                  UNLOCK();
+                  goto redirect;
+              }
+
+              usable_arenas-&amp;gt;nextarena =
+                  usable_arenas-&amp;gt;prevarena = NULL;
+
+           }
+
+          .......
+
+          // 从arena中获取一个pool
+          pool = (poolp)usable_arenas-&amp;gt;pool_address;
+          assert((block*)pool &amp;lt;= (block*)usable_arenas-&amp;gt;address +
+                                 ARENA_SIZE - POOL_SIZE);
+          pool-&amp;gt;arenaindex = usable_arenas - arenas;
+          assert(&amp;amp;arenas[pool-&amp;gt;arenaindex] == usable_arenas);
+          pool-&amp;gt;szidx = DUMMY_SIZE_IDX;
+
+          // 更新 pool_address 向下一个节点
+          usable_arenas-&amp;gt;pool_address += POOL_SIZE;
+          // 可用节点数量-1
+          --usable_arenas-&amp;gt;nfreepools;
+
+
+
+}
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;图示: 从全新的arena中获取一个pool&lt;/p&gt;
+&lt;p&gt;&lt;img alt="arena" src="/imgs/python-source/python-memory-arena4.png"/&gt;&lt;/p&gt;
+&lt;p&gt;假设arena是旧的, 怎么分配的pool&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;          pool = usable_arenas-&amp;gt;freepools;
+          if (pool != NULL) {
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;这个&lt;code&gt;arena-&amp;gt;freepools&lt;/code&gt;是何方神圣?&lt;/p&gt;
+&lt;p&gt;当arena中一整块pool被释放的时候&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;  void
+  PyObject_Free(void *p)
+  {
+
+
+              struct arena_object* ao;
+              uint nf;  /* ao-&amp;gt;nfreepools */
+
+              /* Link the pool to freepools.  This is a singly-linked
+               * list, and pool-&amp;gt;prevpool isn't used there.
+              */
+              ao = &amp;amp;arenas[pool-&amp;gt;arenaindex];
+              pool-&amp;gt;nextpool = ao-&amp;gt;freepools;
+              ao-&amp;gt;freepools = pool;
+              nf = ++ao-&amp;gt;nfreepools;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;也就是说, 在pool整块被释放的时候, 会将pool加入到&lt;code&gt;arena-&amp;gt;freepools&lt;/code&gt;作为单链表的表头, 然后, 在从非全新arena中分配pool时, 优先从&lt;code&gt;arena-&amp;gt;freepools&lt;/code&gt;里面取, 如果取不到, 再从arena内存块里面获取&lt;/p&gt;
+&lt;p&gt;图示&lt;/p&gt;
+&lt;p&gt;&lt;img alt="arena" src="/imgs/python-source/python-memory-arena5.png"/&gt;&lt;/p&gt;
+&lt;h4 id="arena_6"&gt;一个arena满了之后呢&lt;/h4&gt;
+&lt;p&gt;很自然, 从下一个arena中获取&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;  void *
+  PyObject_Malloc(size_t nbytes)
+  {
+
+
+          // 当发现用完了最后一个pool!!!!!!!!!!!
+          // nfreepools = 0
+          if (usable_arenas-&amp;gt;nfreepools == 0) {
+              assert(usable_arenas-&amp;gt;nextarena == NULL ||
+                     usable_arenas-&amp;gt;nextarena-&amp;gt;prevarena ==
+                     usable_arenas);
+              /* Unlink the arena:  it is completely allocated. */
+
+              // 找到下一个节点!
+              usable_arenas = usable_arenas-&amp;gt;nextarena;
+              // 右下一个
+              if (usable_arenas != NULL) {
+                  usable_arenas-&amp;gt;prevarena = NULL; // 更新下一个节点的prevarens
+                  assert(usable_arenas-&amp;gt;address != 0);
+              }
+              // 没有下一个, 此时 usable_arenas = NULL, 下次进行内存分配的时候, 就会从arenas数组中取一个
+
+          }
+
+  }
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;注意: 这里有个逻辑, 就是每分配一个pool, 就检查是不是用到了最后一个, 如果是, 需要变更&lt;code&gt;usable_arenas&lt;/code&gt;到下一个可用的节点, 如果没有可用的, 那么下次进行内存分配的时候, 会判定从arenas数组中取一个&lt;/p&gt;
+&lt;h4 id="arena_7"&gt;arena回收&lt;/h4&gt;
+&lt;p&gt;内存分配和回收最小单位是block, 当一个block被回收的时候, 可能触发pool被回收, pool被回收, 将会触发arena的回收机制&lt;/p&gt;
+&lt;p&gt;四种情况&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;1. arena中所有pool都是闲置的(empty), 将arena内存释放, 返回给操作系统
+2. 如果arena中之前所有的pool都是占用的(used), 现在释放了一个pool(empty), 需要将 arena加入到usable_arenas, 会加入链表表头
+3. 如果arena中empty的pool个数n, 则从useable_arenas开始寻找可以插入的位置. 将arena插入. (useable_arenas是一个有序链表, 按empty pool的个数, 保证empty pool数量越多, 被使用的几率越小, 最终被整体释放的机会越大)
+4. 其他情况, 不对arena 进行处理
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;具体可以看&lt;code&gt;PyObject_Free&lt;/code&gt;的代码&lt;/p&gt;
+&lt;h3 id="_2"&gt;内存分配步骤&lt;/h3&gt;
+&lt;p&gt;好的, 到这里, 我们已经知道了block和pool的关系(包括pool怎么管理block的), 以及arena和pool的关系(怎么从arena中拉到可用的pool)&lt;/p&gt;
+&lt;p&gt;那么, 在分析&lt;code&gt;PyObject_Malloc(size_t nbytes)&lt;/code&gt;如何进行内存分配的时候, 我们就刨除掉这些管理代码&lt;/p&gt;
+&lt;p&gt;关注: 如何寻找得到一块可用的nbytes的block内存&lt;/p&gt;
+&lt;p&gt;其实代码那么多, 寻址得到对应的block也就这么几行代码, 其他代码都是pool没有, 找arena, 申请arena, arena没有, 找arenas, 最终的到一块pool, 初始化, 返回第一个block&lt;/p&gt;
+&lt;p&gt;如果有的情况, 用现成的&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;pool = usedpools[size + size];
+if pool可用:
+    pool 没满, 取一个block返回
+    pool 满了, 从下一个pool取一个block返回
+否则:
+    获取arena, 从里面初始化一个pool, 拿到第一个block, 返回
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;从上面这个判断逻辑来看, 内存分配其实主要操作的是pool, 跟arena并不是基本的操作单元(只是用来管理pool的)&lt;/p&gt;
+&lt;p&gt;结论: 进行内存分配和销毁, 所有操作都是在pool上进行的&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;usedpools&lt;/code&gt; 是什么鬼? 其实是可用pool缓冲池, 后面说&lt;/p&gt;
+&lt;h3 id="_3"&gt;内存池&lt;/h3&gt;
+&lt;h4 id="arena_8"&gt;arena 内存池的大小&lt;/h4&gt;
+&lt;p&gt;取决于用户, Python提供的编译符号, 用于决定是否控制&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;obmalloc.c&lt;/code&gt;&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="cp"&gt;#ifdef WITH_MEMORY_LIMITS&lt;/span&gt;
+&lt;span class="cp"&gt;#ifndef SMALL_MEMORY_LIMIT&lt;/span&gt;
+&lt;span class="cp"&gt;#define SMALL_MEMORY_LIMIT      (64 * 1024 * 1024)      &lt;/span&gt;&lt;span class="cm"&gt;/* 64 MB -- more? */&lt;/span&gt;&lt;span class="cp"&gt;&lt;/span&gt;
+&lt;span class="cp"&gt;#endif&lt;/span&gt;
+&lt;span class="cp"&gt;#endif&lt;/span&gt;
+
+&lt;span class="cp"&gt;#ifdef WITH_MEMORY_LIMITS&lt;/span&gt;
+&lt;span class="cp"&gt;#define MAX_ARENAS              (SMALL_MEMORY_LIMIT / ARENA_SIZE)&lt;/span&gt;
+&lt;span class="cp"&gt;#endif&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;具体使用中, python并不直接与arenas和arena打交道, 当Python申请内存时, 最基本的操作单元并不是arena, 而是pool&lt;/p&gt;
+&lt;p&gt;问题: pool中所有block的size一样, 但是在arena中, 每个pool的size都可能不一样, 那么最终这些pool是怎么维护的? 怎么根据大小找到需要的block所在的pool? =&amp;gt; &lt;code&gt;usedpools&lt;/code&gt;&lt;/p&gt;
+&lt;h4 id="pool"&gt;pool在内存池中的三种状态&lt;/h4&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;1. used状态: pool中至少有一个block已经被使用, 并且至少有一个block未被使用. 这种状态的pool受控于Python内部维护的usedpool数组
+
+2. full状态: pool中所有的block都已经被使用, 这种状态的pool在arena中, 但不在arena的freepools链表中
+处于full的pool各自独立, 不会被链表维护起来
+
+3. empty状态: pool中所有block都未被使用, 处于这个状态的pool的集合通过其pool_header中的nextpool构成一个链表, 链表的表头是arena_object中的freepools
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h4 id="usedpools"&gt;usedpools&lt;/h4&gt;
+&lt;p&gt;usedpools数组: 维护着所有处于used状态的pool, 当申请内存的时候, 会通过usedpools寻找到一块可用的(处于used状态的)pool, 从中分配一个block&lt;/p&gt;
+&lt;p&gt;结构:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;  #define SMALL_REQUEST_THRESHOLD 512
+  // 512/8 = 64
+  #define NB_SMALL_SIZE_CLASSES   (SMALL_REQUEST_THRESHOLD / ALIGNMENT)
+
+  #define PTA(x)  ((poolp )((uchar *)&amp;amp;(usedpools[2*(x)]) - 2*sizeof(block *)))
+  #define PT(x)   PTA(x), PTA(x)
+
+  // 2 * ((64 + 7) / 8) * 8 = 128, 大小为128的数组
+  static poolp usedpools[2 * ((NB_SMALL_SIZE_CLASSES + 7) / 8) * 8] = {
+      PT(0), PT(1), PT(2), PT(3), PT(4), PT(5), PT(6), PT(7)
+  #if NB_SMALL_SIZE_CLASSES &amp;gt; 8
+      , PT(8), PT(9), PT(10), PT(11), PT(12), PT(13), PT(14), PT(15)
+  #if NB_SMALL_SIZE_CLASSES &amp;gt; 16
+      , PT(16), PT(17), PT(18), PT(19), PT(20), PT(21), PT(22), PT(23)
+  #if NB_SMALL_SIZE_CLASSES &amp;gt; 24
+      , PT(24), PT(25), PT(26), PT(27), PT(28), PT(29), PT(30), PT(31)
+  #if NB_SMALL_SIZE_CLASSES &amp;gt; 32
+      , PT(32), PT(33), PT(34), PT(35), PT(36), PT(37), PT(38), PT(39)
+  #if NB_SMALL_SIZE_CLASSES &amp;gt; 40
+      , PT(40), PT(41), PT(42), PT(43), PT(44), PT(45), PT(46), PT(47)
+  #if NB_SMALL_SIZE_CLASSES &amp;gt; 48
+      , PT(48), PT(49), PT(50), PT(51), PT(52), PT(53), PT(54), PT(55)
+  #if NB_SMALL_SIZE_CLASSES &amp;gt; 56
+      , PT(56), PT(57), PT(58), PT(59), PT(60), PT(61), PT(62), PT(63)
+  #if NB_SMALL_SIZE_CLASSES &amp;gt; 64
+  #error "NB_SMALL_SIZE_CLASSES should be less than 64"
+  #endif /* NB_SMALL_SIZE_CLASSES &amp;gt; 64 */
+  #endif /* NB_SMALL_SIZE_CLASSES &amp;gt; 56 */
+  #endif /* NB_SMALL_SIZE_CLASSES &amp;gt; 48 */
+  #endif /* NB_SMALL_SIZE_CLASSES &amp;gt; 40 */
+  #endif /* NB_SMALL_SIZE_CLASSES &amp;gt; 32 */
+  #endif /* NB_SMALL_SIZE_CLASSES &amp;gt; 24 */
+  #endif /* NB_SMALL_SIZE_CLASSES &amp;gt; 16 */
+  #endif /* NB_SMALL_SIZE_CLASSES &amp;gt;  8 */
+  };
+
+  即
+
+  // 得到usedpools数组
+static poolp usedpools[128] = {
+   PTA(0), PTA(0), PTA(1), PTA(1), PTA(2), PTA(2), PTA(3), PTA(3),
+   ....
+   PTA(63), PTA(63)
+}
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;解开看(&lt;code&gt;obmalloc.c&lt;/code&gt;)&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;  typedef uchar block;
+
+  /* Pool for small blocks. */
+  struct pool_header {
+      union { block *_padding;
+              uint count; } ref;          /* number of allocated blocks    */
+      block *freeblock;                   /* pool's free list head         */
+      struct pool_header *nextpool;       /* next pool of this size class  */
+      struct pool_header *prevpool;       /* previous pool       ""        */
+      uint arenaindex;                    /* index into arenas of base adr */
+      uint szidx;                         /* block size class index        */
+      uint nextoffset;                    /* bytes to virgin block         */
+      uint maxnextoffset;                 /* largest valid nextoffset      */
+  };
+  typedef struct pool_header *poolp;
+  usedpools[0] = PTA(0) = ((poolp )((uchar *)&amp;amp;(usedpools[0]) - 2*sizeof(block *)))
+  usedpools[1] = PTA(0) = ((poolp )((uchar *)&amp;amp;(usedpools[0]) - 2*sizeof(block *)))
+
+
+
+  *p = usedpools[0] =&amp;gt; p-&amp;gt;nextpool and p-&amp;gt;prevpool are both p
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;为了看懂这步的trick, 心好累&amp;gt;_&amp;lt;#&lt;/p&gt;
+&lt;p&gt;直接上图&lt;/p&gt;
+&lt;p&gt;&lt;img alt="arena" src="/imgs/python-source/python-memory-usedpool.png"/&gt;&lt;/p&gt;
+&lt;h4 id="newpool"&gt;new一个pool时维护&lt;/h4&gt;
+&lt;p&gt;&lt;code&gt;init&lt;/code&gt;获得的情况, 其实就是将刚刚从arena中获取的pool加入到 usedpools 对应的双向链表中, 然后初始化, 然后返回block&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;         init_pool:
+              /* Frontlink to used pools. */
+
+              // 1. 获取得到usedpools链表头
+              next = usedpools[size + size]; /* == prev */
+
+              // 2. 将新的pool加入到双向链表
+              pool-&amp;gt;nextpool = next;
+              pool-&amp;gt;prevpool = next;
+              next-&amp;gt;nextpool = pool;
+              next-&amp;gt;prevpool = pool;
+              pool-&amp;gt;ref.count = 1;
+
+              // 3. 后面的是具体pool和block的了
+              if (pool-&amp;gt;szidx == size) {
+                  /* Luckily, this pool last contained blocks
+                   * of the same size class, so its header
+                   * and free list are already initialized.
+                   */
+                  bp = pool-&amp;gt;freeblock;
+                  pool-&amp;gt;freeblock = *(block **)bp;
+                  UNLOCK();
+                  return (void *)bp;
+              }
+              /*
+               * Initialize the pool header, set up the free list to
+               * contain just the second block, and return the first
+               * block.
+               */
+              pool-&amp;gt;szidx = size;
+              size = INDEX2SIZE(size);
+              bp = (block *)pool + POOL_OVERHEAD;
+              pool-&amp;gt;nextoffset = POOL_OVERHEAD + (size &amp;lt;&amp;lt; 1);
+              pool-&amp;gt;maxnextoffset = POOL_SIZE - size;
+              pool-&amp;gt;freeblock = bp + size;
+              *(block **)(pool-&amp;gt;freeblock) = NULL;
+              UNLOCK();
+              return (void *)bp;   // here
+          }
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h4 id="poolblock"&gt;从现有pool中获取block&lt;/h4&gt;
+&lt;p&gt;从现有的pool, 其实就是 usedpools得到双向链表头部, 判断是不是空链表, 不是的话代表有可用的pool, 直接从里面获取&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;      if ((nbytes - 1) &amp;lt; SMALL_REQUEST_THRESHOLD) {
+          LOCK();
+          /*
+           * Most frequent paths first
+           */
+          size = (uint)(nbytes - 1) &amp;gt;&amp;gt; ALIGNMENT_SHIFT;
+          pool = usedpools[size + size];
+
+          // 注意这里的判断, pool != pool-&amp;gt; nextpool 表示得到的链表不是空的
+          if (pool != pool-&amp;gt;nextpool) {
+              /*
+               * There is a used pool for this size class.
+               * Pick up the head block of its free list.
+               */
+              ++pool-&amp;gt;ref.count;
+              bp = pool-&amp;gt;freeblock;
+              assert(bp != NULL);
+              if ((pool-&amp;gt;freeblock = *(block **)bp) != NULL) {
+                  UNLOCK();
+                  return (void *)bp;
+              }
+              /*
+               * Reached the end of the free list, try to extend it.
+               */
+              if (pool-&amp;gt;nextoffset &amp;lt;= pool-&amp;gt;maxnextoffset) {
+                  /* There is room for another block. */
+                  pool-&amp;gt;freeblock = (block*)pool +
+                                    pool-&amp;gt;nextoffset;
+                  pool-&amp;gt;nextoffset += INDEX2SIZE(size);
+                  *(block **)(pool-&amp;gt;freeblock) = NULL;
+                  UNLOCK();
+                  return (void *)bp;
+              }
+              /* Pool is full, unlink from used pools. */
+              next = pool-&amp;gt;nextpool;
+              pool = pool-&amp;gt;prevpool;
+              next-&amp;gt;prevpool = pool;
+              pool-&amp;gt;nextpool = next;
+              UNLOCK();
+              return (void *)bp;   // here
+          }
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h4 id="_4"&gt;全局结构&lt;/h4&gt;
+&lt;p&gt;&lt;img alt="arena" src="/imgs/python-source/python-memory-usedpool2.png"/&gt;&lt;/p&gt;
+&lt;hr/&gt;
+&lt;p&gt;先这样吧, Python中整个内存池基本结构和机制大概如此, 是不是发现有好多数组/链表等等, 在分配/回收上处理下做成各种池.....&lt;/p&gt;
+&lt;p&gt;后面还有内存相关的就是垃圾收集了, 后面再说了吧&lt;/p&gt;
+&lt;p&gt;wklken&lt;/p&gt;
+&lt;p&gt;2015-08-29&lt;/p&gt;</summary><category term="python"></category></entry><entry><title>Python源码阅读-内存管理机制(一)</title><link href="http://www.wklken.me/posts/2015/08/29/python-source-memory-1.html" rel="alternate"></link><updated>2015-08-29T00:00:00+08:00</updated><author><name>wklken</name></author><id>tag:www.wklken.me,2015-08-29:posts/2015/08/29/python-source-memory-1.html</id><summary type="html">&lt;p&gt;==========================&lt;/p&gt;
 &lt;p&gt;基本阅读完了, 只是没时间梳理, 趁着这今天时间比较空&lt;/p&gt;
 &lt;p&gt;逐步梳理, 发上来......也算是小结下, 要开始准备简历找工作了&amp;gt;_&amp;lt;#&lt;/p&gt;
 &lt;p&gt;这篇略长, 带很多图, 所以一分为二&lt;/p&gt;
