@@ -1,5 +1,423 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>wklken's blog</title><link href="http://www.wklken.me/" rel="alternate"></link><link href="http://www.wklken.me/feeds/all.atom.xml" rel="self"></link><id>http://www.wklken.me/</id><updated>2015-08-29T20:54:00+08:00</updated><entry><title>Python源码阅读-内存管理机制(二)</title><link href="http://www.wklken.me/posts/2015/08/29/python-source-memory-2.html" rel="alternate"></link><updated>2015-08-29T20:54:00+08:00</updated><author><name>wklken</name></author><id>tag:www.wklken.me,2015-08-29:posts/2015/08/29/python-source-memory-2.html</id><summary type="html">&lt;h2 id="python"&gt;Python 的内存分配策略&lt;/h2&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>wklken's blog</title><link href="http://www.wklken.me/" rel="alternate"></link><link href="http://www.wklken.me/feeds/all.atom.xml" rel="self"></link><id>http://www.wklken.me/</id><updated>2015-09-04T00:00:00+08:00</updated><entry><title>Python源码阅读-闭包的实现</title><link href="http://www.wklken.me/posts/2015/09/04/python-source-closure.html" rel="alternate"></link><updated>2015-09-04T00:00:00+08:00</updated><author><name>wklken</name></author><id>tag:www.wklken.me,2015-09-04:posts/2015/09/04/python-source-closure.html</id><summary type="html">&lt;h3 id="_1"&gt;闭包&lt;/h3&gt;
+&lt;p&gt;e.g.&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;def add(x):
+    def do_add(value):
+        return x + value
+    return do_add
+
+add_5 = add(5)
+print add_5(1)  # 6
+print add_5(2)  # 7
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;需要回答, 什么是闭包, CPython底层是如何实现的?&lt;/p&gt;
+&lt;h3 id="pycodeobject"&gt;PyCodeObject&lt;/h3&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;typedef struct &lt;span class="p"&gt;{&lt;/span&gt;
+    PyObject_HEAD
+    int co_argcount&lt;span class="p"&gt;;&lt;/span&gt;        &lt;span class="o"&gt;/*&lt;/span&gt; &lt;span class="c1"&gt;#arguments, except *args */&lt;/span&gt;
+    int co_nlocals&lt;span class="p"&gt;;&lt;/span&gt;         &lt;span class="o"&gt;/*&lt;/span&gt; &lt;span class="c1"&gt;#local variables */&lt;/span&gt;
+    int co_stacksize&lt;span class="p"&gt;;&lt;/span&gt;       &lt;span class="o"&gt;/*&lt;/span&gt; &lt;span class="c1"&gt;#entries needed for evaluation stack */&lt;/span&gt;
+    int co_flags&lt;span class="p"&gt;;&lt;/span&gt;           &lt;span class="o"&gt;/*&lt;/span&gt; CO_...&lt;span class="p"&gt;,&lt;/span&gt; see below &lt;span class="o"&gt;*/&lt;/span&gt;
+    PyObject &lt;span class="o"&gt;*&lt;/span&gt;co_code&lt;span class="p"&gt;;&lt;/span&gt;      &lt;span class="o"&gt;/*&lt;/span&gt; instruction opcodes &lt;span class="o"&gt;*/&lt;/span&gt;
+    PyObject &lt;span class="o"&gt;*&lt;/span&gt;co_consts&lt;span class="p"&gt;;&lt;/span&gt;    &lt;span class="o"&gt;/*&lt;/span&gt; &lt;span class="kt"&gt;list&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;constants used&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;*/&lt;/span&gt;
+    PyObject &lt;span class="o"&gt;*&lt;/span&gt;co_names&lt;span class="p"&gt;;&lt;/span&gt;     &lt;span class="o"&gt;/*&lt;/span&gt; &lt;span class="kt"&gt;list&lt;/span&gt; of strings &lt;span class="p"&gt;(&lt;/span&gt;names used&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;*/&lt;/span&gt;
+    PyObject &lt;span class="o"&gt;*&lt;/span&gt;co_varnames&lt;span class="p"&gt;;&lt;/span&gt;  &lt;span class="o"&gt;/*&lt;/span&gt; tuple of strings &lt;span class="p"&gt;(&lt;/span&gt;local variable &lt;span class="kp"&gt;names&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;*/&lt;/span&gt;
+
+    &lt;span class="o"&gt;//&lt;/span&gt; 保存使用了的外层作用域中的变量名集合 &lt;span class="p"&gt;(&lt;/span&gt;编译时就知道的&lt;span class="o"&gt;!&lt;/span&gt; 被嵌套的时候有用&lt;span class="p"&gt;)&lt;/span&gt;
+    PyObject &lt;span class="o"&gt;*&lt;/span&gt;co_freevars&lt;span class="p"&gt;;&lt;/span&gt;  &lt;span class="o"&gt;/*&lt;/span&gt; tuple of strings &lt;span class="p"&gt;(&lt;/span&gt;free variable &lt;span class="kp"&gt;names&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;*/&lt;/span&gt;
+    &lt;span class="o"&gt;//&lt;/span&gt; 保存嵌套作用域中使用的变量名集合&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;编译时就知道的&lt;span class="o"&gt;!&lt;/span&gt; 包含嵌套函数时有用&lt;span class="p"&gt;)&lt;/span&gt;
+    PyObject &lt;span class="o"&gt;*&lt;/span&gt;co_cellvars&lt;span class="p"&gt;;&lt;/span&gt;      &lt;span class="o"&gt;/*&lt;/span&gt; tuple of strings &lt;span class="p"&gt;(&lt;/span&gt;cell variable &lt;span class="kp"&gt;names&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;*/&lt;/span&gt;
+
+
+    &lt;span class="o"&gt;/*&lt;/span&gt; The rest doesn&lt;span class="s"&gt;'&lt;/span&gt;&lt;span class="err"&gt;t count for hash/cmp */&lt;/span&gt;
+    PyObject &lt;span class="o"&gt;*&lt;/span&gt;co_filename&lt;span class="p"&gt;;&lt;/span&gt;  &lt;span class="o"&gt;/*&lt;/span&gt; string &lt;span class="p"&gt;(&lt;/span&gt;where it was loaded from&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;*/&lt;/span&gt;
+    PyObject &lt;span class="o"&gt;*&lt;/span&gt;co_name&lt;span class="p"&gt;;&lt;/span&gt;      &lt;span class="o"&gt;/*&lt;/span&gt; string &lt;span class="p"&gt;(&lt;/span&gt;name&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="kr"&gt;for&lt;/span&gt; reference&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;*/&lt;/span&gt;
+    int co_firstlineno&lt;span class="p"&gt;;&lt;/span&gt;     &lt;span class="o"&gt;/*&lt;/span&gt; first &lt;span class="kn"&gt;source&lt;/span&gt; line number &lt;span class="o"&gt;*/&lt;/span&gt;
+    PyObject &lt;span class="o"&gt;*&lt;/span&gt;co_lnotab&lt;span class="p"&gt;;&lt;/span&gt;    &lt;span class="o"&gt;/*&lt;/span&gt; string &lt;span class="p"&gt;(&lt;/span&gt;encoding addr&lt;span class="o"&gt;&amp;lt;-&amp;gt;&lt;/span&gt;lineno mapping&lt;span class="p"&gt;)&lt;/span&gt; See
+                   Objects&lt;span class="o"&gt;/&lt;/span&gt;lnotab_notes.txt &lt;span class="kr"&gt;for&lt;/span&gt; details. &lt;span class="o"&gt;*/&lt;/span&gt;
+    void &lt;span class="o"&gt;*&lt;/span&gt;co_zombieframe&lt;span class="p"&gt;;&lt;/span&gt;     &lt;span class="o"&gt;/*&lt;/span&gt; &lt;span class="kr"&gt;for&lt;/span&gt; optimization only &lt;span class="p"&gt;(&lt;/span&gt;see frameobject.c&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;*/&lt;/span&gt;
+    PyObject &lt;span class="o"&gt;*&lt;/span&gt;co_weakreflist&lt;span class="p"&gt;;&lt;/span&gt;   &lt;span class="o"&gt;/*&lt;/span&gt; to support weakrefs to code objects &lt;span class="o"&gt;*/&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt; PyCodeObject&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;我们关注两个, &lt;code&gt;co_freevars&lt;/code&gt; 和 &lt;code&gt;co_cellvars&lt;/code&gt;&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;co_freevars, 保存使用了的外层作用域中的变量名集合 (编译时就知道的! 被嵌套的时候有用)
+
+co_cellvars, 保存嵌套作用域中使用的变量名集合, (编译时就知道的! 包含嵌套函数时有用)
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;对于我们上面的那个示例, &lt;code&gt;add&lt;/code&gt;是外层函数, &lt;code&gt;do_add&lt;/code&gt;是嵌套函数, 我们可以通过&lt;code&gt;func_code&lt;/code&gt;打印看看&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;def add(x):    # 外层函数
+    # 外层函数, 没有使用了外层作用域变量, 被嵌套函数使用了'x'
+    print add.func_code.co_freevars    # ()
+    print add.func_code.co_cellvars    # ('x',)
+
+    def do_add(value):  # 嵌套函数
+        return x + value
+
+    # 内层函数, 使用了外层作用域便令'x', 没有嵌套函数故嵌套作用域变量名集合空
+    print do_add.func_code.co_freevars # ('x',)
+    print do_add.func_code.co_cellvars # ()
+    return do_add
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;此时图示&lt;/p&gt;
+&lt;p&gt;&lt;img alt="closure" src="/imgs/python-source/python-closure.png"/&gt;&lt;/p&gt;
+&lt;p&gt;这时候, 只是记录了使用到的变量名, 标记下是否使用了外层的/被内层使用的变量&lt;/p&gt;
+&lt;p&gt;具体的值是在运行时确定的, 例如&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;add(5)
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;此时&lt;code&gt;x=5&lt;/code&gt;, 这个是在&lt;code&gt;add&lt;/code&gt;的名字空间里面的, 那么, &lt;code&gt;x=5&lt;/code&gt;是怎么传递到嵌套函数内? 嵌套函数又是如何知晓&lt;code&gt;x&lt;/code&gt;的值?&lt;/p&gt;
+&lt;p&gt;记住这两个问题, 然后我们首先来看一个新的数据结构&lt;/p&gt;
+&lt;h3 id="pycellobject"&gt;PyCellObject&lt;/h3&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;  typedef struct {
+    PyObject_HEAD
+    PyObject *ob_ref;   /* Content of the cell or NULL when empty */ =&amp;gt; 指向一个PyObject
+  } PyCellObject;
+
+
+  PyObject *
+  PyCell_New(PyObject *obj)
+  {
+      PyCellObject *op;
+
+      op = (PyCellObject *)PyObject_GC_New(PyCellObject, &amp;amp;PyCell_Type);
+      if (op == NULL)
+          return NULL;
+      op-&amp;gt;ob_ref = obj;  //建立关系
+      Py_XINCREF(obj);
+
+      _PyObject_GC_TRACK(op);
+      return (PyObject *)op;
+  }
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;这是个很简单的基本对象, 有一个&lt;code&gt;ob_ref&lt;/code&gt;指向另一个&lt;code&gt;PyObject&lt;/code&gt;, 仅此而已&lt;/p&gt;
+&lt;p&gt;图示&lt;/p&gt;
+&lt;p&gt;&lt;img alt="closure" src="/imgs/python-source/python-closure2.png"/&gt;&lt;/p&gt;
+&lt;p&gt;作用呢?&lt;/p&gt;
+&lt;h3 id="_2"&gt;值的确认与传递过程&lt;/h3&gt;
+&lt;p&gt;调用&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;add(5)
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;此时, 开始调用函数&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="nx"&gt;CALL_FUNCTION&lt;/span&gt;
+
+&lt;span class="o"&gt;=&amp;gt;&lt;/span&gt; &lt;span class="nx"&gt;x&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;call_function&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="nx"&gt;sp&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;oparg&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+
+&lt;span class="o"&gt;=&amp;gt;&lt;/span&gt; &lt;span class="nx"&gt;x&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;fast_function&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;func&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;pp_stack&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;n&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;na&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;nk&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+
+      &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="nx"&gt;PyEval_EvalCodeEx&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;co&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;globals&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                               &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;PyObject&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="nx"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="nx"&gt;pp_stack&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="nx"&gt;n&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;na&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                               &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="nx"&gt;pp_stack&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="nx"&gt;nk&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;nk&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;d&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;nd&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                               &lt;span class="nx"&gt;PyFunction_GET_CLOSURE&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;func&lt;/span&gt;&lt;span class="p"&gt;));&lt;/span&gt;
+
+&lt;span class="o"&gt;=&amp;gt;&lt;/span&gt;
+
+&lt;span class="nx"&gt;PyEval_EvalCodeEx&lt;/span&gt;
+
+&lt;span class="nx"&gt;add&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;5&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="nx"&gt;此时其co_cellvars&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'x'&lt;/span&gt;&lt;span class="p"&gt;,)&lt;/span&gt; &lt;span class="nx"&gt;非空&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;将会执行的逻辑代码&lt;/span&gt;
+
+
+      &lt;span class="cm"&gt;/* Allocate and initialize storage for cell vars, and copy free&lt;/span&gt;
+&lt;span class="cm"&gt;         vars into frame.  This isn't too efficient right now. */&lt;/span&gt;
+      &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;PyTuple_GET_SIZE&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;co&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="nx"&gt;co_cellvars&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+          &lt;span class="kr"&gt;int&lt;/span&gt; &lt;span class="nx"&gt;i&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;j&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;nargs&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;found&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+          &lt;span class="kr"&gt;char&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="nx"&gt;cellname&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="nx"&gt;argname&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+          &lt;span class="nx"&gt;PyObject&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="nx"&gt;c&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+          &lt;span class="nx"&gt;nargs&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;co&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="nx"&gt;co_argcount&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+          &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;co&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="nx"&gt;co_flags&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt; &lt;span class="nx"&gt;CO_VARARGS&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+              &lt;span class="nx"&gt;nargs&lt;/span&gt;&lt;span class="o"&gt;++&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+          &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;co&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="nx"&gt;co_flags&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt; &lt;span class="nx"&gt;CO_VARKEYWORDS&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+              &lt;span class="nx"&gt;nargs&lt;/span&gt;&lt;span class="o"&gt;++&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+          &lt;span class="cm"&gt;/* Initialize each cell var, taking into account&lt;/span&gt;
+&lt;span class="cm"&gt;             cell vars that are initialized from arguments.&lt;/span&gt;
+
+&lt;span class="cm"&gt;             Should arrange for the compiler to put cellvars&lt;/span&gt;
+&lt;span class="cm"&gt;             that are arguments at the beginning of the cellvars&lt;/span&gt;
+&lt;span class="cm"&gt;             list so that we can march over it more efficiently?&lt;/span&gt;
+&lt;span class="cm"&gt;          */&lt;/span&gt;
+
+          &lt;span class="c1"&gt;// for 循环遍历 co_cellvars = ('x', ), i = 0&lt;/span&gt;
+          &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;i&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="nx"&gt;i&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="nx"&gt;PyTuple_GET_SIZE&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;co&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="nx"&gt;co_cellvars&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt; &lt;span class="o"&gt;++&lt;/span&gt;&lt;span class="nx"&gt;i&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+
+              &lt;span class="c1"&gt;// cellname = 'x'&lt;/span&gt;
+              &lt;span class="nx"&gt;cellname&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;PyString_AS_STRING&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
+                  &lt;span class="nx"&gt;PyTuple_GET_ITEM&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;co&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="nx"&gt;co_cellvars&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;i&lt;/span&gt;&lt;span class="p"&gt;));&lt;/span&gt;
+              &lt;span class="nx"&gt;found&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+              &lt;span class="c1"&gt;// 遍历函数的参数变量, narg=1, j=0&lt;/span&gt;
+              &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;j&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="nx"&gt;j&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="nx"&gt;nargs&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="nx"&gt;j&lt;/span&gt;&lt;span class="o"&gt;++&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+
+                  &lt;span class="c1"&gt;// 访问当前名字空间&lt;/span&gt;
+                  &lt;span class="nx"&gt;argname&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;PyString_AS_STRING&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
+                      &lt;span class="nx"&gt;PyTuple_GET_ITEM&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;co&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="nx"&gt;co_varnames&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;j&lt;/span&gt;&lt;span class="p"&gt;));&lt;/span&gt;
+
+                  &lt;span class="c1"&gt;// 匹配上了&lt;/span&gt;
+                  &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;strcmp&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;cellname&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;argname&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+
+                      &lt;span class="c1"&gt;// new 一个 PyCellObject, ob_ref指向变量的PyObject&lt;/span&gt;
+                      &lt;span class="nx"&gt;c&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;PyCell_New&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;GETLOCAL&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;j&lt;/span&gt;&lt;span class="p"&gt;));&lt;/span&gt;
+                      &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;c&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="nx"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+                          &lt;span class="kr"&gt;goto&lt;/span&gt; &lt;span class="nx"&gt;fail&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+                      &lt;span class="c1"&gt;// #define GETLOCAL(i)     (fastlocals&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="nx"&gt;i&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="c1"&gt;)&lt;/span&gt;
+                      &lt;span class="c1"&gt;// fastlocals = f-&amp;gt;f_localsplus;&lt;/span&gt;
+                      &lt;span class="c1"&gt;// 即 f-&amp;gt;f_localsplus&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="nx"&gt;co&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="nx-Member"&gt;co_nlocals&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="nx"&gt;i&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="c1"&gt; = c, 相当于放到下一层freevars变量&lt;/span&gt;
+                      &lt;span class="nx"&gt;GETLOCAL&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;co&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="nx"&gt;co_nlocals&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="nx"&gt;i&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;c&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+                      &lt;span class="nx"&gt;found&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+                      &lt;span class="k"&gt;break&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+                  &lt;span class="p"&gt;}&lt;/span&gt;
+              &lt;span class="p"&gt;}&lt;/span&gt;
+
+              &lt;span class="c1"&gt;// 没有匹配, 给个指向NULL的PyCellObject, 先New一个对象占位&lt;/span&gt;
+              &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;found&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                  &lt;span class="nx"&gt;c&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;PyCell_New&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+                  &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;c&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="nx"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+                      &lt;span class="kr"&gt;goto&lt;/span&gt; &lt;span class="nx"&gt;fail&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+                  &lt;span class="nx"&gt;SETLOCAL&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;co&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="nx"&gt;co_nlocals&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="nx"&gt;i&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;c&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt; &lt;span class="c1"&gt;//注意内存地址&lt;/span&gt;
+              &lt;span class="p"&gt;}&lt;/span&gt;
+          &lt;span class="p"&gt;}&lt;/span&gt;
+      &lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;逻辑即, 如果发现当前函数&lt;code&gt;co_cellvars&lt;/code&gt;非空, 即表示存在被内层函数调用的变量, 那么遍历这个&lt;code&gt;co_cellvars&lt;/code&gt;集合, 拿到集合中每个变量名在当前名字空间中的值, 然后放到当前函数的&lt;code&gt;f-&amp;gt;f_localsplus&lt;/code&gt;中.&lt;/p&gt;
+&lt;p&gt;这里, 我们可以知道&lt;code&gt;x=5&lt;/code&gt;被放进去了&lt;/p&gt;
+&lt;p&gt;为什么放到&lt;code&gt;f-&amp;gt;f_localsplus&lt;/code&gt;中呢?&lt;/p&gt;
+&lt;h3 id="pyframeobject"&gt;看看PyFrameObject&lt;/h3&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="nx"&gt;typedef&lt;/span&gt; &lt;span class="nx"&gt;struct&lt;/span&gt; &lt;span class="nx"&gt;_frame&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="nx"&gt;PyObject_VAR_HEAD&lt;/span&gt;
+    &lt;span class="nx"&gt;struct&lt;/span&gt; &lt;span class="nx"&gt;_frame&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="nx"&gt;f_back&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;  &lt;span class="cm"&gt;/* previous frame, or NULL */&lt;/span&gt;
+    &lt;span class="nx"&gt;PyCodeObject&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="nx"&gt;f_code&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;   &lt;span class="cm"&gt;/* code segment */&lt;/span&gt;
+    &lt;span class="nx"&gt;PyObject&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="nx"&gt;f_builtins&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;   &lt;span class="cm"&gt;/* builtin symbol table (PyDictObject) */&lt;/span&gt;
+    &lt;span class="nx"&gt;PyObject&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="nx"&gt;f_globals&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;    &lt;span class="cm"&gt;/* global symbol table (PyDictObject) */&lt;/span&gt;
+    &lt;span class="nx"&gt;PyObject&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="nx"&gt;f_locals&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;     &lt;span class="cm"&gt;/* local symbol table (any mapping) */&lt;/span&gt;
+    &lt;span class="nx"&gt;PyObject&lt;/span&gt; &lt;span class="o"&gt;**&lt;/span&gt;&lt;span class="nx"&gt;f_valuestack&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;    &lt;span class="cm"&gt;/* points after the last local */&lt;/span&gt;
+    &lt;span class="cm"&gt;/* Next free slot in f_valuestack.  Frame creation sets to f_valuestack.&lt;/span&gt;
+&lt;span class="cm"&gt;       Frame evaluation usually NULLs it, but a frame that yields sets it&lt;/span&gt;
+&lt;span class="cm"&gt;       to the current stack top. */&lt;/span&gt;
+    &lt;span class="nx"&gt;PyObject&lt;/span&gt; &lt;span class="o"&gt;**&lt;/span&gt;&lt;span class="nx"&gt;f_stacktop&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="nx"&gt;PyObject&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="nx"&gt;f_trace&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;      &lt;span class="cm"&gt;/* Trace function */&lt;/span&gt;
+
+    &lt;span class="cm"&gt;/* If an exception is raised in this frame, the next three are used to&lt;/span&gt;
+&lt;span class="cm"&gt;     * record the exception info (if any) originally in the thread state.  See&lt;/span&gt;
+&lt;span class="cm"&gt;     * comments before set_exc_info() -- it's not obvious.&lt;/span&gt;
+&lt;span class="cm"&gt;     * Invariant:  if _type is NULL, then so are _value and _traceback.&lt;/span&gt;
+&lt;span class="cm"&gt;     * Desired invariant:  all three are NULL, or all three are non-NULL.  That&lt;/span&gt;
+&lt;span class="cm"&gt;     * one isn't currently true, but "should be".&lt;/span&gt;
+&lt;span class="cm"&gt;     */&lt;/span&gt;
+    &lt;span class="nx"&gt;PyObject&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="nx"&gt;f_exc_type&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="nx"&gt;f_exc_value&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="nx"&gt;f_exc_traceback&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+    &lt;span class="nx"&gt;PyThreadState&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="nx"&gt;f_tstate&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="kr"&gt;int&lt;/span&gt; &lt;span class="nx"&gt;f_lasti&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;        &lt;span class="cm"&gt;/* Last instruction if called */&lt;/span&gt;
+    &lt;span class="cm"&gt;/* Call PyFrame_GetLineNumber() instead of reading this field&lt;/span&gt;
+&lt;span class="cm"&gt;       directly.  As of 2.3 f_lineno is only valid when tracing is&lt;/span&gt;
+&lt;span class="cm"&gt;       active (i.e. when f_trace is set).  At other times we use&lt;/span&gt;
+&lt;span class="cm"&gt;       PyCode_Addr2Line to calculate the line from the current&lt;/span&gt;
+&lt;span class="cm"&gt;       bytecode index. */&lt;/span&gt;
+    &lt;span class="kr"&gt;int&lt;/span&gt; &lt;span class="nx"&gt;f_lineno&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;       &lt;span class="cm"&gt;/* Current line number */&lt;/span&gt;
+    &lt;span class="kr"&gt;int&lt;/span&gt; &lt;span class="nx"&gt;f_iblock&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;       &lt;span class="cm"&gt;/* index in f_blockstack */&lt;/span&gt;
+    &lt;span class="nx"&gt;PyTryBlock&lt;/span&gt; &lt;span class="nx"&gt;f_blockstack&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="nx"&gt;CO_MAXBLOCKS&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="cm"&gt;/* for try and loop blocks */&lt;/span&gt;
+    &lt;span class="nx"&gt;PyObject&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="nx"&gt;f_localsplus&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;  &lt;span class="cm"&gt;/* locals+stack, dynamically sized */&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="nx"&gt;PyFrameObject&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;注意&lt;code&gt;f_localsplus&lt;/code&gt;&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;f_localsplus为一个PyObject的指针数组，大小为1。
+
+c语言中, 当申请一个大小超过sizeof(PyFrameObject)的结构体对象时，超过的部分就自动分配给f_localsplus
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;创建过程&lt;/p&gt;
+&lt;p&gt;在&lt;code&gt;call_function&lt;/code&gt;的时候, &lt;code&gt;new&lt;/code&gt;了一个PyFrameObject&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;f = PyFrame_New(tstate, co, globals, locals);
+
+=&amp;gt;
+
+PyFrameObject *
+PyFrame_New(PyThreadState *tstate, PyCodeObject *code, PyObject *globals,
+            PyObject *locals)
+{
+        Py_ssize_t extras, ncells, nfrees;
+        ncells = PyTuple_GET_SIZE(code-&amp;gt;co_cellvars);
+        nfrees = PyTuple_GET_SIZE(code-&amp;gt;co_freevars);
+        extras = code-&amp;gt;co_stacksize + code-&amp;gt;co_nlocals + ncells +
+            nfrees;
+
+=&amp;gt;
+
+f = PyObject_GC_NewVar(PyFrameObject, &amp;amp;PyFrame_Type, extras);
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;即&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;f_localsplus =&amp;gt; 局部变量 + cell对象 + free对象 + 运行时栈
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;原因: 因为函数中的局部变量总是固定不变的, 在编译时就能确定局部变量使用的内存空间的位置, 也能确定访问局部变量的字节码应该如何访问内存, 有了这些信息, Python就能借助静态的方法实现局部变量, 而不是动态查找PyDictObject, 提高执行效率&lt;/p&gt;
+&lt;p&gt;&lt;img alt="closure" src="/imgs/python-source/python-closure3.png"/&gt;&lt;/p&gt;
+&lt;h3 id="f_localsplus"&gt;示例函数的f_localsplus&lt;/h3&gt;
+&lt;p&gt;看一下上面赋值用的宏定义&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="x"&gt;  &lt;/span&gt;&lt;span class="n"&gt;fastlocals&lt;/span&gt;&lt;span class="o"&gt; =&lt;/span&gt; &lt;span class="nx"&gt;f&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="nx-Member"&gt;f_localsplus&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="vi"&gt;#define&lt;/span&gt; &lt;span class="nx"&gt;GETLOCAL&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;i&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;     &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;fastlocals&lt;/span&gt;&lt;span class="err"&gt;[&lt;/span&gt;&lt;span class="nx"&gt;i&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="x"&gt;)&lt;/span&gt;
+&lt;span class="x"&gt;  #define SETLOCAL(i, value)      do { PyObject *tmp = GETLOCAL(i); \&lt;/span&gt;
+&lt;span class="x"&gt;                                       GETLOCAL(i) = value; \&lt;/span&gt;
+&lt;span class="x"&gt;                                       Py_XDECREF(tmp); } while (0)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;最终得到&lt;/p&gt;
+&lt;p&gt;&lt;img alt="closure" src="/imgs/python-source/python-closure4.png"/&gt;&lt;/p&gt;
+&lt;p&gt;接下去呢? &lt;code&gt;CALL_FUNCTION&lt;/code&gt;最后怎么处理将cell传入嵌套函数?&lt;/p&gt;
+&lt;h3 id="_3"&gt;传递&lt;/h3&gt;
+&lt;p&gt;&lt;code&gt;CALL_FUNCTION&lt;/code&gt; 完成&lt;code&gt;new&lt;/code&gt;一个&lt;code&gt;PyFrameObject&lt;/code&gt;之后,&lt;/p&gt;
+&lt;p&gt;最终执行这个frame&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;retval = PyEval_EvalFrameEx(f,0);
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;PyEval_EvalFrameEx&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;  PyObject *
+  PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
+  {
+
+    fastlocals = f-&amp;gt;f_localsplus;
+    freevars = f-&amp;gt;f_localsplus + co-&amp;gt;co_nlocals;
+
+
+=&amp;gt; 此时涉及op_code的执行了
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;查看一下dis的结果&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;def add(x):
+    def do_add(value):
+        return x + value
+    return do_add
+
+  5           0 LOAD_CLOSURE             0 (x)
+              3 BUILD_TUPLE              1
+              6 LOAD_CONST               1 (&amp;lt;code object do_add at 0x10c9cec30, file "a.py", line 5&amp;gt;)
+              9 MAKE_CLOSURE             0
+             12 STORE_FAST               1 (do_add)
+
+  7          15 LOAD_FAST                1 (do_add)
+             18 RETURN_VALUE
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;首先&lt;code&gt;LOAD_CLOSURE 0&lt;/code&gt;&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;          case LOAD_CLOSURE:
+              x = freevars[oparg];
+              Py_INCREF(x);
+              PUSH(x);
+              if (x != NULL) continue;
+              break;
+
+入栈, 此时得到一个PyCellObject, 指向2, name='x'
+
+LOAD_CLOSURE 在编译时会根据嵌套函数中 co_freevars, 决定了取得参数位置和个数
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;然后, &lt;code&gt;BUILD_TUPLE&lt;/code&gt;, 将cell对象打包成tuple, 得到&lt;code&gt;('x', )&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;然后, 开始, 载入嵌套函数&lt;code&gt;do_add&lt;/code&gt;, 入栈&lt;/p&gt;
+&lt;p&gt;调用&lt;code&gt;MAKE_CLOSURE&lt;/code&gt;&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;          case MAKE_CLOSURE:
+          {
+              v = POP(); /* code object */  // do_add函数
+              x = PyFunction_New(v, f-&amp;gt;f_globals); //绑定global名字空间
+              // 到这里, 得到一个PyFunctionObject
+
+              Py_DECREF(v);
+              if (x != NULL) {
+                  v = POP();   // 得到tuple, ('x', )
+
+                  // 注意这里
+                  if (PyFunction_SetClosure(x, v) != 0) {
+                      /* Can't happen unless bytecode is corrupt. */
+                      why = WHY_EXCEPTION;
+                  }
+                  Py_DECREF(v);
+              }
+              ......
+          }
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;来关注一下 &lt;code&gt;PyFunction_SetClosure&lt;/code&gt;&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;int
+PyFunction_SetClosure(PyObject *op, PyObject *closure)
+{
+    ...
+    Py_XDECREF(((PyFunctionObject *) op) -&amp;gt; func_closure);
+    ((PyFunctionObject *) op) -&amp;gt; func_closure = closure;  // 注意这里
+    return 0;
+}
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;即&lt;code&gt;do_add&lt;/code&gt;的 &lt;code&gt;PyFunctionObject&lt;/code&gt;的&lt;code&gt;func_closure&lt;/code&gt;指向一个tuple&lt;/p&gt;
+&lt;p&gt;注意: 这时候, 外层变量已经固定下来了!!!!!!&lt;/p&gt;
+&lt;h3 id="_4"&gt;然后, 在嵌套函数被调用的时候&lt;/h3&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="nx"&gt;CALL_FUNCTION&lt;/span&gt;
+
+&lt;span class="o"&gt;=&amp;gt;&lt;/span&gt;
+
+&lt;span class="nx"&gt;x&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;call_function&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="nx"&gt;sp&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;oparg&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+
+&lt;span class="o"&gt;=&amp;gt;&lt;/span&gt;
+
+&lt;span class="nx"&gt;x&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nx"&gt;fast_function&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;func&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;pp_stack&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;n&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;na&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;nk&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+
+&lt;span class="o"&gt;=&amp;gt;&lt;/span&gt;
+
+      &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="nx"&gt;PyEval_EvalCodeEx&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;co&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;globals&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                               &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;PyObject&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="nx"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="nx"&gt;pp_stack&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="nx"&gt;n&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;na&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                               &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="nx"&gt;pp_stack&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="nx"&gt;nk&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;nk&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;d&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;nd&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                               &lt;span class="nx"&gt;PyFunction_GET_CLOSURE&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;func&lt;/span&gt;&lt;span class="p"&gt;));&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;看下&lt;code&gt;PyFunction_GET_CLOSURE&lt;/code&gt;&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;  #define PyFunction_GET_CLOSURE(func) \
+      (((PyFunctionObject *)func) -&amp;gt; func_closure)
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;然后, 进入 &lt;code&gt;PyEval_EvalCodeEx&lt;/code&gt;, 注意这里的&lt;code&gt;closure&lt;/code&gt;参数即上一步取出来的&lt;code&gt;func_closure&lt;/code&gt;, 即外层函数传进来的tuple&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;  PyObject *
+  PyEval_EvalCodeEx(PyCodeObject *co, PyObject *globals, PyObject *locals,
+             PyObject **args, int argcount, PyObject **kws, int kwcount,
+             PyObject **defs, int defcount, PyObject *closure)
+{
+      ......
+      //  嵌套函数do_add, 使用到了外层函数的变量, 所以co-&amp;gt;co_freevars非空, 这里得到 ('x', )
+      if (PyTuple_GET_SIZE(co-&amp;gt;co_freevars)) {
+          int i;
+          for (i = 0; i &amp;lt; PyTuple_GET_SIZE(co-&amp;gt;co_freevars); ++i) {
+              // 顺序是一致的
+              PyObject *o = PyTuple_GET_ITEM(closure, i);
+              Py_INCREF(o);
+              // 放到freevars里面, 编译时已经确定了顺序
+              // 在上一步多LOAD_CLOSURE =&amp;gt; tuple 已经保证了顺序
+              freevars[PyTuple_GET_SIZE(co-&amp;gt;co_cellvars) + i] = o;
+          }
+      }
+      ......
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h3 id="dis"&gt;最后, 再来看一个闭包的dis&lt;/h3&gt;
+&lt;p&gt;注意&lt;code&gt;BUILD_TUPLE&lt;/code&gt;&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;def add(x, y):
+
+    def do_add(value):
+        return x + value
+
+    def do_add2(value):
+        return y + value
+
+    def do_add3(value):
+        return x + y + value
+
+    return do_add
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;dis结果&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt; 18           0 LOAD_CLOSURE             0 (x)
+              3 BUILD_TUPLE              1
+              6 LOAD_CONST               1 (&amp;lt;code object do_add at 0x10560dc30, file "a.py", line 18&amp;gt;)
+              9 MAKE_CLOSURE             0
+             12 STORE_FAST               2 (do_add)
+
+ 21          15 LOAD_CLOSURE             1 (y)
+             18 BUILD_TUPLE              1
+             21 LOAD_CONST               2 (&amp;lt;code object do_add2 at 0x10560d8b0, file "a.py", line 21&amp;gt;)
+             24 MAKE_CLOSURE             0
+             27 STORE_FAST               3 (do_add2)
+
+ 24          30 LOAD_CLOSURE             0 (x)
+             33 LOAD_CLOSURE             1 (y)
+             36 BUILD_TUPLE              2
+             39 LOAD_CONST               3 (&amp;lt;code object do_add3 at 0x10560e3b0, file "a.py", line 24&amp;gt;)
+             42 MAKE_CLOSURE             0
+             45 STORE_FAST               4 (do_add3)
+
+ 32          48 LOAD_FAST                2 (do_add)
+             51 RETURN_VALUE
+&lt;/pre&gt;&lt;/div&gt;</summary><category term="python"></category></entry><entry><title>Python源码阅读-内存管理机制(二)</title><link href="http://www.wklken.me/posts/2015/08/29/python-source-memory-2.html" rel="alternate"></link><updated>2015-08-29T20:54:00+08:00</updated><author><name>wklken</name></author><id>tag:www.wklken.me,2015-08-29:posts/2015/08/29/python-source-memory-2.html</id><summary type="html">&lt;h2 id="python"&gt;Python 的内存分配策略&lt;/h2&gt;
 &lt;h3 id="arena"&gt;arena&lt;/h3&gt;
 &lt;p&gt;arena: 多个pool聚合的结果&lt;/p&gt;
 &lt;h4 id="arena-size"&gt;arena size&lt;/h4&gt;
