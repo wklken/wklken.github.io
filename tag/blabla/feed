@@ -195,4 +195,230 @@
 &lt;p&gt;没有最好的方法, 只有最合适的方法, 对工具同理, 所以在整个过程中, 还是建议, 明确自己的需求, 要解决的问题等, 多关注一些东西, 多尝试.&lt;/p&gt;
 &lt;p&gt;好了, 就这些:)&lt;/p&gt;
 &lt;p&gt;2015-05-02&lt;/p&gt;
-&lt;p&gt;wklken 于深圳&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sat, 02 May 2015 00:00:00 +0800</pubDate><guid>tag:www.wklken.me,2015-05-02:posts/2015/05/02/about-knowledge-manage-tools.html</guid><category>blabla</category></item></channel></rss>
+&lt;p&gt;wklken 于深圳&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sat, 02 May 2015 00:00:00 +0800</pubDate><guid>tag:www.wklken.me,2015-05-02:posts/2015/05/02/about-knowledge-manage-tools.html</guid><category>blabla</category></item><item><title>关于代码调试de那些事</title><link>http://www.wklken.me/posts/2014/11/23/how-to-debug.html</link><description>&lt;p&gt;写代码最完美的就是, 想清楚, 码, 运行, perfect, DONE, 下班.&lt;/p&gt;
+&lt;p&gt;当然, 那是完美的状态. 大多数时候只存在于理想中.&lt;/p&gt;
+&lt;p&gt;现实是, 我们会被各种坑, 被环境坑, 被语言坑, 被依赖坑, 被第三方库坑, 被编辑器坑, 被自己坑(三个月前的自己/昨天的自己/几分钟前的自己), 被数据库坑, 被缓存坑, 被队友坑(这个比较惨), 被需求变更坑(这个也是)......&lt;/p&gt;
+&lt;p&gt;所以, 总是避免不了代码调试.&lt;/p&gt;
+&lt;p&gt;今天顺带过了下&amp;lt;&amp;lt;想计算机科学家一样思考Python&amp;gt;&amp;gt;, 里面每一章最后都有关于调试的一些观点, 例如&lt;code&gt;阅读 - 深思 - 修改/运行/回退&lt;/code&gt;, 所以决定来写写关于代码调试的一些东西.&lt;/p&gt;
+&lt;p&gt;其实, 代码调试是&lt;code&gt;论如何排查问题&lt;/code&gt;的一个过程, 根据一切蛛丝马迹, 推断出问题所在, 并消灭之.(破案的即视感)&lt;/p&gt;
+&lt;p&gt;&lt;img alt="sherlock" src="/imgs/blabla/debug.png"/&gt;&lt;/p&gt;
+&lt;p&gt;下面是一些关于一些自己在写代码和调试的总结&lt;/p&gt;
+&lt;hr/&gt;
+&lt;h3 id="1"&gt;1.你得明白你在做什么, 保持清醒&lt;/h3&gt;
+&lt;p&gt;代码调试有时候会让你陷入无尽的自我怀疑/迷茫/愤怒/沮丧/窘迫/挫败(无限负能量), 很容易被这些情绪左右, 不清醒, 陷入怀疑自我(一定是我调用的方式不对), 或者怀疑一切(一定是数据库问题, 不对, 缓存问题, 不对, 接口问题, 好像不对, 数据问题), 或者胡乱改代码(改-跑-错了-再改-跑-又错-再改, 传说中的随机行走编程), 或者......(挣扎吧......)&lt;/p&gt;
+&lt;p&gt;此刻, 保持清醒的自我是非常重要的, 要明确: &lt;code&gt;我在做什么&lt;/code&gt;, &lt;code&gt;问题是什么症状&lt;/code&gt;, &lt;code&gt;原来逻辑是什么&lt;/code&gt;, &lt;code&gt;最有可能出问题的是哪里&lt;/code&gt;?&lt;/p&gt;
+&lt;h3 id="2"&gt;2.想清楚了再写代码&lt;/h3&gt;
+&lt;p&gt;如果连需求是什么, 想要做什么都没整明白, 就吭哧吭哧开写, 意图在实践中摸索通向胜利的道路, 是很愚蠢的行为.&lt;/p&gt;
+&lt;p&gt;需要去理解需求, 自己要做什么, 然后, 在大脑中构造, 现在有什么, 为了完成需求需要做什么, 完成大体的组成结构/步骤流程的思考后, 再着手去做.&lt;/p&gt;
+&lt;p&gt;大到整体设计, 小到一个函数, 都可以这么处理&lt;/p&gt;
+&lt;p&gt;例如, 遇到复杂问题, 可以先写注释, 完整所有函数整体设计, 然后再填充细节&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;def dosomething():
+        &amp;ldquo;&amp;rdquo;&amp;rdquo;
+        &amp;ldquo;&amp;rdquo;&amp;rdquo;
+        # step1: call func test()
+
+        # step2: parse url to 
+
+        # step3: judge
+
+        # step4: convert and return
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h3 id="3"&gt;3.关于&lt;code&gt;脚手架&lt;/code&gt;代码&lt;/h3&gt;
+&lt;p&gt;在逻辑的关键位置, print/assert关键信息, 用于在调试中迅速确认问题. (一些中间值/状态/条件判断结果)&lt;/p&gt;
+&lt;p&gt;当然, 信息除了&lt;code&gt;关键&lt;/code&gt;这个特性, 还需要足够&lt;code&gt;丰富&lt;/code&gt;和&lt;code&gt;显眼&lt;/code&gt;, 一遍一次性定位问题. (既要好看又要有用)&lt;/p&gt;
+&lt;p&gt;你需要确定下如何用顺手的编辑器快速输入这些代码, 可以用各类语言的snippets&lt;/p&gt;
+&lt;p&gt;例如, 在写python时候, 我很喜欢prt&lt;tab&gt;(k-vim自动补全), 快速插入一些需要的信息&lt;/tab&gt;&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;print "TRACK ================= result", type(result), result, result == "test"
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h3 id="4review"&gt;4.写完一段代码第一时间自己review一下&lt;/h3&gt;
+&lt;p&gt;事实证明, review的效果比写完直接跑再来调, 效率高多了.&lt;/p&gt;
+&lt;p&gt;刚写完一段代码, 思路还很清晰, 跳到开始, review过程中注意各类变量, 条件判断, 函数调用, 上下文, 一致性, 错误处理等, 花不了多少时间, 却能发现一些&lt;code&gt;显而易见&lt;/code&gt;的问题, 省下很多无谓的调试时间(没问题不需要调试!).&lt;/p&gt;
+&lt;h3 id="5review"&gt;5.review中注意, 代码是&lt;code&gt;抠&lt;/code&gt;过来的么?&lt;/h3&gt;
+&lt;p&gt;很多时候从其他地方copy代码过来(一行或几行, 有时候只是一个函数调用或一个判断), 但是很容易忘了根据当前情况修改一些必要的值, 导致问题&lt;/p&gt;
+&lt;p&gt;例如函数调用, 这个地方调用参数可能跟你copy这行代码需要参数不一样, 但是放在这里并不会报错(一切运作正常), 最终结果并不对.....&lt;/p&gt;
+&lt;p&gt;好了, 开始调试&lt;/p&gt;
+&lt;h3 id="6"&gt;6.搞明白问题的表现是什么(症状)&lt;/h3&gt;
+&lt;p&gt;运行代码, 报错了, 有些人会瞬切回编辑器, 开始改代码(作高效状)......&amp;gt;_&amp;lt;#&lt;/p&gt;
+&lt;p&gt;问题是: &lt;code&gt;报错提示你看了么, 看明白了么?&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;现在大部分语言, 其报错提示已经很明显了, 精确到行/变量, 虽然整个异常栈信息可能很长(非常长), 但是都有其特征(在最前或在最后,或在中间靠后, 有关键字), 仔细看下报错信息, 精确制导才是王道.&lt;/p&gt;
+&lt;p&gt;所以, 你需要从错误信息中先确认&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;错误类型
+发生错误的地方
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;很多语法问题可以根据这个信息直接定位&lt;/p&gt;
+&lt;h3 id="7"&gt;7.调试过程中, 需要时刻注意&lt;/h3&gt;
+&lt;p&gt;改的是不是正确的目录下正确的文件?(大坑)&lt;/p&gt;
+&lt;p&gt;保存了么(编译了么)?(又一个坑)&lt;/p&gt;
+&lt;p&gt;服务重启了么?&lt;/p&gt;
+&lt;p&gt;跟数据库有没有关系/跟缓存有没有关系, 要不要清?&lt;/p&gt;
+&lt;p&gt;&amp;hellip;&amp;hellip;&lt;/p&gt;
+&lt;p&gt;以上问题, 随便碰上一个你都可能发现, 自己书写的代码和当前运行来调试的代码不一样.(会浪费你巨量的时间)&lt;/p&gt;
+&lt;p&gt;自己调试半天怎么还是一样的结果&lt;/p&gt;
+&lt;p&gt;我一直在修改, 但是没有什么区别(出现这种情况要自问一下了)&lt;/p&gt;
+&lt;p&gt;可以显示在代码头部打印或者故意出错, 确认是同一套代码&lt;/p&gt;
+&lt;h3 id="8"&gt;8.环境/数据一致性&lt;/h3&gt;
+&lt;p&gt;当你发现在本地无法复现别人报过来的问题(在我电脑上是正常的), 这时候, 需要考虑是否是环境和数据的问题.&lt;/p&gt;
+&lt;h3 id="9"&gt;9.先不要动代码, 假设代码是正确的&lt;/h3&gt;
+&lt;p&gt;遇到问题, 不要急着修改代码, 需要假设, 代码是正确的, 然后去复现, 复现之后定位.&lt;/p&gt;
+&lt;h3 id="10"&gt;10.首先要怀疑自己&lt;/h3&gt;
+&lt;p&gt;你不能一旦代码跑不动就怀疑是别人的问题, 然后抛给别人, 这样做同样是很不负责任而且很愚蠢的.&lt;/p&gt;
+&lt;p&gt;首先, 你需要怀疑自己, 排查问题, 当确定不是自己的问题之后, 将问题定位, 输入, 预期结果, 现在的异常结果都处理好, 生成一个问题, 抛给对应负责人.
+(一切没有价值的怀疑都是无意义的)&lt;/p&gt;
+&lt;p&gt;程序员都是好人, 每次都在想: &lt;code&gt;一定是我的问题&lt;/code&gt;&lt;/p&gt;
+&lt;h3 id="11"&gt;11.对于莫名其妙的问题, 多试几种情况&lt;/h3&gt;
+&lt;p&gt;有时候碰上一些诡异的问题, 例如有一种情况的输入会报错, 这时候, 再跳过去修改代码前, 可以多尝试几种输入, 涉及边界/异常/正常等情况, 排除法, 精确制导.&lt;/p&gt;
+&lt;p&gt;例如, 可以变换输入值的范围(扩大或缩小, 可能用二分法), 变换输入类型和格式&lt;/p&gt;
+&lt;h3 id="12"&gt;12.先回到&lt;code&gt;正确的代码&lt;/code&gt;&lt;/h3&gt;
+&lt;p&gt;如果这段代码是由于修改导致的, 可以注掉此次变更代码, 同样的输入再次验证定位&lt;/p&gt;
+&lt;h3 id="13"&gt;13.如果一段代码是&lt;code&gt;没动过&lt;/code&gt;的代码&lt;/h3&gt;
+&lt;p&gt;如果你确保&lt;code&gt;确实没动过&lt;/code&gt;, 此时, 先不要怀疑自己, 更大的可能是&lt;code&gt;别人的问题&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;可能情况: 依赖出了问题(调用函数返回数据不对/异常? 依赖请求挂了? &amp;hellip;&amp;hellip;), 数据出了问题(表结构变更/服务返回数据变更), 环境问题(数据库/缓存)&lt;/p&gt;
+&lt;h3 id="14bug"&gt;14.bug总是倾向于集中出现在一起&lt;/h3&gt;
+&lt;p&gt;很多时候, bug是扎堆的, 可以回忆下之前修改的地方, 确认问题.&lt;/p&gt;
+&lt;h3 id="15"&gt;15.对于很长很长, 上&lt;code&gt;二分法&lt;/code&gt;&lt;/h3&gt;
+&lt;p&gt;可能函数很长, 或者调用链很长, 不易调试.(光打调试信息就得打得手疼)&lt;/p&gt;
+&lt;p&gt;找到关键变量, 上&lt;code&gt;二分法&lt;/code&gt;, 无上利器.&lt;/p&gt;
+&lt;h3 id="16print-or-debug"&gt;16.print or debug?&lt;/h3&gt;
+&lt;p&gt;个人偏好简单粗暴的&lt;code&gt;print&lt;/code&gt;, 主要是用的vim+sinppet, 快速高效.&lt;/p&gt;
+&lt;p&gt;当然, 如果用IDE, 用   &lt;code&gt;debug&lt;/code&gt;吧&lt;/p&gt;
+&lt;h3 id="17"&gt;17.十分十分诡异的问题&lt;/h3&gt;
+&lt;p&gt;上&lt;code&gt;debug&lt;/code&gt;, 打断点, 一点点调试吧, 只能这样了.&lt;/p&gt;
+&lt;h3 id="18"&gt;18.当一个问题超过半小时&lt;/h3&gt;
+&lt;p&gt;歇一歇, 走动走动, 打个水, 呼吸下新鲜空气.&lt;/p&gt;
+&lt;p&gt;这时候有利于脱出情境, 去掉挫败感/愤怒/迷信等&lt;/p&gt;
+&lt;p&gt;很多时候突然灵感一到, 瞬间明了(这种感觉很奇妙)&lt;/p&gt;
+&lt;h3 id="19google"&gt;19.关于google&lt;/h3&gt;
+&lt;p&gt;有些错误信息, 如果觉得比较独特诡异, 可以google下, 你会找到更多的一些信息的.&lt;/p&gt;
+&lt;h3 id="20"&gt;20.关于求助&lt;/h3&gt;
+&lt;p&gt;实在搞不定, google大神也搞不定, 此时可能需要求助了.&lt;/p&gt;
+&lt;p&gt;前提, 你自己能把问题想清楚, 并且逻辑清晰地描述出来.(什么业务什么位置的什么逻辑, 报错类型和报错信息, 输入输出, 迄今做了哪些尝试等等) 要学会聪明地问问题, 高效, 尊重自己也尊重别人.&lt;/p&gt;
+&lt;p&gt;如果你自己都没整明白怎么问, 别人也无能为力.&lt;/p&gt;
+&lt;p&gt;遇到很多人, 直接上来就一句&lt;code&gt;xxx出问题了&lt;/code&gt;, 没有前置条件后置结果中间症状......&lt;/p&gt;
+&lt;p&gt;不过, 如果你会聪明地问, 那就放心大胆地问吧, 不用磨磨唧唧的, 程序员大都是善良的孩子.&lt;/p&gt;
+&lt;h3 id="21"&gt;21.吃一堑长一智&lt;/h3&gt;
+&lt;p&gt;被坑了就要总结总结, 有个记录, 不被同一个问题坑两次.&lt;/p&gt;
+&lt;p&gt;如果被坑了就忘, 还需要去反复求助, 那这属于坑队友的行为(鄙视下)&lt;/p&gt;
+&lt;hr/&gt;
+&lt;p&gt;好了, 就这些:)&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sun, 23 Nov 2014 00:00:00 +0800</pubDate><guid>tag:www.wklken.me,2014-11-23:posts/2014/11/23/how-to-debug.html</guid><category>blabla</category></item><item><title>后端不高兴——关于协作和沟通</title><link>http://www.wklken.me/posts/2014/04/24/unhappy-about-cooperation-and-communication.html</link><description>&lt;p&gt;==================&lt;/p&gt;
+&lt;p&gt;再过两月毕业三周年，回顾一下，突然想起了一些问题，顺手记录一下&lt;/p&gt;
+&lt;p&gt;选择后端的原因之一，代码写得好一些，然后改需求的时候，刷刷刷改几行代码发布，然后泡杯茶站在前端同学后面看他们苦逼地改页面:)&lt;/p&gt;
+&lt;p&gt;&lt;img alt="unhappy" src="/imgs/blabla/unhappyface.jpg"/&gt;&lt;/p&gt;
+&lt;p&gt;工作那么久，逐渐变得&amp;ldquo;冷血&amp;rdquo;，要学会说no，学会排期，学会去&amp;ldquo;降低&amp;rdquo;一些人的期望甚至是&amp;ldquo;无情&amp;rdquo;扼杀，所以或许初次合作会给人一种不&amp;ldquo;友好&amp;rdquo;的印象。&lt;/p&gt;
+&lt;p&gt;但是在&amp;ldquo;友好&amp;rdquo;和&amp;ldquo;效率&amp;rdquo;，我选择了后者，记得当初很菜很菜的时候，我还是很&amp;ldquo;友好&amp;rdquo;的。(妈蛋，一天要处理N多问题，跟运营运维产品前端测试等等沟通，还得挤时间码代码测试发布上线，只能高效至上了)&lt;/p&gt;
+&lt;p&gt;不扯了，归正题，聊一些平时沟通合作遇到的问题&lt;/p&gt;
+&lt;p&gt;PS:这里后端偏指服务端开发，当然，问题普适于各个角色&lt;/p&gt;
+&lt;hr/&gt;
+&lt;h3 id="1"&gt;1. 问问题的方式&lt;/h3&gt;
+&lt;p&gt;之前在微博看见人说过的一个现象，再次提一下&lt;/p&gt;
+&lt;p&gt;假如有人找你咨询一个问题&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;A: 在? (在么?/在不在?)
+B: 额
+A: xxx功能你知道么？
+B: 知道
+A: xxx有个功能有问题了，能帮看下么
+B: 什么地方
+A: xxxxxxxx
+B: 算了你切个图过来吧
+A: [图]
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;这个，首先，可能我在写代码，闪动弹窗对有轻微强迫症的人来说，必须要点开的啊（妈蛋），然后，我即时响应了，可能由于你有事什么的，过一会回答，但是这个等待过程中我又很那去投入一件事，很容易投入没几分钟被打断...这几句对话可能跨度是几分钟，甚至几个钟头（跑去吃了个饭回来看到消息给才给回复，哥都快忘了），其次，我真的很吝啬打那么多字&amp;gt;_&amp;lt;#&lt;/p&gt;
+&lt;p&gt;效率杀手之一&lt;/p&gt;
+&lt;p&gt;最有效率的其实是：&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;A: 在吗?xxx功能你知道么?现在有问题了，xxx异常，访问链接 http://xxxxxxx，截图如下
+   （给力一点的还会圈起来标注说明）
+B: ok，稍等我看下
+.....
+B: 已修复，验证下
+A: 好的
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;感受下吧&lt;/p&gt;
+&lt;p&gt;推荐一篇文章 &lt;a href="http://macshuo.com/?p=367"&gt;如何提问&lt;/a&gt; | 一本书 &lt;a href="http://book.douban.com/subject/20428922/"&gt;学会提问&lt;/a&gt;&lt;/p&gt;
+&lt;h3 id="2"&gt;2. 搞明白&amp;ldquo;这事谁的问题&amp;rdquo;&lt;/h3&gt;
+&lt;p&gt;当一个人发现一个问题的时候，总是很兴奋地，迫不及待想要证实&lt;/p&gt;
+&lt;p&gt;然后就会有如下&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;A&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;xxx&lt;/span&gt;&lt;span class="err"&gt;系统是不是挂了，我登陆不上去【有时候是页面差异，系统操作失败等】&lt;/span&gt;
+
+&lt;span class="n"&gt;B&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="err"&gt;稍等，我看下&lt;/span&gt;
+&lt;span class="err"&gt;三分钟后&lt;/span&gt;
+&lt;span class="n"&gt;B&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="err"&gt;后台正常，刚才重新走了一遍流程，没问题，&lt;/span&gt;&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="err"&gt;切图&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;
+   &lt;span class="err"&gt;你再试下，可能&lt;/span&gt;&lt;span class="n"&gt;xxx&lt;/span&gt;&lt;span class="err"&gt;问题&lt;/span&gt;
+&lt;span class="n"&gt;A&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="err"&gt;我忘改&lt;/span&gt;&lt;span class="n"&gt;xxx&lt;/span&gt;&lt;span class="err"&gt;了&lt;/span&gt;&lt;span class="sr"&gt;/登陆超时了/xxx了/&lt;/span&gt;&lt;span class="err"&gt;我忘记做&lt;/span&gt;&lt;span class="n"&gt;xxx&lt;/span&gt;&lt;span class="err"&gt;操作了&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;吐血的问题，很多时候，都是自己机器的问题，可能是host/网络/浏览器/系统登陆等等因素导致的，但是大多数人已发现问题，总是认为是别人的问题(系统的问题)，然后迫不及待，然后，我们要花费时间来排查各个可能的问题，跳转N多机器，检查N多服务，而且，相信我，这个过程不会很有趣，而且问题本身的种类很难导致很难将其自动化....《论排查问题的复杂性》&lt;/p&gt;
+&lt;p&gt;当然，如果是可以自动化而你偏偏要每次人肉查而且乐在其中，那我没办法了。&lt;/p&gt;
+&lt;p&gt;后来就变成&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;A&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;xxx&lt;/span&gt;&lt;span class="err"&gt;系统是不是挂了，我点发布了但是前台没更新&lt;/span&gt;
+
+&lt;span class="n"&gt;B&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="err"&gt;重做一遍，&lt;/span&gt;&lt;span class="mi"&gt;10&lt;/span&gt;&lt;span class="err"&gt;分钟后没更新通知我&lt;/span&gt; &lt;span class="err"&gt;【够冷血吧】&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;这类问题次数少也就忍了，担心的是对应人员新人进来的时候，没有老员工带或者培训，那么系统开发者往往一次又一次成为&amp;ldquo;义务培训导师&amp;rdquo;.....&lt;/p&gt;
+&lt;p&gt;另外遇到问题也要忍住证实的欲望，先自己确认下&lt;/p&gt;
+&lt;p&gt;有一本书推荐《你的灯亮着么》&lt;/p&gt;
+&lt;h3 id="3-suprise"&gt;3. Suprise&lt;/h3&gt;
+&lt;p&gt;后端最讨厌的是suprise，安排和做事情的节奏都会被打乱。&lt;/p&gt;
+&lt;p&gt;我的原则是，不接受&amp;amp;unhappy，紧急的会去配合做，当然心情不会happy&lt;/p&gt;
+&lt;p&gt;方案设计，评审，开发，测试那么多环节都没发现，要上线前，需求变更或者xxx有问题，suprise&lt;/p&gt;
+&lt;p&gt;然后，上线时间有时候又是固定的，所以必须要配合处理&lt;/p&gt;
+&lt;p&gt;当然，作为一枚&amp;ldquo;有责任感&amp;rdquo;的后端，肯定都会全力配合处理，不高兴是一回事，把事情完美地搞完是一回事。&lt;/p&gt;
+&lt;p&gt;但这时候，往往会发现，时间不等人，所有人都盯着你，瞬间亚历山大，如果没搞好还很容易成为&amp;ldquo;责任人&amp;rdquo;，延期什么的很容易落到你头上，属于吃力不讨好的角色，前期按时完成，suprise却要背负所有，心里瞬间失衡(╯‵□&amp;prime;)╯︵┻━┻&lt;/p&gt;
+&lt;p&gt;问题是，这个suprise的来源. 才是问题所在，更多的应该反思这里，否则很容易造成后续合作困难。&lt;/p&gt;
+&lt;p&gt;另外，suprise很容易导致黑逻辑、补丁、牛皮糖、硬编码等等，将一块干净的自留地变成垃圾桶，而且破窗理论，所以，要控制。&lt;/p&gt;
+&lt;h3 id="4"&gt;4. 要明白一个道理&lt;/h3&gt;
+&lt;p&gt;1个人1个月能干好一件事情，不代表30个人在1天能把这件事做了&lt;/p&gt;
+&lt;p&gt;很简单的一个道理，但是很容易被人忽视&lt;/p&gt;
+&lt;h3 id="5"&gt;5. 关于估时间&lt;/h3&gt;
+&lt;p&gt;后端需要信任，虽然我们有时候估时间不大准，但是基本都能在少于估算的时间内完成，超过的情况并不多。&lt;/p&gt;
+&lt;p&gt;而且随着工作经验积累，估算时间会越来越准。(三小时就是三小时，额，上下误差几分钟)&lt;/p&gt;
+&lt;p&gt;一般问题过来，很简单顺手做了，复杂的会给个完成时间。&lt;/p&gt;
+&lt;p&gt;不要站在自己的角度去给后端的估时间，常见的理由是：&amp;ldquo;就简单加一个xxx&amp;rdquo;，&amp;ldquo;修改一下而已&amp;rdquo;等，你要知道有些系统并没有那么简单，你要的可能是一个现在能用的东西，但我们需要一个以后无论怎么改都好改而且能用的东西。（相信我，差异很大），同理，不要估工作量啊（2天的量估0.5天，要做完，那另外1.5天怎么破，哥做不到&amp;gt;_&amp;lt;）&lt;/p&gt;
+&lt;p&gt;记住，除非火烧眉毛，否则，能在承诺完成时间内搞定的，不要催。&lt;/p&gt;
+&lt;p&gt;我们需要的是冷静和清晰的思路。催促和打断于事无补。&lt;/p&gt;
+&lt;h3 id="6"&gt;6. 上帝，同一时间内有且仅只有一个&lt;/h3&gt;
+&lt;p&gt;所有人，都认为自己的需求优先级最高。&lt;/p&gt;
+&lt;p&gt;对后端来说，合作和沟通的每个人都是上帝。&lt;/p&gt;
+&lt;p&gt;但是要记住，上帝，同一时刻内只有一个。&lt;/p&gt;
+&lt;p&gt;所以，有了优先级这一说，会排期，一次只做一件事。&lt;/p&gt;
+&lt;p&gt;再给力的后端也不是超人，一次处理N件事情效率很低容易出错，非常不明智的&lt;/p&gt;
+&lt;p&gt;所以，要学会接受排期，除非排的时间不合理要去沟通。&lt;/p&gt;
+&lt;p&gt;你会发现，在截止日期到来的前一刻，后端小伙伴的东西已经搞完提供了。&lt;/p&gt;
+&lt;h3 id="7-im"&gt;7. 合理使用项目管理工具/邮件/IM/电话&lt;/h3&gt;
+&lt;p&gt;综合使用工具进行沟通&lt;/p&gt;
+&lt;p&gt;涉及项目跟踪通知等，请用项目管理工具(目前tower)&lt;/p&gt;
+&lt;p&gt;极重要事情，请邮件&lt;/p&gt;
+&lt;p&gt;极紧急事情，请当面，或者电话&lt;/p&gt;
+&lt;p&gt;其他，IM&lt;/p&gt;
+&lt;p&gt;小事，确认，疑问，突发奇想？灵机一动？等等，注意除非这个沟通有可能导致你必须要去等，否则不到万不得已不要杀过去打断一个程序员的思路。&lt;/p&gt;
+&lt;p&gt;打断是效率杀手，如果不用电话，那恕我只能定期去查，异步回复，所以就不要傻等。&lt;/p&gt;
+&lt;h3 id="8"&gt;8. 被开会&lt;/h3&gt;
+&lt;p&gt;不重要的会议不要勾选抄送我，谢谢&lt;/p&gt;
+&lt;p&gt;冗长无聊相关性不大的会议允许早退，或者过了跟自己相关的部分允许早退&lt;/p&gt;
+&lt;p&gt;超紧急临时会议，没问题&lt;/p&gt;
+&lt;p&gt;其他临时会议，没提前发邀约提前通知的会议都是耍流氓，要知道本来用来码代码的两小时被突如其来的会议占用，打乱了计划安排，那么晚上就得花一个小时加班补回来【别问我为啥是一个小时】&lt;/p&gt;
+&lt;h3 id="9"&gt;9. 拿到承诺&lt;/h3&gt;
+&lt;p&gt;如果有一件事，你提给后端，不说明问题，优先级，截止时间，或者，压根你就扔给后端就不管了。（被动等待会等到海枯石烂的）&lt;/p&gt;
+&lt;p&gt;然后你期望他把事情给做了，把结果给你，或者将事情跟完。很多时候，这都是你的幻想。&lt;/p&gt;
+&lt;p&gt;如果我们没做出承诺，可能这件事情就被排后了，至于完成的时间，完全与取决于工作安排和工作量。&lt;/p&gt;
+&lt;p&gt;所以，一般提给后端的时候，可以多问一句，&amp;ldquo;什么时候能搞定&amp;rdquo;，拿到承诺，一般没问题了。&lt;/p&gt;
+&lt;h3 id="10"&gt;10. 当面沟通时提供上下文&lt;/h3&gt;
+&lt;p&gt;遇到次数不多，但是还是会遇到，干活中都是有&amp;ldquo;状态&amp;rdquo;的&lt;/p&gt;
+&lt;p&gt;有时候在做一件事情，一半&lt;/p&gt;
+&lt;p&gt;然后例如这样&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;A: 把xxx字段改成xxxx.... blablablabla.......
+
+B: 啊？（脑补痴呆状）
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;或者这样&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;A: 把xxx字段改成xxxx.... blablablabla.......
+
+B: 不合适吧，xxxxxxx.......
+
+A: 我在说xx问题
+
+B: 我以为你说XXX问题
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;其实可以这样:&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;A: 关于xx的问题，我们..........
+&lt;/pre&gt;&lt;/div&gt;
+&lt;hr/&gt;
+&lt;p&gt;你要相信，大部分后端都是善良的孩子......&lt;/p&gt;
+&lt;p&gt;而且大部分后端，一个人干N个人的活(N&amp;gt;=2), (╯‵□&amp;prime;)╯︵┻━┻&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Thu, 24 Apr 2014 00:00:00 +0800</pubDate><guid>tag:www.wklken.me,2014-04-24:posts/2014/04/24/unhappy-about-cooperation-and-communication.html</guid><category>blabla</category></item></channel></rss>

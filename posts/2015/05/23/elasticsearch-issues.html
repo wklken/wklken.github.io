@@ -73,7 +73,7 @@
     </section>
 
         <section id="toc">
-            <html><body><div id="toc"><ul><li><a class="toc-href" href="#" title="Elasticsearch几个问题的解决">Elasticsearch几个问题的解决</a><ul><li><a class="toc-href" href="#unassigned-shards" title="大量unassigned shards">大量unassigned shards</a></li><li><a class="toc-href" href="#status-red" title="status: red">status: red</a></li><li><a class="toc-href" href="#fix-unassigned-shards" title="fix unassigned shards">fix unassigned shards</a></li><li><a class="toc-href" href="#too-many-open-files" title="&ldquo;Too many open files&rdquo;">&ldquo;Too many open files&rdquo;</a></li></ul></li></ul></div></body></html>
+            <div id="toc"><ul><li><a class="toc-href" href="#" title="Elasticsearch几个问题的解决">Elasticsearch几个问题的解决</a><ul><li><a class="toc-href" href="#unassigned-shards" title="大量unassigned shards">大量unassigned shards</a></li><li><a class="toc-href" href="#status-red" title="status: red">status: red</a></li><li><a class="toc-href" href="#fix-unassigned-shards" title="fix unassigned shards">fix unassigned shards</a></li><li><a class="toc-href" href="#too-many-open-files" title="&ldquo;Too many open files&rdquo;">&ldquo;Too many open files&rdquo;</a></li></ul></li></ul></div>
         </section>
     <section id="content">
         <p>今天惯例看统计报表, 才发现es集群悲剧了......昨天下午到今天早上, 持续报错, 写了1G的错误日志&gt;_&lt;#(暂无监控....)</p>
@@ -157,17 +157,17 @@ pv-2015.05.22                 1 r UNASSIGNED
     }'
 </pre></div>
 <p>批量处理的脚本(当数量很多的话, 注意替换node的名字)</p>
-<div class="codehilite"><pre><span class="c">#!/bin/bash</span>
+<div class="codehilite"><pre><span class="ch">#!/bin/bash</span>
 
 <span class="k">for</span> index in <span class="k">$(</span>curl  -s <span class="s1">'http://localhost:9200/_cat/shards'</span> <span class="p">|</span> grep UNASSIGNED <span class="p">|</span> awk <span class="s1">'{print $1}'</span> <span class="p">|</span> sort <span class="p">|</span> uniq<span class="k">)</span><span class="p">;</span> <span class="k">do</span>
-    <span class="k">for</span> shard in <span class="k">$(</span>curl  -s <span class="s1">'http://localhost:9200/_cat/shards'</span> <span class="p">|</span> grep UNASSIGNED <span class="p">|</span> grep <span class="nv">$index</span> <span class="p">|</span> awk <span class="s1">'{print $2}'</span> <span class="p">|</span> sort <span class="p">|</span> uniq<span class="k">)</span><span class="p">;</span> <span class="k">do</span>
-        <span class="nb">echo</span>  <span class="nv">$index</span> <span class="nv">$shard</span>
+    <span class="k">for</span> shard in <span class="k">$(</span>curl  -s <span class="s1">'http://localhost:9200/_cat/shards'</span> <span class="p">|</span> grep UNASSIGNED <span class="p">|</span> grep $index <span class="p">|</span> awk <span class="s1">'{print $2}'</span> <span class="p">|</span> sort <span class="p">|</span> uniq<span class="k">)</span><span class="p">;</span> <span class="k">do</span>
+        <span class="nb">echo</span>  $index $shard
 
         curl -XPOST <span class="s1">'localhost:9200/_cluster/reroute'</span> -d <span class="s2">"{</span>
 <span class="s2">            'commands' : [ {</span>
 <span class="s2">                  'allocate' : {</span>
-<span class="s2">                      'index' : </span><span class="nv">$index</span><span class="s2">,</span>
-<span class="s2">                      'shard' : </span><span class="nv">$shard</span><span class="s2">,</span>
+<span class="s2">                      'index' : </span>$<span class="s2">index,</span>
+<span class="s2">                      'shard' : </span>$<span class="s2">shard,</span>
 <span class="s2">                      'node' : 'Master',</span>
 <span class="s2">                      'allow_primary' : true</span>
 <span class="s2">                  }</span>

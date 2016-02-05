@@ -1,5 +1,332 @@
 <?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>wklken's blog</title><link>http://www.wklken.me/</link><description></description><atom:link href="http://www.wklken.me/tag/vim/feed" rel="self"></atom:link><lastBuildDate>Sat, 13 Jun 2015 12:16:00 +0800</lastBuildDate><item><title>vim插件: surround &amp; repeat[成对符号编辑]</title><link>http://www.wklken.me/posts/2015/06/13/vim-plugin-surround-repeat.html</link><description>&lt;p&gt;k-vim配置 &lt;a href="https://github.com/wklken/k-vim"&gt;github&lt;/a&gt;&lt;/p&gt;
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>wklken's blog</title><link>http://www.wklken.me/</link><description></description><atom:link href="http://www.wklken.me/tag/vim/feed" rel="self"></atom:link><lastBuildDate>Wed, 03 Feb 2016 00:00:00 +0800</lastBuildDate><item><title>一些vim的个性化配置</title><link>http://www.wklken.me/posts/2016/02/03/some-vim-configs.html</link><description>&lt;p&gt;在咖啡馆kill time, 时间不多但实在无聊, 随便写写&lt;/p&gt;
+&lt;hr/&gt;
+&lt;p&gt;入坑vim, 四年有余了&lt;/p&gt;
+&lt;p&gt;自从2012年将自己的配置发布到github后, 持续性的维护着, 逐步解决一些使用中的痛点, 反直觉的东西, 慢慢形成了现有的配置.&lt;/p&gt;
+&lt;p&gt;&lt;a href="https://github.com/wklken/k-vim"&gt;k-vim&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;以下, 就列下, 在k-vim中, 做了哪些配置, 下面这些在 &lt;a href="https://github.com/wklken/k-vim/blob/master/vimrc"&gt;vimrc&lt;/a&gt; 中都可以找到&lt;/p&gt;
+&lt;p&gt;首先, 一上来就把&lt;code&gt;leader&lt;/code&gt;键改掉&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;" 修改leader键
+let mapleader = ','
+let g:mapleader = ','
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;移动时, 保留到底部的空间&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;" 在上下移动光标时，光标的上方或下方至少会保留显示的行数
+set scrolloff=7
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;自定义代码折叠toggle&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;" 代码折叠自定义快捷键 &amp;lt;leader&amp;gt;zz
+let g:FoldMethod = 0
+map &amp;lt;leader&amp;gt;zz :call ToggleFold()&amp;lt;cr&amp;gt;
+fun! ToggleFold()
+    if g:FoldMethod == 0
+        exe "normal! zM"
+        let g:FoldMethod = 1
+    else
+        exe "normal! zR"
+        let g:FoldMethod = 0
+    endif
+endfun
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;&lt;code&gt;ctrl-n&lt;/code&gt;进行相对行号/绝对行号切换&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;" 相对行号: 行号变成相对，可以用 nj/nk 进行跳转
+set relativenumber number
+au FocusLost * :set norelativenumber number
+au FocusGained * :set relativenumber
+" 插入模式下用绝对行号, 普通模式下用相对
+autocmd InsertEnter * :set norelativenumber number
+autocmd InsertLeave * :set relativenumber
+function! NumberToggle()
+  if(&amp;amp;relativenumber == 1)
+    set norelativenumber number
+  else
+    set relativenumber
+  endif
+endfunc
+nnoremap &amp;lt;C-n&amp;gt; :call NumberToggle()&amp;lt;cr&amp;gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;quickfix的使用, 回车跳转到报错点, &lt;code&gt;s&lt;/code&gt;或&lt;code&gt;v&lt;/code&gt;分屏打开&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;" In the quickfix window, &amp;lt;CR&amp;gt; is used to jump to the error under the
+" cursor, so undefine the mapping there.
+autocmd BufReadPost quickfix nnoremap &amp;lt;buffer&amp;gt; &amp;lt;CR&amp;gt; &amp;lt;CR&amp;gt;
+" quickfix window  s/v to open in split window,  ,gd/,jd =&amp;gt; quickfix window =&amp;gt; open it
+autocmd BufReadPost quickfix nnoremap &amp;lt;buffer&amp;gt; v &amp;lt;C-w&amp;gt;&amp;lt;Enter&amp;gt;&amp;lt;C-w&amp;gt;L
+autocmd BufReadPost quickfix nnoremap &amp;lt;buffer&amp;gt; s &amp;lt;C-w&amp;gt;&amp;lt;Enter&amp;gt;&amp;lt;C-w&amp;gt;K
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;打开vim, 自动定位到上次最后变更位置&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;" 打开自动定位到最后编辑的位置, 需要确认 .viminfo 当前用户可写
+if has("autocmd")
+  au BufReadPost * if line("'\"") &amp;gt; 1 &amp;amp;&amp;amp; line("'\"") &amp;lt;= line("$") | exe "normal! g'\"" | endif
+endif
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;干掉方向键, 强迫自己使用&lt;code&gt;hjkl&lt;/code&gt;&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;" 关闭方向键, 强迫自己用 hjkl
+map &amp;lt;Left&amp;gt; &amp;lt;Nop&amp;gt;
+map &amp;lt;Right&amp;gt; &amp;lt;Nop&amp;gt;
+map &amp;lt;Up&amp;gt; &amp;lt;Nop&amp;gt;
+map &amp;lt;Down&amp;gt; &amp;lt;Nop&amp;gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;&lt;code&gt;swap&lt;/code&gt;换行展示时, 使用&lt;code&gt;hjkl&lt;/code&gt;体验更好&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;"Treat long lines as break lines (useful when moving around in them)
+"se swap之后，同物理行上线直接跳
+nnoremap k gk
+nnoremap gk k
+nnoremap j gj
+nnoremap gj j
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;F键区的映射&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;" F2 行号开关，用于鼠标复制代码用
+" 为方便复制，用&amp;lt;F2&amp;gt;开启/关闭行号显示:
+function! HideNumber()
+  if(&amp;amp;relativenumber == &amp;amp;number)
+    set relativenumber! number!
+  elseif(&amp;amp;number)
+    set number!
+  else
+    set relativenumber!
+  endif
+  set number?
+endfunc
+nnoremap &amp;lt;F2&amp;gt; :call HideNumber()&amp;lt;CR&amp;gt;
+
+" F3 显示可打印字符开关
+nnoremap &amp;lt;F3&amp;gt; :set list! list?&amp;lt;CR&amp;gt;
+" F4 换行开关
+nnoremap &amp;lt;F4&amp;gt; :set wrap! wrap?&amp;lt;CR&amp;gt;
+
+set pastetoggle=&amp;lt;F5&amp;gt;            "    when in insert mode, press &amp;lt;F5&amp;gt; to go to
+                                "    paste mode, where you can paste mass data
+                                "    that won't be autoindented
+
+" disbale paste mode when leaving insert mode
+au InsertLeave * set nopaste
+
+" F6 语法开关，关闭语法可以加快大文件的展示
+nnoremap &amp;lt;F6&amp;gt; :exec exists('syntax_on') ? 'syn off' : 'syn on'&amp;lt;CR&amp;gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;分屏窗口切换时, 直接使用&lt;code&gt;ctrl-h/j/k/l&lt;/code&gt;&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;" 分屏窗口移动, Smart way to move between windows
+map &amp;lt;C-j&amp;gt; &amp;lt;C-W&amp;gt;j
+map &amp;lt;C-k&amp;gt; &amp;lt;C-W&amp;gt;k
+map &amp;lt;C-h&amp;gt; &amp;lt;C-W&amp;gt;h
+map &amp;lt;C-l&amp;gt; &amp;lt;C-W&amp;gt;l
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;多窗口编辑时, 临时放大某个窗口, 编辑完再切回原来的布局&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;" http://stackoverflow.com/questions/13194428/is-better-way-to-zoom-windows-in-vim-than-zoomwin
+" Zoom / Restore window.
+function! s:ZoomToggle() abort
+    if exists('t:zoomed') &amp;amp;&amp;amp; t:zoomed
+        execute t:zoom_winrestcmd
+        let t:zoomed = 0
+    else
+        let t:zoom_winrestcmd = winrestcmd()
+        resize
+        vertical resize
+        let t:zoomed = 1
+    endif
+endfunction
+command! ZoomToggle call s:ZoomToggle()
+nnoremap &amp;lt;silent&amp;gt; &amp;lt;Leader&amp;gt;z :ZoomToggle&amp;lt;CR&amp;gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;分号映射为冒号, 省得要进入命令模式需要按&lt;code&gt;shift&lt;/code&gt;&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;" Map ; to : and save a million keystrokes 用于快速进入命令行
+nnoremap ; :
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;&lt;code&gt;H&lt;/code&gt;和&lt;code&gt;L&lt;/code&gt;跳转到行首行末, 实在不想按&lt;code&gt;0&lt;/code&gt;和&lt;code&gt;$&lt;/code&gt;, 太远&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;" Go to home and end using capitalized directions
+noremap H ^
+noremap L $
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;命令行模式快捷键, &lt;code&gt;ctrl-a/e&lt;/code&gt;跳转到行首行尾&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;" 命令行模式增强，ctrl - a到行首， -e 到行尾
+cnoremap &amp;lt;C-j&amp;gt; &amp;lt;t_kd&amp;gt;
+cnoremap &amp;lt;C-k&amp;gt; &amp;lt;t_ku&amp;gt;
+cnoremap &amp;lt;C-a&amp;gt; &amp;lt;Home&amp;gt;
+cnoremap &amp;lt;C-e&amp;gt; &amp;lt;End&amp;gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;空格进入搜索&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;" 搜索相关
+" Map &amp;lt;Space&amp;gt; to / (search) and Ctrl-&amp;lt;Space&amp;gt; to ? (backwards search)
+map &amp;lt;space&amp;gt; /
+" 进入搜索Use sane regexes"
+nnoremap / /\v
+vnoremap / /\v
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;搜索时, 进入下一个上一个始终放在屏幕中间&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;" Keep search pattern at the center of the screen.
+nnoremap &amp;lt;silent&amp;gt; n nzz
+nnoremap &amp;lt;silent&amp;gt; N Nzz
+nnoremap &amp;lt;silent&amp;gt; * *zz
+nnoremap &amp;lt;silent&amp;gt; # #zz
+nnoremap &amp;lt;silent&amp;gt; g* g*zz
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;&lt;code&gt;leader-/&lt;/code&gt; 关闭掉上次搜索的高亮&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;" 去掉搜索高亮
+noremap &amp;lt;silent&amp;gt;&amp;lt;leader&amp;gt;/ :nohls&amp;lt;CR&amp;gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;交换&lt;code&gt;#&lt;/code&gt;和&lt;code&gt;*&lt;/code&gt;, &lt;code&gt;#&lt;/code&gt;更近&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;" switch # *
+nnoremap # *
+nnoremap * #
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Python 写入注释&lt;code&gt;#&lt;/code&gt;号时, 不每次都跳到行首&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;" for # indent, python文件中输入新行时#号注释不切回行首
+autocmd BufNewFile,BufRead *.py inoremap # X&amp;lt;c-h&amp;gt;#
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;buffer切换相关, 使用不多&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="s"&gt;" 切换前后buffer&lt;/span&gt;
+&lt;span class="n"&gt;nnoremap&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="nl"&gt;b&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="n"&gt;bprevious&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;cr&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;
+&lt;span class="n"&gt;nnoremap&lt;/span&gt; &lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="nl"&gt;b&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="n"&gt;bnext&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;cr&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;
+&lt;span class="s"&gt;" 使用方向键切换buffer&lt;/span&gt;
+&lt;span class="n"&gt;noremap&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;left&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="n"&gt;bp&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;CR&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;
+&lt;span class="n"&gt;noremap&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;right&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="n"&gt;bn&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;CR&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;tab操作....看个人喜好, 不过自从用了crtlspace之后, 逐渐很少用了&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;" tab 操作
+" http://vim.wikia.com/wiki/Alternative_tab_navigation
+" http://stackoverflow.com/questions/2005214/switching-to-a-particular-tab-in-vim
+
+" tab切换
+map &amp;lt;leader&amp;gt;th :tabfirst&amp;lt;cr&amp;gt;
+map &amp;lt;leader&amp;gt;tl :tablast&amp;lt;cr&amp;gt;
+
+map &amp;lt;leader&amp;gt;tj :tabnext&amp;lt;cr&amp;gt;
+map &amp;lt;leader&amp;gt;tk :tabprev&amp;lt;cr&amp;gt;
+map &amp;lt;leader&amp;gt;tn :tabnext&amp;lt;cr&amp;gt;
+map &amp;lt;leader&amp;gt;tp :tabprev&amp;lt;cr&amp;gt;
+
+map &amp;lt;leader&amp;gt;te :tabedit&amp;lt;cr&amp;gt;
+map &amp;lt;leader&amp;gt;td :tabclose&amp;lt;cr&amp;gt;
+map &amp;lt;leader&amp;gt;tm :tabm&amp;lt;cr&amp;gt;
+
+" normal模式下切换到确切的tab
+noremap &amp;lt;leader&amp;gt;1 1gt
+noremap &amp;lt;leader&amp;gt;2 2gt
+noremap &amp;lt;leader&amp;gt;3 3gt
+noremap &amp;lt;leader&amp;gt;4 4gt
+noremap &amp;lt;leader&amp;gt;5 5gt
+noremap &amp;lt;leader&amp;gt;6 6gt
+noremap &amp;lt;leader&amp;gt;7 7gt
+noremap &amp;lt;leader&amp;gt;8 8gt
+noremap &amp;lt;leader&amp;gt;9 9gt
+noremap &amp;lt;leader&amp;gt;0 :tablast&amp;lt;cr&amp;gt;
+
+" Toggles between the active and last active tab "
+" The first tab is always 1 "
+let g:last_active_tab = 1
+" nnoremap &amp;lt;leader&amp;gt;gt :execute 'tabnext ' . g:last_active_tab&amp;lt;cr&amp;gt;
+" nnoremap &amp;lt;silent&amp;gt; &amp;lt;c-o&amp;gt; :execute 'tabnext ' . g:last_active_tab&amp;lt;cr&amp;gt;
+" vnoremap &amp;lt;silent&amp;gt; &amp;lt;c-o&amp;gt; :execute 'tabnext ' . g:last_active_tab&amp;lt;cr&amp;gt;
+nnoremap &amp;lt;silent&amp;gt; &amp;lt;leader&amp;gt;tt :execute 'tabnext ' . g:last_active_tab&amp;lt;cr&amp;gt;
+autocmd TabLeave * let g:last_active_tab = tabpagenr()
+
+" 新建tab  Ctrl+t
+nnoremap &amp;lt;C-t&amp;gt;     :tabnew&amp;lt;CR&amp;gt;
+inoremap &amp;lt;C-t&amp;gt;     &amp;lt;Esc&amp;gt;:tabnew&amp;lt;CR&amp;gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;选中后, 调整缩进, 可能需要多次调整, 默认调整一次后退出了选中, 需要再次选.&lt;/p&gt;
+&lt;p&gt;这个变更, 保证调整缩进后, 还是选中状态&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;" 调整缩进后自动选中，方便再次操作
+vnoremap &amp;lt; &amp;lt;gv
+vnoremap &amp;gt; &amp;gt;gv
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;复制动作的变更, &lt;code&gt;Y&lt;/code&gt;, 复制到行末&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;" y$ -&amp;gt; Y Make Y behave like other capitals
+map Y y$
+
+" 复制选中区到系统剪切板中
+vnoremap &amp;lt;leader&amp;gt;y "+y
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;选中全部/选中段落&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;" select all
+map &amp;lt;Leader&amp;gt;sa ggVG"
+
+" select block
+nnoremap &amp;lt;leader&amp;gt;v V`}
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;保存, 没权限的时候&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;" w!! to sudo &amp;amp; write a file
+cmap w!! w !sudo tee &amp;gt;/dev/null %
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;使用&lt;code&gt;kj&lt;/code&gt;, 替换&lt;code&gt;ESC&lt;/code&gt;&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;" kj 替换 Esc
+inoremap kj &amp;lt;Esc&amp;gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;调整&lt;code&gt;Ctrl-e/y&lt;/code&gt;滚动&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;" 滚动Speed up scrolling of the viewport slightly
+nnoremap &amp;lt;C-e&amp;gt; 2&amp;lt;C-e&amp;gt;
+nnoremap &amp;lt;C-y&amp;gt; 2&amp;lt;C-y&amp;gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;快捷保存和退出&lt;code&gt;leader-q/w&lt;/code&gt;&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;" Quickly close the current window
+nnoremap &amp;lt;leader&amp;gt;q :q&amp;lt;CR&amp;gt;
+
+" Quickly save the current file
+nnoremap &amp;lt;leader&amp;gt;w :w&amp;lt;CR&amp;gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;交换&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;" 交换 ' `, 使得可以快速使用'跳到marked位置
+nnoremap ' `
+nnoremap ` '
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;变更&lt;code&gt;U&lt;/code&gt;, 撤销重做的时候更快&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;" remap U to &amp;lt;C-r&amp;gt; for easier redo
+nnoremap U &amp;lt;C-r&amp;gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;保存文件时, 自动移除多余空格&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="s"&gt;" 保存python文件时删除多余空格&lt;/span&gt;
+&lt;span class="n"&gt;fun&lt;/span&gt;&lt;span class="o"&gt;!&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;SID&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;StripTrailingWhitespaces&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+    &lt;span class="n"&gt;let&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;line&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;"."&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="n"&gt;let&lt;/span&gt; &lt;span class="n"&gt;c&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;col&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;"."&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="nf"&gt;%s&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="err"&gt;\&lt;/span&gt;&lt;span class="n"&gt;s&lt;/span&gt;&lt;span class="err"&gt;\&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="c1"&gt;//e&lt;/span&gt;
+    &lt;span class="n"&gt;call&lt;/span&gt; &lt;span class="n"&gt;cursor&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;c&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;endfun&lt;/span&gt;
+&lt;span class="n"&gt;autocmd&lt;/span&gt; &lt;span class="n"&gt;FileType&lt;/span&gt; &lt;span class="n"&gt;c&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="n"&gt;cpp&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="n"&gt;java&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="n"&gt;go&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="n"&gt;php&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="n"&gt;javascript&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="n"&gt;puppet&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="n"&gt;python&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="n"&gt;rust&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="n"&gt;twig&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="n"&gt;xml&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="n"&gt;yml&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="n"&gt;perl&lt;/span&gt; &lt;span class="n"&gt;autocmd&lt;/span&gt; &lt;span class="n"&gt;BufWritePre&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;buffer&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="n"&gt;call&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;SID&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;StripTrailingWhitespaces&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;shell和python文件新建时, 自动插入行头&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;" 定义函数AutoSetFileHead，自动插入文件头
+autocmd BufNewFile *.sh,*.py exec ":call AutoSetFileHead()"
+function! AutoSetFileHead()
+    "如果文件类型为.sh文件
+    if &amp;amp;filetype == 'sh'
+        call setline(1, "\#!/bin/bash")
+    endif
+
+    "如果文件类型为python
+    if &amp;amp;filetype == 'python'
+        call setline(1, "\#!/usr/bin/env python")
+        call append(1, "\# encoding: utf-8")
+    endif
+
+    normal G
+    normal o
+    normal o
+endfunc
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;自定义一些高亮的关键字&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;" 设置可以高亮的关键字
+if has("autocmd")
+  " Highlight TODO, FIXME, NOTE, etc.
+  if v:version &amp;gt; 701
+    autocmd Syntax * call matchadd('Todo',  '\W\zs\(TODO\|FIXME\|CHANGED\|DONE\|XXX\|BUG\|HACK\)')
+    autocmd Syntax * call matchadd('Debug', '\W\zs\(NOTE\|INFO\|IDEA\|NOTICE\)')
+  endif
+endif
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;其他一些设置&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;" 启动的时候不显示那个援助索马里儿童的提示
+set shortmess=atI
+
+" 设置 退出vim后，内容显示在终端屏幕, 可以用于查看和复制, 不需要可以去掉
+" 好处：误删什么的，如果以前屏幕打开，可以找回
+set t_ti= t_te=
+
+" 鼠标暂不启用, 键盘党....
+set mouse-=a
+
+" 回车即选中当前项, 慎用
+inoremap &amp;lt;expr&amp;gt; &amp;lt;CR&amp;gt;       pumvisible() ? "\&amp;lt;C-y&amp;gt;" : "\&amp;lt;CR&amp;gt;"
+&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Wed, 03 Feb 2016 00:00:00 +0800</pubDate><guid>tag:www.wklken.me,2016-02-03:posts/2016/02/03/some-vim-configs.html</guid><category>vim</category><category>linux</category></item><item><title>vim插件: surround &amp; repeat[成对符号编辑]</title><link>http://www.wklken.me/posts/2015/06/13/vim-plugin-surround-repeat.html</link><description>&lt;p&gt;k-vim配置 &lt;a href="https://github.com/wklken/k-vim"&gt;github&lt;/a&gt;&lt;/p&gt;
 &lt;hr/&gt;
 &lt;h2 id="surround"&gt;surround&lt;/h2&gt;
 &lt;p&gt;作用: 快速给词加环绕符号,例如单引号/双引号/括号/成对标签等&lt;/p&gt;
@@ -440,33 +767,33 @@ au Syntax * RainbowParenthesesLoadBraces
 :lprevious 到上一个错误
 &lt;/pre&gt;&lt;/div&gt;
 &lt;h2 id="_3"&gt;最终配置&lt;/h2&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="nx"&gt;Bundle&lt;/span&gt; &lt;span class="s1"&gt;'scrooloose/syntastic'&lt;/span&gt;
-&lt;span class="kd"&gt;let&lt;/span&gt; &lt;span class="nx"&gt;g&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="nx"&gt;syntastic_error_symbol&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s1"&gt;'&amp;gt;&amp;gt;'&lt;/span&gt;
-&lt;span class="kd"&gt;let&lt;/span&gt; &lt;span class="nx"&gt;g&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="nx"&gt;syntastic_warning_symbol&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s1"&gt;'&amp;gt;'&lt;/span&gt;
-&lt;span class="kd"&gt;let&lt;/span&gt; &lt;span class="nx"&gt;g&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="nx"&gt;syntastic_check_on_open&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;
-&lt;span class="kd"&gt;let&lt;/span&gt; &lt;span class="nx"&gt;g&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="nx"&gt;syntastic_check_on_wq&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;
-&lt;span class="kd"&gt;let&lt;/span&gt; &lt;span class="nx"&gt;g&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="nx"&gt;syntastic_enable_highlighting&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;
-&lt;span class="kd"&gt;let&lt;/span&gt; &lt;span class="nx"&gt;g&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="nx"&gt;syntastic_python_checkers&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;'pyflakes'&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt; &lt;span class="s2"&gt;" 使用pyflakes,速度比pylint快&lt;/span&gt;
-&lt;span class="s2"&gt;let g:syntastic_javascript_checkers = &lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;'jsl'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'jshint'&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="s2"&gt;&lt;/span&gt;
-&lt;span class="s2"&gt;let g:syntastic_html_checkers=&lt;/span&gt;&lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;'tidy'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'jshint'&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;&lt;span class="s2"&gt;&lt;/span&gt;
-&lt;span class="s2"&gt;"&lt;/span&gt; &lt;span class="nx"&gt;修改高亮的背景色&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;适应主题&lt;/span&gt;
-&lt;span class="nx"&gt;highlight&lt;/span&gt; &lt;span class="nx"&gt;SyntasticErrorSign&lt;/span&gt; &lt;span class="nx"&gt;guifg&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nx"&gt;white&lt;/span&gt; &lt;span class="nx"&gt;guibg&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nx"&gt;black&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;Bundle 'scrooloose/syntastic'
+let g:syntastic_error_symbol='&amp;gt;&amp;gt;'
+let g:syntastic_warning_symbol='&amp;gt;'
+let g:syntastic_check_on_open=1
+let g:syntastic_check_on_wq=0
+let g:syntastic_enable_highlighting=1
+let g:syntastic_python_checkers=['pyflakes'] " 使用pyflakes,速度比pylint快
+let g:syntastic_javascript_checkers = ['jsl', 'jshint']
+let g:syntastic_html_checkers=['tidy', 'jshint']
+" 修改高亮的背景色, 适应主题
+highlight SyntasticErrorSign guifg=white guibg=black
 
-&lt;span class="s2"&gt;" to see error location list&lt;/span&gt;
-&lt;span class="s2"&gt;let g:syntastic_always_populate_loc_list = 0&lt;/span&gt;
-&lt;span class="s2"&gt;let g:syntastic_auto_loc_list = 0&lt;/span&gt;
-&lt;span class="s2"&gt;let g:syntastic_loc_list_height = 5&lt;/span&gt;
-&lt;span class="s2"&gt;function! ToggleErrors()&lt;/span&gt;
-&lt;span class="s2"&gt;    let old_last_winnr = winnr('$')&lt;/span&gt;
-&lt;span class="s2"&gt;    lclose&lt;/span&gt;
-&lt;span class="s2"&gt;    if old_last_winnr == winnr('$')&lt;/span&gt;
-&lt;span class="s2"&gt;        "&lt;/span&gt; &lt;span class="nx"&gt;Nothing&lt;/span&gt; &lt;span class="nx"&gt;was&lt;/span&gt; &lt;span class="nx"&gt;closed&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;open&lt;/span&gt; &lt;span class="nx"&gt;syntastic&lt;/span&gt; &lt;span class="nx"&gt;error&lt;/span&gt; &lt;span class="nx"&gt;location&lt;/span&gt; &lt;span class="nx"&gt;panel&lt;/span&gt;
-        &lt;span class="nx"&gt;Errors&lt;/span&gt;
-    &lt;span class="nx"&gt;endif&lt;/span&gt;
-&lt;span class="nx"&gt;endfunction&lt;/span&gt;
-&lt;span class="nx"&gt;nnoremap&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="nx"&gt;Leader&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="nx"&gt;s&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="nx"&gt;call&lt;/span&gt; &lt;span class="nx"&gt;ToggleErrors&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="nx"&gt;cr&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;
-&lt;span class="s2"&gt;" nnoremap &amp;lt;Leader&amp;gt;sn :lnext&amp;lt;cr&amp;gt;&lt;/span&gt;
-&lt;span class="s2"&gt;"&lt;/span&gt; &lt;span class="nx"&gt;nnoremap&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="nx"&gt;Leader&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="nx"&gt;sp&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="nx"&gt;lprevious&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="nx"&gt;cr&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;
+" to see error location list
+let g:syntastic_always_populate_loc_list = 0
+let g:syntastic_auto_loc_list = 0
+let g:syntastic_loc_list_height = 5
+function! ToggleErrors()
+    let old_last_winnr = winnr('$')
+    lclose
+    if old_last_winnr == winnr('$')
+        " Nothing was closed, open syntastic error location panel
+        Errors
+    endif
+endfunction
+nnoremap &amp;lt;Leader&amp;gt;s :call ToggleErrors()&amp;lt;cr&amp;gt;
+" nnoremap &amp;lt;Leader&amp;gt;sn :lnext&amp;lt;cr&amp;gt;
+" nnoremap &amp;lt;Leader&amp;gt;sp :lprevious&amp;lt;cr&amp;gt;
 &lt;/pre&gt;&lt;/div&gt;
 &lt;h2 id="_4"&gt;建议&lt;/h2&gt;
 &lt;ol&gt;
@@ -873,7 +1200,7 @@ map &amp;lt;Down&amp;gt; &amp;lt;Nop&amp;gt;
 &lt;/ul&gt;
 &lt;p&gt;block select&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;\&amp;lt;ctrl+v&amp;gt; -&amp;gt; hjkl/\&amp;lt;ctrl+d&amp;gt;&lt;/li&gt;
+&lt;li&gt;\&lt;ctrl+v\&gt; -&amp;gt; hjkl/\&amp;lt;ctrl+d&amp;gt;&lt;/ctrl+v\&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;p&gt;行首加 / 行尾加&lt;/p&gt;
 &lt;hr/&gt;

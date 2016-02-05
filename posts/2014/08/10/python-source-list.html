@@ -73,7 +73,7 @@
     </section>
 
         <section id="toc">
-            <html><body><div id="toc"><ul><li><a class="toc-href" href="#" title="Python 源码阅读 - list">Python 源码阅读 - list</a><ul><li><a class="toc-href" href="#_1" title="定义">定义</a></li><li><a class="toc-href" href="#_2" title="构造">构造</a></li><li><a class="toc-href" href="#list_resize" title="list_resize">list_resize</a></li><li><a class="toc-href" href="#pylistobject" title="回收和PyListObject对象缓冲池">回收和PyListObject对象缓冲池</a></li><li><a class="toc-href" href="#list" title="List的操作过程">List的操作过程</a><ul><li><a class="toc-href" href="#_3" title="插入">插入</a></li><li><a class="toc-href" href="#append" title="append">append</a></li><li><a class="toc-href" href="#extend" title="extend">extend</a></li><li><a class="toc-href" href="#_4" title="删除">删除</a></li></ul></li></ul></li></ul></div></body></html>
+            <div id="toc"><ul><li><a class="toc-href" href="#" title="Python 源码阅读 - list">Python 源码阅读 - list</a><ul><li><a class="toc-href" href="#_1" title="定义">定义</a></li><li><a class="toc-href" href="#_2" title="构造">构造</a></li><li><a class="toc-href" href="#list_resize" title="list_resize">list_resize</a></li><li><a class="toc-href" href="#pylistobject" title="回收和PyListObject对象缓冲池">回收和PyListObject对象缓冲池</a></li><li><a class="toc-href" href="#list" title="List的操作过程">List的操作过程</a><ul><li><a class="toc-href" href="#_3" title="插入">插入</a></li><li><a class="toc-href" href="#append" title="append">append</a></li><li><a class="toc-href" href="#extend" title="extend">extend</a></li><li><a class="toc-href" href="#_4" title="删除">删除</a></li></ul></li></ul></li></ul></div>
         </section>
     <section id="content">
         <p>还剩 tuple 和 dict就把几个基本类型写完了, 然后歇歇先找工作&gt;_&lt;</p>
@@ -246,15 +246,15 @@ else
 </pre></div>
 <h1 id="pylistobject">回收和PyListObject对象缓冲池</h1>
 <p>看下缓冲池相关的定义</p>
-<div class="codehilite"><pre><span class="cm">/* Empty list reuse scheme to save calls to malloc and free */</span><span class="w"></span>
-<span class="err">#</span>ifndef<span class="w"> </span>PyList_MAXFREELIST<span class="w"></span>
-<span class="err">#</span>define<span class="w"> </span>PyList_MAXFREELIST<span class="w"> </span><span class="m">80</span><span class="w"></span>
-<span class="err">#</span>endif<span class="w"></span>
+<div class="codehilite"><pre><span class="cm">/* Empty list reuse scheme to save calls to malloc and free */</span>
+<span class="cp">#ifndef PyList_MAXFREELIST</span>
+<span class="cp">#define PyList_MAXFREELIST 80</span>
+<span class="cp">#endif</span>
 
-<span class="o">//</span><span class="w"> </span><span class="m">80</span><span class="err">个</span><span class="w"></span>
-static<span class="w"> </span>PyListObject<span class="w"> </span><span class="o">*</span>free_list<span class="err">[</span>PyList_MAXFREELIST<span class="err">];</span><span class="w"></span>
+<span class="c1">// 80个</span>
+<span class="k">static</span> <span class="n">PyListObject</span> <span class="o">*</span><span class="n">free_list</span><span class="p">[</span><span class="n">PyList_MAXFREELIST</span><span class="p">];</span>
 
-static<span class="w"> </span>int<span class="w"> </span>numfree<span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0</span><span class="err">;</span><span class="w"></span>
+<span class="k">static</span> <span class="kt">int</span> <span class="n">numfree</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
 </pre></div>
 <p>我们先看下list_dealloc的定义</p>
 <div class="codehilite"><pre>static void

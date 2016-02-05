@@ -80,17 +80,17 @@ pv-2015.05.22                 1 r UNASSIGNED
     }'
 &lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;批量处理的脚本(当数量很多的话, 注意替换node的名字)&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="c"&gt;#!/bin/bash&lt;/span&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="ch"&gt;#!/bin/bash&lt;/span&gt;
 
 &lt;span class="k"&gt;for&lt;/span&gt; index in &lt;span class="k"&gt;$(&lt;/span&gt;curl  -s &lt;span class="s1"&gt;'http://localhost:9200/_cat/shards'&lt;/span&gt; &lt;span class="p"&gt;|&lt;/span&gt; grep UNASSIGNED &lt;span class="p"&gt;|&lt;/span&gt; awk &lt;span class="s1"&gt;'{print $1}'&lt;/span&gt; &lt;span class="p"&gt;|&lt;/span&gt; sort &lt;span class="p"&gt;|&lt;/span&gt; uniq&lt;span class="k"&gt;)&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="k"&gt;do&lt;/span&gt;
-    &lt;span class="k"&gt;for&lt;/span&gt; shard in &lt;span class="k"&gt;$(&lt;/span&gt;curl  -s &lt;span class="s1"&gt;'http://localhost:9200/_cat/shards'&lt;/span&gt; &lt;span class="p"&gt;|&lt;/span&gt; grep UNASSIGNED &lt;span class="p"&gt;|&lt;/span&gt; grep &lt;span class="nv"&gt;$index&lt;/span&gt; &lt;span class="p"&gt;|&lt;/span&gt; awk &lt;span class="s1"&gt;'{print $2}'&lt;/span&gt; &lt;span class="p"&gt;|&lt;/span&gt; sort &lt;span class="p"&gt;|&lt;/span&gt; uniq&lt;span class="k"&gt;)&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="k"&gt;do&lt;/span&gt;
-        &lt;span class="nb"&gt;echo&lt;/span&gt;  &lt;span class="nv"&gt;$index&lt;/span&gt; &lt;span class="nv"&gt;$shard&lt;/span&gt;
+    &lt;span class="k"&gt;for&lt;/span&gt; shard in &lt;span class="k"&gt;$(&lt;/span&gt;curl  -s &lt;span class="s1"&gt;'http://localhost:9200/_cat/shards'&lt;/span&gt; &lt;span class="p"&gt;|&lt;/span&gt; grep UNASSIGNED &lt;span class="p"&gt;|&lt;/span&gt; grep $index &lt;span class="p"&gt;|&lt;/span&gt; awk &lt;span class="s1"&gt;'{print $2}'&lt;/span&gt; &lt;span class="p"&gt;|&lt;/span&gt; sort &lt;span class="p"&gt;|&lt;/span&gt; uniq&lt;span class="k"&gt;)&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="k"&gt;do&lt;/span&gt;
+        &lt;span class="nb"&gt;echo&lt;/span&gt;  $index $shard
 
         curl -XPOST &lt;span class="s1"&gt;'localhost:9200/_cluster/reroute'&lt;/span&gt; -d &lt;span class="s2"&gt;"{&lt;/span&gt;
 &lt;span class="s2"&gt;            'commands' : [ {&lt;/span&gt;
 &lt;span class="s2"&gt;                  'allocate' : {&lt;/span&gt;
-&lt;span class="s2"&gt;                      'index' : &lt;/span&gt;&lt;span class="nv"&gt;$index&lt;/span&gt;&lt;span class="s2"&gt;,&lt;/span&gt;
-&lt;span class="s2"&gt;                      'shard' : &lt;/span&gt;&lt;span class="nv"&gt;$shard&lt;/span&gt;&lt;span class="s2"&gt;,&lt;/span&gt;
+&lt;span class="s2"&gt;                      'index' : &lt;/span&gt;$&lt;span class="s2"&gt;index,&lt;/span&gt;
+&lt;span class="s2"&gt;                      'shard' : &lt;/span&gt;$&lt;span class="s2"&gt;shard,&lt;/span&gt;
 &lt;span class="s2"&gt;                      'node' : 'Master',&lt;/span&gt;
 &lt;span class="s2"&gt;                      'allow_primary' : true&lt;/span&gt;
 &lt;span class="s2"&gt;                  }&lt;/span&gt;

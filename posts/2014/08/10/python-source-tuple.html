@@ -73,7 +73,7 @@
     </section>
 
         <section id="toc">
-            <html><body><div id="toc"><ul><li><a class="toc-href" href="#" title="Python 源码阅读 - tuple">Python 源码阅读 - tuple</a><ul><li><a class="toc-href" href="#_1" title="结构">结构</a></li><li><a class="toc-href" href="#_2" title="构造">构造</a></li><li><a class="toc-href" href="#_3" title="回收">回收</a></li><li><a class="toc-href" href="#tuple" title="tuple对象缓冲池">tuple对象缓冲池</a></li></ul></li></ul></div></body></html>
+            <div id="toc"><ul><li><a class="toc-href" href="#" title="Python 源码阅读 - tuple">Python 源码阅读 - tuple</a><ul><li><a class="toc-href" href="#_1" title="结构">结构</a></li><li><a class="toc-href" href="#_2" title="构造">构造</a></li><li><a class="toc-href" href="#_3" title="回收">回收</a></li><li><a class="toc-href" href="#tuple" title="tuple对象缓冲池">tuple对象缓冲池</a></li></ul></li></ul></div>
         </section>
     <section id="content">
         <p>还差一篇......写完写简历&gt;_&lt;#</p>
@@ -264,20 +264,20 @@ done:
 <hr/>
 <h1 id="tuple">tuple对象缓冲池</h1>
 <p>定义</p>
-<div class="codehilite"><pre><span class="cm">/* Speed optimization to avoid frequent malloc/free of small tuples */</span><span class="w"></span>
-<span class="err">#</span>ifndef<span class="w"> </span>PyTuple_MAXSAVESIZE<span class="w"></span>
-<span class="err">#</span>define<span class="w"> </span>PyTuple_MAXSAVESIZE<span class="w">     </span><span class="m">20</span><span class="w"></span>
-<span class="err">#</span>endif<span class="w"></span>
+<div class="codehilite"><pre><span class="cm">/* Speed optimization to avoid frequent malloc/free of small tuples */</span>
+<span class="cp">#ifndef PyTuple_MAXSAVESIZE</span>
+<span class="cp">#define PyTuple_MAXSAVESIZE     20</span>
+<span class="cp">#endif</span>
 
-<span class="err">#</span>ifndef<span class="w"> </span>PyTuple_MAXFREELIST<span class="w"></span>
-<span class="err">#</span>define<span class="w"> </span>PyTuple_MAXFREELIST<span class="w">  </span><span class="m">2000</span><span class="w"></span>
-<span class="err">#</span>endif<span class="w"></span>
+<span class="cp">#ifndef PyTuple_MAXFREELIST</span>
+<span class="cp">#define PyTuple_MAXFREELIST  2000</span>
+<span class="cp">#endif</span>
 
-<span class="err">#</span><span class="kr">if</span><span class="w"> </span>PyTuple_MAXSAVESIZE<span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="m">0</span><span class="w"></span>
+<span class="cp">#if PyTuple_MAXSAVESIZE &gt; 0</span>
 
-static<span class="w"> </span>PyTupleObject<span class="w"> </span><span class="o">*</span>free_list<span class="err">[</span>PyTuple_MAXSAVESIZE<span class="err">];</span><span class="w"></span>
-static<span class="w"> </span>int<span class="w"> </span>numfree<span class="err">[</span>PyTuple_MAXSAVESIZE<span class="err">];</span><span class="w"></span>
-<span class="err">#</span>endif<span class="w"></span>
+<span class="k">static</span> <span class="n">PyTupleObject</span> <span class="o">*</span><span class="n">free_list</span><span class="p">[</span><span class="n">PyTuple_MAXSAVESIZE</span><span class="p">];</span>
+<span class="k">static</span> <span class="kt">int</span> <span class="n">numfree</span><span class="p">[</span><span class="n">PyTuple_MAXSAVESIZE</span><span class="p">];</span>
+<span class="cp">#endif</span>
 </pre></div>
 <p>结论</p>
 <div class="codehilite"><pre>1. 作用: 优化小tuple的mall/free
