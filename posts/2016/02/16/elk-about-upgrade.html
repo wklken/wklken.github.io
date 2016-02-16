@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--[if IE 8]> <html class="no-js lt-ie9" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
+
+<head>
+    <meta name="google-site-verification" content="SzE6WCs23qFevgBzRIuG9vcfLU0lW_Vd5hFT-cJOLBE" />
+    <title>ELK 维护的一些点</title>
+    <meta charset="utf-8" />
+    <meta name="description" content="">
+    <meta name="keywords" content="" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+        <link rel="shortcut icon" href="/favicon.ico"/>
+        <link rel="stylesheet" href="/theme/css/styles.css" media="all" />
+        <link rel="stylesheet" href="/theme/css/tab.min.css" media="all" />
+        <link rel="stylesheet" href="/theme/css/jquery-ui.min.css" media="all" />
+
+        <link rel="stylesheet" href="/theme/css/font-awesome.min.css">
+        <!--
+        <link rel="stylesheet" href="http://apps.bdimg.com/libs/fontawesome/4.2.0/css/font-awesome.min.css">
+        -->
+        <!--[if IE 7]>
+            <link rel="stylesheet" href="/theme/css/font-awesome-ie7.min.css">
+        <![endif]-->
+
+        <link href="/" type="application/atom+xml" rel="alternate" title="wklken's blog ATOM Feed" />
+        <link href="/feed.xml" type="application/atom+xml" rel="alternate" title="wklken's blog RSS Feed" />
+
+</head>
+
+<body>
+    <div id="page" class="row">
+        <div class="large-9 large-centered columns">
+
+        <header id="header">
+            <div class="constraint">
+                <div class="o">
+                    <a href="/"><h1 class="banner">Wklken <span class="blue"> Building </span></h1></a>
+
+                <div class="social">
+                            <a href="https://github.com/wklken" target='_blank'><i class="icon-github-sign icon-2x"></i></a>
+                            <a href="http://weibo.com/wklken" target='_blank'><i class="icon-weibo icon-2x"></i></a>
+                            <a href="mailto:wklken@yeah.net"><i class="icon-envelope icon-2x"></i></a>
+                            <a href="http://www.wklken.me/feed.xml" target='_blank'><i class="icon-rss-sign icon-2x"></i></a>
+                </div>
+                <div class="nav">
+                            <a href="/">首页</a>
+                            <a href="/categories.html">分类</a>
+                            <a href="/archives.html">归档</a>
+                            <a href="/pages/projects.html">项目</a>
+                            <a href="/pages/aboutme.html">关于</a>
+
+                </div>
+
+                </div>
+            </div>
+        </header><!-- /#banner -->
+
+        <section id="main">
+
+
+<article id="article">
+    <section id="header">
+        <!--
+        <div class="meta">2016年02月16日</div>
+        <h1 id="title"> ELK 维护的一些点 </h1>
+        -->
+        <div class="meta"> &nbsp; </div>
+        <h1> ELK 维护的一些点 </h1>
+    </section>
+
+        <section id="toc">
+            <div id="toc"><ul><li><a class="toc-href" href="#" title="ELK 维护的一些点">ELK 维护的一些点</a><ul><li><a class="toc-href" href="#1-logstash" title="1. logstash升级策略">1. logstash升级策略</a></li><li><a class="toc-href" href="#2-elasticsearch" title="2. elasticsearch升级的策略">2. elasticsearch升级的策略</a></li><li><a class="toc-href" href="#supervisord" title="优化点: 集成安装包和supervisord">优化点: 集成安装包和supervisord</a></li><li><a class="toc-href" href="#logstashoutput" title="注意点: logstash存在两个output时, 必须要保证二者的可用性">注意点: logstash存在两个output时, 必须要保证二者的可用性</a></li><li><a class="toc-href" href="#elkagent_ip" title="优化点: ELK增加agent_ip字段">优化点: ELK增加agent_ip字段</a></li><li><a class="toc-href" href="#elkutc" title="问题: elk的utc问题">问题: elk的utc问题</a></li><li><a class="toc-href" href="#rolling-restart" title="rolling restart">rolling restart</a></li><li><a class="toc-href" href="#logstashgrok" title="logstash文本解析配置grok语法">logstash文本解析配置grok语法</a></li><li><a class="toc-href" href="#grok" title="坑: GROK语法">坑: GROK语法</a></li><li><a class="toc-href" href="#_1" title="一些相关用到的命令">一些相关用到的命令</a></li><li><a class="toc-href" href="#30crontab" title="删除30天前crontab脚本">删除30天前crontab脚本</a></li><li><a class="toc-href" href="#_2" title="尚未处理">尚未处理</a></li></ul></li></ul></div>
+        </section>
+    <section id="content">
+        <p>去年入职新公司之后, 负责维护平台的elk</p>
+<p>这套东西是2013年搭建的, 年久失修, 所以做了个方案, 开始了批量升级</p>
+<p>将logstash从1.3升级到2.1, 将elasticsearch从1.4.1升级到2.0</p>
+<p>期间踩了很多坑, 搞了一个多月, 总算搞完</p>
+<p>从纯手工落后隔三差五有人找查问题的自行车, 改成自动化最新版本新架构运维便捷上了两个月无人反馈的, 额, 小汽车:) - 继承安装包/shell脚本/fabric实现部署/升级/增删/加黑名单等等功能</p>
+<p>每天日志量大概10G上下, 几十个采集端, 两个redis, 两个indexer, 两台es机器扛起</p>
+<p>以下, 不那么严谨地, 记录一些遇到的问题</p>
+<h4 id="1-logstash">1. logstash升级策略</h4>
+<p>logstash1.3到2.x, 变化点还是很多的</p>
+<p>所以, 首先第一步要去阅读官方文档, 将所有change log过一遍, 对一些关键性的东西进行了解, 比如, 干掉了哪些语法(旧的功能需要如何实现), 哪些语法有变更, 新增了哪些特性等.</p>
+<p>然后, 将线上不同类型agent的配置文件拉下来, 先, 归类, 然后, 开始改-测-改-测-直到测试通过</p>
+<div class="codehilite"><pre>bin/logstash agent -t -f test.conf
+</pre></div>
+<p>直到, 语法验证通过</p>
+<p>现在要做的是, 验证数据正确性</p>
+<p>从线上拉取对应日志, 启动, 查看输出</p>
+<div class="codehilite"><pre>output {
+    stdout{
+        debug =&gt; true
+    }
+}
+</pre></div>
+<p>这里需要验证的是, 1. 过滤, 该过滤的过滤了 2. 转换, 该转换的转换了 3.新增, 新增字段</p>
+<p>注意, 测试时, 使用逻辑分支覆盖到所有配置文件中的分支即可.</p>
+<p>然后, 可以挑一台机器, 停老的服务, 部署新的服务进行测试</p>
+<p>建议, 部署agent的时候, 如果读的是文件, 建议配置<code>sincedb_path</code> 这样假设下次升级, 就可以从老的服务最后读取的位置开始了</p>
+<div class="codehilite"><pre>input {
+    file {
+        path =&gt; ["/data/logs/*.log"]
+        sincedb_path =&gt; "/data/LogNew/logstash/sincedb/celery.sincedb"
+    }
+}
+</pre></div>
+<h4 id="2-elasticsearch">2. elasticsearch升级的策略</h4>
+<p>elasticsearch从1.4到2.0, 部署上变化不大, 变化最大的是存储doc的schema变了......</p>
+<p>使用原来的语法查询, 发现查不到, 因为字段名以及嵌套层级完全不一样了, 这里, 要修改查询端, 兼容新老版本的格式</p>
+<div class="codehilite"><pre>{'from': 0,
+ 'query': {'filtered': {'filter': {'bool': {'must': [{'bool': {'should': [{'term': {'type': 'app'}},
+                                                                          {'term': {'@type': 'app'}}]}},
+                                                     {'bool': {'should': [{'term': {'log_level': u'error'}},
+                                                                          {'term': {'@fields.log_level': u'error'}}]}},
+                                                     {'range': {'@timestamp': {'gt': 'now-5h'}}},
+                                                     {'bool': {'should': [{'term': {'log_type': u'celery'}},
+                                                                          {'term': {'@fields.log_type': u'celery'}}]}}]}}}},
+ 'size': 100,
+ 'sort': [{'@timestamp': 'desc'}]}
+</pre></div>
+<p>另一个是, 取到数据进行解析的时候, 发现解析逻辑跪了, 没办法, 返回的json也完全变了, 这里, 要修改解析逻辑, 兼容新老版本格式</p>
+<div class="codehilite"><pre>for hit in log_hits:
+    try:
+        source = hit.get('_source')
+        if '@fields' in source:
+            log = source.get('@fields', {})
+        else:
+            log = source
+</pre></div>
+<p>为了让用户感觉不到集群升级, 首先要做的就是上面两个变更</p>
+<p>然后, 搭建新的集群, 最好找新的机器搭建(我在新的机器搭完才发现妈蛋硬盘才100G, 坑死, 无奈在老集群上搭新的集群, 硬盘1t)</p>
+<p>ready, 所有节点起好维护好, 然后, 改indexer, 将同一份日志灌到两个集群</p>
+<div class="codehilite"><pre>output {
+    elasticsearch {
+        hosts =&gt; ["10.1.1.1:9100", "10.1.1.2:9100"]
+    }
+    elasticsearch {
+        hosts =&gt; ["10.1.1.1:9110", "10.1.1.2:9110"]
+    }
+}
+</pre></div>
+<p>简单测试下, 没问题就放着甭管了, 等数据攒齐了....</p>
+<p>数据够了, 就, 停indexer, 停老集群, 挺新集群, 改新集群端口, 起来....同时去掉indexer只输出到新的集群, 起来......测试, 切换完毕, 收工吧.</p>
+<h4 id="supervisord">优化点: 集成安装包和supervisord</h4>
+<p>额, logstash和es, 如果要配置节点, 其实还是挺蛋疼的</p>
+<p>要做的, 就是, logstash+不同类型配置文件+运维脚本, 达成一个包</p>
+<p>然后, 如果要部署一台机器, 扔上去一键执行安装, 测试, 启动即可</p>
+<p>例如, 运维脚本 <code>logstashd.sh</code></p>
+<div class="codehilite"><pre><span class="ch">#!/bin/bash</span>
+
+<span class="nv">BASEDIR</span><span class="o">=</span><span class="k">$(</span>dirname <span class="nv">$0</span><span class="k">)</span>
+<span class="nb">cd</span> <span class="nv">$BA</span>SEDIR
+<span class="nv">CURRENT_DIR</span><span class="o">=</span><span class="sb">`</span><span class="nb">pwd</span><span class="sb">`</span>
+
+<span class="k">function</span> help_msg<span class="o">()</span> <span class="o">{</span>
+    <span class="nb">echo</span> <span class="s2">"===================== usage ====================="</span>
+    <span class="nb">echo</span> <span class="s2">"./logstashd.sh  - enter command line"</span>
+    <span class="nb">echo</span> <span class="s2">"./logstashd.sh status - show all configured process"</span>
+    <span class="nb">echo</span> <span class="s2">"./logstashd.sh start </span><span class="si">${</span><span class="nv">name</span><span class="si">}</span><span class="s2"> - start program"</span>
+    <span class="nb">echo</span> <span class="s2">"./logstashd.sh stop </span><span class="si">${</span><span class="nv">name</span><span class="si">}</span><span class="s2"> - stop program"</span>
+    <span class="nb">echo</span> <span class="s2">"./logstashd.sh restart </span><span class="si">${</span><span class="nv">name</span><span class="si">}</span><span class="s2"> - restart program"</span>
+    <span class="nb">echo</span> <span class="s2">"./logstashd.sh reread &amp;&amp; ./logstashd.sh update - update config and just update the modified programs"</span>
+    <span class="nb">echo</span> <span class="s2">"./logstashd.sh reload - reload config files and restart all programs(stopeed not included)"</span>
+    <span class="nb">echo</span> <span class="s2">"================================================="</span>
+    <span class="nb">echo</span> <span class="s2">""</span>
+<span class="o">}</span>
+
+<span class="k">if</span> <span class="o">[</span> <span class="s2">"</span><span class="si">${</span><span class="nv">1</span><span class="si">}</span><span class="s2">"</span> <span class="o">=</span> <span class="s2">"-h"</span> -o <span class="s2">"</span><span class="si">${</span><span class="nv">1</span><span class="si">}</span><span class="s2">"</span> <span class="o">=</span> <span class="s2">"--help"</span> <span class="o">]</span>
+<span class="k">then</span>
+    help_msg
+    <span class="nb">exit</span> 0
+<span class="k">fi</span>
+
+<span class="nv">SUPERVISORCTL</span><span class="o">=</span><span class="s1">'/data/LogNew/python27/bin/supervisorctl'</span>
+
+<span class="nv">CONFIG_FILE_PATH</span><span class="o">=</span><span class="s2">"</span><span class="si">${</span><span class="nv">CURRENT_DIR</span><span class="si">}</span><span class="s2">/conf/supervisord.conf"</span>
+
+$SUPERVISORCTL -c <span class="nv">$C</span>ONFIG_FILE_PATH <span class="nv">$@</span>
+</pre></div>
+<p>使用</p>
+<div class="codehilite"><pre>./logstashd.sh
+===================== usage =====================
+./logstashd.sh  - enter command line
+./logstashd.sh status - show all configured process
+./logstashd.sh start  - start program
+./logstashd.sh stop  - stop program
+./logstashd.sh restart  - restart program
+./logstashd.sh reread &amp;&amp; ./logstashd.sh update - update config and just update the modified programs
+./logstashd.sh reload - reload config files and restart all programs(stopeed not included)
+=================================================
+
+111_indexer                      RUNNING   pid 27058, uptime 1:25:10
+indexer                          RUNNING   pid 24731, uptime 1:31:29
+supervisor&gt; restart indexer
+</pre></div>
+<p>这里, 我引入了<a href="http://www.stackless.com/binaries/">stackless python</a> (独立), 然后装pip/supervisord, 使用supervisord对logstash/es进程进行管理</p>
+<p>使用supervisord管理进程, 有个注意点</p>
+<p>默认supervisord相关的文件在</p>
+<div class="codehilite"><pre>/tmp/supervisor*
+</pre></div>
+<p>而线上, 存在tmp被删/清理了情况, 导致要进行进程启停操作才发现,妈蛋找不到</p>
+<p>处理方式 =&gt; 放到集成安装包的run目录下</p>
+<h4 id="logstashoutput">注意点: logstash存在两个output时, 必须要保证二者的可用性</h4>
+<p>logstash indexer, 分别转发数据到两个不同的output</p>
+<div class="codehilite"><pre>output {
+    elasticsearch {
+        hosts =&gt; ["10.1.1.1:8080", "10.1.1.2:8080"]
+    }
+    redis {
+        host =&gt; "10.1.1.3"
+        port =&gt; 6379
+        password =&gt; "7oEsjqUNoTdgE4"
+        data_type =&gt; "list"
+        key =&gt; "log_queue"
+        db =&gt; 0
+        batch =&gt; true
+    }
+}
+</pre></div>
+<p>此时, 若是redis挂了, 则日志也不会刷到es中, 所以, 需要同时保证所有output的可用性</p>
+<h4 id="elkagent_ip">优化点: ELK增加agent_ip字段</h4>
+<p>需求: 在实际使用中, 有时候需要反向根据查询结果, 获知日志的来源机器</p>
+<p>处理:</p>
+<p>1.先获取ip</p>
+<div class="codehilite"><pre><span class="nt">GetLanIp</span> <span class="o">()</span> <span class="p">{</span>
+     <span class="err">##</span> <span class="n">get</span> <span class="n">associated</span> <span class="n">LAN</span> <span class="n">ip</span> <span class="n">address</span>
+     <span class="err">##</span> <span class="n">usage</span><span class="o">:</span> <span class="n">GetLanIp</span>
+     <span class="o">/</span><span class="n">sbin</span><span class="o">/</span><span class="n">ifconfig</span> <span class="o">|</span> <span class="n">awk</span> <span class="s1">'</span>
+<span class="s1">         /eth/{</span>
+<span class="s1">             getline;</span>
+<span class="s1">             if (/inet addr:(172|10|192)\./) {</span>
+<span class="s1">                 gsub(".*addr:|  *Bcast.*","");</span>
+<span class="s1">                 print $0;</span>
+<span class="s1">                 exit;</span>
+<span class="s1">             }</span>
+<span class="s1">         }'</span>
+     <span class="n">return</span> <span class="m">0</span>
+<span class="p">}</span>
+</pre></div>
+<p>2.放入环境变量</p>
+<div class="codehilite"><pre>ETH1_IP=10.1.1.1
+</pre></div>
+<p>3.修改logstash配置</p>
+<p>注意, 这里是logstash2.x的语法</p>
+<div class="codehilite"><pre>    environment {
+        add_metadata_from_env =&gt; ["agent_ip", "ETH1_IP"]
+        add_field =&gt; {"agent_ip" =&gt;  "%{[@metadata][agent_ip]}" }
+    }
+</pre></div>
+<h4 id="elkutc">问题: elk的utc问题</h4>
+<p>elasticsearch内部使用的是utc, 存储为long (milliseconds since the epoch)  e.g. timestamp=1420070400000</p>
+<p>可以看下 <a href="https://github.com/chenryn/logstash-best-practice-cn/blob/master/filter/date.md">es 时间处理</a></p>
+<p>logstash 接受了这种设定, 往es传数据的时候, 根据UTC, 每天00:00新建一个index</p>
+<p>kibana也接受这种设定, 在查询和展示时根据用户的时区进行处理</p>
+<p>问题描述</p>
+<p>这导致了, 对于东八区, 2015-11-6日, 8点之前, 只有<code>logstash-2015.11.05</code>这个index, 到8点的时候, 创建新的index <code>logstash-2015.11.06</code>, 即, 对于我们这个时区的人来说, 一天的数据存在了两个index里面</p>
+<p>同类问题 <a href="https://github.com/elastic/elasticsearch/issues/7375">Elasticsearch doesn't care about timezone and creates indexes with UTC</a></p>
+<p>修正方案1: 修改logstash的数据时间</p>
+<p>logstash团队对于支持localtime的问题, 不予修复 <a href="https://logstash.jira.com/browse/LOGSTASH-973">讨论</a>, 但是可以自行去修改logstash的代码</p>
+<p>当然, 可以修改每个logstash indexer的时间, 但是会带来问题 <a href="https://github.com/chenryn/logstash-best-practice-cn/blob/master/filter/date.md#时区问题的解释">问题</a>: 1. logstash都要修改<code>getLocalTime</code> 2.相对时间搜索 3. kibana等相关插件/组件要修正</p>
+<p>运维/升级和后续使用上会有很多地雷</p>
+<p>修正方案2: 不修正</p>
+<p>接受这种设定, 学习kibana, 类似自行确定要搜索的index
+对于<code>00:00-08:00</code>的, 程序处理使用昨天的<code>indexer</code></p>
+<p>所以, 更好的方式是, 不修正......原来不变的才是最好的</p>
+<h4 id="rolling-restart">rolling restart</h4>
+<p>当存在配置变更时, 需要重启es集群, 不可能全部重启的, 这样会导致服务不可用....</p>
+<p>所以, 要一个个重启</p>
+<p>先执行</p>
+<div class="codehilite"><pre>curl -XPUT 'http://localhost:9200/_cluster/settings' -d '
+{
+    "transient" : {
+        "cluster.routing.allocation.enable" : "none"
+    }
+}'
+</pre></div>
+<p>然后, shutdown, 改配置, start</p>
+<p>then : 一定要记得执行, 否则不会执行recovery.....会一直等着</p>
+<div class="codehilite"><pre>curl -XPUT 'http://localhost:9200/_cluster/settings' -d '
+{
+    "transient" : {
+        "cluster.routing.allocation.enable" : "all"
+    }
+}'
+</pre></div>
+<h4 id="logstashgrok">logstash文本解析配置grok语法</h4>
+<p>一个线上的工具, https://grokdebug.herokuapp.com/</p>
+<p>挺好用的, 但是有时候变更频繁相应有些缓慢</p>
+<p>暂时没有找到命令行工具</p>
+<h4 id="grok">坑: GROK语法</h4>
+<p>上线后发现, 尼玛, 部分应用日志没有被采集</p>
+<p>定位发现, 原来在<code>grok</code>的解析中使用了<code>WORD</code></p>
+<p>而 <code>WORD</code>: 不支持连字符和下划线</p>
+<p>跪了, 需要自定义<code>LOGFILENAME [a-z\-A-Z0-9_\.]+</code>放到pattern中</p>
+<p>然后, 搜索的时候, 尼玛, 也搜不到....语法要做处理, 使用<code>raw</code>, es建索引的时候自动拆掉了导致搜索不到</p>
+<div class="codehilite"><pre>{'term': {'app_name.raw': 'nms-t'}}
+</pre></div>
+<h4 id="_1">一些相关用到的命令</h4>
+<ul>
+<li>查看plugin版本</li>
+</ul>
+<p>https://www.elastic.co/guide/en/logstash/current/working-with-plugins.html</p>
+<div class="codehilite"><pre>bin/plugin list --verbose
+</pre></div>
+<ul>
+<li>create empty index</li>
+</ul>
+<div class="codehilite"><pre>curl -XPUT 'http://localhost:9100/logstash-2015.12.15/'
+</pre></div>
+<ul>
+<li>查看健康度</li>
+</ul>
+<div class="codehilite"><pre>curl 'http://localhost:9100/_cluster/health?pretty=true'
+</pre></div>
+<ul>
+<li>查看indices</li>
+</ul>
+<div class="codehilite"><pre><span class="ch">#!/bin/bash</span>
+
+curl <span class="s1">'http://localhost:9100/_cat/indices?v'</span> <span class="p">|</span> sort -k 3
+</pre></div>
+<h4 id="30crontab">删除30天前crontab脚本</h4>
+<div class="codehilite"><pre><span class="ch">#!/bin/bash</span>
+
+<span class="nv">now</span><span class="o">=</span><span class="sb">`</span>date +%Y%m%d<span class="sb">`</span>
+<span class="nb">echo</span> $now
+<span class="nv">days_30_before</span><span class="o">=</span><span class="sb">`</span>date -d <span class="s2">"</span>$<span class="s2">now 31 days ago"</span> +%Y.%m.%d<span class="sb">`</span>
+<span class="nb">echo</span> <span class="nv">$da</span>ys_30_before
+<span class="nb">echo</span> <span class="s2">"http://10.1.1.1:9100/logstash-</span><span class="nv">$da</span><span class="s2">ys_30_before"</span>
+curl -XDELETE <span class="s2">"http://10.1.1.1:9100/logstash-</span><span class="nv">$da</span><span class="s2">ys_30_before"</span> &gt; /dev/null 2&gt;<span class="p">&amp;</span>1
+</pre></div>
+<h4 id="_2">尚未处理</h4>
+<p>logstash2.1 muline codec, 配置多个数据来源, 存在串的情况, 生产中大数据量有, 小规模没有复现....</p>
+<hr/>
+<p>好了, 先这些, 还有一些窝在某些目录下, 后续整理好了发</p>
+<p>wklken</p>
+<p>2016-02-16</p>
+    </section>
+
+    <section id="copyright">
+        <div class="copyright">
+            版权声明：自由转载-非商用-非衍生-保持署名 | <a href="http://creativecommons.org/licenses/by-nc-nd/3.0/deed.zh" target="_blank" >Creative Commons BY-NC-ND 3.0</a>
+        </div>
+
+        <div class="donation">
+            <center>
+            <img src="/imgs/life/donation.png"/>
+            <strong> 如果你觉得我的文章或项目对你有所帮助, You can buy me a coffee:) </strong>
+            </center>
+        </div>
+    </section>
+
+
+    <section id="neighbors">
+        <div>
+                        <a class="left" href="http://www.wklken.me/posts/2016/02/16/maybe-a-new-start.html">
+                            上一篇:  也许是一个新的开始
+                        </a>
+        </div>
+    </section>
+
+<section id="comments">
+        <div class="comments">
+            <div id="disqus_thread"></div>
+            <script type="text/javascript">
+                var disqus_identifier = "posts/2016/02/16/elk-about-upgrade.html";
+                (function() {
+                var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                dsq.src = 'http://wklken.disqus.com/embed.js';
+                (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                })();
+            </script>
+            </div>
+</section>
+</article>
+        </section><!--end #main-->
+
+            <footer class="row">
+                <div class="large-12 columns">
+                    <p>
+                            Copyright © 2015 wklken <br>
+                            Hosted on <a href="http://www.vultr.com/?ref=6847203"> vultr </a> Also <a href="https://www.digitalocean.com/?refcode=8ee73f2c47ce"> DigitalOcean </a>. Powered by <a href="http://alexis.notmyidea.org/pelican/">pelican</a>. Social Icons by <a href="http://fortawesome.github.io/Font-Awesome/">Font-Awesome</a>.
+                    </p>
+                </div>
+            </footer>
+
+            </div>
+        </div>
+
+        <section id="extras" class="body">
+        </section><!-- /#extras -->
+
+
+
+<script src="http://apps.bdimg.com/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="http://apps.bdimg.com/libs/jquery-scrollUp/2.1.0/jquery.scrollUp.min.js"></script>
+<script src="http://apps.bdimg.com/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+<script>
+    $(function(){
+        $.scrollUp({
+              scrollText: '', // Text for element, can contain HTML
+            });
+    });
+</script>
+
+
+<script type="text/javascript">
+  /* var Swiftype = window.Swiftype || {}; */
+  /* Swiftype.searchSearchFields = { */
+    /* "page": ["title^10", "body"] */
+  /* }; */
+
+  /* (function(w,d,t,u,n,s,e){w['SwiftypeObject']=n;w[n]=w[n]||function(){ */
+  /* (w[n].q=w[n].q||[]).push(arguments);};s=d.createElement(t); */
+  /* e=d.getElementsByTagName(t)[0];s.async=1;s.src=u;e.parentNode.insertBefore(s,e); */
+  /* })(window,document,'script','//s.swiftypecdn.com/install/v1/st.js','_st'); */
+
+  /* _st('install','v6K-_DamCeHvwX6z3o2F'); */
+</script>
+
+
+
+    <script type="text/javascript">
+    var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+    document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+    </script>
+    <script type="text/javascript">
+    try {
+        var pageTracker = _gat._getTracker("UA-42275748-1");
+    pageTracker._trackPageview();
+    } catch(err) {}</script>
+
+
+
+<div id="share">
+<script>window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"1","bdMiniList":["mshare","tsina","weixin","douban","meilishuo","mogujie","youdao","sdo","mail","twi","copy","print"],"bdPic":"","bdStyle":"0","bdSize":"16"},"slide":{"type":"slide","bdImg":"5","bdPos":"right","bdTop":"96.5"}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];</script>
+</div>
+
+
+
+<script  src="http://www.wklken.me/theme/js/scroll-header.js" type="text/javascript"></script>
+
+
+
+
+</body>
+</html>

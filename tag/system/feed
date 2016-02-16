@@ -1,5 +1,268 @@
 <?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>wklken's blog</title><link>http://www.wklken.me/</link><description></description><atom:link href="http://www.wklken.me/tag/system/feed" rel="self"></atom:link><lastBuildDate>Sat, 23 May 2015 00:00:00 +0800</lastBuildDate><item><title>Elasticsearch几个问题的解决</title><link>http://www.wklken.me/posts/2015/05/23/elasticsearch-issues.html</link><description>&lt;p&gt;今天惯例看统计报表, 才发现es集群悲剧了......昨天下午到今天早上, 持续报错, 写了1G的错误日志&amp;gt;_&amp;lt;#(暂无监控....)&lt;/p&gt;
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>wklken's blog</title><link>http://www.wklken.me/</link><description></description><atom:link href="http://www.wklken.me/tag/system/feed" rel="self"></atom:link><lastBuildDate>Tue, 16 Feb 2016 00:00:00 +0800</lastBuildDate><item><title>ELK 维护的一些点</title><link>http://www.wklken.me/posts/2016/02/16/elk-about-upgrade.html</link><description>&lt;p&gt;去年入职新公司之后, 负责维护平台的elk&lt;/p&gt;
+&lt;p&gt;这套东西是2013年搭建的, 年久失修, 所以做了个方案, 开始了批量升级&lt;/p&gt;
+&lt;p&gt;将logstash从1.3升级到2.1, 将elasticsearch从1.4.1升级到2.0&lt;/p&gt;
+&lt;p&gt;期间踩了很多坑, 搞了一个多月, 总算搞完&lt;/p&gt;
+&lt;p&gt;从纯手工落后隔三差五有人找查问题的自行车, 改成自动化最新版本新架构运维便捷上了两个月无人反馈的, 额, 小汽车:) - 继承安装包/shell脚本/fabric实现部署/升级/增删/加黑名单等等功能&lt;/p&gt;
+&lt;p&gt;每天日志量大概10G上下, 几十个采集端, 两个redis, 两个indexer, 两台es机器扛起&lt;/p&gt;
+&lt;p&gt;以下, 不那么严谨地, 记录一些遇到的问题&lt;/p&gt;
+&lt;h4 id="1-logstash"&gt;1. logstash升级策略&lt;/h4&gt;
+&lt;p&gt;logstash1.3到2.x, 变化点还是很多的&lt;/p&gt;
+&lt;p&gt;所以, 首先第一步要去阅读官方文档, 将所有change log过一遍, 对一些关键性的东西进行了解, 比如, 干掉了哪些语法(旧的功能需要如何实现), 哪些语法有变更, 新增了哪些特性等.&lt;/p&gt;
+&lt;p&gt;然后, 将线上不同类型agent的配置文件拉下来, 先, 归类, 然后, 开始改-测-改-测-直到测试通过&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;bin/logstash agent -t -f test.conf
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;直到, 语法验证通过&lt;/p&gt;
+&lt;p&gt;现在要做的是, 验证数据正确性&lt;/p&gt;
+&lt;p&gt;从线上拉取对应日志, 启动, 查看输出&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;output {
+    stdout{
+        debug =&amp;gt; true
+    }
+}
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;这里需要验证的是, 1. 过滤, 该过滤的过滤了 2. 转换, 该转换的转换了 3.新增, 新增字段&lt;/p&gt;
+&lt;p&gt;注意, 测试时, 使用逻辑分支覆盖到所有配置文件中的分支即可.&lt;/p&gt;
+&lt;p&gt;然后, 可以挑一台机器, 停老的服务, 部署新的服务进行测试&lt;/p&gt;
+&lt;p&gt;建议, 部署agent的时候, 如果读的是文件, 建议配置&lt;code&gt;sincedb_path&lt;/code&gt; 这样假设下次升级, 就可以从老的服务最后读取的位置开始了&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;input {
+    file {
+        path =&amp;gt; ["/data/logs/*.log"]
+        sincedb_path =&amp;gt; "/data/LogNew/logstash/sincedb/celery.sincedb"
+    }
+}
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h4 id="2-elasticsearch"&gt;2. elasticsearch升级的策略&lt;/h4&gt;
+&lt;p&gt;elasticsearch从1.4到2.0, 部署上变化不大, 变化最大的是存储doc的schema变了......&lt;/p&gt;
+&lt;p&gt;使用原来的语法查询, 发现查不到, 因为字段名以及嵌套层级完全不一样了, 这里, 要修改查询端, 兼容新老版本的格式&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;{'from': 0,
+ 'query': {'filtered': {'filter': {'bool': {'must': [{'bool': {'should': [{'term': {'type': 'app'}},
+                                                                          {'term': {'@type': 'app'}}]}},
+                                                     {'bool': {'should': [{'term': {'log_level': u'error'}},
+                                                                          {'term': {'@fields.log_level': u'error'}}]}},
+                                                     {'range': {'@timestamp': {'gt': 'now-5h'}}},
+                                                     {'bool': {'should': [{'term': {'log_type': u'celery'}},
+                                                                          {'term': {'@fields.log_type': u'celery'}}]}}]}}}},
+ 'size': 100,
+ 'sort': [{'@timestamp': 'desc'}]}
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;另一个是, 取到数据进行解析的时候, 发现解析逻辑跪了, 没办法, 返回的json也完全变了, 这里, 要修改解析逻辑, 兼容新老版本格式&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;for hit in log_hits:
+    try:
+        source = hit.get('_source')
+        if '@fields' in source:
+            log = source.get('@fields', {})
+        else:
+            log = source
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;为了让用户感觉不到集群升级, 首先要做的就是上面两个变更&lt;/p&gt;
+&lt;p&gt;然后, 搭建新的集群, 最好找新的机器搭建(我在新的机器搭完才发现妈蛋硬盘才100G, 坑死, 无奈在老集群上搭新的集群, 硬盘1t)&lt;/p&gt;
+&lt;p&gt;ready, 所有节点起好维护好, 然后, 改indexer, 将同一份日志灌到两个集群&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;output {
+    elasticsearch {
+        hosts =&amp;gt; ["10.1.1.1:9100", "10.1.1.2:9100"]
+    }
+    elasticsearch {
+        hosts =&amp;gt; ["10.1.1.1:9110", "10.1.1.2:9110"]
+    }
+}
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;简单测试下, 没问题就放着甭管了, 等数据攒齐了....&lt;/p&gt;
+&lt;p&gt;数据够了, 就, 停indexer, 停老集群, 挺新集群, 改新集群端口, 起来....同时去掉indexer只输出到新的集群, 起来......测试, 切换完毕, 收工吧.&lt;/p&gt;
+&lt;h4 id="supervisord"&gt;优化点: 集成安装包和supervisord&lt;/h4&gt;
+&lt;p&gt;额, logstash和es, 如果要配置节点, 其实还是挺蛋疼的&lt;/p&gt;
+&lt;p&gt;要做的, 就是, logstash+不同类型配置文件+运维脚本, 达成一个包&lt;/p&gt;
+&lt;p&gt;然后, 如果要部署一台机器, 扔上去一键执行安装, 测试, 启动即可&lt;/p&gt;
+&lt;p&gt;例如, 运维脚本 &lt;code&gt;logstashd.sh&lt;/code&gt;&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="ch"&gt;#!/bin/bash&lt;/span&gt;
+
+&lt;span class="nv"&gt;BASEDIR&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="k"&gt;$(&lt;/span&gt;dirname &lt;span class="nv"&gt;$0&lt;/span&gt;&lt;span class="k"&gt;)&lt;/span&gt;
+&lt;span class="nb"&gt;cd&lt;/span&gt; &lt;span class="nv"&gt;$BA&lt;/span&gt;SEDIR
+&lt;span class="nv"&gt;CURRENT_DIR&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="sb"&gt;`&lt;/span&gt;&lt;span class="nb"&gt;pwd&lt;/span&gt;&lt;span class="sb"&gt;`&lt;/span&gt;
+
+&lt;span class="k"&gt;function&lt;/span&gt; help_msg&lt;span class="o"&gt;()&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt;
+    &lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="s2"&gt;"===================== usage ====================="&lt;/span&gt;
+    &lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="s2"&gt;"./logstashd.sh  - enter command line"&lt;/span&gt;
+    &lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="s2"&gt;"./logstashd.sh status - show all configured process"&lt;/span&gt;
+    &lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="s2"&gt;"./logstashd.sh start &lt;/span&gt;&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;name&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt; - start program"&lt;/span&gt;
+    &lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="s2"&gt;"./logstashd.sh stop &lt;/span&gt;&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;name&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt; - stop program"&lt;/span&gt;
+    &lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="s2"&gt;"./logstashd.sh restart &lt;/span&gt;&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;name&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt; - restart program"&lt;/span&gt;
+    &lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="s2"&gt;"./logstashd.sh reread &amp;amp;&amp;amp; ./logstashd.sh update - update config and just update the modified programs"&lt;/span&gt;
+    &lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="s2"&gt;"./logstashd.sh reload - reload config files and restart all programs(stopeed not included)"&lt;/span&gt;
+    &lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="s2"&gt;"================================================="&lt;/span&gt;
+    &lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="s2"&gt;""&lt;/span&gt;
+&lt;span class="o"&gt;}&lt;/span&gt;
+
+&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="o"&gt;[&lt;/span&gt; &lt;span class="s2"&gt;"&lt;/span&gt;&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;1&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;"&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;"-h"&lt;/span&gt; -o &lt;span class="s2"&gt;"&lt;/span&gt;&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;1&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;"&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;"--help"&lt;/span&gt; &lt;span class="o"&gt;]&lt;/span&gt;
+&lt;span class="k"&gt;then&lt;/span&gt;
+    help_msg
+    &lt;span class="nb"&gt;exit&lt;/span&gt; 0
+&lt;span class="k"&gt;fi&lt;/span&gt;
+
+&lt;span class="nv"&gt;SUPERVISORCTL&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s1"&gt;'/data/LogNew/python27/bin/supervisorctl'&lt;/span&gt;
+
+&lt;span class="nv"&gt;CONFIG_FILE_PATH&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;"&lt;/span&gt;&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;CURRENT_DIR&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;/conf/supervisord.conf"&lt;/span&gt;
+
+$SUPERVISORCTL -c &lt;span class="nv"&gt;$C&lt;/span&gt;ONFIG_FILE_PATH &lt;span class="nv"&gt;$@&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;使用&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;./logstashd.sh
+===================== usage =====================
+./logstashd.sh  - enter command line
+./logstashd.sh status - show all configured process
+./logstashd.sh start  - start program
+./logstashd.sh stop  - stop program
+./logstashd.sh restart  - restart program
+./logstashd.sh reread &amp;amp;&amp;amp; ./logstashd.sh update - update config and just update the modified programs
+./logstashd.sh reload - reload config files and restart all programs(stopeed not included)
+=================================================
+
+111_indexer                      RUNNING   pid 27058, uptime 1:25:10
+indexer                          RUNNING   pid 24731, uptime 1:31:29
+supervisor&amp;gt; restart indexer
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;这里, 我引入了&lt;a href="http://www.stackless.com/binaries/"&gt;stackless python&lt;/a&gt; (独立), 然后装pip/supervisord, 使用supervisord对logstash/es进程进行管理&lt;/p&gt;
+&lt;p&gt;使用supervisord管理进程, 有个注意点&lt;/p&gt;
+&lt;p&gt;默认supervisord相关的文件在&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;/tmp/supervisor*
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;而线上, 存在tmp被删/清理了情况, 导致要进行进程启停操作才发现,妈蛋找不到&lt;/p&gt;
+&lt;p&gt;处理方式 =&amp;gt; 放到集成安装包的run目录下&lt;/p&gt;
+&lt;h4 id="logstashoutput"&gt;注意点: logstash存在两个output时, 必须要保证二者的可用性&lt;/h4&gt;
+&lt;p&gt;logstash indexer, 分别转发数据到两个不同的output&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;output {
+    elasticsearch {
+        hosts =&amp;gt; ["10.1.1.1:8080", "10.1.1.2:8080"]
+    }
+    redis {
+        host =&amp;gt; "10.1.1.3"
+        port =&amp;gt; 6379
+        password =&amp;gt; "7oEsjqUNoTdgE4"
+        data_type =&amp;gt; "list"
+        key =&amp;gt; "log_queue"
+        db =&amp;gt; 0
+        batch =&amp;gt; true
+    }
+}
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;此时, 若是redis挂了, 则日志也不会刷到es中, 所以, 需要同时保证所有output的可用性&lt;/p&gt;
+&lt;h4 id="elkagent_ip"&gt;优化点: ELK增加agent_ip字段&lt;/h4&gt;
+&lt;p&gt;需求: 在实际使用中, 有时候需要反向根据查询结果, 获知日志的来源机器&lt;/p&gt;
+&lt;p&gt;处理:&lt;/p&gt;
+&lt;p&gt;1.先获取ip&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="nt"&gt;GetLanIp&lt;/span&gt; &lt;span class="o"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+     &lt;span class="err"&gt;##&lt;/span&gt; &lt;span class="n"&gt;get&lt;/span&gt; &lt;span class="n"&gt;associated&lt;/span&gt; &lt;span class="n"&gt;LAN&lt;/span&gt; &lt;span class="n"&gt;ip&lt;/span&gt; &lt;span class="n"&gt;address&lt;/span&gt;
+     &lt;span class="err"&gt;##&lt;/span&gt; &lt;span class="n"&gt;usage&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;GetLanIp&lt;/span&gt;
+     &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;sbin&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;ifconfig&lt;/span&gt; &lt;span class="o"&gt;|&lt;/span&gt; &lt;span class="n"&gt;awk&lt;/span&gt; &lt;span class="s1"&gt;'&lt;/span&gt;
+&lt;span class="s1"&gt;         /eth/{&lt;/span&gt;
+&lt;span class="s1"&gt;             getline;&lt;/span&gt;
+&lt;span class="s1"&gt;             if (/inet addr:(172|10|192)\./) {&lt;/span&gt;
+&lt;span class="s1"&gt;                 gsub(".*addr:|  *Bcast.*","");&lt;/span&gt;
+&lt;span class="s1"&gt;                 print $0;&lt;/span&gt;
+&lt;span class="s1"&gt;                 exit;&lt;/span&gt;
+&lt;span class="s1"&gt;             }&lt;/span&gt;
+&lt;span class="s1"&gt;         }'&lt;/span&gt;
+     &lt;span class="n"&gt;return&lt;/span&gt; &lt;span class="m"&gt;0&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;2.放入环境变量&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;ETH1_IP=10.1.1.1
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;3.修改logstash配置&lt;/p&gt;
+&lt;p&gt;注意, 这里是logstash2.x的语法&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;    environment {
+        add_metadata_from_env =&amp;gt; ["agent_ip", "ETH1_IP"]
+        add_field =&amp;gt; {"agent_ip" =&amp;gt;  "%{[@metadata][agent_ip]}" }
+    }
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h4 id="elkutc"&gt;问题: elk的utc问题&lt;/h4&gt;
+&lt;p&gt;elasticsearch内部使用的是utc, 存储为long (milliseconds since the epoch)  e.g. timestamp=1420070400000&lt;/p&gt;
+&lt;p&gt;可以看下 &lt;a href="https://github.com/chenryn/logstash-best-practice-cn/blob/master/filter/date.md"&gt;es 时间处理&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;logstash 接受了这种设定, 往es传数据的时候, 根据UTC, 每天00:00新建一个index&lt;/p&gt;
+&lt;p&gt;kibana也接受这种设定, 在查询和展示时根据用户的时区进行处理&lt;/p&gt;
+&lt;p&gt;问题描述&lt;/p&gt;
+&lt;p&gt;这导致了, 对于东八区, 2015-11-6日, 8点之前, 只有&lt;code&gt;logstash-2015.11.05&lt;/code&gt;这个index, 到8点的时候, 创建新的index &lt;code&gt;logstash-2015.11.06&lt;/code&gt;, 即, 对于我们这个时区的人来说, 一天的数据存在了两个index里面&lt;/p&gt;
+&lt;p&gt;同类问题 &lt;a href="https://github.com/elastic/elasticsearch/issues/7375"&gt;Elasticsearch doesn't care about timezone and creates indexes with UTC&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;修正方案1: 修改logstash的数据时间&lt;/p&gt;
+&lt;p&gt;logstash团队对于支持localtime的问题, 不予修复 &lt;a href="https://logstash.jira.com/browse/LOGSTASH-973"&gt;讨论&lt;/a&gt;, 但是可以自行去修改logstash的代码&lt;/p&gt;
+&lt;p&gt;当然, 可以修改每个logstash indexer的时间, 但是会带来问题 &lt;a href="https://github.com/chenryn/logstash-best-practice-cn/blob/master/filter/date.md#时区问题的解释"&gt;问题&lt;/a&gt;: 1. logstash都要修改&lt;code&gt;getLocalTime&lt;/code&gt; 2.相对时间搜索 3. kibana等相关插件/组件要修正&lt;/p&gt;
+&lt;p&gt;运维/升级和后续使用上会有很多地雷&lt;/p&gt;
+&lt;p&gt;修正方案2: 不修正&lt;/p&gt;
+&lt;p&gt;接受这种设定, 学习kibana, 类似自行确定要搜索的index
+对于&lt;code&gt;00:00-08:00&lt;/code&gt;的, 程序处理使用昨天的&lt;code&gt;indexer&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;所以, 更好的方式是, 不修正......原来不变的才是最好的&lt;/p&gt;
+&lt;h4 id="rolling-restart"&gt;rolling restart&lt;/h4&gt;
+&lt;p&gt;当存在配置变更时, 需要重启es集群, 不可能全部重启的, 这样会导致服务不可用....&lt;/p&gt;
+&lt;p&gt;所以, 要一个个重启&lt;/p&gt;
+&lt;p&gt;先执行&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;curl -XPUT 'http://localhost:9200/_cluster/settings' -d '
+{
+    "transient" : {
+        "cluster.routing.allocation.enable" : "none"
+    }
+}'
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;然后, shutdown, 改配置, start&lt;/p&gt;
+&lt;p&gt;then : 一定要记得执行, 否则不会执行recovery.....会一直等着&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;curl -XPUT 'http://localhost:9200/_cluster/settings' -d '
+{
+    "transient" : {
+        "cluster.routing.allocation.enable" : "all"
+    }
+}'
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h4 id="logstashgrok"&gt;logstash文本解析配置grok语法&lt;/h4&gt;
+&lt;p&gt;一个线上的工具, https://grokdebug.herokuapp.com/&lt;/p&gt;
+&lt;p&gt;挺好用的, 但是有时候变更频繁相应有些缓慢&lt;/p&gt;
+&lt;p&gt;暂时没有找到命令行工具&lt;/p&gt;
+&lt;h4 id="grok"&gt;坑: GROK语法&lt;/h4&gt;
+&lt;p&gt;上线后发现, 尼玛, 部分应用日志没有被采集&lt;/p&gt;
+&lt;p&gt;定位发现, 原来在&lt;code&gt;grok&lt;/code&gt;的解析中使用了&lt;code&gt;WORD&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;而 &lt;code&gt;WORD&lt;/code&gt;: 不支持连字符和下划线&lt;/p&gt;
+&lt;p&gt;跪了, 需要自定义&lt;code&gt;LOGFILENAME [a-z\-A-Z0-9_\.]+&lt;/code&gt;放到pattern中&lt;/p&gt;
+&lt;p&gt;然后, 搜索的时候, 尼玛, 也搜不到....语法要做处理, 使用&lt;code&gt;raw&lt;/code&gt;, es建索引的时候自动拆掉了导致搜索不到&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;{'term': {'app_name.raw': 'nms-t'}}
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h4 id="_1"&gt;一些相关用到的命令&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;查看plugin版本&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;https://www.elastic.co/guide/en/logstash/current/working-with-plugins.html&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;bin/plugin list --verbose
+&lt;/pre&gt;&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;create empty index&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;curl -XPUT 'http://localhost:9100/logstash-2015.12.15/'
+&lt;/pre&gt;&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;查看健康度&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;curl 'http://localhost:9100/_cluster/health?pretty=true'
+&lt;/pre&gt;&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;查看indices&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="ch"&gt;#!/bin/bash&lt;/span&gt;
+
+curl &lt;span class="s1"&gt;'http://localhost:9100/_cat/indices?v'&lt;/span&gt; &lt;span class="p"&gt;|&lt;/span&gt; sort -k 3
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h4 id="30crontab"&gt;删除30天前crontab脚本&lt;/h4&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="ch"&gt;#!/bin/bash&lt;/span&gt;
+
+&lt;span class="nv"&gt;now&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="sb"&gt;`&lt;/span&gt;date +%Y%m%d&lt;span class="sb"&gt;`&lt;/span&gt;
+&lt;span class="nb"&gt;echo&lt;/span&gt; $now
+&lt;span class="nv"&gt;days_30_before&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="sb"&gt;`&lt;/span&gt;date -d &lt;span class="s2"&gt;"&lt;/span&gt;$&lt;span class="s2"&gt;now 31 days ago"&lt;/span&gt; +%Y.%m.%d&lt;span class="sb"&gt;`&lt;/span&gt;
+&lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="nv"&gt;$da&lt;/span&gt;ys_30_before
+&lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="s2"&gt;"http://10.1.1.1:9100/logstash-&lt;/span&gt;&lt;span class="nv"&gt;$da&lt;/span&gt;&lt;span class="s2"&gt;ys_30_before"&lt;/span&gt;
+curl -XDELETE &lt;span class="s2"&gt;"http://10.1.1.1:9100/logstash-&lt;/span&gt;&lt;span class="nv"&gt;$da&lt;/span&gt;&lt;span class="s2"&gt;ys_30_before"&lt;/span&gt; &amp;gt; /dev/null 2&amp;gt;&lt;span class="p"&gt;&amp;amp;&lt;/span&gt;1
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h4 id="_2"&gt;尚未处理&lt;/h4&gt;
+&lt;p&gt;logstash2.1 muline codec, 配置多个数据来源, 存在串的情况, 生产中大数据量有, 小规模没有复现....&lt;/p&gt;
+&lt;hr/&gt;
+&lt;p&gt;好了, 先这些, 还有一些窝在某些目录下, 后续整理好了发&lt;/p&gt;
+&lt;p&gt;wklken&lt;/p&gt;
+&lt;p&gt;2016-02-16&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Tue, 16 Feb 2016 00:00:00 +0800</pubDate><guid>tag:www.wklken.me,2016-02-16:posts/2016/02/16/elk-about-upgrade.html</guid><category>system</category></item><item><title>Elasticsearch几个问题的解决</title><link>http://www.wklken.me/posts/2015/05/23/elasticsearch-issues.html</link><description>&lt;p&gt;今天惯例看统计报表, 才发现es集群悲剧了......昨天下午到今天早上, 持续报错, 写了1G的错误日志&amp;gt;_&amp;lt;#(暂无监控....)&lt;/p&gt;
 &lt;p&gt;当前状态: 单台机器, 单节点(空集群), 200W 数据, 500+shrads,  约3G大小&lt;/p&gt;
 &lt;p&gt;以下是几个问题的处理过程&lt;/p&gt;
 &lt;h3 id="unassigned-shards"&gt;大量unassigned shards&lt;/h3&gt;
