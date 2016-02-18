@@ -1,5 +1,82 @@
 <?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>wklken's blog</title><link>http://www.wklken.me/</link><description></description><atom:link href="http://www.wklken.me/category/python-practice/feed" rel="self"></atom:link><lastBuildDate>Sun, 02 Sep 2012 00:00:00 +0800</lastBuildDate><item><title>Python通用邮件发送[smtplib]</title><link>http://www.wklken.me/posts/2012/09/02/python-email-smtplib.html</link><description>&lt;p&gt;使用到的模块 &lt;a href="http://docs.python.org/2/library/smtplib.html"&gt;smtplib&lt;/a&gt;,  &lt;a href="http://docs.python.org/2/library/email"&gt;email&lt;/a&gt;&lt;/p&gt;
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>wklken's blog</title><link>http://www.wklken.me/</link><description></description><atom:link href="http://www.wklken.me/category/python-practice/feed" rel="self"></atom:link><lastBuildDate>Thu, 18 Feb 2016 00:00:00 +0800</lastBuildDate><item><title>一些Centos Python生产环境的部署命令</title><link>http://www.wklken.me/posts/2016/02/18/python-env-in-centos.html</link><description>&lt;p&gt;Just notes&lt;/p&gt;
+&lt;p&gt;拿到一台干净的centos之后, 初始化Python环境, 一些命令和问题记录而已&lt;/p&gt;
+&lt;p&gt;可以搞成脚本自动初始化, 当然, 用docker更好&lt;/p&gt;
+&lt;hr/&gt;
+&lt;h2 id="_1"&gt;基础环境&lt;/h2&gt;
+&lt;h4 id="1"&gt;1. 创建用户&lt;/h4&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;sudo adduser newuser
+sudo passwd newuser
+
+# 设置授权不需要输入密码
+sudo /usr/sbin/visudo
+newuser       ALL=NOPASSWD: ALL
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h4 id="2-epelfedora-extra-packages-for-enterprise-linux-repository"&gt;2. EPEL(Fedora Extra Packages for Enterprise Linux repository )&lt;/h4&gt;
+&lt;p&gt;&lt;a href="http://www.rackspace.com/knowledge_center/article/install-epel-and-additional-repositories-on-centos-and-red-hat"&gt;参考文档&lt;/a&gt;&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;wget http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
+sudo rpm -Uvh epel-release-6*.rpm
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h4 id="3-ius"&gt;3. 加ius源&lt;/h4&gt;
+&lt;p&gt;&lt;a href="http://dl.iuscommunity.org/pub/ius/stable/CentOS/6/x86_64/ius-release-1.0-13.ius.centos6.noarch.rpm"&gt;包地址&lt;/a&gt;&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;wget http://dl.iuscommunity.org/pub/ius/stable/CentOS/6/x86_64/ius-release-1.0-13.ius.centos6.noarch.rpm
+sudo rpm -Uvh ius-release-1.0-13.ius.centos6.noarch.rpm
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h4 id="4-python27-python3-pip"&gt;4. 安装python2.7 / python3 / pip&lt;/h4&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;sudo yum install python27
+sudo yum install python27-devel
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;then&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;curl https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py | sudo /usr/bin/python2.7 -
+
+# pip
+curl https://raw.githubusercontent.com/pypa/pip/master/contrib/get-pip.py | sudo /usr/bin/python2.7 -
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;extra: install python3&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;sudo yum install python34u python34u-devel
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h4 id="5-virtualenv"&gt;5. virtualenv&lt;/h4&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;sudo pip install virtualenv
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h4 id="6-gen-ssh-key"&gt;6. gen ssh key&lt;/h4&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;ssh-keygen -t rsa
+
+add ~/.ssh/id_rsa.pub to git or github
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h2 id="_3"&gt;一些服务&lt;/h2&gt;
+&lt;h4 id="1-install-git"&gt;1. install git&lt;/h4&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;sudo yum install git
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h4 id="2-mysql"&gt;2. mysql&lt;/h4&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;sudo yum install mysql
+sudo yum install mysql-devel* -y
+sudo yum install mysql-server
+sudo /sbin/service mysqld start
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h4 id="3-redis"&gt;3. redis&lt;/h4&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;sudo yum install redis
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h4 id="4-rabbitmq"&gt;4. rabbitmq&lt;/h4&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;sudo yum install rabbitmq-server
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h2 id="_5"&gt;问题&lt;/h2&gt;
+&lt;h4 id="errno-14-peer-cert-cannot-be-verified-or-peer-cert-invalid"&gt;[Errno 14] Peer cert cannot be verified or peer cert invalid&lt;/h4&gt;
+&lt;p&gt;add "sslverify=false" in /etc/yum.conf&lt;/p&gt;
+&lt;h4 id="pip-error-importerror-cannot-import-name-httpshandler"&gt;pip error: ImportError: cannot import name HTTPSHandler&lt;/h4&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;yum install openssl openssl-devel -y
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;&lt;a href="http://stackoverflow.com/questions/20688034/importerror-cannot-import-name-httpshandler-using-pip"&gt;see in sof&lt;/a&gt;&lt;/p&gt;
+&lt;h4 id="mysql-python"&gt;MySQL-python&lt;/h4&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;    &lt;span class="n"&gt;_mysql&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;c&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;2642&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;error&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;initializer&lt;/span&gt; &lt;span class="n"&gt;element&lt;/span&gt; &lt;span class="ow"&gt;is&lt;/span&gt; &lt;span class="ow"&gt;not&lt;/span&gt; &lt;span class="n"&gt;constant&lt;/span&gt;
+    &lt;span class="n"&gt;_mysql&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;c&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;2642&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;error&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;near&lt;/span&gt; &lt;span class="n"&gt;initialization&lt;/span&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="err"&gt;&amp;lsquo;&lt;/span&gt;&lt;span class="n"&gt;_mysql_ResultObject_memberlist&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;offset&lt;/span&gt;&lt;span class="err"&gt;&amp;rsquo;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="n"&gt;_mysql&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;c&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;In&lt;/span&gt; &lt;span class="n"&gt;function&lt;/span&gt; &lt;span class="err"&gt;&amp;lsquo;&lt;/span&gt;&lt;span class="n"&gt;_mysql_ConnectionObject_getattr&lt;/span&gt;&lt;span class="err"&gt;&amp;rsquo;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="n"&gt;_mysql&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;c&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;2666&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;error&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="err"&gt;&amp;lsquo;&lt;/span&gt;&lt;span class="n"&gt;_mysql_ConnectionObject&lt;/span&gt;&lt;span class="err"&gt;&amp;rsquo;&lt;/span&gt; &lt;span class="n"&gt;has&lt;/span&gt; &lt;span class="n"&gt;no&lt;/span&gt; &lt;span class="n"&gt;member&lt;/span&gt; &lt;span class="n"&gt;named&lt;/span&gt; &lt;span class="err"&gt;&amp;lsquo;&lt;/span&gt;&lt;span class="nb"&gt;open&lt;/span&gt;&lt;span class="err"&gt;&amp;rsquo;&lt;/span&gt;
+    &lt;span class="n"&gt;error&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;command&lt;/span&gt; &lt;span class="s1"&gt;'gcc'&lt;/span&gt; &lt;span class="n"&gt;failed&lt;/span&gt; &lt;span class="k"&gt;with&lt;/span&gt; &lt;span class="nb"&gt;exit&lt;/span&gt; &lt;span class="n"&gt;status&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;
+
+    &lt;span class="o"&gt;----------------------------------------&lt;/span&gt;
+&lt;span class="n"&gt;Command&lt;/span&gt; &lt;span class="s2"&gt;"/data/home/alarm/env/bin/python -c "&lt;/span&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;setuptools&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="nn"&gt;tokenize&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="n"&gt;__file__&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s1"&gt;'/tmp/pip-build-HgXAQT/MySQL-python/setup.py'&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="k"&gt;exec&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;compile&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;getattr&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;tokenize&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'open'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nb"&gt;open&lt;/span&gt;&lt;span class="p"&gt;)(&lt;/span&gt;&lt;span class="n"&gt;__file__&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;read&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;replace&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'&lt;/span&gt;&lt;span class="se"&gt;\r\n&lt;/span&gt;&lt;span class="s1"&gt;'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'&lt;/span&gt;&lt;span class="se"&gt;\n&lt;/span&gt;&lt;span class="s1"&gt;'&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="n"&gt;__file__&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'exec'&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;&lt;span class="s2"&gt;" install --record /tmp/pip-kx2cSu-record/install-record.txt --single-version-externally-managed --compile"&lt;/span&gt; &lt;span class="n"&gt;failed&lt;/span&gt; &lt;span class="k"&gt;with&lt;/span&gt; &lt;span class="n"&gt;error&lt;/span&gt; &lt;span class="n"&gt;code&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;tmp&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;pip&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;build&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;HgXAQT&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;MySQL&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;python&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;处理:  &lt;code&gt;yum install mysql-devel&lt;/code&gt;&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Thu, 18 Feb 2016 00:00:00 +0800</pubDate><guid>tag:www.wklken.me,2016-02-18:posts/2016/02/18/python-env-in-centos.html</guid><category>python</category></item><item><title>Python通用邮件发送[smtplib]</title><link>http://www.wklken.me/posts/2012/09/02/python-email-smtplib.html</link><description>&lt;p&gt;使用到的模块 &lt;a href="http://docs.python.org/2/library/smtplib.html"&gt;smtplib&lt;/a&gt;,  &lt;a href="http://docs.python.org/2/library/email"&gt;email&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;代码托管位置 &lt;a href="https://github.com/wklken/pytools"&gt;github-pytools&lt;/a&gt;&lt;/p&gt;
 &lt;h3 id="_1"&gt;需求&lt;/h3&gt;
 &lt;p&gt;1.发送邮件&lt;/p&gt;

@@ -1,5 +1,82 @@
 <?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>wklken's blog</title><link>http://www.wklken.me/</link><description></description><atom:link href="http://www.wklken.me/feeds/wklken.rss.xml" rel="self"></atom:link><lastBuildDate>Wed, 17 Feb 2016 00:00:00 +0800</lastBuildDate><item><title>摘录&gt;</title><link>http://www.wklken.me/posts/2016/02/17/master-en-in-six-months.html</link><description>&lt;p&gt;在高铁上顺手刷完的一本书, 学习英语的方法论吧, 和学习编程有很多类似的地方, 互相印证.&lt;/p&gt;
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>wklken's blog</title><link>http://www.wklken.me/</link><description></description><atom:link href="http://www.wklken.me/feeds/wklken.rss.xml" rel="self"></atom:link><lastBuildDate>Thu, 18 Feb 2016 00:00:00 +0800</lastBuildDate><item><title>一些Centos Python生产环境的部署命令</title><link>http://www.wklken.me/posts/2016/02/18/python-env-in-centos.html</link><description>&lt;p&gt;Just notes&lt;/p&gt;
+&lt;p&gt;拿到一台干净的centos之后, 初始化Python环境, 一些命令和问题记录而已&lt;/p&gt;
+&lt;p&gt;可以搞成脚本自动初始化, 当然, 用docker更好&lt;/p&gt;
+&lt;hr/&gt;
+&lt;h2 id="_1"&gt;基础环境&lt;/h2&gt;
+&lt;h4 id="1"&gt;1. 创建用户&lt;/h4&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;sudo adduser newuser
+sudo passwd newuser
+
+# 设置授权不需要输入密码
+sudo /usr/sbin/visudo
+newuser       ALL=NOPASSWD: ALL
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h4 id="2-epelfedora-extra-packages-for-enterprise-linux-repository"&gt;2. EPEL(Fedora Extra Packages for Enterprise Linux repository )&lt;/h4&gt;
+&lt;p&gt;&lt;a href="http://www.rackspace.com/knowledge_center/article/install-epel-and-additional-repositories-on-centos-and-red-hat"&gt;参考文档&lt;/a&gt;&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;wget http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
+sudo rpm -Uvh epel-release-6*.rpm
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h4 id="3-ius"&gt;3. 加ius源&lt;/h4&gt;
+&lt;p&gt;&lt;a href="http://dl.iuscommunity.org/pub/ius/stable/CentOS/6/x86_64/ius-release-1.0-13.ius.centos6.noarch.rpm"&gt;包地址&lt;/a&gt;&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;wget http://dl.iuscommunity.org/pub/ius/stable/CentOS/6/x86_64/ius-release-1.0-13.ius.centos6.noarch.rpm
+sudo rpm -Uvh ius-release-1.0-13.ius.centos6.noarch.rpm
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h4 id="4-python27-python3-pip"&gt;4. 安装python2.7 / python3 / pip&lt;/h4&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;sudo yum install python27
+sudo yum install python27-devel
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;then&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;curl https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py | sudo /usr/bin/python2.7 -
+
+# pip
+curl https://raw.githubusercontent.com/pypa/pip/master/contrib/get-pip.py | sudo /usr/bin/python2.7 -
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;extra: install python3&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;sudo yum install python34u python34u-devel
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h4 id="5-virtualenv"&gt;5. virtualenv&lt;/h4&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;sudo pip install virtualenv
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h4 id="6-gen-ssh-key"&gt;6. gen ssh key&lt;/h4&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;ssh-keygen -t rsa
+
+add ~/.ssh/id_rsa.pub to git or github
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h2 id="_3"&gt;一些服务&lt;/h2&gt;
+&lt;h4 id="1-install-git"&gt;1. install git&lt;/h4&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;sudo yum install git
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h4 id="2-mysql"&gt;2. mysql&lt;/h4&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;sudo yum install mysql
+sudo yum install mysql-devel* -y
+sudo yum install mysql-server
+sudo /sbin/service mysqld start
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h4 id="3-redis"&gt;3. redis&lt;/h4&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;sudo yum install redis
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h4 id="4-rabbitmq"&gt;4. rabbitmq&lt;/h4&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;sudo yum install rabbitmq-server
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h2 id="_5"&gt;问题&lt;/h2&gt;
+&lt;h4 id="errno-14-peer-cert-cannot-be-verified-or-peer-cert-invalid"&gt;[Errno 14] Peer cert cannot be verified or peer cert invalid&lt;/h4&gt;
+&lt;p&gt;add "sslverify=false" in /etc/yum.conf&lt;/p&gt;
+&lt;h4 id="pip-error-importerror-cannot-import-name-httpshandler"&gt;pip error: ImportError: cannot import name HTTPSHandler&lt;/h4&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;yum install openssl openssl-devel -y
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;&lt;a href="http://stackoverflow.com/questions/20688034/importerror-cannot-import-name-httpshandler-using-pip"&gt;see in sof&lt;/a&gt;&lt;/p&gt;
+&lt;h4 id="mysql-python"&gt;MySQL-python&lt;/h4&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;    &lt;span class="n"&gt;_mysql&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;c&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;2642&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;error&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;initializer&lt;/span&gt; &lt;span class="n"&gt;element&lt;/span&gt; &lt;span class="ow"&gt;is&lt;/span&gt; &lt;span class="ow"&gt;not&lt;/span&gt; &lt;span class="n"&gt;constant&lt;/span&gt;
+    &lt;span class="n"&gt;_mysql&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;c&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;2642&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;error&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;near&lt;/span&gt; &lt;span class="n"&gt;initialization&lt;/span&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="err"&gt;&amp;lsquo;&lt;/span&gt;&lt;span class="n"&gt;_mysql_ResultObject_memberlist&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;offset&lt;/span&gt;&lt;span class="err"&gt;&amp;rsquo;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="n"&gt;_mysql&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;c&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;In&lt;/span&gt; &lt;span class="n"&gt;function&lt;/span&gt; &lt;span class="err"&gt;&amp;lsquo;&lt;/span&gt;&lt;span class="n"&gt;_mysql_ConnectionObject_getattr&lt;/span&gt;&lt;span class="err"&gt;&amp;rsquo;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="n"&gt;_mysql&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;c&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;2666&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;error&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="err"&gt;&amp;lsquo;&lt;/span&gt;&lt;span class="n"&gt;_mysql_ConnectionObject&lt;/span&gt;&lt;span class="err"&gt;&amp;rsquo;&lt;/span&gt; &lt;span class="n"&gt;has&lt;/span&gt; &lt;span class="n"&gt;no&lt;/span&gt; &lt;span class="n"&gt;member&lt;/span&gt; &lt;span class="n"&gt;named&lt;/span&gt; &lt;span class="err"&gt;&amp;lsquo;&lt;/span&gt;&lt;span class="nb"&gt;open&lt;/span&gt;&lt;span class="err"&gt;&amp;rsquo;&lt;/span&gt;
+    &lt;span class="n"&gt;error&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;command&lt;/span&gt; &lt;span class="s1"&gt;'gcc'&lt;/span&gt; &lt;span class="n"&gt;failed&lt;/span&gt; &lt;span class="k"&gt;with&lt;/span&gt; &lt;span class="nb"&gt;exit&lt;/span&gt; &lt;span class="n"&gt;status&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;
+
+    &lt;span class="o"&gt;----------------------------------------&lt;/span&gt;
+&lt;span class="n"&gt;Command&lt;/span&gt; &lt;span class="s2"&gt;"/data/home/alarm/env/bin/python -c "&lt;/span&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;setuptools&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="nn"&gt;tokenize&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="n"&gt;__file__&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s1"&gt;'/tmp/pip-build-HgXAQT/MySQL-python/setup.py'&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="k"&gt;exec&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;compile&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;getattr&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;tokenize&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'open'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nb"&gt;open&lt;/span&gt;&lt;span class="p"&gt;)(&lt;/span&gt;&lt;span class="n"&gt;__file__&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;read&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;replace&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'&lt;/span&gt;&lt;span class="se"&gt;\r\n&lt;/span&gt;&lt;span class="s1"&gt;'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'&lt;/span&gt;&lt;span class="se"&gt;\n&lt;/span&gt;&lt;span class="s1"&gt;'&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="n"&gt;__file__&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'exec'&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;&lt;span class="s2"&gt;" install --record /tmp/pip-kx2cSu-record/install-record.txt --single-version-externally-managed --compile"&lt;/span&gt; &lt;span class="n"&gt;failed&lt;/span&gt; &lt;span class="k"&gt;with&lt;/span&gt; &lt;span class="n"&gt;error&lt;/span&gt; &lt;span class="n"&gt;code&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;tmp&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;pip&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;build&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;HgXAQT&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;MySQL&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;python&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;处理:  &lt;code&gt;yum install mysql-devel&lt;/code&gt;&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Thu, 18 Feb 2016 00:00:00 +0800</pubDate><guid>tag:www.wklken.me,2016-02-18:posts/2016/02/18/python-env-in-centos.html</guid><category>python</category></item><item><title>摘录&gt;</title><link>http://www.wklken.me/posts/2016/02/17/master-en-in-six-months.html</link><description>&lt;p&gt;在高铁上顺手刷完的一本书, 学习英语的方法论吧, 和学习编程有很多类似的地方, 互相印证.&lt;/p&gt;
 &lt;p&gt;还是值得一读的, 建议想掌握英文的同学买一本读一读&lt;/p&gt;
 &lt;p&gt;额, 英文这个问题困扰了我很久, 当然, 学习的主要目的是能更快更好的读懂文档以及进行一些基本交流(其实是为了刷电影美剧更方便些ORZ)&lt;/p&gt;
 &lt;p&gt;从去年开始就实行&lt;code&gt;泡脑子&lt;/code&gt;的策略, 上下班各半个小时, 反复在听老友记十季的音频(安利app: 喜马拉雅). 然后固定在刷几部美剧, 买了本英文著作一字一句反复读中, 也开始在国外的论坛提问题, 发言, 用kindle开启生词模式在刷书. 当然, 俺的英文还是别别扭扭的.....&lt;/p&gt;
@@ -78,7 +155,7 @@
 &lt;p&gt;这套东西是2013年搭建的, 年久失修, 所以做了个方案, 开始了批量升级&lt;/p&gt;
 &lt;p&gt;将logstash从1.3升级到2.1, 将elasticsearch从1.4.1升级到2.0&lt;/p&gt;
 &lt;p&gt;期间踩了很多坑, 搞了一个多月, 总算搞完&lt;/p&gt;
-&lt;p&gt;从纯手工落后隔三差五有人找查问题的自行车, 改成自动化最新版本新架构运维便捷上了两个月无人反馈的, 额, 小汽车:) - 继承安装包/shell脚本/fabric实现部署/升级/增删/加黑名单等等功能&lt;/p&gt;
+&lt;p&gt;从纯手工落后隔三差五有人找查问题的自行车, 改成自动化最新版本新架构运维便捷上了两个月无人反馈的, 额, 小汽车:) - 集成安装包/shell脚本/fabric实现部署/升级/增删/加黑名单等等功能&lt;/p&gt;
 &lt;p&gt;每天日志量大概10G上下, 几十个采集端, 两个redis, 两个indexer, 两台es机器扛起&lt;/p&gt;
 &lt;p&gt;以下, 不那么严谨地, 记录一些遇到的问题&lt;/p&gt;
 &lt;h4 id="1-logstash"&gt;1. logstash升级策略&lt;/h4&gt;
@@ -297,6 +374,25 @@ supervisor&amp;gt; restart indexer
 &lt;p&gt;跪了, 需要自定义&lt;code&gt;LOGFILENAME [a-z\-A-Z0-9_\.]+&lt;/code&gt;放到pattern中&lt;/p&gt;
 &lt;p&gt;然后, 搜索的时候, 尼玛, 也搜不到....语法要做处理, 使用&lt;code&gt;raw&lt;/code&gt;, es建索引的时候自动拆掉了导致搜索不到&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;{'term': {'app_name.raw': 'nms-t'}}
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h4 id="exclude"&gt;做一些exclude&lt;/h4&gt;
+&lt;p&gt;有时候需要做一些exclude, 去除比必要采集和监控的日志(进入采集逻辑纯粹是浪费cpu和内存)&lt;/p&gt;
+&lt;p&gt;例如, 目录树, 不要监控celery.log&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;logs
+├── a
+│&amp;nbsp;&amp;nbsp; ├── a.log
+│&amp;nbsp;&amp;nbsp; ├── b.log
+│&amp;nbsp;&amp;nbsp; └── celery.log
+└── b
+    ├── c.log
+        └── d.log
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;排除部分文件&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;file {
+    path =&amp;gt; ["/data/logs/*/*.log"]
+    exclude =&amp;gt; ["celery.log", ]
+    sincedb_path =&amp;gt; "/data/LogNew/logstash/sincedb/django.sincedb"
+}
 &lt;/pre&gt;&lt;/div&gt;
 &lt;h4 id="_1"&gt;一些相关用到的命令&lt;/h4&gt;
 &lt;ul&gt;

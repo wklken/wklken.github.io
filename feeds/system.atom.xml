@@ -3,7 +3,7 @@
 &lt;p&gt;这套东西是2013年搭建的, 年久失修, 所以做了个方案, 开始了批量升级&lt;/p&gt;
 &lt;p&gt;将logstash从1.3升级到2.1, 将elasticsearch从1.4.1升级到2.0&lt;/p&gt;
 &lt;p&gt;期间踩了很多坑, 搞了一个多月, 总算搞完&lt;/p&gt;
-&lt;p&gt;从纯手工落后隔三差五有人找查问题的自行车, 改成自动化最新版本新架构运维便捷上了两个月无人反馈的, 额, 小汽车:) - 继承安装包/shell脚本/fabric实现部署/升级/增删/加黑名单等等功能&lt;/p&gt;
+&lt;p&gt;从纯手工落后隔三差五有人找查问题的自行车, 改成自动化最新版本新架构运维便捷上了两个月无人反馈的, 额, 小汽车:) - 集成安装包/shell脚本/fabric实现部署/升级/增删/加黑名单等等功能&lt;/p&gt;
 &lt;p&gt;每天日志量大概10G上下, 几十个采集端, 两个redis, 两个indexer, 两台es机器扛起&lt;/p&gt;
 &lt;p&gt;以下, 不那么严谨地, 记录一些遇到的问题&lt;/p&gt;
 &lt;h4 id="1-logstash"&gt;1. logstash升级策略&lt;/h4&gt;
@@ -222,6 +222,25 @@ supervisor&amp;gt; restart indexer
 &lt;p&gt;跪了, 需要自定义&lt;code&gt;LOGFILENAME [a-z\-A-Z0-9_\.]+&lt;/code&gt;放到pattern中&lt;/p&gt;
 &lt;p&gt;然后, 搜索的时候, 尼玛, 也搜不到....语法要做处理, 使用&lt;code&gt;raw&lt;/code&gt;, es建索引的时候自动拆掉了导致搜索不到&lt;/p&gt;
 &lt;div class="codehilite"&gt;&lt;pre&gt;{'term': {'app_name.raw': 'nms-t'}}
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h4 id="exclude"&gt;做一些exclude&lt;/h4&gt;
+&lt;p&gt;有时候需要做一些exclude, 去除比必要采集和监控的日志(进入采集逻辑纯粹是浪费cpu和内存)&lt;/p&gt;
+&lt;p&gt;例如, 目录树, 不要监控celery.log&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;logs
+├── a
+│&amp;nbsp;&amp;nbsp; ├── a.log
+│&amp;nbsp;&amp;nbsp; ├── b.log
+│&amp;nbsp;&amp;nbsp; └── celery.log
+└── b
+    ├── c.log
+        └── d.log
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;排除部分文件&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;file {
+    path =&amp;gt; ["/data/logs/*/*.log"]
+    exclude =&amp;gt; ["celery.log", ]
+    sincedb_path =&amp;gt; "/data/LogNew/logstash/sincedb/django.sincedb"
+}
 &lt;/pre&gt;&lt;/div&gt;
 &lt;h4 id="_1"&gt;一些相关用到的命令&lt;/h4&gt;
 &lt;ul&gt;

@@ -73,14 +73,14 @@
     </section>
 
         <section id="toc">
-            <div id="toc"><ul><li><a class="toc-href" href="#" title="ELK 维护的一些点">ELK 维护的一些点</a><ul><li><a class="toc-href" href="#1-logstash" title="1. logstash升级策略">1. logstash升级策略</a></li><li><a class="toc-href" href="#2-elasticsearch" title="2. elasticsearch升级的策略">2. elasticsearch升级的策略</a></li><li><a class="toc-href" href="#supervisord" title="优化点: 集成安装包和supervisord">优化点: 集成安装包和supervisord</a></li><li><a class="toc-href" href="#logstashoutput" title="注意点: logstash存在两个output时, 必须要保证二者的可用性">注意点: logstash存在两个output时, 必须要保证二者的可用性</a></li><li><a class="toc-href" href="#elkagent_ip" title="优化点: ELK增加agent_ip字段">优化点: ELK增加agent_ip字段</a></li><li><a class="toc-href" href="#elkutc" title="问题: elk的utc问题">问题: elk的utc问题</a></li><li><a class="toc-href" href="#rolling-restart" title="rolling restart">rolling restart</a></li><li><a class="toc-href" href="#logstashgrok" title="logstash文本解析配置grok语法">logstash文本解析配置grok语法</a></li><li><a class="toc-href" href="#grok" title="坑: GROK语法">坑: GROK语法</a></li><li><a class="toc-href" href="#_1" title="一些相关用到的命令">一些相关用到的命令</a></li><li><a class="toc-href" href="#30crontab" title="删除30天前crontab脚本">删除30天前crontab脚本</a></li><li><a class="toc-href" href="#_2" title="尚未处理">尚未处理</a></li></ul></li></ul></div>
+            <div id="toc"><ul><li><a class="toc-href" href="#" title="ELK 维护的一些点">ELK 维护的一些点</a><ul><li><a class="toc-href" href="#1-logstash" title="1. logstash升级策略">1. logstash升级策略</a></li><li><a class="toc-href" href="#2-elasticsearch" title="2. elasticsearch升级的策略">2. elasticsearch升级的策略</a></li><li><a class="toc-href" href="#supervisord" title="优化点: 集成安装包和supervisord">优化点: 集成安装包和supervisord</a></li><li><a class="toc-href" href="#logstashoutput" title="注意点: logstash存在两个output时, 必须要保证二者的可用性">注意点: logstash存在两个output时, 必须要保证二者的可用性</a></li><li><a class="toc-href" href="#elkagent_ip" title="优化点: ELK增加agent_ip字段">优化点: ELK增加agent_ip字段</a></li><li><a class="toc-href" href="#elkutc" title="问题: elk的utc问题">问题: elk的utc问题</a></li><li><a class="toc-href" href="#rolling-restart" title="rolling restart">rolling restart</a></li><li><a class="toc-href" href="#logstashgrok" title="logstash文本解析配置grok语法">logstash文本解析配置grok语法</a></li><li><a class="toc-href" href="#grok" title="坑: GROK语法">坑: GROK语法</a></li><li><a class="toc-href" href="#exclude" title="做一些exclude">做一些exclude</a></li><li><a class="toc-href" href="#_1" title="一些相关用到的命令">一些相关用到的命令</a></li><li><a class="toc-href" href="#30crontab" title="删除30天前crontab脚本">删除30天前crontab脚本</a></li><li><a class="toc-href" href="#_2" title="尚未处理">尚未处理</a></li></ul></li></ul></div>
         </section>
     <section id="content">
         <p>去年入职新公司之后, 负责维护平台的elk</p>
 <p>这套东西是2013年搭建的, 年久失修, 所以做了个方案, 开始了批量升级</p>
 <p>将logstash从1.3升级到2.1, 将elasticsearch从1.4.1升级到2.0</p>
 <p>期间踩了很多坑, 搞了一个多月, 总算搞完</p>
-<p>从纯手工落后隔三差五有人找查问题的自行车, 改成自动化最新版本新架构运维便捷上了两个月无人反馈的, 额, 小汽车:) - 继承安装包/shell脚本/fabric实现部署/升级/增删/加黑名单等等功能</p>
+<p>从纯手工落后隔三差五有人找查问题的自行车, 改成自动化最新版本新架构运维便捷上了两个月无人反馈的, 额, 小汽车:) - 集成安装包/shell脚本/fabric实现部署/升级/增删/加黑名单等等功能</p>
 <p>每天日志量大概10G上下, 几十个采集端, 两个redis, 两个indexer, 两台es机器扛起</p>
 <p>以下, 不那么严谨地, 记录一些遇到的问题</p>
 <h4 id="1-logstash">1. logstash升级策略</h4>
@@ -299,6 +299,25 @@ supervisor&gt; restart indexer
 <p>跪了, 需要自定义<code>LOGFILENAME [a-z\-A-Z0-9_\.]+</code>放到pattern中</p>
 <p>然后, 搜索的时候, 尼玛, 也搜不到....语法要做处理, 使用<code>raw</code>, es建索引的时候自动拆掉了导致搜索不到</p>
 <div class="codehilite"><pre>{'term': {'app_name.raw': 'nms-t'}}
+</pre></div>
+<h4 id="exclude">做一些exclude</h4>
+<p>有时候需要做一些exclude, 去除比必要采集和监控的日志(进入采集逻辑纯粹是浪费cpu和内存)</p>
+<p>例如, 目录树, 不要监控celery.log</p>
+<div class="codehilite"><pre>logs
+├── a
+│&nbsp;&nbsp; ├── a.log
+│&nbsp;&nbsp; ├── b.log
+│&nbsp;&nbsp; └── celery.log
+└── b
+    ├── c.log
+        └── d.log
+</pre></div>
+<p>排除部分文件</p>
+<div class="codehilite"><pre>file {
+    path =&gt; ["/data/logs/*/*.log"]
+    exclude =&gt; ["celery.log", ]
+    sincedb_path =&gt; "/data/LogNew/logstash/sincedb/django.sincedb"
+}
 </pre></div>
 <h4 id="_1">一些相关用到的命令</h4>
 <ul>
