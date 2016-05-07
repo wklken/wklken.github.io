@@ -566,4 +566,28 @@ options:
 &lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;server_port&lt;/span&gt; &lt;span class="nt"&gt;请求到达服务器的端口号&lt;/span&gt;&lt;span class="err"&gt;。&lt;/span&gt;
 &lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;server_protocol&lt;/span&gt; &lt;span class="nt"&gt;请求使用的协议&lt;/span&gt;&lt;span class="err"&gt;，&lt;/span&gt;&lt;span class="nt"&gt;通常是HTTP&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nt"&gt;1&lt;/span&gt;&lt;span class="nc"&gt;.0或HTTP&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nt"&gt;1&lt;/span&gt;&lt;span class="nc"&gt;.1&lt;/span&gt;&lt;span class="err"&gt;。&lt;/span&gt;
 &lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;uri&lt;/span&gt; &lt;span class="nt"&gt;请求中的当前URI&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="nt"&gt;不带请求参数&lt;/span&gt;&lt;span class="err"&gt;，&lt;/span&gt;&lt;span class="nt"&gt;参数位于&lt;/span&gt;&lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;args&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt;&lt;span class="err"&gt;，&lt;/span&gt;&lt;span class="nt"&gt;可以不同于浏览器传递的&lt;/span&gt;&lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;request_uri的值&lt;/span&gt;&lt;span class="err"&gt;，&lt;/span&gt;&lt;span class="nt"&gt;它可以通过内部重定向&lt;/span&gt;&lt;span class="err"&gt;，&lt;/span&gt;&lt;span class="nt"&gt;或者使用index指令进行修改&lt;/span&gt;&lt;span class="err"&gt;。&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;</summary><category term="linux"></category><category term="nginx"></category></entry></feed>
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h3 id="shtml"&gt;配置shtml访问&lt;/h3&gt;
+&lt;p&gt;&lt;a href="http://nginx.org/en/docs/http/ngx_http_ssi_module.html"&gt;文档&lt;/a&gt;&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;location  ~ ^/static {
+    ....
+    ssi on;
+    ssi_client_errors on;
+    ssi_types text/shtml;
+}
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h3 id="auth-basic"&gt;auth basic配置&lt;/h3&gt;
+&lt;p&gt;首先, 安装&lt;code&gt;htpasswd&lt;/code&gt;, 生成密码&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;htpasswd -c paas_admin username
+password: password
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;生成文件后, 拷贝到nginx目录下&lt;/p&gt;
+&lt;p&gt;配置&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;location / {
+    auth_basic "Restricted";
+    auth_basic_user_file /usr/local/nginx/conf/kibana.htpasswd;
+    root  /data/BKLogTool/kibana;
+    index  index.html  index.htm;
+}
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;reload nginx&lt;/p&gt;</summary><category term="linux"></category><category term="nginx"></category></entry></feed>

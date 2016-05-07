@@ -1,5 +1,188 @@
 <?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>wklken's blog</title><link>http://www.wklken.me/</link><description></description><atom:link href="http://www.wklken.me/feed.xml" rel="self"></atom:link><lastBuildDate>Tue, 01 Mar 2016 00:00:00 +0800</lastBuildDate><item><title>[分享]Python源码剖析-数据结构</title><link>http://www.wklken.me/posts/2016/03/01/python-source-datastructure.html</link><description>&lt;p&gt;&lt;object data="/extra/share/python-source-datastructure.pdf" height="525" type="application/pdf" width="729"&gt;
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>wklken's blog</title><link>http://www.wklken.me/</link><description></description><atom:link href="http://www.wklken.me/feed.xml" rel="self"></atom:link><lastBuildDate>Sat, 07 May 2016 00:00:00 +0800</lastBuildDate><item><title>ELK维护的一些点(二)</title><link>http://www.wklken.me/posts/2016/05/07/elk-about-2.html</link><description>&lt;p&gt;很杂, 涉及到最近处理的一些点&lt;/p&gt;
+&lt;hr/&gt;
+&lt;h3 id="string"&gt;根据string转浮点数的某个字段排序&lt;/h3&gt;
+&lt;p&gt;一个字段, &lt;code&gt;resp_time&lt;/code&gt;, mapping中是string, 有需求是, 按照响应时间降序排序, 此时需要构造qsl(在search中使用), 使用该字段转换为浮点数, 降序排列&lt;/p&gt;
+&lt;p&gt;第一步, 修改es配置, 增加groovy支持&lt;/p&gt;
+&lt;p&gt;elasticsearch.yml中加入&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;script.engine.groovy.inline.search: on
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;然后, 执行 &lt;a href="http://www.wklken.me/posts/2016/02/16/elk-about-upgrade.html#rolling-restart"&gt;rolling restart&lt;/a&gt;, 逐一重启集群每个节点&lt;/p&gt;
+&lt;p&gt;第二步, 构造qsl,  &lt;code&gt;sort&lt;/code&gt;中,  增加&lt;code&gt;_script&lt;/code&gt; 使用groovy脚本, 将对应字段从string转成数字, 再进行排序&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;'sort': [{'_script': {'lang': 'groovy',
+                       'order': 'desc',
+                       'script': 'Float.parseFloat(doc["resp_time"].value)',
+                       'type': 'number'}},
+          {'@timestamp': 'desc'}
+          ]
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;附 &lt;a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/modules-scripting.html"&gt;scripting文档&lt;/a&gt;&lt;/p&gt;
+&lt;h3 id="fielddata-format-disabled"&gt;&lt;code&gt;fielddata-format-disabled&lt;/code&gt;导致的排序失效&lt;/h3&gt;
+&lt;p&gt;有个集群, 升级后, 发现&lt;code&gt;resp_time&lt;/code&gt;字段的mapping是&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;"resp_time" : {
+"type" : "string",
+"norms" : {
+    "enabled" : false
+},
+"fielddata" : {
+    "format" : "disabled"
+},
+"fields" : {
+    "raw" : {
+    "type" : "string",
+    "index" : "not_analyzed",
+    "ignore_above" : 256
+    }
+}
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;注意这里的, 是因为升级es 2.0之后, 默认值变更带来的问题&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;"fielddata" : {
+  "format" : "disabled"
+},
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;&lt;a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/fielddata.html"&gt;fielddata文档&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;此时, 排序的qsl将会报错, 无法按照对应要求排序&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;Field data loading is forbidden on resp_time
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;解决方案, 挺简单的, 使用&lt;code&gt;foo.raw&lt;/code&gt;即可&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;'sort': [{'_script': {'lang': 'groovy',
+    'order': 'desc',
+    'script': 'Float.parseFloat(doc["resp_time.raw"].value)',
+    'type': 'number'}},
+{'@timestamp': 'desc'}
+]
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h3 id="_1"&gt;使用聚合&lt;/h3&gt;
+&lt;p&gt;把string类型的&lt;code&gt;resp_time&lt;/code&gt;放到&lt;code&gt;aggs&lt;/code&gt;中做聚合的时候.&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;"aggs": {
+     "resp_time_stats": {"stats": {"script": 'Float.parseFloat(doc["resp_time.raw"].value)'}}
+}
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;此时, 会报错&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;{u'error': {u'failed_shards': [{u'index': u'logstash-2016.04.10',
+                                u'node': u'AvemqKN-RGKy68zJXUapBg',
+                                u'reason': {u'reason': u'scripts of type [inline], operation [aggs] and lang [groovy] are disabled',
+                                            u'type': u'script_exception'},
+                                u'shard': 0}],
+            u'grouped': True,
+            u'phase': u'query',
+            u'reason': u'all shards failed',
+            u'root_cause': [{u'reason': u'scripts of type [inline], operation [aggs] and lang [groovy] are disabled',
+                             u'type': u'script_exception'}],
+            u'type': u'search_phase_execution_exception'},
+ u'status': 500}
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;处理, es加配置, 逐一重启&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;script.engine.groovy.inline.aggs: on
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;相关 &lt;a href="https://discuss.elastic.co/t/scripts-of-type-inline-operation-aggs-and-lang-groovy-are-disabled/2493"&gt;文档&lt;/a&gt;&lt;/p&gt;
+&lt;h3 id="logstash-grok-default-patterns"&gt;logstash grok default patterns&lt;/h3&gt;
+&lt;p&gt;默认的一些pattern, 见 &lt;a href="https://github.com/logstash-plugins/logstash-patterns-core/blob/master/patterns/grok-patterns"&gt;grok-patterns&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;grok检查在线实时编辑, https://grokdebug.herokuapp.com/&lt;/p&gt;
+&lt;h3 id="logstash-codec-multiline"&gt;logstash codec multiline 限制行数和日志大小&lt;/h3&gt;
+&lt;p&gt;配置, 具体见 &lt;a href="https://www.elastic.co/guide/en/logstash/current/plugins-codecs-multiline.html"&gt;multiline文档&lt;/a&gt;&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;input {
+        codec =&amp;gt; multiline {
+            patterns_dir =&amp;gt; "./patterns"
+            pattern =&amp;gt; ""
+            what =&amp;gt; "previous"
+            negate  =&amp;gt; true
+            max_lines =&amp;gt; 100
+            max_bytes =&amp;gt; "50kib"
+        }
+}
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;单位 &lt;a href="https://www.elastic.co/guide/en/logstash/current/configuration-file-structure.html#bytes"&gt;bytes&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;实践中, 使用&lt;code&gt;max_bytes&lt;/code&gt;, 当&lt;code&gt;what=previous + negate=true&lt;/code&gt;的情况下, 即不匹配模式的, 归属前一部分, 这种情况下, 性能ok, 反之&lt;code&gt;what=next + negate=true&lt;/code&gt;的情况下, 不匹配成功归属于后半部分, 此时产生的cpu消耗非常之大, 可以将一台机器跑满.&lt;/p&gt;
+&lt;p&gt;另外, 假设配置&lt;code&gt;max_bytes=1M&lt;/code&gt;, 此时用户打了50M, 会给这个event打上tag &lt;code&gt;multiline_codec_max_bytes_reache&lt;/code&gt;, 但是, 这50M 最终还是会经logstash灌入到es里面. 即, 超了, 但是并不自动截掉&lt;/p&gt;
+&lt;p&gt;这时候, 我们可以, 使用&lt;code&gt;mutate-replace&lt;/code&gt;直接替换掉&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;    # if multiline_codec_max_lines_reached
+    if ("multiline_codec_max_bytes_reached" in [tags]) {
+        mutate {
+            replace =&amp;gt; {
+                "message" =&amp;gt; "Log System Warnning: multiline_codec_max_lines_reached, Your log has exceeded 50kB(51200 chars), it was blocked by log system. Please check your code to make your log info shorter and useful"
+                "msg" =&amp;gt; "Log System Warnning: multiline_codec_max_lines_reached, Your log has exceeded 50kB(51200 chars), it was blocked by log system. Please check your code to make your log info shorter and useful"
+            }
+        }
+    }
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h3 id="supervisordlogstash"&gt;使用supervisord管理logstash进程&lt;/h3&gt;
+&lt;p&gt;之前提到, 升级集群后, 使用supervisord统一管理logstash进程, &lt;a href="http://www.wklken.me/posts/2016/02/16/elk-about-upgrade.html#supervisord"&gt;链接&lt;/a&gt;&lt;/p&gt;
+&lt;h3 id="logstashtop"&gt;查看当前机器logstash进程top&lt;/h3&gt;
+&lt;p&gt;有时, 需要上机器看看对应采集端所有logstash进程是否存在问题, 常常用到&lt;code&gt;top&lt;/code&gt;命令, 所以写了个简单的脚本, 配合supervisord的脚本使用&lt;/p&gt;
+&lt;p&gt;ltop.sh&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="ch"&gt;#!/bin/bash&lt;/span&gt;
+./logstashd.sh status
+top -p &lt;span class="k"&gt;$(&lt;/span&gt;./logstashd.sh status &lt;span class="p"&gt;|&lt;/span&gt; awk &lt;span class="s1"&gt;'{print $4}'&lt;/span&gt; &lt;span class="p"&gt;|&lt;/span&gt; awk -F&lt;span class="s1"&gt;','&lt;/span&gt; &lt;span class="s1"&gt;'{print $1}'&lt;/span&gt; &lt;span class="p"&gt;|&lt;/span&gt; tr &lt;span class="s1"&gt;'\n'&lt;/span&gt; &lt;span class="s1"&gt;','&lt;/span&gt; &lt;span class="p"&gt;|&lt;/span&gt; sed &lt;span class="s1"&gt;'s/,$//g'&lt;/span&gt;&lt;span class="k"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h3 id="cpu"&gt;进程占用cpu检测脚本&lt;/h3&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="ch"&gt;#!/bin/bash&lt;/span&gt;
+&lt;span class="nv"&gt;BASEDIR&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="k"&gt;$(&lt;/span&gt;dirname &lt;span class="nv"&gt;$0&lt;/span&gt;&lt;span class="k"&gt;)&lt;/span&gt;
+&lt;span class="nb"&gt;cd&lt;/span&gt; &lt;span class="nv"&gt;$BA&lt;/span&gt;SEDIR
+&lt;span class="nv"&gt;CURRENT_DIR&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="sb"&gt;`&lt;/span&gt;&lt;span class="nb"&gt;pwd&lt;/span&gt;&lt;span class="sb"&gt;`&lt;/span&gt;
+
+&lt;span class="nb"&gt;exec&lt;/span&gt; &amp;gt;&amp;gt; /tmp/log/monitor.log 2&amp;gt;&lt;span class="p"&gt;&amp;amp;&lt;/span&gt;1
+&lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="s2"&gt;"=============================================="&lt;/span&gt;
+date
+&lt;span class="k"&gt;function&lt;/span&gt; check&lt;span class="o"&gt;()&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt;
+    &lt;span class="nv"&gt;PNAME&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nv"&gt;$1&lt;/span&gt;
+    &lt;span class="nv"&gt;PID&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nv"&gt;$2&lt;/span&gt;
+    &lt;span class="nv"&gt;CPU_USE&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="k"&gt;$(&lt;/span&gt;ps -p $PID -o %cpu &lt;span class="p"&gt;|&lt;/span&gt; sed -n &lt;span class="s1"&gt;'2p'&lt;/span&gt;&lt;span class="k"&gt;)&lt;/span&gt;
+    &lt;span class="nv"&gt;INT_CPU_USE&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="k"&gt;$(&lt;/span&gt;&lt;span class="nb"&gt;printf&lt;/span&gt; &lt;span class="s2"&gt;"%.0f\n"&lt;/span&gt; &lt;span class="nv"&gt;$C&lt;/span&gt;PU_USE&lt;span class="k"&gt;)&lt;/span&gt;
+    &lt;span class="nb"&gt;echo&lt;/span&gt; $PNAME&lt;span class="s2"&gt;" - "&lt;/span&gt;&lt;span class="nv"&gt;$C&lt;/span&gt;PU_USE&lt;span class="s2"&gt;" - "&lt;/span&gt;$INT_CPU_USE
+
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="o"&gt;[&lt;/span&gt; $INT_CPU_USE -gt &lt;span class="m"&gt;85&lt;/span&gt; &lt;span class="o"&gt;]&lt;/span&gt;
+    &lt;span class="k"&gt;then&lt;/span&gt;
+       &lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="s2"&gt;"&lt;/span&gt;$&lt;span class="s2"&gt;PNAME cpu usage greater than 85%,do restart"&lt;/span&gt;
+       ./logstashd.sh restart $PNAME
+    &lt;span class="k"&gt;fi&lt;/span&gt;
+&lt;span class="o"&gt;}&lt;/span&gt;
+&lt;span class="nb"&gt;export&lt;/span&gt; -f check
+./logstashd.sh status &lt;span class="p"&gt;|&lt;/span&gt; awk &lt;span class="s1"&gt;'{print "-", $1, $4}'&lt;/span&gt; &lt;span class="p"&gt;|&lt;/span&gt; awk -F&lt;span class="s1"&gt;','&lt;/span&gt; &lt;span class="s1"&gt;'{print $1}'&lt;/span&gt; &lt;span class="p"&gt;|&lt;/span&gt; xargs -n3 bash -c &lt;span class="s1"&gt;'check $@'&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h3 id="yellow"&gt;数据盘满了导致集群状态yellow&lt;/h3&gt;
+&lt;p&gt;机器节点本身有1T 硬盘, 由两块盘组成, 配置es的时候, 数据分别写到了两个盘上, 然后有一天集群状态告警了&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;"status" : "yellow",
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;查看es的日志&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;[2016-03-21 12:43:45,934][INFO ][cluster.routing.allocation.decider] [node_01] low disk watermark [85%] exceeded
+on [AvemqKN-RGKy68zJXUapBg][node_01][/data/LogNewData/xxx/nodes/0] free: 75.5gb[14.1%], replicas will not be assigned to this node
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;处理: 腾磁盘空间出来, es会自动检测恢复&lt;/p&gt;
+&lt;p&gt;PS: 磁盘大小要预估好&lt;/p&gt;
+&lt;h3 id="redis"&gt;查看redis中队列的堆积&lt;/h3&gt;
+&lt;p&gt;历史遗留问题, 有些节点采集发送到redis的key, 在indexer阶段并没有被消费, 导致越堆越多....&lt;/p&gt;
+&lt;p&gt;这时候, 可以通过redis查下哪些队列堆积了&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;bin/redis-cli -h 127.0.0.1 -p 6379 -a blueking_log --bigkeys
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;需要redis版本支持&lt;code&gt;bigkeys&lt;/code&gt; =&amp;gt; This is a "new" feature beginning with 2.8&lt;/p&gt;
+&lt;h3 id="_2"&gt;解析失败丢弃及黑名单实现&lt;/h3&gt;
+&lt;p&gt;grok解析失败, 丢弃&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;if ("_grokparsefailure" in [tags]) {
+    drop {}
+}
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;有时候, 需要禁止采集某些文件, 但由于&lt;code&gt;file&lt;/code&gt;类型的&lt;code&gt;exclude&lt;/code&gt;只能用文件名, 而没有更强大的规则, 所以只能采集进来再丢弃, 此时, 可以根据路径grok解析出关键字, 然后判断丢弃&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;if ([keyworod] in ["data", "not_exists"])
+{
+    drop {}
+}
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h3 id="worker"&gt;启动限制使用的worker数&lt;/h3&gt;
+&lt;p&gt;默认情况, 有可能把所有cpu跑满, 这时候, 可以专门加下&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;-w, --pipeline-workers COUNT  Sets the number of pipeline workers to run. (default: 24)
+
+logstash agent -f conf/xxx.conf -w 2
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h3 id="_3"&gt;几个简单脚本&lt;/h3&gt;
+&lt;p&gt;health.sh&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="ch"&gt;#!/bin/bash&lt;/span&gt;
+curl &lt;span class="s1"&gt;'http://127.0.0.1:9200/_cluster/health?pretty=true'&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;indices.sh&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="ch"&gt;#!/bin/bash&lt;/span&gt;
+curl &lt;span class="s1"&gt;'http://127.0.0.1:9200/_cat/indices?v'&lt;/span&gt; &lt;span class="p"&gt;|&lt;/span&gt; sort -k 3
+&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sat, 07 May 2016 00:00:00 +0800</pubDate><guid>tag:www.wklken.me,2016-05-07:posts/2016/05/07/elk-about-2.html</guid><category>system</category></item><item><title>[分享]Python源码剖析-数据结构</title><link>http://www.wklken.me/posts/2016/03/01/python-source-datastructure.html</link><description>&lt;p&gt;&lt;object data="/extra/share/python-source-datastructure.pdf" height="525" type="application/pdf" width="729"&gt;
 &lt;embed src="/extra/share/python-source-datastructure.pdf"&gt;
 &lt;/embed&gt;
 &lt;/object&gt;&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Tue, 01 Mar 2016 00:00:00 +0800</pubDate><guid>tag:www.wklken.me,2016-03-01:posts/2016/03/01/python-source-datastructure.html</guid><category>python</category></item><item><title>一些Centos Python生产环境的部署命令</title><link>http://www.wklken.me/posts/2016/02/18/python-env-in-centos.html</link><description>&lt;p&gt;Just notes&lt;/p&gt;
@@ -398,6 +581,7 @@ supervisor&amp;gt; restart indexer
     sincedb_path =&amp;gt; "/data/LogNew/logstash/sincedb/django.sincedb"
 }
 &lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;&lt;a href="https://www.elastic.co/guide/en/logstash/current/plugins-inputs-file.html#plugins-inputs-file-exclude"&gt;文档&lt;/a&gt;&lt;/p&gt;
 &lt;h4 id="_1"&gt;一些相关用到的命令&lt;/h4&gt;
 &lt;ul&gt;
 &lt;li&gt;查看plugin版本&lt;/li&gt;
@@ -18371,7 +18555,31 @@ options:
 &lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;server_port&lt;/span&gt; &lt;span class="nt"&gt;请求到达服务器的端口号&lt;/span&gt;&lt;span class="err"&gt;。&lt;/span&gt;
 &lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;server_protocol&lt;/span&gt; &lt;span class="nt"&gt;请求使用的协议&lt;/span&gt;&lt;span class="err"&gt;，&lt;/span&gt;&lt;span class="nt"&gt;通常是HTTP&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nt"&gt;1&lt;/span&gt;&lt;span class="nc"&gt;.0或HTTP&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nt"&gt;1&lt;/span&gt;&lt;span class="nc"&gt;.1&lt;/span&gt;&lt;span class="err"&gt;。&lt;/span&gt;
 &lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;uri&lt;/span&gt; &lt;span class="nt"&gt;请求中的当前URI&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="nt"&gt;不带请求参数&lt;/span&gt;&lt;span class="err"&gt;，&lt;/span&gt;&lt;span class="nt"&gt;参数位于&lt;/span&gt;&lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;args&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt;&lt;span class="err"&gt;，&lt;/span&gt;&lt;span class="nt"&gt;可以不同于浏览器传递的&lt;/span&gt;&lt;span class="o"&gt;$&lt;/span&gt;&lt;span class="nt"&gt;request_uri的值&lt;/span&gt;&lt;span class="err"&gt;，&lt;/span&gt;&lt;span class="nt"&gt;它可以通过内部重定向&lt;/span&gt;&lt;span class="err"&gt;，&lt;/span&gt;&lt;span class="nt"&gt;或者使用index指令进行修改&lt;/span&gt;&lt;span class="err"&gt;。&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sat, 23 Nov 2013 00:00:00 +0800</pubDate><guid>tag:www.wklken.me,2013-11-23:posts/2013/11/23/nginx-base.html</guid><category>linux</category><category>nginx</category></item><item><title>读书笔记-拖拉一点也无妨</title><link>http://www.wklken.me/posts/2013/11/17/the-art-of-procrastination.html</link><description>&lt;p&gt;mac搞坏了，折腾一宿没搞定，试过N种方法，历时8个小时，结果把硬盘给装没了 &amp;gt;-&amp;lt;&lt;/p&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h3 id="shtml"&gt;配置shtml访问&lt;/h3&gt;
+&lt;p&gt;&lt;a href="http://nginx.org/en/docs/http/ngx_http_ssi_module.html"&gt;文档&lt;/a&gt;&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;location  ~ ^/static {
+    ....
+    ssi on;
+    ssi_client_errors on;
+    ssi_types text/shtml;
+}
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h3 id="auth-basic"&gt;auth basic配置&lt;/h3&gt;
+&lt;p&gt;首先, 安装&lt;code&gt;htpasswd&lt;/code&gt;, 生成密码&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;htpasswd -c paas_admin username
+password: password
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;生成文件后, 拷贝到nginx目录下&lt;/p&gt;
+&lt;p&gt;配置&lt;/p&gt;
+&lt;div class="codehilite"&gt;&lt;pre&gt;location / {
+    auth_basic "Restricted";
+    auth_basic_user_file /usr/local/nginx/conf/kibana.htpasswd;
+    root  /data/BKLogTool/kibana;
+    index  index.html  index.htm;
+}
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;reload nginx&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sat, 23 Nov 2013 00:00:00 +0800</pubDate><guid>tag:www.wklken.me,2013-11-23:posts/2013/11/23/nginx-base.html</guid><category>linux</category><category>nginx</category></item><item><title>读书笔记-拖拉一点也无妨</title><link>http://www.wklken.me/posts/2013/11/17/the-art-of-procrastination.html</link><description>&lt;p&gt;mac搞坏了，折腾一宿没搞定，试过N种方法，历时8个小时，结果把硬盘给装没了 &amp;gt;-&amp;lt;&lt;/p&gt;
 &lt;p&gt;最后无奈，搞去苹果店修理，中间等了三个小时&lt;/p&gt;
 &lt;p&gt;带上了nook，到公园里，坐树下，看了两本书&lt;/p&gt;
 &lt;p&gt;&amp;lt;&amp;lt;facebook效应&amp;gt;&amp;gt;和这本 &amp;lt;&amp;lt;拖拉一点也无妨&amp;gt;&amp;gt;&lt;/p&gt;
