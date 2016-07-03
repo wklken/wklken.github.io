@@ -133,11 +133,16 @@ SELECT 1 from dbname;
       <span class="n">pattern</span> <span class="o">=&gt;</span> <span class="s2">"^# User@Host:"</span>
       <span class="n">negate</span> <span class="o">=&gt;</span> <span class="n">true</span>
       <span class="n">what</span> <span class="o">=&gt;</span> <span class="n">previous</span>
+      <span class="n">max_bytes</span> <span class="o">=&gt;</span> <span class="s2">"100kib"</span>
+      <span class="n">auto_flush_interval</span> <span class="o">=&gt;</span> <span class="m">5</span>
     <span class="p">}</span>
   <span class="err">}</span>
 <span class="err">}</span>
 <span class="nt">filter</span> <span class="p">{</span>
-  <span class="n">grok</span> <span class="err">{</span>
+  <span class="n">if</span> <span class="p">(</span><span class="s2">"multiline_codec_max_bytes_reached"</span> <span class="n">in</span> <span class="cp">[</span><span class="nb">tags</span><span class="cp">]</span><span class="p">)</span> <span class="err">{</span>
+      <span class="n">drop</span> <span class="err">{</span><span class="p">}</span>
+  <span class="err">}</span>
+  <span class="nt">grok</span> <span class="p">{</span>
     <span class="err">#</span> <span class="n">User</span><span class="o">@</span><span class="n">Host</span><span class="o">:</span> <span class="n">logstash</span><span class="cp">[</span><span class="nx">logstash</span><span class="cp">]</span> <span class="o">@</span> <span class="n">localhost</span> <span class="cp">[</span><span class="mf">127.0.0.1</span><span class="cp">]</span>
     <span class="err">#</span> <span class="n">User</span><span class="o">@</span><span class="n">Host</span><span class="o">:</span> <span class="n">logstash</span><span class="cp">[</span><span class="nx">logstash</span><span class="cp">]</span> <span class="o">@</span>  <span class="cp">[</span><span class="mf">127.0.0.1</span><span class="cp">]</span>
     <span class="n">match</span> <span class="o">=&gt;</span> <span class="cp">[</span> <span class="s2">"message"</span><span class="p">,</span> <span class="s2">"^# User@Host: %{ALLWORD:user}\[%{ALLWAORD}\] @ %{ALLWORD:dbhost}? \[%{IP:ip}\]"</span> <span class="cp">]</span>
@@ -147,7 +152,18 @@ SELECT 1 from dbname;
     <span class="n">match</span> <span class="o">=&gt;</span> <span class="cp">[</span> <span class="s2">"message"</span><span class="p">,</span> <span class="s2">"^# Query_time: %{NUMBER:duration:float}%{SPACE}Lock_time: %{NUMBER:lock_wait:float}%{SPACE}Rows_sent: %{NUMBER:results:int}%{SPACE}Rows_examined:%{SPACE}%{NUMBER:scanned:int}%{ALLWORD:sql}"</span><span class="cp">]</span>
   <span class="p">}</span>
 
-  <span class="o">//</span> <span class="nt">remove</span> <span class="nt">useless</span> <span class="nt">data</span>
+  <span class="err">#</span> <span class="nt">Capture</span> <span class="nt">the</span> <span class="nt">time</span> <span class="nt">the</span> <span class="nt">query</span> <span class="nt">happened</span>
+  <span class="nt">grok</span> <span class="p">{</span>
+    <span class="n">match</span> <span class="o">=&gt;</span> <span class="cp">[</span> <span class="s2">"message"</span><span class="p">,</span> <span class="s2">"^SET timestamp=%{NUMBER:timestamp};"</span> <span class="cp">]</span>
+  <span class="p">}</span>
+  <span class="err">#</span> <span class="nt">if</span> <span class="nt">codec</span> <span class="nt">multiline</span> <span class="nt">parse</span> <span class="nt">failure</span>
+  <span class="nt">if</span> <span class="o">(</span><span class="s2">"_grokparsefailure"</span> <span class="nt">in</span> <span class="cp">[</span><span class="nb">tags</span><span class="cp">]</span><span class="o">)</span> <span class="p">{</span>
+      <span class="n">drop</span> <span class="err">{</span><span class="p">}</span>
+  <span class="err">}</span>
+  <span class="nt">date</span> <span class="p">{</span>
+    <span class="n">match</span> <span class="o">=&gt;</span> <span class="cp">[</span> <span class="s2">"timestamp"</span><span class="p">,</span> <span class="s2">"UNIX"</span> <span class="cp">]</span>
+  <span class="p">}</span>
+
   <span class="nt">mutate</span> <span class="p">{</span>
     <span class="n">gsub</span> <span class="o">=&gt;</span> <span class="cp">[</span>
         <span class="s2">"sql"</span><span class="p">,</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">SET timestamp=\d+?;</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span> <span class="s2">""</span><span class="p">,</span>
@@ -159,13 +175,6 @@ SELECT 1 from dbname;
     <span class="cp">]</span>
   <span class="p">}</span>
 
-  <span class="err">#</span> <span class="nt">Capture</span> <span class="nt">the</span> <span class="nt">time</span> <span class="nt">the</span> <span class="nt">query</span> <span class="nt">happened</span>
-  <span class="nt">grok</span> <span class="p">{</span>
-    <span class="n">match</span> <span class="o">=&gt;</span> <span class="cp">[</span> <span class="s2">"message"</span><span class="p">,</span> <span class="s2">"^SET timestamp=%{NUMBER:timestamp};"</span> <span class="cp">]</span>
-  <span class="p">}</span>
-  <span class="nt">date</span> <span class="p">{</span>
-    <span class="n">match</span> <span class="o">=&gt;</span> <span class="cp">[</span> <span class="s2">"timestamp"</span><span class="p">,</span> <span class="s2">"UNIX"</span> <span class="cp">]</span>
-  <span class="p">}</span>
 
 
   <span class="err">#</span> <span class="nt">calculate</span> <span class="nt">unique</span> <span class="nt">hash</span>
@@ -316,6 +325,9 @@ WHERE id IN
         <div>
                         <a class="left" href="http://www.wklken.me/posts/2016/05/12/how-to-debug.html">
                             上一篇:  [分享]关于代码调试DE那些事
+                        </a>
+                        <a class="right" href="http://www.wklken.me/posts/2016/06/29/deploy-es.html">
+                            下一篇: ElasticSearch集群部署文档
                         </a>
         </div>
     </section>
