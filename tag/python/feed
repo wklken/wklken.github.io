@@ -107,78 +107,78 @@ sudo /sbin/service mysqld start
 &lt;/pre&gt;&lt;/div&gt;
 &lt;h3 id="_4"&gt;计数增加&lt;/h3&gt;
 &lt;p&gt;增加对象引用计数, refcnt incr&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;  #define Py_INCREF(op) (                         \
-      _Py_INC_REFTOTAL  _Py_REF_DEBUG_COMMA       \
-      ((PyObject*)(op))-&amp;gt;ob_refcnt++)
+&lt;div class="codehilite"&gt;&lt;pre&gt;  &lt;span class="cp"&gt;#define Py_INCREF(op) (                         \&lt;/span&gt;
+&lt;span class="cp"&gt;      _Py_INC_REFTOTAL  _Py_REF_DEBUG_COMMA       \&lt;/span&gt;
+&lt;span class="cp"&gt;      ((PyObject*)(op))-&amp;gt;ob_refcnt++)&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 &lt;h3 id="_5"&gt;计数减少&lt;/h3&gt;
 &lt;p&gt;减少对象引用计数, refcnt desc&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;  #define _Py_DEC_REFTOTAL        _Py_RefTotal--
-  #define _Py_REF_DEBUG_COMMA     ,
+&lt;div class="codehilite"&gt;&lt;pre&gt;  &lt;span class="cp"&gt;#define _Py_DEC_REFTOTAL        _Py_RefTotal--&lt;/span&gt;
+  &lt;span class="cp"&gt;#define _Py_REF_DEBUG_COMMA     ,&lt;/span&gt;
 
-  #define Py_DECREF(op)                                   \
-      do {                                                \
-          if (_Py_DEC_REFTOTAL  _Py_REF_DEBUG_COMMA       \
-          --((PyObject*)(op))-&amp;gt;ob_refcnt != 0)            \
-              _Py_CHECK_REFCNT(op)                        \
-          else                                            \
-          _Py_Dealloc((PyObject *)(op));                  \
-      } while (0)
+  &lt;span class="cp"&gt;#define Py_DECREF(op)                                   \&lt;/span&gt;
+&lt;span class="cp"&gt;      do {                                                \&lt;/span&gt;
+&lt;span class="cp"&gt;          if (_Py_DEC_REFTOTAL  _Py_REF_DEBUG_COMMA       \&lt;/span&gt;
+&lt;span class="cp"&gt;          --((PyObject*)(op))-&amp;gt;ob_refcnt != 0)            \&lt;/span&gt;
+&lt;span class="cp"&gt;              _Py_CHECK_REFCNT(op)                        \&lt;/span&gt;
+&lt;span class="cp"&gt;          else                                            \&lt;/span&gt;
+&lt;span class="cp"&gt;          _Py_Dealloc((PyObject *)(op));                  \&lt;/span&gt;
+&lt;span class="cp"&gt;      } while (0)&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;即, 发现refcnt变成0的时候, 会调用&lt;code&gt;_Py_Dealloc&lt;/code&gt;&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;  PyAPI_FUNC(void) _Py_Dealloc(PyObject *);
-  #define _Py_REF_DEBUG_COMMA     ,
+&lt;div class="codehilite"&gt;&lt;pre&gt;  &lt;span class="n"&gt;PyAPI_FUNC&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;void&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;_Py_Dealloc&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;PyObject&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+  &lt;span class="cp"&gt;#define _Py_REF_DEBUG_COMMA     ,&lt;/span&gt;
 
-  #define _Py_Dealloc(op) (                               \
-      _Py_INC_TPFREES(op) _Py_COUNT_ALLOCS_COMMA          \
-      (*Py_TYPE(op)-&amp;gt;tp_dealloc)((PyObject *)(op)))
-  #endif /* !Py_TRACE_REFS */
+  &lt;span class="cp"&gt;#define _Py_Dealloc(op) (                               \&lt;/span&gt;
+&lt;span class="cp"&gt;      _Py_INC_TPFREES(op) _Py_COUNT_ALLOCS_COMMA          \&lt;/span&gt;
+&lt;span class="cp"&gt;      (*Py_TYPE(op)-&amp;gt;tp_dealloc)((PyObject *)(op)))&lt;/span&gt;
+  &lt;span class="cp"&gt;#endif &lt;/span&gt;&lt;span class="cm"&gt;/* !Py_TRACE_REFS */&lt;/span&gt;&lt;span class="cp"&gt;&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;会调用各自类型的&lt;code&gt;tp_dealloc&lt;/code&gt;&lt;/p&gt;
 &lt;p&gt;例如dict&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;PyTypeObject PyDict_Type = {
-    PyVarObject_HEAD_INIT(&amp;amp;PyType_Type, 0)
-    "dict",
-    sizeof(PyDictObject),
-    0,
-    (destructor)dict_dealloc,                   /* tp_dealloc */
-    ....
-}
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;PyTypeObject&lt;/span&gt; &lt;span class="n"&gt;PyDict_Type&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="n"&gt;PyVarObject_HEAD_INIT&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;PyType_Type&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="s"&gt;"dict"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="k"&gt;sizeof&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;PyDictObject&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;
+    &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;destructor&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="n"&gt;dict_dealloc&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;                   &lt;span class="cm"&gt;/* tp_dealloc */&lt;/span&gt;
+    &lt;span class="p"&gt;....&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
 
 
-static void
-dict_dealloc(register PyDictObject *mp)
-{
-    .....
-    // 如果满足条件, 放入到缓冲池freelist中
-    if (numfree &amp;lt; PyDict_MAXFREELIST &amp;amp;&amp;amp; Py_TYPE(mp) == &amp;amp;PyDict_Type)
-        free_list[numfree++] = mp;
-    // 否则, 调用tp_free
-    else
-        Py_TYPE(mp)-&amp;gt;tp_free((PyObject *)mp);
-    Py_TRASHCAN_SAFE_END(mp)
-}
+&lt;span class="k"&gt;static&lt;/span&gt; &lt;span class="kt"&gt;void&lt;/span&gt;
+&lt;span class="n"&gt;dict_dealloc&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;register&lt;/span&gt; &lt;span class="n"&gt;PyDictObject&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;mp&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="p"&gt;.....&lt;/span&gt;
+    &lt;span class="c1"&gt;// 如果满足条件, 放入到缓冲池freelist中&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;numfree&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="n"&gt;PyDict_MAXFREELIST&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="n"&gt;Py_TYPE&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;mp&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;PyDict_Type&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="n"&gt;free_list&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;numfree&lt;/span&gt;&lt;span class="o"&gt;++&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;mp&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="c1"&gt;// 否则, 调用tp_free&lt;/span&gt;
+    &lt;span class="k"&gt;else&lt;/span&gt;
+        &lt;span class="nf"&gt;Py_TYPE&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;mp&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;tp_free&lt;/span&gt;&lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="n"&gt;PyObject&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="n"&gt;mp&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="n"&gt;Py_TRASHCAN_SAFE_END&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;mp&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;Python基本类型的&lt;code&gt;tp_dealloc&lt;/code&gt;, 通常都会与各自的缓冲池机制相关, 释放会优先放入缓冲池中(对应的分配会优先从缓冲池取). 这个内存分配与回收同缓冲池机制相关&lt;/p&gt;
 &lt;p&gt;当无法放入缓冲池时, 会调用各自类型的&lt;code&gt;tp_free&lt;/code&gt;&lt;/p&gt;
 &lt;p&gt;int, 比较特殊&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;// int, 通用整数对象缓冲池机制
-      (freefunc)int_free,                         /* tp_free */
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="c1"&gt;// int, 通用整数对象缓冲池机制&lt;/span&gt;
+      &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;freefunc&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="n"&gt;int_free&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;                         &lt;span class="cm"&gt;/* tp_free */&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;string&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;// string
-    PyObject_Del,                               /* tp_free */
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="c1"&gt;// string&lt;/span&gt;
+    &lt;span class="n"&gt;PyObject_Del&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;                               &lt;span class="cm"&gt;/* tp_free */&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;dict/tuple/list&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;    PyObject_GC_Del,                            /* tp_free */
+&lt;div class="codehilite"&gt;&lt;pre&gt;    &lt;span class="n"&gt;PyObject_GC_Del&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;                            &lt;span class="cm"&gt;/* tp_free */&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;然后, 我们再回头看, 自定义对象的&lt;code&gt;tp_free&lt;/code&gt;&lt;/p&gt;
-&lt;div class="codehilite"&gt;&lt;pre&gt;PyTypeObject PyType_Type = {
-    PyVarObject_HEAD_INIT(&amp;amp;PyType_Type, 0)
-    "type",                                     /* tp_name */
-    ...
-    PyObject_GC_Del,                            /* tp_free */
-};
+&lt;div class="codehilite"&gt;&lt;pre&gt;&lt;span class="n"&gt;PyTypeObject&lt;/span&gt; &lt;span class="n"&gt;PyType_Type&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="n"&gt;PyVarObject_HEAD_INIT&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;PyType_Type&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="s"&gt;"type"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;                                     &lt;span class="cm"&gt;/* tp_name */&lt;/span&gt;
+    &lt;span class="p"&gt;...&lt;/span&gt;
+    &lt;span class="n"&gt;PyObject_GC_Del&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;                            &lt;span class="cm"&gt;/* tp_free */&lt;/span&gt;
+&lt;span class="p"&gt;};&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;即, 最终, 当计数变为0, 触发内存回收动作. 涉及函数&lt;code&gt;PyObject_Del&lt;/code&gt;和&lt;code&gt;PyObject_GC_Del&lt;/code&gt;, 并且, 自定义类以及容器类型(dict/list/tuple/set等)使用的都是后者&lt;code&gt;PyObject_GC_Del&lt;/code&gt;.&lt;/p&gt;
 &lt;h3 id="pyobject_del-pyobject_gc_del"&gt;内存回收 PyObject_Del / PyObject_GC_Del&lt;/h3&gt;
