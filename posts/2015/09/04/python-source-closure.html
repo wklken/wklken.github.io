@@ -80,7 +80,7 @@
     <section id="content">
         <h3 id="_1">闭包</h3>
 <p>e.g.</p>
-<div class="codehilite"><pre>def add(x):
+<div class="monokai"><pre>def add(x):
     def do_add(value):
         return x + value
     return do_add
@@ -91,7 +91,7 @@ print add_5(2)  # 7
 </pre></div>
 <p>需要回答, 什么是闭包, CPython底层是如何实现的?</p>
 <h3 id="pycodeobject">PyCodeObject</h3>
-<div class="codehilite"><pre>typedef struct <span class="p">{</span>
+<div class="monokai"><pre>typedef struct <span class="p">{</span>
     PyObject_HEAD
     int co_argcount<span class="p">;</span>        <span class="o">/*</span> <span class="c1">#arguments, except *args */</span>
     int co_nlocals<span class="p">;</span>         <span class="o">/*</span> <span class="c1">#local variables */</span>
@@ -119,12 +119,12 @@ print add_5(2)  # 7
 <span class="p">}</span> PyCodeObject<span class="p">;</span>
 </pre></div>
 <p>我们关注两个, <code>co_freevars</code> 和 <code>co_cellvars</code></p>
-<div class="codehilite"><pre>co_freevars, 保存使用了的外层作用域中的变量名集合 (编译时就知道的! 被嵌套的时候有用)
+<div class="monokai"><pre>co_freevars, 保存使用了的外层作用域中的变量名集合 (编译时就知道的! 被嵌套的时候有用)
 
 co_cellvars, 保存嵌套作用域中使用的变量名集合, (编译时就知道的! 包含嵌套函数时有用)
 </pre></div>
 <p>对于我们上面的那个示例, <code>add</code>是外层函数, <code>do_add</code>是嵌套函数, 我们可以通过<code>func_code</code>打印看看</p>
-<div class="codehilite"><pre>def add(x):    # 外层函数
+<div class="monokai"><pre>def add(x):    # 外层函数
     # 外层函数, 没有使用了外层作用域变量, 被嵌套函数使用了'x'
     print add.func_code.co_freevars    # ()
     print add.func_code.co_cellvars    # ('x',)
@@ -141,12 +141,12 @@ co_cellvars, 保存嵌套作用域中使用的变量名集合, (编译时就知�
 <p><img alt="closure" src="/imgs/python-source/python-closure.png"/></p>
 <p>这时候, 只是记录了使用到的变量名, 标记下是否使用了外层的/被内层使用的变量</p>
 <p>具体的值是在运行时确定的, 例如</p>
-<div class="codehilite"><pre>add(5)
+<div class="monokai"><pre>add(5)
 </pre></div>
 <p>此时<code>x=5</code>, 这个是在<code>add</code>的名字空间里面的, 那么, <code>x=5</code>是怎么传递到嵌套函数内? 嵌套函数又是如何知晓<code>x</code>的值?</p>
 <p>记住这两个问题, 然后我们首先来看一个新的数据结构</p>
 <h3 id="pycellobject">PyCellObject</h3>
-<div class="codehilite"><pre>  typedef struct {
+<div class="monokai"><pre>  typedef struct {
     PyObject_HEAD
     PyObject *ob_ref;   /* Content of the cell or NULL when empty */ =&gt; 指向一个PyObject
   } PyCellObject;
@@ -173,10 +173,10 @@ co_cellvars, 保存嵌套作用域中使用的变量名集合, (编译时就知�
 <p>作用呢?</p>
 <h3 id="_2">值的确认与传递过程</h3>
 <p>调用</p>
-<div class="codehilite"><pre>add(5)
+<div class="monokai"><pre>add(5)
 </pre></div>
 <p>此时, 开始调用函数</p>
-<div class="codehilite"><pre><span class="n">CALL_FUNCTION</span><span class="o"></span>
+<div class="monokai"><pre><span class="n">CALL_FUNCTION</span><span class="o"></span>
 
 <span class="o">=&gt;</span> <span class="n">x</span><span class="o"> =</span> <span class="nx">call_function</span><span class="p">(</span><span class="o">&amp;</span><span class="nx nx-Member">sp</span><span class="p">,</span> <span class="nx">oparg</span><span class="p">);</span>
 
@@ -261,7 +261,7 @@ co_cellvars, 保存嵌套作用域中使用的变量名集合, (编译时就知�
 <p>这里, 我们可以知道<code>x=5</code>被放进去了</p>
 <p>为什么放到<code>f-&gt;f_localsplus</code>中呢?</p>
 <h3 id="pyframeobject">看看PyFrameObject</h3>
-<div class="codehilite"><pre>typedef struct _frame {
+<div class="monokai"><pre>typedef struct _frame {
     PyObject_VAR_HEAD
     struct _frame *f_back;  /* previous frame, or NULL */
     PyCodeObject *f_code;   /* code segment */
@@ -298,13 +298,13 @@ co_cellvars, 保存嵌套作用域中使用的变量名集合, (编译时就知�
 } PyFrameObject;
 </pre></div>
 <p>注意<code>f_localsplus</code></p>
-<div class="codehilite"><pre>f_localsplus为一个PyObject的指针数组，大小为1。
+<div class="monokai"><pre>f_localsplus为一个PyObject的指针数组，大小为1。
 
 c语言中, 当申请一个大小超过sizeof(PyFrameObject)的结构体对象时，超过的部分就自动分配给f_localsplus
 </pre></div>
 <p>创建过程</p>
 <p>在<code>call_function</code>的时候, <code>new</code>了一个PyFrameObject</p>
-<div class="codehilite"><pre>f = PyFrame_New(tstate, co, globals, locals);
+<div class="monokai"><pre>f = PyFrame_New(tstate, co, globals, locals);
 
 =&gt;
 
@@ -323,13 +323,13 @@ PyFrame_New(PyThreadState *tstate, PyCodeObject *code, PyObject *globals,
 f = PyObject_GC_NewVar(PyFrameObject, &amp;PyFrame_Type, extras);
 </pre></div>
 <p>即</p>
-<div class="codehilite"><pre>f_localsplus =&gt; 局部变量 + cell对象 + free对象 + 运行时栈
+<div class="monokai"><pre>f_localsplus =&gt; 局部变量 + cell对象 + free对象 + 运行时栈
 </pre></div>
 <p>原因: 因为函数中的局部变量总是固定不变的, 在编译时就能确定局部变量使用的内存空间的位置, 也能确定访问局部变量的字节码应该如何访问内存, 有了这些信息, Python就能借助静态的方法实现局部变量, 而不是动态查找PyDictObject, 提高执行效率</p>
 <p><img alt="closure" src="/imgs/python-source/python-closure3.png"/></p>
 <h3 id="f_localsplus">示例函数的f_localsplus</h3>
 <p>看一下上面赋值用的宏定义</p>
-<div class="codehilite"><pre><span class="x">  </span><span class="n">fastlocals</span><span class="o"> =</span> <span class="nx">f</span><span class="o">-&gt;</span><span class="nx nx-Member">f_localsplus</span><span class="p">;</span>
+<div class="monokai"><pre><span class="x">  </span><span class="n">fastlocals</span><span class="o"> =</span> <span class="nx">f</span><span class="o">-&gt;</span><span class="nx nx-Member">f_localsplus</span><span class="p">;</span>
   <span class="vi">#define</span> <span class="nx">GETLOCAL</span><span class="p">(</span><span class="nx">i</span><span class="p">)</span>     <span class="p">(</span><span class="nx">fastlocals</span><span class="err">[</span><span class="nx">i</span><span class="cp">]</span><span class="x">)</span>
 <span class="x">  #define SETLOCAL(i, value)      do { PyObject *tmp = GETLOCAL(i); \</span>
 <span class="x">                                       GETLOCAL(i) = value; \</span>
@@ -341,10 +341,10 @@ f = PyObject_GC_NewVar(PyFrameObject, &amp;PyFrame_Type, extras);
 <h3 id="_3">传递</h3>
 <p><code>CALL_FUNCTION</code> 完成<code>new</code>一个<code>PyFrameObject</code>之后,</p>
 <p>最终执行这个frame</p>
-<div class="codehilite"><pre>retval = PyEval_EvalFrameEx(f,0);
+<div class="monokai"><pre>retval = PyEval_EvalFrameEx(f,0);
 </pre></div>
 <p>PyEval_EvalFrameEx</p>
-<div class="codehilite"><pre>  PyObject *
+<div class="monokai"><pre>  PyObject *
   PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
   {
 
@@ -355,7 +355,7 @@ f = PyObject_GC_NewVar(PyFrameObject, &amp;PyFrame_Type, extras);
 =&gt; 此时涉及op_code的执行了
 </pre></div>
 <p>查看一下dis的结果</p>
-<div class="codehilite"><pre>def add(x):
+<div class="monokai"><pre>def add(x):
     def do_add(value):
         return x + value
     return do_add
@@ -370,7 +370,7 @@ f = PyObject_GC_NewVar(PyFrameObject, &amp;PyFrame_Type, extras);
              18 RETURN_VALUE
 </pre></div>
 <p>首先<code>LOAD_CLOSURE 0</code></p>
-<div class="codehilite"><pre>          case LOAD_CLOSURE:
+<div class="monokai"><pre>          case LOAD_CLOSURE:
               x = freevars[oparg];
               Py_INCREF(x);
               PUSH(x);
@@ -384,7 +384,7 @@ LOAD_CLOSURE 在编译时会根据嵌套函数中 co_freevars, 决定了取得�
 <p>然后, <code>BUILD_TUPLE</code>, 将cell对象打包成tuple, 得到<code>('x', )</code></p>
 <p>然后, 开始, 载入嵌套函数<code>do_add</code>, 入栈</p>
 <p>调用<code>MAKE_CLOSURE</code></p>
-<div class="codehilite"><pre>          case MAKE_CLOSURE:
+<div class="monokai"><pre>          case MAKE_CLOSURE:
           {
               v = POP(); /* code object */  // do_add函数
               x = PyFunction_New(v, f-&gt;f_globals); //绑定global名字空间
@@ -405,7 +405,7 @@ LOAD_CLOSURE 在编译时会根据嵌套函数中 co_freevars, 决定了取得�
           }
 </pre></div>
 <p>来关注一下 <code>PyFunction_SetClosure</code></p>
-<div class="codehilite"><pre>int
+<div class="monokai"><pre>int
 PyFunction_SetClosure(PyObject *op, PyObject *closure)
 {
     ...
@@ -417,7 +417,7 @@ PyFunction_SetClosure(PyObject *op, PyObject *closure)
 <p>即<code>do_add</code>的 <code>PyFunctionObject</code>的<code>func_closure</code>指向一个tuple</p>
 <p>注意: 这时候, 外层变量已经固定下来了!!!!!!</p>
 <h3 id="_4">然后, 在嵌套函数被调用的时候</h3>
-<div class="codehilite"><pre>CALL_FUNCTION
+<div class="monokai"><pre>CALL_FUNCTION
 
 =&gt;
 
@@ -435,11 +435,11 @@ x = fast_function(func, pp_stack, n, na, nk);
                                PyFunction_GET_CLOSURE(func));
 </pre></div>
 <p>看下<code>PyFunction_GET_CLOSURE</code></p>
-<div class="codehilite"><pre>  #define PyFunction_GET_CLOSURE(func) \
+<div class="monokai"><pre>  #define PyFunction_GET_CLOSURE(func) \
       (((PyFunctionObject *)func) -&gt; func_closure)
 </pre></div>
 <p>然后, 进入 <code>PyEval_EvalCodeEx</code>, 注意这里的<code>closure</code>参数即上一步取出来的<code>func_closure</code>, 即外层函数传进来的tuple</p>
-<div class="codehilite"><pre>  PyObject *
+<div class="monokai"><pre>  PyObject *
   PyEval_EvalCodeEx(PyCodeObject *co, PyObject *globals, PyObject *locals,
              PyObject **args, int argcount, PyObject **kws, int kwcount,
              PyObject **defs, int defcount, PyObject *closure)
@@ -461,7 +461,7 @@ x = fast_function(func, pp_stack, n, na, nk);
 </pre></div>
 <h3 id="dis">最后, 再来看一个闭包的dis</h3>
 <p>注意<code>BUILD_TUPLE</code></p>
-<div class="codehilite"><pre>def add(x, y):
+<div class="monokai"><pre>def add(x, y):
 
     def do_add(value):
         return x + value
@@ -475,7 +475,7 @@ x = fast_function(func, pp_stack, n, na, nk);
     return do_add
 </pre></div>
 <p>dis结果</p>
-<div class="codehilite"><pre> 18           0 LOAD_CLOSURE             0 (x)
+<div class="monokai"><pre> 18           0 LOAD_CLOSURE             0 (x)
               3 BUILD_TUPLE              1
               6 LOAD_CONST               1 (&lt;code object do_add at 0x10560dc30, file "a.py", line 18&gt;)
               9 MAKE_CLOSURE             0

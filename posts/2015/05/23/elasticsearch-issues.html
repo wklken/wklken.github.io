@@ -84,7 +84,7 @@
 <h3 id="unassigned-shards">大量unassigned shards</h3>
 <p>其实刚搭完运行时就是<code>status: yellow</code>(所有主分片可用，但存在不可用的从分片), 只有一个节点, 主分片启动并运行正常, 可以成功处理请求, 但是存在<code>unassigned_shards</code>, 即存在没有被分配到节点的从分片.(只有一个节点.....)</p>
 <p>.当时数据量小, 就暂时没关注. 然后, 随着时间推移,  出现了大量unassigned shards</p>
-<div class="codehilite"><pre>curl -XGET http://localhost:9200/_cluster/health\?pretty
+<div class="monokai"><pre>curl -XGET http://localhost:9200/_cluster/health\?pretty
 {
   "cluster_name" : "elasticsearch",
   "status" : "yellow",
@@ -104,7 +104,7 @@
 <h3 id="status-red">status: red</h3>
 <p>集群健康恶化了......</p>
 <p>这次检查发现是<code>status: red</code>(存在不可用的主要分片)</p>
-<div class="codehilite"><pre>curl -XGET http://localhost:9200/_cluster/health\?pretty
+<div class="monokai"><pre>curl -XGET http://localhost:9200/_cluster/health\?pretty
 {
   "cluster_name" : "elasticsearch",
   "status" : "red",    // missing some primary shards
@@ -122,17 +122,17 @@
 <h3 id="fix-unassigned-shards">fix unassigned shards</h3>
 <p>开始着手修复</p>
 <p>查看所有分片状态</p>
-<div class="codehilite"><pre>curl -XGET http://localhost:9200/_cat/shards
+<div class="monokai"><pre>curl -XGET http://localhost:9200/_cat/shards
 </pre></div>
 <p>找出<code>UNASSIGNED</code>分片</p>
-<div class="codehilite"><pre>curl -s "http://localhost:9200/_cat/shards" | grep UNASSIGNED
+<div class="monokai"><pre>curl -s "http://localhost:9200/_cat/shards" | grep UNASSIGNED
 pv-2015.05.22                 3 p UNASSIGNED
 pv-2015.05.22                 3 r UNASSIGNED
 pv-2015.05.22                 1 p UNASSIGNED
 pv-2015.05.22                 1 r UNASSIGNED
 </pre></div>
 <p>查询得到master节点的唯一标识</p>
-<div class="codehilite"><pre>curl 'localhost:9200/_nodes/process?pretty'
+<div class="monokai"><pre>curl 'localhost:9200/_nodes/process?pretty'
 
 {
   "cluster_name" : "elasticsearch",
@@ -146,7 +146,7 @@ pv-2015.05.22                 1 r UNASSIGNED
 .....
 </pre></div>
 <p>执行reroute(分多次, 变更shard的值为<code>UNASSIGNED</code>查询结果中编号, 上一步查询结果是1和3)</p>
-<div class="codehilite"><pre>curl -XPOST 'localhost:9200/_cluster/reroute' -d '{
+<div class="monokai"><pre>curl -XPOST 'localhost:9200/_cluster/reroute' -d '{
         "commands" : [ {
               "allocate" : {
                   "index" : "pv-2015.05.22",
@@ -159,7 +159,7 @@ pv-2015.05.22                 1 r UNASSIGNED
     }'
 </pre></div>
 <p>批量处理的脚本(当数量很多的话, 注意替换node的名字)</p>
-<div class="codehilite"><pre><span class="ch">#!/bin/bash</span>
+<div class="monokai"><pre><span class="ch">#!/bin/bash</span>
 
 <span class="k">for</span> index in <span class="k">$(</span>curl  -s <span class="s1">'http://localhost:9200/_cat/shards'</span> <span class="p">|</span> grep UNASSIGNED <span class="p">|</span> awk <span class="s1">'{print $1}'</span> <span class="p">|</span> sort <span class="p">|</span> uniq<span class="k">)</span><span class="p">;</span> <span class="k">do</span>
     <span class="k">for</span> shard in <span class="k">$(</span>curl  -s <span class="s1">'http://localhost:9200/_cat/shards'</span> <span class="p">|</span> grep UNASSIGNED <span class="p">|</span> grep $index <span class="p">|</span> awk <span class="s1">'{print $2}'</span> <span class="p">|</span> sort <span class="p">|</span> uniq<span class="k">)</span><span class="p">;</span> <span class="k">do</span>
@@ -184,10 +184,10 @@ pv-2015.05.22                 1 r UNASSIGNED
 <h3 id="too-many-open-files">&ldquo;Too many open files&rdquo;</h3>
 <p>发现日志中大量出现这个错误</p>
 <p>执行</p>
-<div class="codehilite"><pre>curl http://localhost:9200/_nodes/process\?pretty
+<div class="monokai"><pre>curl http://localhost:9200/_nodes/process\?pretty
 </pre></div>
 <p>可以看到</p>
-<div class="codehilite"><pre>"max_file_descriptors" : 4096,
+<div class="monokai"><pre>"max_file_descriptors" : 4096,
 </pre></div>
 <p>官方文档中</p>
 <blockquote>
@@ -195,10 +195,10 @@ pv-2015.05.22                 1 r UNASSIGNED
 </blockquote>
 <p>而此时, 可以在系统级做修改, 然后全局生效</p>
 <p>最简单的做法, 在<code>bin/elasticsearch</code>文件开始的位置加入</p>
-<div class="codehilite"><pre>ulimit -n 64000
+<div class="monokai"><pre>ulimit -n 64000
 </pre></div>
 <p>然后重启es, 再次查询看到</p>
-<div class="codehilite"><pre>"max_file_descriptors" : 64000,
+<div class="monokai"><pre>"max_file_descriptors" : 64000,
 </pre></div>
 <p>问题解决</p>
 <hr>

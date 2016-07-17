@@ -84,7 +84,7 @@
 <p>目标是: 一次搭建, 后面只需要关心输入(日志记录)以及输出(Kibana统计展示)</p>
 <h2 id="_1">日志</h2>
 <p>日志的来源:</p>
-<div class="codehilite"><pre>1. 服务日志: 服务端记录下来的日志, 例如搜索日志等, 内容较为详尽
+<div class="monokai"><pre>1. 服务日志: 服务端记录下来的日志, 例如搜索日志等, 内容较为详尽
 2. 上报日志: 来自于前端/android/ios/桌面端等, 根据用户操作行为, 上报一些数据, 例如按钮点击量, 转化率等, 也可以上报崩溃日志
 </pre></div>
 <p>其中, 上报日志, 可以制定一套协议, 不同端统一走上报服务接口. 这个服务对性能有要求, 具体协议需要足够灵活, 支持各类统计分析需求. 使用golang写了一个 <a href="https://github.com/wklken/http_json_logger">http_json_logger</a></p>
@@ -93,7 +93,7 @@
 <p>为什么要落地: 落地成文件, 定时压缩备份存档, 不论日志处理系统是否有问题, 都能保证数据已经存下来了.</p>
 <p>当然, 也可以考虑使用logstash监听端口, 分别落地到文件及转入es, 没具体实践过.</p>
 <p>在这一步, 我的处理方案是:</p>
-<div class="codehilite"><pre>1. 使用统一上报接口, 日志落地到上报服务的数据盘
+<div class="monokai"><pre>1. 使用统一上报接口, 日志落地到上报服务的数据盘
 
 2. 服务端服务日志, 同一台机器在相同数据盘, 使用同一个logstash shipper进行汇聚
 
@@ -104,7 +104,7 @@
 <p>上一步, 日志中强制日志中每一行是一条json记录.  同时json body中记录了时间戳(timestamp, <code>ts</code>字段)</p>
 <p>这一步, 配置 <code>logstash</code>将某些目录下的所有日志文件进行汇聚</p>
 <p>配置示例:</p>
-<div class="codehilite"><pre>input {
+<div class="monokai"><pre>input {
   file {
     path =&gt; [ "/data/collect/ios/*.log", "/data/collect/android/*.log", "/data/collect/web/*.log", "/data/collect/wap/*.log" ]
     start_position =&gt; "beginning"
@@ -129,7 +129,7 @@ output {
 <p>首先, 从redis中读取消息体, 检查并丢弃一些信息, 然后,  根据消息体内<code>platform</code>/ <code>project</code>/<code>module</code>, 分配到es不同的<code>index</code><br>
 可以根据需要控制粒度</br></p>
 <p>配置示例</p>
-<div class="codehilite"><pre>input {
+<div class="monokai"><pre>input {
   redis {
     host =&gt; "127.0.0.1"
     port =&gt; "6379"

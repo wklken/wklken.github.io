@@ -85,13 +85,13 @@
 <p>pool的大小默认值位4KB</p>
 <p>arena的大小默认值256KB, 能放置 256/4=64 个pool</p>
 <p><code>obmalloc.c</code>中代码</p>
-<div class="codehilite"><pre>#define ARENA_SIZE              (256 &lt;&lt; 10)     /* 256KB */
+<div class="monokai"><pre>#define ARENA_SIZE              (256 &lt;&lt; 10)     /* 256KB */
 </pre></div>
 <h4 id="arena_1">arena 结构</h4>
 <blockquote>
 <p>一个完整的arena = arena_object + pool集合</p>
 </blockquote>
-<div class="codehilite"><pre>typedef uchar block;
+<div class="monokai"><pre>typedef uchar block;
 
 /* Record keeping for arenas. */
 struct arena_object {
@@ -137,19 +137,19 @@ struct arena_object {
 };
 </pre></div>
 <p>arena_object的作用</p>
-<div class="codehilite"><pre>1. 与其他arena连接, 组成双向链表
+<div class="monokai"><pre>1. 与其他arena连接, 组成双向链表
 2. 维护arena中可用的pool, 单链表
 3. 其他信息
 </pre></div>
 <p><code>pool_header</code> 与 <code>arena_object</code></p>
-<div class="codehilite"><pre>pool_header和管理的blocks内存是一块连续的内存 =&gt; pool_header被申请时, 其管理的block集合的内存一并被申请
+<div class="monokai"><pre>pool_header和管理的blocks内存是一块连续的内存 =&gt; pool_header被申请时, 其管理的block集合的内存一并被申请
 arena_object和其管理的内存是分离的 =&gt; arena_object被申请时, 其管理的pool集合的内存没有被申请, 而是在某一时刻建立的联系
 </pre></div>
 <p><img alt="arena" src="/imgs/python-source/python-memory-arena.png"/></p>
 <h4 id="arena_2">arena的两种状态</h4>
 <p>arena存在两种状态: 未使用(没有建立联系)/可用(建立了联系)</p>
 <p>全局由两个链表维护着</p>
-<div class="codehilite"><pre><span class="cm">/* The head of the singly-linked, NULL-terminated list of available</span>
+<div class="monokai"><pre><span class="cm">/* The head of the singly-linked, NULL-terminated list of available</span>
 <span class="cm"> * arena_objects.</span>
 <span class="cm"> */</span><span class="w"></span>
 <span class="o">//</span><span class="w"> </span><span class="err">单链表</span><span class="w"></span>
@@ -164,7 +164,7 @@ static<span class="w"> </span>struct<span class="w"> </span>arena_object<span cl
 <h4 id="arena_3">arena的初始化</h4>
 <p>首先, 来看下初始化相关的一些参数定义</p>
 <p>代码<code>obmalloc.c</code></p>
-<div class="codehilite"><pre><span class="cm">/* Array of objects used to track chunks of memory (arenas). */</span><span class="w"></span>
+<div class="monokai"><pre><span class="cm">/* Array of objects used to track chunks of memory (arenas). */</span><span class="w"></span>
 <span class="o">//</span><span class="w"> </span>arena_object<span class="w"> </span><span class="err">数组</span><span class="w"></span>
 static<span class="w"> </span>struct<span class="w"> </span>arena_object<span class="o">*</span><span class="w"> </span>arenas<span class="w"> </span><span class="o">=</span><span class="w"> </span>NULL<span class="err">;</span><span class="w"></span>
 
@@ -196,7 +196,7 @@ static<span class="w"> </span>struct<span class="w"> </span>arena_object<span cl
 static<span class="w"> </span>struct<span class="w"> </span>arena_object<span class="o">*</span><span class="w"> </span>usable_arenas<span class="w"> </span><span class="o">=</span><span class="w"> </span>NULL<span class="err">;</span><span class="w"></span>
 </pre></div>
 <p>然后, 看下<code>obmalloc.c</code>中<code>arena</code>初始化的代码</p>
-<div class="codehilite"><pre><span class="o">/*</span> Allocate a new arena.  If we run out of memory<span class="p">,</span> <span class="kr">return</span> NULL.  Else
+<div class="monokai"><pre><span class="o">/*</span> Allocate a new arena.  If we run out of memory<span class="p">,</span> <span class="kr">return</span> NULL.  Else
  <span class="o">*</span> allocate a new arena<span class="p">,</span> and <span class="kr">return</span> the address of an arena_object
  <span class="o">*</span> describing the new arena.  It<span class="s">'s expected that the caller will set</span>
 <span class="s"> * `usable_arenas` to the return value.</span>
@@ -317,7 +317,7 @@ static<span class="w"> </span>struct<span class="w"> </span>arena_object<span cl
 <p><img alt="arena" src="/imgs/python-source/python-memory-arena3.png"/></p>
 <h4 id="arena_4">没有可用的arena?</h4>
 <p>此时</p>
-<div class="codehilite"><pre>    // 判断成立
+<div class="monokai"><pre>    // 判断成立
     if (unused_arena_objects == NULL) {
         ....
         // 确定需要申请的个数, 首次初始化, 16, 之后每次翻倍
@@ -327,7 +327,7 @@ static<span class="w"> </span>struct<span class="w"> </span>arena_object<span cl
 <p>即, 数组扩大了一倍</p>
 <h4 id="arena_5">arena分配</h4>
 <p><code>new</code>了一个全新的 arena之后,</p>
-<div class="codehilite"><pre>  void *
+<div class="monokai"><pre>  void *
   PyObject_Malloc(size_t nbytes)
   {
             // 刚开始没有可用的arena
@@ -366,12 +366,12 @@ static<span class="w"> </span>struct<span class="w"> </span>arena_object<span cl
 <p>图示: 从全新的arena中获取一个pool</p>
 <p><img alt="arena" src="/imgs/python-source/python-memory-arena4.png"/></p>
 <p>假设arena是旧的, 怎么分配的pool</p>
-<div class="codehilite"><pre>          pool = usable_arenas-&gt;freepools;
+<div class="monokai"><pre>          pool = usable_arenas-&gt;freepools;
           if (pool != NULL) {
 </pre></div>
 <p>这个<code>arena-&gt;freepools</code>是何方神圣?</p>
 <p>当arena中一整块pool被释放的时候</p>
-<div class="codehilite"><pre>  void
+<div class="monokai"><pre>  void
   PyObject_Free(void *p)
   {
 
@@ -392,7 +392,7 @@ static<span class="w"> </span>struct<span class="w"> </span>arena_object<span cl
 <p><img alt="arena" src="/imgs/python-source/python-memory-arena5.png"/></p>
 <h4 id="arena_6">一个arena满了之后呢</h4>
 <p>很自然, 从下一个arena中获取</p>
-<div class="codehilite"><pre>  void *
+<div class="monokai"><pre>  void *
   PyObject_Malloc(size_t nbytes)
   {
 
@@ -422,7 +422,7 @@ static<span class="w"> </span>struct<span class="w"> </span>arena_object<span cl
 <h4 id="arena_7">arena回收</h4>
 <p>内存分配和回收最小单位是block, 当一个block被回收的时候, 可能触发pool被回收, pool被回收, 将会触发arena的回收机制</p>
 <p>四种情况</p>
-<div class="codehilite"><pre>1. arena中所有pool都是闲置的(empty), 将arena内存释放, 返回给操作系统
+<div class="monokai"><pre>1. arena中所有pool都是闲置的(empty), 将arena内存释放, 返回给操作系统
 2. 如果arena中之前所有的pool都是占用的(used), 现在释放了一个pool(empty), 需要将 arena加入到usable_arenas, 会加入链表表头
 3. 如果arena中empty的pool个数n, 则从useable_arenas开始寻找可以插入的位置. 将arena插入. (useable_arenas是一个有序链表, 按empty pool的个数, 保证empty pool数量越多, 被使用的几率越小, 最终被整体释放的机会越大)
 4. 其他情况, 不对arena 进行处理
@@ -434,7 +434,7 @@ static<span class="w"> </span>struct<span class="w"> </span>arena_object<span cl
 <p>关注: 如何寻找得到一块可用的nbytes的block内存</p>
 <p>其实代码那么多, 寻址得到对应的block也就这么几行代码, 其他代码都是pool没有, 找arena, 申请arena, arena没有, 找arenas, 最终的到一块pool, 初始化, 返回第一个block</p>
 <p>如果有的情况, 用现成的</p>
-<div class="codehilite"><pre>pool = usedpools[size + size];
+<div class="monokai"><pre>pool = usedpools[size + size];
 if pool可用:
     pool 没满, 取一个block返回
     pool 满了, 从下一个pool取一个block返回
@@ -448,7 +448,7 @@ if pool可用:
 <h4 id="arena_8">arena 内存池的大小</h4>
 <p>取决于用户, Python提供的编译符号, 用于决定是否控制</p>
 <p><code>obmalloc.c</code></p>
-<div class="codehilite"><pre><span class="cp">#ifdef WITH_MEMORY_LIMITS</span>
+<div class="monokai"><pre><span class="cp">#ifdef WITH_MEMORY_LIMITS</span>
 <span class="cp">#ifndef SMALL_MEMORY_LIMIT</span>
 <span class="cp">#define SMALL_MEMORY_LIMIT      (64 * 1024 * 1024)      </span><span class="cm">/* 64 MB -- more? */</span><span class="cp"></span>
 <span class="cp">#endif</span>
@@ -461,7 +461,7 @@ if pool可用:
 <p>具体使用中, python并不直接与arenas和arena打交道, 当Python申请内存时, 最基本的操作单元并不是arena, 而是pool</p>
 <p>问题: pool中所有block的size一样, 但是在arena中, 每个pool的size都可能不一样, 那么最终这些pool是怎么维护的? 怎么根据大小找到需要的block所在的pool? =&gt; <code>usedpools</code></p>
 <h4 id="pool">pool在内存池中的三种状态</h4>
-<div class="codehilite"><pre>1. used状态: pool中至少有一个block已经被使用, 并且至少有一个block未被使用. 这种状态的pool受控于Python内部维护的usedpool数组
+<div class="monokai"><pre>1. used状态: pool中至少有一个block已经被使用, 并且至少有一个block未被使用. 这种状态的pool受控于Python内部维护的usedpool数组
 
 2. full状态: pool中所有的block都已经被使用, 这种状态的pool在arena中, 但不在arena的freepools链表中
 处于full的pool各自独立, 不会被链表维护起来
@@ -471,7 +471,7 @@ if pool可用:
 <h4 id="usedpools">usedpools</h4>
 <p>usedpools数组: 维护着所有处于used状态的pool, 当申请内存的时候, 会通过usedpools寻找到一块可用的(处于used状态的)pool, 从中分配一个block</p>
 <p>结构:</p>
-<div class="codehilite"><pre>  #define SMALL_REQUEST_THRESHOLD 512
+<div class="monokai"><pre>  #define SMALL_REQUEST_THRESHOLD 512
   // 512/8 = 64
   #define NB_SMALL_SIZE_CLASSES   (SMALL_REQUEST_THRESHOLD / ALIGNMENT)
 
@@ -517,7 +517,7 @@ static poolp usedpools[128] = {
 }
 </pre></div>
 <p>解开看(<code>obmalloc.c</code>)</p>
-<div class="codehilite"><pre>  typedef uchar block;
+<div class="monokai"><pre>  typedef uchar block;
 
   /* Pool for small blocks. */
   struct pool_header {
@@ -544,7 +544,7 @@ static poolp usedpools[128] = {
 <p><img alt="arena" src="/imgs/python-source/python-memory-usedpool.png"/></p>
 <h4 id="newpool">new一个pool时维护</h4>
 <p><code>init</code>获得的情况, 其实就是将刚刚从arena中获取的pool加入到 usedpools 对应的双向链表中, 然后初始化, 然后返回block</p>
-<div class="codehilite"><pre>         init_pool:
+<div class="monokai"><pre>         init_pool:
               /* Frontlink to used pools. */
 
               // 1. 获取得到usedpools链表头
@@ -586,7 +586,7 @@ static poolp usedpools[128] = {
 </pre></div>
 <h4 id="poolblock">从现有pool中获取block</h4>
 <p>从现有的pool, 其实就是 usedpools得到双向链表头部, 判断是不是空链表, 不是的话代表有可用的pool, 直接从里面获取</p>
-<div class="codehilite"><pre>      if ((nbytes - 1) &lt; SMALL_REQUEST_THRESHOLD) {
+<div class="monokai"><pre>      if ((nbytes - 1) &lt; SMALL_REQUEST_THRESHOLD) {
           LOCK();
           /*
            * Most frequent paths first

@@ -89,12 +89,12 @@
 <p>logstash1.3到2.x, 变化点还是很多的</p>
 <p>所以, 首先第一步要去阅读官方文档, 将所有change log过一遍, 对一些关键性的东西进行了解, 比如, 干掉了哪些语法(旧的功能需要如何实现), 哪些语法有变更, 新增了哪些特性等.</p>
 <p>然后, 将线上不同类型agent的配置文件拉下来, 先, 归类, 然后, 开始改-测-改-测-直到测试通过</p>
-<div class="codehilite"><pre>bin/logstash agent -t -f test.conf
+<div class="monokai"><pre>bin/logstash agent -t -f test.conf
 </pre></div>
 <p>直到, 语法验证通过</p>
 <p>现在要做的是, 验证数据正确性</p>
 <p>从线上拉取对应日志, 启动, 查看输出</p>
-<div class="codehilite"><pre>output {
+<div class="monokai"><pre>output {
     stdout{
         debug =&gt; true
     }
@@ -104,7 +104,7 @@
 <p>注意, 测试时, 使用逻辑分支覆盖到所有配置文件中的分支即可.</p>
 <p>然后, 可以挑一台机器, 停老的服务, 部署新的服务进行测试</p>
 <p>建议, 部署agent的时候, 如果读的是文件, 建议配置<code>sincedb_path</code> 这样假设下次升级, 就可以从老的服务最后读取的位置开始了</p>
-<div class="codehilite"><pre>input {
+<div class="monokai"><pre>input {
     file {
         path =&gt; ["/data/logs/*.log"]
         sincedb_path =&gt; "/data/LogNew/logstash/sincedb/celery.sincedb"
@@ -114,7 +114,7 @@
 <h4 id="2-elasticsearch">2. elasticsearch升级的策略</h4>
 <p>elasticsearch从1.4到2.0, 部署上变化不大, 变化最大的是存储doc的schema变了......</p>
 <p>使用原来的语法查询, 发现查不到, 因为字段名以及嵌套层级完全不一样了, 这里, 要修改查询端, 兼容新老版本的格式</p>
-<div class="codehilite"><pre>{'from': 0,
+<div class="monokai"><pre>{'from': 0,
  'query': {'filtered': {'filter': {'bool': {'must': [{'bool': {'should': [{'term': {'type': 'app'}},
                                                                           {'term': {'@type': 'app'}}]}},
                                                      {'bool': {'should': [{'term': {'log_level': u'error'}},
@@ -126,7 +126,7 @@
  'sort': [{'@timestamp': 'desc'}]}
 </pre></div>
 <p>另一个是, 取到数据进行解析的时候, 发现解析逻辑跪了, 没办法, 返回的json也完全变了, 这里, 要修改解析逻辑, 兼容新老版本格式</p>
-<div class="codehilite"><pre>for hit in log_hits:
+<div class="monokai"><pre>for hit in log_hits:
     try:
         source = hit.get('_source')
         if '@fields' in source:
@@ -137,7 +137,7 @@
 <p>为了让用户感觉不到集群升级, 首先要做的就是上面两个变更</p>
 <p>然后, 搭建新的集群, 最好找新的机器搭建(我在新的机器搭完才发现妈蛋硬盘才100G, 坑死, 无奈在老集群上搭新的集群, 硬盘1t)</p>
 <p>ready, 所有节点起好维护好, 然后, 改indexer, 将同一份日志灌到两个集群</p>
-<div class="codehilite"><pre>output {
+<div class="monokai"><pre>output {
     elasticsearch {
         hosts =&gt; ["10.1.1.1:9100", "10.1.1.2:9100"]
     }
@@ -153,7 +153,7 @@
 <p>要做的, 就是, logstash+不同类型配置文件+运维脚本, 达成一个包</p>
 <p>然后, 如果要部署一台机器, 扔上去一键执行安装, 测试, 启动即可</p>
 <p>例如, 运维脚本 <code><a href="http://logstashd.sh">logstashd.sh</a></code></p>
-<div class="codehilite"><pre><span class="ch">#!/bin/bash</span>
+<div class="monokai"><pre><span class="ch">#!/bin/bash</span>
 
 <span class="nv">BASEDIR</span><span class="o">=</span><span class="k">$(</span>dirname <span class="nv">$0</span><span class="k">)</span>
 <span class="nb">cd</span> <span class="nv">$BA</span>SEDIR
@@ -185,7 +185,7 @@
 $SUPERVISORCTL -c <span class="nv">$C</span>ONFIG_FILE_PATH <span class="nv">$@</span>
 </pre></div>
 <p>使用</p>
-<div class="codehilite"><pre>./logstashd.sh
+<div class="monokai"><pre>./logstashd.sh
 ===================== usage =====================
 ./logstashd.sh  - enter command line
 ./logstashd.sh status - show all configured process
@@ -203,13 +203,13 @@ supervisor&gt; restart indexer
 <p>这里, 我引入了<a href="http://www.stackless.com/binaries/">stackless python</a> (独立), 然后装pip/supervisord, 使用supervisord对logstash/es进程进行管理</p>
 <p>使用supervisord管理进程, 有个注意点</p>
 <p>默认supervisord相关的文件在</p>
-<div class="codehilite"><pre>/tmp/supervisor*
+<div class="monokai"><pre>/tmp/supervisor*
 </pre></div>
 <p>而线上, 存在tmp被删/清理了情况, 导致要进行进程启停操作才发现,妈蛋找不到</p>
 <p>处理方式 =&gt; 放到集成安装包的run目录下</p>
 <h4 id="logstashoutput">注意点: logstash存在两个output时, 必须要保证二者的可用性</h4>
 <p>logstash indexer, 分别转发数据到两个不同的output</p>
-<div class="codehilite"><pre>output {
+<div class="monokai"><pre>output {
     elasticsearch {
         hosts =&gt; ["10.1.1.1:8080", "10.1.1.2:8080"]
     }
@@ -230,7 +230,7 @@ supervisor&gt; restart indexer
 <p>需求: 在实际使用中, 有时候需要反向根据查询结果, 获知日志的来源机器</p>
 <p>处理:</p>
 <p>1.先获取ip</p>
-<div class="codehilite"><pre><span class="nt">GetLanIp</span> <span class="o">()</span> <span class="p">{</span>
+<div class="monokai"><pre><span class="nt">GetLanIp</span> <span class="o">()</span> <span class="p">{</span>
      <span class="err">##</span> <span class="n">get</span> <span class="n">associated</span> <span class="n">LAN</span> <span class="n">ip</span> <span class="n">address</span>
      <span class="err">##</span> <span class="n">usage</span><span class="o">:</span> <span class="n">GetLanIp</span>
      <span class="o">/</span><span class="n">sbin</span><span class="o">/</span><span class="n">ifconfig</span> <span class="o">|</span> <span class="n">awk</span> <span class="s1">'</span>
@@ -246,11 +246,11 @@ supervisor&gt; restart indexer
 <span class="p">}</span>
 </pre></div>
 <p>2.放入环境变量</p>
-<div class="codehilite"><pre>ETH1_IP=10.1.1.1
+<div class="monokai"><pre>ETH1_IP=10.1.1.1
 </pre></div>
 <p>3.修改logstash配置</p>
 <p>注意, 这里是logstash2.x的语法</p>
-<div class="codehilite"><pre>    environment {
+<div class="monokai"><pre>    environment {
         add_metadata_from_env =&gt; ["agent_ip", "ETH1_IP"]
         add_field =&gt; {"agent_ip" =&gt;  "%{[@metadata][agent_ip]}" }
     }
@@ -275,7 +275,7 @@ supervisor&gt; restart indexer
 <p>当存在配置变更时, 需要重启es集群, 不可能全部重启的, 这样会导致服务不可用....</p>
 <p>所以, 要一个个重启</p>
 <p>先执行</p>
-<div class="codehilite"><pre>curl -XPUT 'http://localhost:9200/_cluster/settings' -d '
+<div class="monokai"><pre>curl -XPUT 'http://localhost:9200/_cluster/settings' -d '
 {
     "transient" : {
         "cluster.routing.allocation.enable" : "none"
@@ -284,7 +284,7 @@ supervisor&gt; restart indexer
 </pre></div>
 <p>然后, shutdown, 改配置, start</p>
 <p>then : 一定要记得执行, 否则不会执行recovery.....会一直等着</p>
-<div class="codehilite"><pre>curl -XPUT 'http://localhost:9200/_cluster/settings' -d '
+<div class="monokai"><pre>curl -XPUT 'http://localhost:9200/_cluster/settings' -d '
 {
     "transient" : {
         "cluster.routing.allocation.enable" : "all"
@@ -301,12 +301,12 @@ supervisor&gt; restart indexer
 <p>而 <code>WORD</code>: 不支持连字符和下划线</p>
 <p>跪了, 需要自定义<code>LOGFILENAME [a-z\-A-Z0-9_\.]+</code>放到pattern中</p>
 <p>然后, 搜索的时候, 尼玛, 也搜不到....语法要做处理, 使用<code>raw</code>, es建索引的时候自动拆掉了导致搜索不到</p>
-<div class="codehilite"><pre>{'term': {'app_name.raw': 'nms-t'}}
+<div class="monokai"><pre>{'term': {'app_name.raw': 'nms-t'}}
 </pre></div>
 <h4 id="exclude">做一些exclude</h4>
 <p>有时候需要做一些exclude, 去除比必要采集和监控的日志(进入采集逻辑纯粹是浪费cpu和内存)</p>
 <p>例如, 目录树, 不要监控celery.log</p>
-<div class="codehilite"><pre>logs
+<div class="monokai"><pre>logs
 ├── a
 │&nbsp;&nbsp; ├── a.log
 │&nbsp;&nbsp; ├── b.log
@@ -316,7 +316,7 @@ supervisor&gt; restart indexer
         └── d.log
 </pre></div>
 <p>排除部分文件</p>
-<div class="codehilite"><pre>file {
+<div class="monokai"><pre>file {
     path =&gt; ["/data/logs/*/*.log"]
     exclude =&gt; ["celery.log", ]
     sincedb_path =&gt; "/data/LogNew/logstash/sincedb/django.sincedb"
@@ -328,27 +328,27 @@ supervisor&gt; restart indexer
 <li>查看plugin版本</li>
 </ul>
 <p><a href="https://www.elastic.co/guide/en/logstash/current/working-with-plugins.html">https://www.elastic.co/guide/en/logstash/current/working-with-plugins.html</a></p>
-<div class="codehilite"><pre>bin/plugin list --verbose
+<div class="monokai"><pre>bin/plugin list --verbose
 </pre></div>
 <ul>
 <li>create empty index</li>
 </ul>
-<div class="codehilite"><pre>curl -XPUT 'http://localhost:9100/logstash-2015.12.15/'
+<div class="monokai"><pre>curl -XPUT 'http://localhost:9100/logstash-2015.12.15/'
 </pre></div>
 <ul>
 <li>查看健康度</li>
 </ul>
-<div class="codehilite"><pre>curl 'http://localhost:9100/_cluster/health?pretty=true'
+<div class="monokai"><pre>curl 'http://localhost:9100/_cluster/health?pretty=true'
 </pre></div>
 <ul>
 <li>查看indices</li>
 </ul>
-<div class="codehilite"><pre><span class="ch">#!/bin/bash</span>
+<div class="monokai"><pre><span class="ch">#!/bin/bash</span>
 
 curl <span class="s1">'http://localhost:9100/_cat/indices?v'</span> <span class="p">|</span> sort -k 3
 </pre></div>
 <h4 id="30crontab">删除30天前crontab脚本</h4>
-<div class="codehilite"><pre><span class="ch">#!/bin/bash</span>
+<div class="monokai"><pre><span class="ch">#!/bin/bash</span>
 
 <span class="nv">now</span><span class="o">=</span><span class="sb">`</span>date +%Y%m%d<span class="sb">`</span>
 <span class="nb">echo</span> $now

@@ -84,7 +84,7 @@
 <a href="https://github.com/wklken/Python-2.7.8/blob/master/Objects/dictobject.c">Objects/dictobject.c</a></br></p>
 <hr>
 <h1 id="pydictobject">PyDictObject的存储策略</h1>
-<div class="codehilite"><pre>1. 使用散列表进行存储
+<div class="monokai"><pre>1. 使用散列表进行存储
 
 2. 使用开放定址法处理冲突
 
@@ -97,14 +97,14 @@
 <p>关于 hash表的 <a href="http://zh.wikipedia.org/wiki/%E5%93%88%E5%B8%8C%E8%A1%A8">wiki</a></p>
 <hr>
 <h1 id="pydictentry">基本键值PyDictEntry</h1>
-<div class="codehilite"><pre>typedef struct {
+<div class="monokai"><pre>typedef struct {
     Py_ssize_t me_hash;
     PyObject *me_key;
     PyObject *me_value;
 } PyDictEntry;
 </pre></div>
 <p>说明</p>
-<div class="codehilite"><pre>1. PyDictEntry 用于存储键值对信息
+<div class="monokai"><pre>1. PyDictEntry 用于存储键值对信息
 
 2. Py_ssize_t me_hash
 存储了me_key计算得到的hash值, 不重复计算
@@ -116,7 +116,7 @@
 <hr>
 <h1 id="pydictobject_1">PyDictObject定义</h1>
 <p>定义</p>
-<div class="codehilite"><pre>typedef struct _dictobject PyDictObject;
+<div class="monokai"><pre>typedef struct _dictobject PyDictObject;
 struct _dictobject {
     PyObject_HEAD
 
@@ -130,7 +130,7 @@ struct _dictobject {
 };
 </pre></div>
 <p>说明</p>
-<div class="codehilite"><pre>1. PyObject_HEAD
+<div class="monokai"><pre>1. PyObject_HEAD
 反而声明为定长对象, 因为ob_size在这里用不上, 使用ma_fill和ma_used计数
 
 2. Py_ssize_t ma_fill;
@@ -156,13 +156,13 @@ struct _dictobject {
 <p>结构</p>
 <p><img alt="PyDictObject" src="/imgs/python-source/PyDictObject.png"/></p>
 <p>结论</p>
-<div class="codehilite"><pre>1. PyDictObject在生命周期内, 需要维护ma_fill/ma_used/ma_mask 三个计数值
+<div class="monokai"><pre>1. PyDictObject在生命周期内, 需要维护ma_fill/ma_used/ma_mask 三个计数值
 
 2. 初始化创建是ma_smalltable, 超过大小后, 会使用外部分配的空间
 </pre></div>
 <h1 id="_1">构造过程</h1>
 <p>定义</p>
-<div class="codehilite"><pre><span class="n">PyObject</span> *
+<div class="monokai"><pre><span class="n">PyObject</span> *
 <span class="n">PyDict_New</span>(<span class="nb">void</span>)
 {
     <span class="n">register</span> <span class="n">PyDictObject</span> *<span class="n">mp</span>;
@@ -241,7 +241,7 @@ struct _dictobject {
 }
 </pre></div>
 <p>简化步骤</p>
-<div class="codehilite"><pre>1. 如果PyDictObject对象缓冲池有, 从里面直接取, 初始化
+<div class="monokai"><pre>1. 如果PyDictObject对象缓冲池有, 从里面直接取, 初始化
 
 2. 否则, 创建一个, 初始化
 
@@ -250,13 +250,13 @@ struct _dictobject {
 4. 返回
 </pre></div>
 <p>结论</p>
-<div class="codehilite"><pre>1. 关注对象缓冲池
+<div class="monokai"><pre>1. 关注对象缓冲池
 
 2. 关注lookdict_string
 </pre></div>
 <h1 id="_2">销毁过程</h1>
 <p>方法定义</p>
-<div class="codehilite"><pre>static void
+<div class="monokai"><pre>static void
 dict_dealloc(register PyDictObject *mp)
 {
     register PyDictEntry *ep;
@@ -289,7 +289,7 @@ dict_dealloc(register PyDictObject *mp)
 <hr>
 <h1 id="pydictobject_2">PyDictObject对象缓冲池</h1>
 <p>定义</p>
-<div class="codehilite"><pre><span class="cp">#ifndef PyDict_MAXFREELIST</span>
+<div class="monokai"><pre><span class="cp">#ifndef PyDict_MAXFREELIST</span>
 <span class="cp">#define PyDict_MAXFREELIST 80</span>
 <span class="cp">#endif</span>
 
@@ -299,7 +299,7 @@ dict_dealloc(register PyDictObject *mp)
 <p>对象缓冲池的结构(跟PyListObject对象缓冲池结构基本一样)</p>
 <p><img alt="PyDictObjectPool" src="/imgs/python-source/PyDictObjectPool.png"/></p>
 <p>结论</p>
-<div class="codehilite"><pre>1. 最多会缓存80个对象
+<div class="monokai"><pre>1. 最多会缓存80个对象
 
 2. 只缓存 PyDictObject 本身, 其PyDictEntry全部会被回收
 
@@ -310,7 +310,7 @@ dict_dealloc(register PyDictObject *mp)
 <p>查找/插入/resize/删除, 下个版本补</p>
 <hr>
 <p>changelog</p>
-<div class="codehilite"><pre>2014-08-11 first version
+<div class="monokai"><pre>2014-08-11 first version
 </pre></div></hr></hr></hr></hr></hr></hr></hr>
     </section>
 
