@@ -129,59 +129,59 @@ layer 0: Underlying general-purpose allocator (ex: C library malloc)
 <h3 id="layer-1-pymem_-api">layer 1: PyMem_ API</h3>
 <p><code>PyMem_ API</code>是对操作系统内存管理接口进行的封装</p>
 <p>查看<code>pymem.h</code>可以看到</p>
-<div class="monokai"><pre>// Raw memory interface
-// 这里存在三个宏定义, 宏可以避免一次函数调用的开销, 提高运行效率
-// 不允许非配空间大小为0的内存空间
-#define PyMem_MALLOC(n)     ((size_t)(n) &gt; (size_t)PY_SSIZE_T_MAX ? NULL \
-                : malloc((n) ? (n) : 1))
+<div class="monokai"><pre><span class="c1">// Raw memory interface</span>
+<span class="c1">// 这里存在三个宏定义, 宏可以避免一次函数调用的开销, 提高运行效率</span>
+<span class="c1">// 不允许非配空间大小为0的内存空间</span>
+<span class="cp">#define PyMem_MALLOC(n)     ((size_t)(n) &gt; (size_t)PY_SSIZE_T_MAX ? NULL \</span>
+<span class="cp">                : malloc((n) ? (n) : 1))</span>
 
 
-#define PyMem_REALLOC(p, n) ((size_t)(n) &gt; (size_t)PY_SSIZE_T_MAX  ? NULL \
-                : realloc((p), (n) ? (n) : 1))
-#define PyMem_FREE      free
+<span class="cp">#define PyMem_REALLOC(p, n) ((size_t)(n) &gt; (size_t)PY_SSIZE_T_MAX  ? NULL \</span>
+<span class="cp">                : realloc((p), (n) ? (n) : 1))</span>
+<span class="cp">#define PyMem_FREE      free</span>
 
-// 这里做了三个函数的声明, 平台独立的 malloc/realloc/free
-PyAPI_FUNC(void *) PyMem_Malloc(size_t);
-PyAPI_FUNC(void *) PyMem_Realloc(void *, size_t);
-PyAPI_FUNC(void) PyMem_Free(void *);
+<span class="c1">// 这里做了三个函数的声明, 平台独立的 malloc/realloc/free</span>
+<span class="n">PyAPI_FUNC</span><span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="p">)</span> <span class="n">PyMem_Malloc</span><span class="p">(</span><span class="kt">size_t</span><span class="p">);</span>
+<span class="n">PyAPI_FUNC</span><span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="p">)</span> <span class="n">PyMem_Realloc</span><span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="p">,</span> <span class="kt">size_t</span><span class="p">);</span>
+<span class="n">PyAPI_FUNC</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="n">PyMem_Free</span><span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="p">);</span>
 
-// ============================================================
+<span class="c1">// ============================================================</span>
 
-// Type-oriented memory interface
-// 这里还有三个类型相关的内存接口, 批量分配/重分配 n 个 类型为 type内存
-#define PyMem_New(type, n) \
-  ( ((size_t)(n) &gt; PY_SSIZE_T_MAX / sizeof(type)) ? NULL :  \
-    ( (type *) PyMem_Malloc((n) * sizeof(type)) ) )
-#define PyMem_NEW(type, n) \
-  ( ((size_t)(n) &gt; PY_SSIZE_T_MAX / sizeof(type)) ? NULL :  \
-    ( (type *) PyMem_MALLOC((n) * sizeof(type)) ) )
+<span class="c1">// Type-oriented memory interface</span>
+<span class="c1">// 这里还有三个类型相关的内存接口, 批量分配/重分配 n 个 类型为 type内存</span>
+<span class="cp">#define PyMem_New(type, n) \</span>
+<span class="cp">  ( ((size_t)(n) &gt; PY_SSIZE_T_MAX / sizeof(type)) ? NULL :  \</span>
+<span class="cp">    ( (type *) PyMem_Malloc((n) * sizeof(type)) ) )</span>
+<span class="cp">#define PyMem_NEW(type, n) \</span>
+<span class="cp">  ( ((size_t)(n) &gt; PY_SSIZE_T_MAX / sizeof(type)) ? NULL :  \</span>
+<span class="cp">    ( (type *) PyMem_MALLOC((n) * sizeof(type)) ) )</span>
 
-#define PyMem_Resize(p, type, n) \
-  ( (p) = ((size_t)(n) &gt; PY_SSIZE_T_MAX / sizeof(type)) ? NULL :    \
-    (type *) PyMem_Realloc((p), (n) * sizeof(type)) )
-#define PyMem_RESIZE(p, type, n) \
-  ( (p) = ((size_t)(n) &gt; PY_SSIZE_T_MAX / sizeof(type)) ? NULL :    \
-    (type *) PyMem_REALLOC((p), (n) * sizeof(type)) )
+<span class="cp">#define PyMem_Resize(p, type, n) \</span>
+<span class="cp">  ( (p) = ((size_t)(n) &gt; PY_SSIZE_T_MAX / sizeof(type)) ? NULL :    \</span>
+<span class="cp">    (type *) PyMem_Realloc((p), (n) * sizeof(type)) )</span>
+<span class="cp">#define PyMem_RESIZE(p, type, n) \</span>
+<span class="cp">  ( (p) = ((size_t)(n) &gt; PY_SSIZE_T_MAX / sizeof(type)) ? NULL :    \</span>
+<span class="cp">    (type *) PyMem_REALLOC((p), (n) * sizeof(type)) )</span>
 </pre></div>
 <p>然后<code>object.c</code>中, 我们关注<code>实现</code>, 三个<code>实现</code>的函数调用了对应的宏</p>
-<div class="monokai"><pre>// 使用 C 写Python扩展模块时使用函数而不是对应的宏
-void *
-PyMem_Malloc(size_t nbytes)
-{
-    return PyMem_MALLOC(nbytes);
-}
+<div class="monokai"><pre><span class="c1">// 使用 C 写Python扩展模块时使用函数而不是对应的宏</span>
+<span class="kt">void</span> <span class="o">*</span>
+<span class="nf">PyMem_Malloc</span><span class="p">(</span><span class="kt">size_t</span> <span class="n">nbytes</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">return</span> <span class="n">PyMem_MALLOC</span><span class="p">(</span><span class="n">nbytes</span><span class="p">);</span>
+<span class="p">}</span>
 
-void *
-PyMem_Realloc(void *p, size_t nbytes)
-{
-    return PyMem_REALLOC(p, nbytes);
-}
+<span class="kt">void</span> <span class="o">*</span>
+<span class="nf">PyMem_Realloc</span><span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="n">p</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">nbytes</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">return</span> <span class="n">PyMem_REALLOC</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">nbytes</span><span class="p">);</span>
+<span class="p">}</span>
 
-void
-PyMem_Free(void *p)
-{
-    PyMem_FREE(p);
-}
+<span class="kt">void</span>
+<span class="nf">PyMem_Free</span><span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="n">p</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="n">PyMem_FREE</span><span class="p">(</span><span class="n">p</span><span class="p">);</span>
+<span class="p">}</span>
 </pre></div>
 <p>这些接口都相对简单</p>
 <p>好了, 结束, 开始关注<code>layer 2: Python's object allocator</code></p>
@@ -196,7 +196,7 @@ PyMem_Free(void *p)
 <span class="cm"> * (1) Paul R. Wilson, Mark S. Johnstone, Michael Neely, and David Boles,</span>
 <span class="cm"> *    "Dynamic Storage Allocation: A Survey and Critical Review",</span>
 <span class="cm"> *    in Proc. 1995 Int'l. Workshop on Memory Management, September 1995.</span>
-<span class="cm"> */</span><span class="w"></span>
+<span class="cm"> */</span>
 </pre></div>
 <p>Python引入了内存池机制, 用于管理对小块内存的申请和释放</p>
 <p>逻辑</p>
@@ -214,24 +214,24 @@ PyMem_Free(void *p)
 <p>注意这里block只是一个概念, 在源代码中并没有实体存在.</p>
 <p>不同类型block, 对应不同内存大小, 这个内存大小的值被称为<code>size class</code>.</p>
 <p>不同长度的block</p>
-<div class="monokai"><pre> * Request in bytes     Size of allocated block      Size class idx
- * ----------------------------------------------------------------
- *        1-8                     8                       0
- *        9-16                   16                       1
- *       17-24                   24                       2
- *       25-32                   32                       3
- *       33-40                   40                       4
- *       41-48                   48                       5
- *       49-56                   56                       6
- *       57-64                   64                       7
- *       65-72                   72                       8
- *        ...                   ...                     ...
- *      497-504                 504                      62
- *      505-512                 512                      63
- *
- *      0, SMALL_REQUEST_THRESHOLD + 1 and up: routed to the underlying
- *      allocator.
- */
+<div class="monokai"><pre> <span class="o">*</span> <span class="n">Request</span> <span class="n">in</span> <span class="n">bytes</span>     <span class="n">Size</span> <span class="n">of</span> <span class="n">allocated</span> <span class="n">block</span>      <span class="n">Size</span> <span class="n">class</span> <span class="n">idx</span>
+ <span class="o">*</span> <span class="o">----------------------------------------------------------------</span>
+ <span class="o">*</span>        <span class="mi">1</span><span class="o">-</span><span class="mi">8</span>                     <span class="mi">8</span>                       <span class="mi">0</span>
+ <span class="o">*</span>        <span class="mi">9</span><span class="o">-</span><span class="mi">16</span>                   <span class="mi">16</span>                       <span class="mi">1</span>
+ <span class="o">*</span>       <span class="mi">17</span><span class="o">-</span><span class="mi">24</span>                   <span class="mi">24</span>                       <span class="mi">2</span>
+ <span class="o">*</span>       <span class="mi">25</span><span class="o">-</span><span class="mi">32</span>                   <span class="mi">32</span>                       <span class="mi">3</span>
+ <span class="o">*</span>       <span class="mi">33</span><span class="o">-</span><span class="mi">40</span>                   <span class="mi">40</span>                       <span class="mi">4</span>
+ <span class="o">*</span>       <span class="mi">41</span><span class="o">-</span><span class="mi">48</span>                   <span class="mi">48</span>                       <span class="mi">5</span>
+ <span class="o">*</span>       <span class="mi">49</span><span class="o">-</span><span class="mi">56</span>                   <span class="mi">56</span>                       <span class="mi">6</span>
+ <span class="o">*</span>       <span class="mi">57</span><span class="o">-</span><span class="mi">64</span>                   <span class="mi">64</span>                       <span class="mi">7</span>
+ <span class="o">*</span>       <span class="mi">65</span><span class="o">-</span><span class="mi">72</span>                   <span class="mi">72</span>                       <span class="mi">8</span>
+ <span class="o">*</span>        <span class="p">...</span>                   <span class="p">...</span>                     <span class="p">...</span>
+ <span class="o">*</span>      <span class="mi">497</span><span class="o">-</span><span class="mi">504</span>                 <span class="mi">504</span>                      <span class="mi">62</span>
+ <span class="o">*</span>      <span class="mi">505</span><span class="o">-</span><span class="mi">512</span>                 <span class="mi">512</span>                      <span class="mi">63</span>
+ <span class="o">*</span>
+ <span class="o">*</span>      <span class="mi">0</span><span class="p">,</span> <span class="n">SMALL_REQUEST_THRESHOLD</span> <span class="o">+</span> <span class="mi">1</span> <span class="n">and</span> <span class="nl">up</span><span class="p">:</span> <span class="n">routed</span> <span class="n">to</span> <span class="n">the</span> <span class="n">underlying</span>
+ <span class="o">*</span>      <span class="n">allocator</span><span class="p">.</span>
+ <span class="err">*/</span>
 </pre></div>
 <p>例如</p>
 <div class="monokai"><pre>申请一块大小28字节的内存, 实际从内存中划到32字节的一个block (从size class index为3的pool里面划出)
@@ -240,56 +240,56 @@ PyMem_Free(void *p)
 <p><img alt="blocks" src="/imgs/python-source/python-memory-blocks.png"/></p>
 <p>注意: 这里有个<code>Size class idx</code>, 这个主要为了后面pool中用到</p>
 <p><code>size class</code>和<code>size class index</code>之间的转换</p>
-<div class="monokai"><pre>#define ALIGNMENT               8               /* must be 2^N */
-#define ALIGNMENT_SHIFT         3
-#define ALIGNMENT_MASK          (ALIGNMENT - 1)
+<div class="monokai"><pre><span class="cp">#define ALIGNMENT               8               </span><span class="cm">/* must be 2^N */</span><span class="cp"></span>
+<span class="cp">#define ALIGNMENT_SHIFT         3</span>
+<span class="cp">#define ALIGNMENT_MASK          (ALIGNMENT - 1)</span>
 
-// size class index =&gt; size class
-#define INDEX2SIZE(I) (((uint)(I) + 1) &lt;&lt; ALIGNMENT_SHIFT)
+<span class="c1">// size class index =&gt; size class</span>
+<span class="cp">#define INDEX2SIZE(I) (((uint)(I) + 1) &lt;&lt; ALIGNMENT_SHIFT)</span>
 
-/* 即
-    (0+1) * 8 = 8
-    (1+1) * 8 = 16
-*/
+<span class="cm">/* 即</span>
+<span class="cm">    (0+1) * 8 = 8</span>
+<span class="cm">    (1+1) * 8 = 16</span>
+<span class="cm">*/</span>
 
-// size class =&gt; size class index
-size = (uint)(nbytes - 1) &gt;&gt; ALIGNMENT_SHIFT;
+<span class="c1">// size class =&gt; size class index</span>
+<span class="n">size</span> <span class="o">=</span> <span class="p">(</span><span class="n">uint</span><span class="p">)(</span><span class="n">nbytes</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">&gt;&gt;</span> <span class="n">ALIGNMENT_SHIFT</span><span class="p">;</span>
 
-/* 即
-    (8 - 1) / 8 = 0
-    (16 - 8) / 8 = 1
-*/
+<span class="cm">/* 即</span>
+<span class="cm">    (8 - 1) / 8 = 0</span>
+<span class="cm">    (16 - 8) / 8 = 1</span>
+<span class="cm">*/</span>
 </pre></div>
 <h3 id="pool">pool</h3>
 <p>pool管理block, 一个pool管理着一堆有固定大小的内存块</p>
 <p>本质: pool管理着一大块内存, 它有一定的策略, 将这块大的内存划分为多个大小一致的小块内存.</p>
 <h4 id="pool-size">pool size</h4>
 <p>在Python中, 一个pool的大小通常为一个系统内存页. 4kB</p>
-<div class="monokai"><pre>obmalloc.c
+<div class="monokai"><pre><span class="n">obmalloc</span><span class="p">.</span><span class="n">c</span>
 
-#define SYSTEM_PAGE_SIZE        (4 * 1024)
-#define SYSTEM_PAGE_SIZE_MASK   (SYSTEM_PAGE_SIZE - 1)
+<span class="cp">#define SYSTEM_PAGE_SIZE        (4 * 1024)</span>
+<span class="cp">#define SYSTEM_PAGE_SIZE_MASK   (SYSTEM_PAGE_SIZE - 1)</span>
 
-#define POOL_SIZE               SYSTEM_PAGE_SIZE        /* must be 2^N */
-#define POOL_SIZE_MASK          SYSTEM_PAGE_SIZE_MASK
+<span class="cp">#define POOL_SIZE               SYSTEM_PAGE_SIZE        </span><span class="cm">/* must be 2^N */</span><span class="cp"></span>
+<span class="cp">#define POOL_SIZE_MASK          SYSTEM_PAGE_SIZE_MASK</span>
 </pre></div>
 <h4 id="pool_1">pool组成</h4>
 <blockquote>
 <p>pool的4kB内存 = pool_header + block集合(N多大小一样的block)</p>
 </blockquote>
 <p>pool_header</p>
-<div class="monokai"><pre><span class="cm">/* Pool for small blocks. */</span><span class="w"></span>
-struct<span class="w"> </span>pool_header<span class="w"> </span><span class="err">{</span><span class="w"></span>
-<span class="w">    </span>union<span class="w"> </span><span class="err">{</span><span class="w"> </span>block<span class="w"> </span><span class="o">*</span>_padding<span class="err">;</span><span class="w"></span>
-<span class="w">            </span>uint<span class="w"> </span>count<span class="err">;</span><span class="w"> </span><span class="err">}</span><span class="w"> </span>ref<span class="err">;</span><span class="w">          </span><span class="cm">/* number of allocated blocks    */</span><span class="w"></span>
-<span class="w">    </span>block<span class="w"> </span><span class="o">*</span>freeblock<span class="err">;</span><span class="w">                   </span><span class="cm">/* pool's free list head         */</span><span class="w"></span>
-<span class="w">    </span>struct<span class="w"> </span>pool_header<span class="w"> </span><span class="o">*</span>nextpool<span class="err">;</span><span class="w">       </span><span class="cm">/* next pool of this size class  */</span><span class="w"></span>
-<span class="w">    </span>struct<span class="w"> </span>pool_header<span class="w"> </span><span class="o">*</span>prevpool<span class="err">;</span><span class="w">       </span><span class="cm">/* previous pool       ""        */</span><span class="w"></span>
-<span class="w">    </span>uint<span class="w"> </span>arenaindex<span class="err">;</span><span class="w">                    </span><span class="cm">/* index into arenas of base adr */</span><span class="w"></span>
-<span class="w">    </span>uint<span class="w"> </span>szidx<span class="err">;</span><span class="w">                         </span><span class="cm">/* block size class index        */</span><span class="w"> </span><span class="o">-</span><span class="w"> </span>size<span class="w"> </span>class<span class="w"> </span>index<span class="w"></span>
-<span class="w">    </span>uint<span class="w"> </span>nextoffset<span class="err">;</span><span class="w">                    </span><span class="cm">/* bytes to virgin block         */</span><span class="w"></span>
-<span class="w">    </span>uint<span class="w"> </span>maxnextoffset<span class="err">;</span><span class="w">                 </span><span class="cm">/* largest valid nextoffset      */</span><span class="w"></span>
-<span class="err">};</span><span class="w"></span>
+<div class="monokai"><pre><span class="cm">/* Pool for small blocks. */</span>
+<span class="k">struct</span> <span class="n">pool_header</span> <span class="p">{</span>
+    <span class="k">union</span> <span class="p">{</span> <span class="n">block</span> <span class="o">*</span><span class="n">_padding</span><span class="p">;</span>
+            <span class="n">uint</span> <span class="n">count</span><span class="p">;</span> <span class="p">}</span> <span class="n">ref</span><span class="p">;</span>          <span class="cm">/* number of allocated blocks    */</span>
+    <span class="n">block</span> <span class="o">*</span><span class="n">freeblock</span><span class="p">;</span>                   <span class="cm">/* pool's free list head         */</span>
+    <span class="k">struct</span> <span class="n">pool_header</span> <span class="o">*</span><span class="n">nextpool</span><span class="p">;</span>       <span class="cm">/* next pool of this size class  */</span>
+    <span class="k">struct</span> <span class="n">pool_header</span> <span class="o">*</span><span class="n">prevpool</span><span class="p">;</span>       <span class="cm">/* previous pool       ""        */</span>
+    <span class="n">uint</span> <span class="n">arenaindex</span><span class="p">;</span>                    <span class="cm">/* index into arenas of base adr */</span>
+    <span class="n">uint</span> <span class="n">szidx</span><span class="p">;</span>                         <span class="cm">/* block size class index        */</span> <span class="o">-</span> <span class="n">size</span> <span class="n">class</span> <span class="n">index</span>
+    <span class="n">uint</span> <span class="n">nextoffset</span><span class="p">;</span>                    <span class="cm">/* bytes to virgin block         */</span>
+    <span class="n">uint</span> <span class="n">maxnextoffset</span><span class="p">;</span>                 <span class="cm">/* largest valid nextoffset      */</span>
+<span class="p">};</span>
 </pre></div>
 <p>pool_header的作用</p>
 <div class="monokai"><pre>1. 与其他pool链接, 组成双向链表
@@ -302,211 +302,211 @@ struct<span class="w"> </span>pool_header<span class="w"> </span><span class="er
 <h4 id="pool_2">pool初始化</h4>
 <p>从内存中初始化一个全新的空的<code>pool</code></p>
 <p><code>Objects/obmalloc.c</code>的</p>
-<div class="monokai"><pre>void *
-PyObject_Malloc(size_t nbytes)
-{
-  ...
+<div class="monokai"><pre><span class="kt">void</span> <span class="o">*</span>
+<span class="nf">PyObject_Malloc</span><span class="p">(</span><span class="kt">size_t</span> <span class="n">nbytes</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="p">...</span>
 
-          init_pool:
-            // 1. 连接到 used_pools 双向链表, 作为表头
-            // 注意, 这里 usedpools[0] 保存着 block size = 8 的所有used_pools的表头
-            /* Frontlink to used pools. */
-            next = usedpools[size + size]; /* == prev */
-            pool-&gt;nextpool = next;
-            pool-&gt;prevpool = next;
-            next-&gt;nextpool = pool;
-            next-&gt;prevpool = pool;
-            pool-&gt;ref.count = 1;
+          <span class="nl">init_pool</span><span class="p">:</span>
+            <span class="c1">// 1. 连接到 used_pools 双向链表, 作为表头</span>
+            <span class="c1">// 注意, 这里 usedpools[0] 保存着 block size = 8 的所有used_pools的表头</span>
+            <span class="cm">/* Frontlink to used pools. */</span>
+            <span class="n">next</span> <span class="o">=</span> <span class="n">usedpools</span><span class="p">[</span><span class="n">size</span> <span class="o">+</span> <span class="n">size</span><span class="p">];</span> <span class="cm">/* == prev */</span>
+            <span class="n">pool</span><span class="o">-&gt;</span><span class="n">nextpool</span> <span class="o">=</span> <span class="n">next</span><span class="p">;</span>
+            <span class="n">pool</span><span class="o">-&gt;</span><span class="n">prevpool</span> <span class="o">=</span> <span class="n">next</span><span class="p">;</span>
+            <span class="n">next</span><span class="o">-&gt;</span><span class="n">nextpool</span> <span class="o">=</span> <span class="n">pool</span><span class="p">;</span>
+            <span class="n">next</span><span class="o">-&gt;</span><span class="n">prevpool</span> <span class="o">=</span> <span class="n">pool</span><span class="p">;</span>
+            <span class="n">pool</span><span class="o">-&gt;</span><span class="n">ref</span><span class="p">.</span><span class="n">count</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
 
-            // 如果已经初始化过了...这里看初始化, 跳过
-            if (pool-&gt;szidx == size) {
-                /* Luckily, this pool last contained blocks
-                 * of the same size class, so its header
-                 * and free list are already initialized.
-                 */
-                bp = pool-&gt;freeblock;
-                pool-&gt;freeblock = *(block **)bp;
-                UNLOCK();
-                return (void *)bp;
-            }
+            <span class="c1">// 如果已经初始化过了...这里看初始化, 跳过</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">pool</span><span class="o">-&gt;</span><span class="n">szidx</span> <span class="o">==</span> <span class="n">size</span><span class="p">)</span> <span class="p">{</span>
+                <span class="cm">/* Luckily, this pool last contained blocks</span>
+<span class="cm">                 * of the same size class, so its header</span>
+<span class="cm">                 * and free list are already initialized.</span>
+<span class="cm">                 */</span>
+                <span class="n">bp</span> <span class="o">=</span> <span class="n">pool</span><span class="o">-&gt;</span><span class="n">freeblock</span><span class="p">;</span>
+                <span class="n">pool</span><span class="o">-&gt;</span><span class="n">freeblock</span> <span class="o">=</span> <span class="o">*</span><span class="p">(</span><span class="n">block</span> <span class="o">**</span><span class="p">)</span><span class="n">bp</span><span class="p">;</span>
+                <span class="n">UNLOCK</span><span class="p">();</span>
+                <span class="k">return</span> <span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="p">)</span><span class="n">bp</span><span class="p">;</span>
+            <span class="p">}</span>
 
 
-            /*
-             * Initialize the pool header, set up the free list to
-             * contain just the second block, and return the first
-             * block.
-             */
-            // 开始初始化pool_header
-            // 这里 size = (uint)(nbytes - 1) &gt;&gt; ALIGNMENT_SHIFT;  其实是Size class idx, 即szidx
-            pool-&gt;szidx = size;
+            <span class="cm">/*</span>
+<span class="cm">             * Initialize the pool header, set up the free list to</span>
+<span class="cm">             * contain just the second block, and return the first</span>
+<span class="cm">             * block.</span>
+<span class="cm">             */</span>
+            <span class="c1">// 开始初始化pool_header</span>
+            <span class="c1">// 这里 size = (uint)(nbytes - 1) &gt;&gt; ALIGNMENT_SHIFT;  其实是Size class idx, 即szidx</span>
+            <span class="n">pool</span><span class="o">-&gt;</span><span class="n">szidx</span> <span class="o">=</span> <span class="n">size</span><span class="p">;</span>
 
-            // 计算获得每个block的size
-            size = INDEX2SIZE(size);
+            <span class="c1">// 计算获得每个block的size</span>
+            <span class="n">size</span> <span class="o">=</span> <span class="n">INDEX2SIZE</span><span class="p">(</span><span class="n">size</span><span class="p">);</span>
 
-            // 注意 #define POOL_OVERHEAD           ROUNDUP(sizeof(struct pool_header))
-            // bp =&gt; 初始化为pool + pool_header size,  跳过pool_header的内存
-            bp = (block *)pool + POOL_OVERHEAD;
+            <span class="c1">// 注意 #define POOL_OVERHEAD           ROUNDUP(sizeof(struct pool_header))</span>
+            <span class="c1">// bp =&gt; 初始化为pool + pool_header size,  跳过pool_header的内存</span>
+            <span class="n">bp</span> <span class="o">=</span> <span class="p">(</span><span class="n">block</span> <span class="o">*</span><span class="p">)</span><span class="n">pool</span> <span class="o">+</span> <span class="n">POOL_OVERHEAD</span><span class="p">;</span>
 
-            // 计算偏移量, 这里的偏移量是绝对值
-            // #define POOL_SIZE               SYSTEM_PAGE_SIZE        /* must be 2^N */
-            // POOL_SIZE = 4kb, POOL_OVERHEAD = pool_header size
-            // 下一个偏移位置: pool_header size + 2 * size
-            pool-&gt;nextoffset = POOL_OVERHEAD + (size &lt;&lt; 1);
-            // 4kb - size
-            pool-&gt;maxnextoffset = POOL_SIZE - size;
+            <span class="c1">// 计算偏移量, 这里的偏移量是绝对值</span>
+            <span class="c1">// #define POOL_SIZE               SYSTEM_PAGE_SIZE        /* must be 2^N */</span>
+            <span class="c1">// POOL_SIZE = 4kb, POOL_OVERHEAD = pool_header size</span>
+            <span class="c1">// 下一个偏移位置: pool_header size + 2 * size</span>
+            <span class="n">pool</span><span class="o">-&gt;</span><span class="n">nextoffset</span> <span class="o">=</span> <span class="n">POOL_OVERHEAD</span> <span class="o">+</span> <span class="p">(</span><span class="n">size</span> <span class="o">&lt;&lt;</span> <span class="mi">1</span><span class="p">);</span>
+            <span class="c1">// 4kb - size</span>
+            <span class="n">pool</span><span class="o">-&gt;</span><span class="n">maxnextoffset</span> <span class="o">=</span> <span class="n">POOL_SIZE</span> <span class="o">-</span> <span class="n">size</span><span class="p">;</span>
 
-            // freeblock指向 bp + size = pool_header size + size
-            pool-&gt;freeblock = bp + size;
+            <span class="c1">// freeblock指向 bp + size = pool_header size + size</span>
+            <span class="n">pool</span><span class="o">-&gt;</span><span class="n">freeblock</span> <span class="o">=</span> <span class="n">bp</span> <span class="o">+</span> <span class="n">size</span><span class="p">;</span>
 
-            // 赋值NULL
-            *(block **)(pool-&gt;freeblock) = NULL;
-            UNLOCK();
-            return (void *)bp;
-        }
+            <span class="c1">// 赋值NULL</span>
+            <span class="o">*</span><span class="p">(</span><span class="n">block</span> <span class="o">**</span><span class="p">)(</span><span class="n">pool</span><span class="o">-&gt;</span><span class="n">freeblock</span><span class="p">)</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+            <span class="n">UNLOCK</span><span class="p">();</span>
+            <span class="k">return</span> <span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="p">)</span><span class="n">bp</span><span class="p">;</span>
+        <span class="p">}</span>
 </pre></div>
 <p>初始化后的图</p>
 <p><img alt="pool2" src="/imgs/python-source/python-memory-pools2.png"/></p>
 <h4 id="poolblock-0">pool进行block分配 - 0 总体代码</h4>
 <p>总体分配的代码如下</p>
-<div class="monokai"><pre>     if (pool != pool-&gt;nextpool) {   //
-            /*
-             * There is a used pool for this size class.
-             * Pick up the head block of its free list.
-             */
-            ++pool-&gt;ref.count;
-            bp = pool-&gt;freeblock; // 指针指向空闲block起始位置
-            assert(bp != NULL);
+<div class="monokai"><pre>     <span class="k">if</span> <span class="p">(</span><span class="n">pool</span> <span class="o">!=</span> <span class="n">pool</span><span class="o">-&gt;</span><span class="n">nextpool</span><span class="p">)</span> <span class="p">{</span>   <span class="c1">//</span>
+            <span class="cm">/*</span>
+<span class="cm">             * There is a used pool for this size class.</span>
+<span class="cm">             * Pick up the head block of its free list.</span>
+<span class="cm">             */</span>
+            <span class="o">++</span><span class="n">pool</span><span class="o">-&gt;</span><span class="n">ref</span><span class="p">.</span><span class="n">count</span><span class="p">;</span>
+            <span class="n">bp</span> <span class="o">=</span> <span class="n">pool</span><span class="o">-&gt;</span><span class="n">freeblock</span><span class="p">;</span> <span class="c1">// 指针指向空闲block起始位置</span>
+            <span class="n">assert</span><span class="p">(</span><span class="n">bp</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">);</span>
 
-            // 代码-1
-            // 调整 pool-&gt;freeblock (假设A节点)指向链表下一个, 即bp首字节指向的下一个节点(假设B节点) , 如果此时!= NULL
-            // 表示 A节点可用, 直接返回
-            if ((pool-&gt;freeblock = *(block **)bp) != NULL) {
-                UNLOCK();
-                return (void *)bp;
-            }
+            <span class="c1">// 代码-1</span>
+            <span class="c1">// 调整 pool-&gt;freeblock (假设A节点)指向链表下一个, 即bp首字节指向的下一个节点(假设B节点) , 如果此时!= NULL</span>
+            <span class="c1">// 表示 A节点可用, 直接返回</span>
+            <span class="k">if</span> <span class="p">((</span><span class="n">pool</span><span class="o">-&gt;</span><span class="n">freeblock</span> <span class="o">=</span> <span class="o">*</span><span class="p">(</span><span class="n">block</span> <span class="o">**</span><span class="p">)</span><span class="n">bp</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>
+                <span class="n">UNLOCK</span><span class="p">();</span>
+                <span class="k">return</span> <span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="p">)</span><span class="n">bp</span><span class="p">;</span>
+            <span class="p">}</span>
 
-            // 代码-2
-            /*
-             * Reached the end of the free list, try to extend it.
-             */
-            // 有足够的空间, 分配一个, pool-&gt;freeblock 指向后移
-            if (pool-&gt;nextoffset &lt;= pool-&gt;maxnextoffset) {
-                /* There is room for another block. */
-                // 变更位置信息
-                pool-&gt;freeblock = (block*)pool +
-                                  pool-&gt;nextoffset;
-                pool-&gt;nextoffset += INDEX2SIZE(size);
+            <span class="c1">// 代码-2</span>
+            <span class="cm">/*</span>
+<span class="cm">             * Reached the end of the free list, try to extend it.</span>
+<span class="cm">             */</span>
+            <span class="c1">// 有足够的空间, 分配一个, pool-&gt;freeblock 指向后移</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">pool</span><span class="o">-&gt;</span><span class="n">nextoffset</span> <span class="o">&lt;=</span> <span class="n">pool</span><span class="o">-&gt;</span><span class="n">maxnextoffset</span><span class="p">)</span> <span class="p">{</span>
+                <span class="cm">/* There is room for another block. */</span>
+                <span class="c1">// 变更位置信息</span>
+                <span class="n">pool</span><span class="o">-&gt;</span><span class="n">freeblock</span> <span class="o">=</span> <span class="p">(</span><span class="n">block</span><span class="o">*</span><span class="p">)</span><span class="n">pool</span> <span class="o">+</span>
+                                  <span class="n">pool</span><span class="o">-&gt;</span><span class="n">nextoffset</span><span class="p">;</span>
+                <span class="n">pool</span><span class="o">-&gt;</span><span class="n">nextoffset</span> <span class="o">+=</span> <span class="n">INDEX2SIZE</span><span class="p">(</span><span class="n">size</span><span class="p">);</span>
 
 
-                *(block **)(pool-&gt;freeblock) = NULL; // 注意, 指向NULL
-                UNLOCK();
+                <span class="o">*</span><span class="p">(</span><span class="n">block</span> <span class="o">**</span><span class="p">)(</span><span class="n">pool</span><span class="o">-&gt;</span><span class="n">freeblock</span><span class="p">)</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span> <span class="c1">// 注意, 指向NULL</span>
+                <span class="n">UNLOCK</span><span class="p">();</span>
 
-                // 返回bp
-                return (void *)bp;
-            }
+                <span class="c1">// 返回bp</span>
+                <span class="k">return</span> <span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="p">)</span><span class="n">bp</span><span class="p">;</span>
+            <span class="p">}</span>
 
-            // 代码-3
-            /* Pool is full, unlink from used pools. */  // 满了, 需要从下一个pool获取
-            next = pool-&gt;nextpool;
-            pool = pool-&gt;prevpool;
-            next-&gt;prevpool = pool;
-            pool-&gt;nextpool = next;
-            UNLOCK();
-            return (void *)bp;
-        }
+            <span class="c1">// 代码-3</span>
+            <span class="cm">/* Pool is full, unlink from used pools. */</span>  <span class="c1">// 满了, 需要从下一个pool获取</span>
+            <span class="n">next</span> <span class="o">=</span> <span class="n">pool</span><span class="o">-&gt;</span><span class="n">nextpool</span><span class="p">;</span>
+            <span class="n">pool</span> <span class="o">=</span> <span class="n">pool</span><span class="o">-&gt;</span><span class="n">prevpool</span><span class="p">;</span>
+            <span class="n">next</span><span class="o">-&gt;</span><span class="n">prevpool</span> <span class="o">=</span> <span class="n">pool</span><span class="p">;</span>
+            <span class="n">pool</span><span class="o">-&gt;</span><span class="n">nextpool</span> <span class="o">=</span> <span class="n">next</span><span class="p">;</span>
+            <span class="n">UNLOCK</span><span class="p">();</span>
+            <span class="k">return</span> <span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="p">)</span><span class="n">bp</span><span class="p">;</span>
+        <span class="p">}</span>
 </pre></div>
 <h4 id="poolblock-1">pool进行block分配 - 1 刚开始</h4>
 <p>内存块尚未分配完, 且此时不存在回收的block, 全新进来的时候, 分配第一块block</p>
-<div class="monokai"><pre>(pool-&gt;freeblock = *(block **)bp) == NULL
+<div class="monokai"><pre><span class="p">(</span><span class="n">pool</span><span class="o">-&gt;</span><span class="n">freeblock</span> <span class="o">=</span> <span class="o">*</span><span class="p">(</span><span class="n">block</span> <span class="o">**</span><span class="p">)</span><span class="n">bp</span><span class="p">)</span> <span class="o">==</span> <span class="nb">NULL</span>
 </pre></div>
 <p>所以进入的逻辑是<code>代码-2</code></p>
-<div class="monokai"><pre>            bp = pool-&gt;freeblock; // 指针指向空闲block起始位置
+<div class="monokai"><pre>            <span class="n">bp</span> <span class="o">=</span> <span class="n">pool</span><span class="o">-&gt;</span><span class="n">freeblock</span><span class="p">;</span> <span class="c1">// 指针指向空闲block起始位置</span>
 
-            .....
-
-
-            // 代码-2
-            /*
-             * Reached the end of the free list, try to extend it.
-             */
-            // 有足够的空间, 分配一个, pool-&gt;freeblock 指向后移
-            if (pool-&gt;nextoffset &lt;= pool-&gt;maxnextoffset) {
-                /* There is room for another block. */
-                // 变更位置信息
-                pool-&gt;freeblock = (block*)pool +
-                                  pool-&gt;nextoffset;
-                pool-&gt;nextoffset += INDEX2SIZE(size);
+            <span class="p">.....</span>
 
 
-                *(block **)(pool-&gt;freeblock) = NULL; // 注意, 指向NULL
-                UNLOCK();
+            <span class="c1">// 代码-2</span>
+            <span class="cm">/*</span>
+<span class="cm">             * Reached the end of the free list, try to extend it.</span>
+<span class="cm">             */</span>
+            <span class="c1">// 有足够的空间, 分配一个, pool-&gt;freeblock 指向后移</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">pool</span><span class="o">-&gt;</span><span class="n">nextoffset</span> <span class="o">&lt;=</span> <span class="n">pool</span><span class="o">-&gt;</span><span class="n">maxnextoffset</span><span class="p">)</span> <span class="p">{</span>
+                <span class="cm">/* There is room for another block. */</span>
+                <span class="c1">// 变更位置信息</span>
+                <span class="n">pool</span><span class="o">-&gt;</span><span class="n">freeblock</span> <span class="o">=</span> <span class="p">(</span><span class="n">block</span><span class="o">*</span><span class="p">)</span><span class="n">pool</span> <span class="o">+</span>
+                                  <span class="n">pool</span><span class="o">-&gt;</span><span class="n">nextoffset</span><span class="p">;</span>
+                <span class="n">pool</span><span class="o">-&gt;</span><span class="n">nextoffset</span> <span class="o">+=</span> <span class="n">INDEX2SIZE</span><span class="p">(</span><span class="n">size</span><span class="p">);</span>
 
-                // 返回bp
-                return (void *)bp;
-            }
+
+                <span class="o">*</span><span class="p">(</span><span class="n">block</span> <span class="o">**</span><span class="p">)(</span><span class="n">pool</span><span class="o">-&gt;</span><span class="n">freeblock</span><span class="p">)</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span> <span class="c1">// 注意, 指向NULL</span>
+                <span class="n">UNLOCK</span><span class="p">();</span>
+
+                <span class="c1">// 返回bp</span>
+                <span class="k">return</span> <span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="p">)</span><span class="n">bp</span><span class="p">;</span>
+            <span class="p">}</span>
 </pre></div>
 <p>结果图示</p>
 <p><img alt="pool2" src="/imgs/python-source/python-memory-pools3.png"/></p>
 <h4 id="poolblock-2-block">pool进行block分配 - 2 回收了某几个block</h4>
 <p>回收涉及的代码</p>
-<div class="monokai"><pre>void
-PyObject_Free(void *p)
-{
-    poolp pool;
-    block *lastfree;
-    poolp next, prev;
-    uint size;
+<div class="monokai"><pre><span class="kt">void</span>
+<span class="nf">PyObject_Free</span><span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="n">p</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="n">poolp</span> <span class="n">pool</span><span class="p">;</span>
+    <span class="n">block</span> <span class="o">*</span><span class="n">lastfree</span><span class="p">;</span>
+    <span class="n">poolp</span> <span class="n">next</span><span class="p">,</span> <span class="n">prev</span><span class="p">;</span>
+    <span class="n">uint</span> <span class="n">size</span><span class="p">;</span>
 
-    pool = POOL_ADDR(p);
-    if (Py_ADDRESS_IN_RANGE(p, pool)) {
-        /* We allocated this address. */
-        LOCK();
-        /* Link p to the start of the pool's freeblock list.  Since
-         * the pool had at least the p block outstanding, the pool
-         * wasn't empty (so it's already in a usedpools[] list, or
-         * was full and is in no list -- it's not in the freeblocks
-         * list in any case).
-         */
-        assert(pool-&gt;ref.count &gt; 0);            /* else it was empty */
-        // p被释放, p的第一个字节值被设置为当前freeblock的值
-        *(block **)p = lastfree = pool-&gt;freeblock;
-        // freeblock被更新为指向p的首地址
-        pool-&gt;freeblock = (block *)p;
+    <span class="n">pool</span> <span class="o">=</span> <span class="n">POOL_ADDR</span><span class="p">(</span><span class="n">p</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">Py_ADDRESS_IN_RANGE</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">pool</span><span class="p">))</span> <span class="p">{</span>
+        <span class="cm">/* We allocated this address. */</span>
+        <span class="n">LOCK</span><span class="p">();</span>
+        <span class="cm">/* Link p to the start of the pool's freeblock list.  Since</span>
+<span class="cm">         * the pool had at least the p block outstanding, the pool</span>
+<span class="cm">         * wasn't empty (so it's already in a usedpools[] list, or</span>
+<span class="cm">         * was full and is in no list -- it's not in the freeblocks</span>
+<span class="cm">         * list in any case).</span>
+<span class="cm">         */</span>
+        <span class="n">assert</span><span class="p">(</span><span class="n">pool</span><span class="o">-&gt;</span><span class="n">ref</span><span class="p">.</span><span class="n">count</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">);</span>            <span class="cm">/* else it was empty */</span>
+        <span class="c1">// p被释放, p的第一个字节值被设置为当前freeblock的值</span>
+        <span class="o">*</span><span class="p">(</span><span class="n">block</span> <span class="o">**</span><span class="p">)</span><span class="n">p</span> <span class="o">=</span> <span class="n">lastfree</span> <span class="o">=</span> <span class="n">pool</span><span class="o">-&gt;</span><span class="n">freeblock</span><span class="p">;</span>
+        <span class="c1">// freeblock被更新为指向p的首地址</span>
+        <span class="n">pool</span><span class="o">-&gt;</span><span class="n">freeblock</span> <span class="o">=</span> <span class="p">(</span><span class="n">block</span> <span class="o">*</span><span class="p">)</span><span class="n">p</span><span class="p">;</span>
 
-        // 相当于往list中头插入了一个节点
+        <span class="c1">// 相当于往list中头插入了一个节点</span>
 
-     ...
-    }
-}
+     <span class="p">...</span>
+    <span class="p">}</span>
+<span class="p">}</span>
 </pre></div>
 <p>没释放一个block, 该block就会变成 <code>pool-&gt;freeblock</code> 的头节点, 而单链表一个节点如何指向下一个节点呢? 通过赋值, 节点内存空间保存着下个节点的地址, 最后一个节点指向<code>NULL</code>(知道上面<code>代码-1</code>的判断条件了吧&gt;_&lt;#)</p>
 <p>假设已经连续分配了5块, 第1块和第4块被释放</p>
 <p>此时内存图示</p>
 <p><img alt="pool2" src="/imgs/python-source/python-memory-pools4.png"/></p>
 <p>此时再一个block分配调用进来, 执行分配, 进入的逻辑是<code>代码-1</code></p>
-<div class="monokai"><pre>            bp = pool-&gt;freeblock; // 指针指向空闲block起始位置
-            // 代码-1
-            // 调整 pool-&gt;freeblock (假设A节点)指向链表下一个, 即bp首字节指向的下一个节点(假设B节点) , 如果此时!= NULL
-            // 表示 A节点可用, 直接返回
-            if ((pool-&gt;freeblock = *(block **)bp) != NULL) {
-                UNLOCK();
-                return (void *)bp;
-            }
+<div class="monokai"><pre>            <span class="n">bp</span> <span class="o">=</span> <span class="n">pool</span><span class="o">-&gt;</span><span class="n">freeblock</span><span class="p">;</span> <span class="c1">// 指针指向空闲block起始位置</span>
+            <span class="c1">// 代码-1</span>
+            <span class="c1">// 调整 pool-&gt;freeblock (假设A节点)指向链表下一个, 即bp首字节指向的下一个节点(假设B节点) , 如果此时!= NULL</span>
+            <span class="c1">// 表示 A节点可用, 直接返回</span>
+            <span class="k">if</span> <span class="p">((</span><span class="n">pool</span><span class="o">-&gt;</span><span class="n">freeblock</span> <span class="o">=</span> <span class="o">*</span><span class="p">(</span><span class="n">block</span> <span class="o">**</span><span class="p">)</span><span class="n">bp</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>
+                <span class="n">UNLOCK</span><span class="p">();</span>
+                <span class="k">return</span> <span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="p">)</span><span class="n">bp</span><span class="p">;</span>
+            <span class="p">}</span>
 </pre></div>
 <p><img alt="pool2" src="/imgs/python-source/python-memory-pools5.png"/></p>
 <h4 id="poolblock-3-pool">pool进行block分配 - 3 pool用完了</h4>
 <p>pool中内存空间都用完了, 进入<code>代码-3</code></p>
-<div class="monokai"><pre>            bp = pool-&gt;freeblock; // 指针指向空闲block起始位置
+<div class="monokai"><pre>            <span class="n">bp</span> <span class="o">=</span> <span class="n">pool</span><span class="o">-&gt;</span><span class="n">freeblock</span><span class="p">;</span> <span class="c1">// 指针指向空闲block起始位置</span>
 
 
-            // 代码-3
-            /* Pool is full, unlink from used pools. */  // 满了, 需要从下一个pool获取
-            next = pool-&gt;nextpool;
-            pool = pool-&gt;prevpool;
-            next-&gt;prevpool = pool;
-            pool-&gt;nextpool = next;
-            UNLOCK();
-            return (void *)bp;
+            <span class="c1">// 代码-3</span>
+            <span class="cm">/* Pool is full, unlink from used pools. */</span>  <span class="c1">// 满了, 需要从下一个pool获取</span>
+            <span class="n">next</span> <span class="o">=</span> <span class="n">pool</span><span class="o">-&gt;</span><span class="n">nextpool</span><span class="p">;</span>
+            <span class="n">pool</span> <span class="o">=</span> <span class="n">pool</span><span class="o">-&gt;</span><span class="n">prevpool</span><span class="p">;</span>
+            <span class="n">next</span><span class="o">-&gt;</span><span class="n">prevpool</span> <span class="o">=</span> <span class="n">pool</span><span class="p">;</span>
+            <span class="n">pool</span><span class="o">-&gt;</span><span class="n">nextpool</span> <span class="o">=</span> <span class="n">next</span><span class="p">;</span>
+            <span class="n">UNLOCK</span><span class="p">();</span>
+            <span class="k">return</span> <span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="p">)</span><span class="n">bp</span><span class="p">;</span>
 </pre></div>
 <p>获取下一个pool(链表上每个pool的block size都是一致的)</p>
 <p>好了, pool到此位置, 下篇进入arena</p></hr></hr>
