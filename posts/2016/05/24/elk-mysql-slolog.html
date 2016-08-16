@@ -104,7 +104,7 @@ SELECT 1 from dbname;
 </pre></div>
 <h2 id="3-logstash">3. 使用 logstash 采集</h2>
 <p>采集, 无非是用<code>multiline</code>进行多行解析</p>
-<p>但是, 需要处理的</p>
+<p>但是, 需要处理的几个问题</p>
 <p>第一个是, 去除掉没用的信息</p>
 <p>第二个, 慢查询sql, 是会反复出现的, 所以, 执行次数成了一个很重要的指标. 我们要做的, 就是<code>降噪</code>(将参数去掉, 涉及带引号的内容+数字), 将参数类信息过滤掉, 留下核心的sql, 然后计算出一个hash, 这样就可以在查询, 根据这个字段进行聚合. 这里用到了 <a href="https://www.elastic.co/guide/en/logstash/current/plugins-filters-mutate.html#plugins-filters-mutate-add_field">mutate</a> 以及 <a href="https://www.elastic.co/guide/en/logstash/current/plugins-filters-checksum.html">checksum</a></p>
 <div class="monokai"><pre>  # calculate unique hash
@@ -123,6 +123,8 @@ SELECT 1 from dbname;
   }
 </pre></div>
 <p>最后算出来的md5, 放入了<code>logstash_checksum</code></p>
+<p>第三个, 某些sql会非常大, 例如某些不规范的sql可能到几百M或是上G....会直接导致采集进程OOM, 所以, 处理时, 设定超过100k丢弃掉</p>
+<p>第四个, 默认多行处理, 一条sql可能停留在采集端没有上报, 需要等到下一条sql进来, 这样是有问题的, 如果一直没有后续, 最后一条将不会进入引擎. 所以, 在配置中设定了超过5s自动上报</p>
 <p>完整的logstash配置文件(具体使用可能需要根据自身日志格式做些小调整)<br>
 注意, 里面的pattern <code>ALLWORD [\s\S]*</code></br></p>
 <div class="monokai"><pre><span class="nt">input</span> <span class="p">{</span>
