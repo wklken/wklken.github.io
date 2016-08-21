@@ -81,12 +81,12 @@
         <p>官方es搭建步骤写的很简略, 但是实际搭建过程中, 会涉及一系列环境配置. 以下的流程, 是在搭建过程中梳理出来的详细步骤(实践过3遍以上)</p>
 <p>其实, 这些流程在具体应用的时候, 都可以变成自动化脚本, 或者直接用docker好了, 以便扩容足够快(目前我们用的打包成集成安装包, 实现脚本自动部署)</p>
 <p>只是简单集群的基本设置, 不涉及调优的参数配置, 不涉及<code>client/master/data</code>节点区分等等. 可以参照搭建的主体流程.</p>
-<hr>
+<hr/>
 <h2 id="_1">版本及连接</h2>
 <p>elasticseearch版本: 2.3.3</p>
-<p>相关链接:<br>
-- <a href="https://www.elastic.co/products/elasticsearch">官网</a><br>
-- <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/index.html">文档</a></br></br></p>
+<p>相关链接:<br/>
+- <a href="https://www.elastic.co/products/elasticsearch">官网</a><br/>
+- <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/index.html">文档</a></p>
 <h2 id="_2">系统要求</h2>
 <p>如果仅作测试用, 不需要两天机器, 可以将两个节点部署在同一台机器上, 对磁盘/cpu要求不高, 内存大于2g基本足够了</p>
 <p>如果是正式环境, 需要根据日志量进行评估, 例如, 每天日志量占硬盘约约10G, 且保留30天日志, 则磁盘会占用约300g, es设定的阈值是磁盘空间占满85%则日志开始告警. 所以, 需要至少 <code>300/0.85=354g</code>.</p>
@@ -114,10 +114,10 @@
 </ul>
 <p>则命令返回<code>bash: java: command not found</code>, 需要安装<code>JDK</code></p>
 <ul>
-<li>如果系统中安装了JDK, 需确认版本是否大于<code>java 1.7</code>, 否则需要升级<br>
+<li>如果系统中安装了JDK, 需确认版本是否大于<code>java 1.7</code>, 否则需要升级<br/>
 <code>java version "1.7.0_51"
   Java(TM) SE Runtime Environment (build 1.7.0_51-b13)
-  Java HotSpot(TM) Server VM (build 24.51-b03, mixed mode)</code></br></li>
+  Java HotSpot(TM) Server VM (build 24.51-b03, mixed mode)</code></li>
 </ul>
 <p>安装及升级<code>java</code>(注意根据系统不同运行对应安装命令)</p>
 <div class="monokai"><pre><span class="c1"># Redhat/Centos/Fedora</span>
@@ -132,8 +132,8 @@ rpm -Uvh jdk-8u91-linux-x64.rpm
 </pre></div>
 <h4 id="2-es">2. 下载es</h4>
 <p>版本: 2.3.3</p>
-<p>下载地址:<br>
-- <a href="https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/tar/elasticsearch/2.3.3/elasticsearch-2.3.3.tar.gz">elasticsearch-2.3.3.tar.gz (tar.gz格式)</a></br></p>
+<p>下载地址:<br/>
+- <a href="https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/tar/elasticsearch/2.3.3/elasticsearch-2.3.3.tar.gz">elasticsearch-2.3.3.tar.gz (tar.gz格式)</a></p>
 <p>命令行中的下载命令:</p>
 <div class="monokai"><pre>curl -L -O https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/tar/elasticsearch/2.3.3/elasticsearch-2.3.3.tar.gz
 </pre></div>
@@ -166,12 +166,12 @@ chown -R es:es /data/LogData
 <p>文件路径: <code>config/elasticsearch.yml</code></p>
 <p>修改该文件中配置项: (注意, 原始文件中都是被<code>#</code>号注释掉了, 需要去掉对应注释并修改配置值)</p>
 <ul>
-<li>集群名: <code><a href="http://cluster.name">cluster.name</a></code>, 注意: 两台机器配置一致</li>
+<li>集群名: <code>cluster.name</code>, 注意: 两台机器配置一致</li>
 </ul>
 <div class="monokai"><pre>cluster.name: inner_es_cluster
 </pre></div>
 <ul>
-<li>节点名: <code><a href="http://node.name">node.name</a></code>, 注意: 两台机器配置不同, 一台为01, 另一台为02</li>
+<li>节点名: <code>node.name</code>, 注意: 两台机器配置不同, 一台为01, 另一台为02</li>
 </ul>
 <div class="monokai"><pre># 第一台机器
 node.name: inner_es_node_01
@@ -225,7 +225,7 @@ indices.recovery.max_bytes_per_sec: 100mb
 indices.recovery.concurrent_streams: 10
 </pre></div>
 <h4 id="7-es">7. 设置es占用内存</h4>
-<p>修改文件<code>bin/<a href="http://elasticsearch.in.sh">elasticsearch.in.sh</a></code>, 将文件如下变量变更为<code>4g</code>(根据自身机器配置, 配置的内存最大不超过机器物理内存的75%. 两个变量值相等, 以获取最大的性能). 当然, 实际使用中<code>4g</code>可能远远不够, 这个值仅是个示例</p>
+<p>修改文件<code>bin/elasticsearch.in.sh</code>, 将文件如下变量变更为<code>4g</code>(根据自身机器配置, 配置的内存最大不超过机器物理内存的75%. 两个变量值相等, 以获取最大的性能). 当然, 实际使用中<code>4g</code>可能远远不够, 这个值仅是个示例</p>
 <div class="monokai"><pre>ES_MIN_MEM=4g
 ES_MAX_MEM=4g
 </pre></div>
@@ -361,7 +361,7 @@ es hard nofile 204800
 <p>所以, 要再加一个节点, 这个节点只要保证稳定即可, 对cpu和磁盘要求不高. 这个<code>es</code>节点的配置同其他节点的区别<code>node.data: false</code>, 不存储索引数据.</p>
 <div class="monokai"><pre># split brain prevent
 node.data: false
-</pre></div></hr>
+</pre></div>
     </section>
 
     <section id="copyright">

@@ -2,12 +2,12 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>wklken's blog</title><link>http://www.wklken.me/</link><description></description><atom:link href="http://www.wklken.me/tag/system/feed" rel="self"></atom:link><lastBuildDate>Wed, 29 Jun 2016 00:00:00 +0800</lastBuildDate><item><title>ElasticSearch集群部署文档</title><link>http://www.wklken.me/posts/2016/06/29/deploy-es.html</link><description>&lt;p&gt;官方es搭建步骤写的很简略, 但是实际搭建过程中, 会涉及一系列环境配置. 以下的流程, 是在搭建过程中梳理出来的详细步骤(实践过3遍以上)&lt;/p&gt;
 &lt;p&gt;其实, 这些流程在具体应用的时候, 都可以变成自动化脚本, 或者直接用docker好了, 以便扩容足够快(目前我们用的打包成集成安装包, 实现脚本自动部署)&lt;/p&gt;
 &lt;p&gt;只是简单集群的基本设置, 不涉及调优的参数配置, 不涉及&lt;code&gt;client/master/data&lt;/code&gt;节点区分等等. 可以参照搭建的主体流程.&lt;/p&gt;
-&lt;hr&gt;
+&lt;hr/&gt;
 &lt;h2 id="_1"&gt;版本及连接&lt;/h2&gt;
 &lt;p&gt;elasticseearch版本: 2.3.3&lt;/p&gt;
-&lt;p&gt;相关链接:&lt;br&gt;
-- &lt;a href="https://www.elastic.co/products/elasticsearch"&gt;官网&lt;/a&gt;&lt;br&gt;
-- &lt;a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/index.html"&gt;文档&lt;/a&gt;&lt;/br&gt;&lt;/br&gt;&lt;/p&gt;
+&lt;p&gt;相关链接:&lt;br/&gt;
+- &lt;a href="https://www.elastic.co/products/elasticsearch"&gt;官网&lt;/a&gt;&lt;br/&gt;
+- &lt;a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/index.html"&gt;文档&lt;/a&gt;&lt;/p&gt;
 &lt;h2 id="_2"&gt;系统要求&lt;/h2&gt;
 &lt;p&gt;如果仅作测试用, 不需要两天机器, 可以将两个节点部署在同一台机器上, 对磁盘/cpu要求不高, 内存大于2g基本足够了&lt;/p&gt;
 &lt;p&gt;如果是正式环境, 需要根据日志量进行评估, 例如, 每天日志量占硬盘约约10G, 且保留30天日志, 则磁盘会占用约300g, es设定的阈值是磁盘空间占满85%则日志开始告警. 所以, 需要至少 &lt;code&gt;300/0.85=354g&lt;/code&gt;.&lt;/p&gt;
@@ -35,10 +35,10 @@
 &lt;/ul&gt;
 &lt;p&gt;则命令返回&lt;code&gt;bash: java: command not found&lt;/code&gt;, 需要安装&lt;code&gt;JDK&lt;/code&gt;&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;如果系统中安装了JDK, 需确认版本是否大于&lt;code&gt;java 1.7&lt;/code&gt;, 否则需要升级&lt;br&gt;
+&lt;li&gt;如果系统中安装了JDK, 需确认版本是否大于&lt;code&gt;java 1.7&lt;/code&gt;, 否则需要升级&lt;br/&gt;
 &lt;code&gt;java version "1.7.0_51"
   Java(TM) SE Runtime Environment (build 1.7.0_51-b13)
-  Java HotSpot(TM) Server VM (build 24.51-b03, mixed mode)&lt;/code&gt;&lt;/br&gt;&lt;/li&gt;
+  Java HotSpot(TM) Server VM (build 24.51-b03, mixed mode)&lt;/code&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;p&gt;安装及升级&lt;code&gt;java&lt;/code&gt;(注意根据系统不同运行对应安装命令)&lt;/p&gt;
 &lt;div class="monokai"&gt;&lt;pre&gt;&lt;span class="c1"&gt;# Redhat/Centos/Fedora&lt;/span&gt;
@@ -53,8 +53,8 @@ rpm -Uvh jdk-8u91-linux-x64.rpm
 &lt;/pre&gt;&lt;/div&gt;
 &lt;h4 id="2-es"&gt;2. 下载es&lt;/h4&gt;
 &lt;p&gt;版本: 2.3.3&lt;/p&gt;
-&lt;p&gt;下载地址:&lt;br&gt;
-- &lt;a href="https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/tar/elasticsearch/2.3.3/elasticsearch-2.3.3.tar.gz"&gt;elasticsearch-2.3.3.tar.gz (tar.gz格式)&lt;/a&gt;&lt;/br&gt;&lt;/p&gt;
+&lt;p&gt;下载地址:&lt;br/&gt;
+- &lt;a href="https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/tar/elasticsearch/2.3.3/elasticsearch-2.3.3.tar.gz"&gt;elasticsearch-2.3.3.tar.gz (tar.gz格式)&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;命令行中的下载命令:&lt;/p&gt;
 &lt;div class="monokai"&gt;&lt;pre&gt;curl -L -O https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/tar/elasticsearch/2.3.3/elasticsearch-2.3.3.tar.gz
 &lt;/pre&gt;&lt;/div&gt;
@@ -87,12 +87,12 @@ chown -R es:es /data/LogData
 &lt;p&gt;文件路径: &lt;code&gt;config/elasticsearch.yml&lt;/code&gt;&lt;/p&gt;
 &lt;p&gt;修改该文件中配置项: (注意, 原始文件中都是被&lt;code&gt;#&lt;/code&gt;号注释掉了, 需要去掉对应注释并修改配置值)&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;集群名: &lt;code&gt;&lt;a href="http://cluster.name"&gt;cluster.name&lt;/a&gt;&lt;/code&gt;, 注意: 两台机器配置一致&lt;/li&gt;
+&lt;li&gt;集群名: &lt;code&gt;cluster.name&lt;/code&gt;, 注意: 两台机器配置一致&lt;/li&gt;
 &lt;/ul&gt;
 &lt;div class="monokai"&gt;&lt;pre&gt;cluster.name: inner_es_cluster
 &lt;/pre&gt;&lt;/div&gt;
 &lt;ul&gt;
-&lt;li&gt;节点名: &lt;code&gt;&lt;a href="http://node.name"&gt;node.name&lt;/a&gt;&lt;/code&gt;, 注意: 两台机器配置不同, 一台为01, 另一台为02&lt;/li&gt;
+&lt;li&gt;节点名: &lt;code&gt;node.name&lt;/code&gt;, 注意: 两台机器配置不同, 一台为01, 另一台为02&lt;/li&gt;
 &lt;/ul&gt;
 &lt;div class="monokai"&gt;&lt;pre&gt;# 第一台机器
 node.name: inner_es_node_01
@@ -146,7 +146,7 @@ indices.recovery.max_bytes_per_sec: 100mb
 indices.recovery.concurrent_streams: 10
 &lt;/pre&gt;&lt;/div&gt;
 &lt;h4 id="7-es"&gt;7. 设置es占用内存&lt;/h4&gt;
-&lt;p&gt;修改文件&lt;code&gt;bin/&lt;a href="http://elasticsearch.in.sh"&gt;elasticsearch.in.sh&lt;/a&gt;&lt;/code&gt;, 将文件如下变量变更为&lt;code&gt;4g&lt;/code&gt;(根据自身机器配置, 配置的内存最大不超过机器物理内存的75%. 两个变量值相等, 以获取最大的性能). 当然, 实际使用中&lt;code&gt;4g&lt;/code&gt;可能远远不够, 这个值仅是个示例&lt;/p&gt;
+&lt;p&gt;修改文件&lt;code&gt;bin/elasticsearch.in.sh&lt;/code&gt;, 将文件如下变量变更为&lt;code&gt;4g&lt;/code&gt;(根据自身机器配置, 配置的内存最大不超过机器物理内存的75%. 两个变量值相等, 以获取最大的性能). 当然, 实际使用中&lt;code&gt;4g&lt;/code&gt;可能远远不够, 这个值仅是个示例&lt;/p&gt;
 &lt;div class="monokai"&gt;&lt;pre&gt;ES_MIN_MEM=4g
 ES_MAX_MEM=4g
 &lt;/pre&gt;&lt;/div&gt;
@@ -282,7 +282,7 @@ es hard nofile 204800
 &lt;p&gt;所以, 要再加一个节点, 这个节点只要保证稳定即可, 对cpu和磁盘要求不高. 这个&lt;code&gt;es&lt;/code&gt;节点的配置同其他节点的区别&lt;code&gt;node.data: false&lt;/code&gt;, 不存储索引数据.&lt;/p&gt;
 &lt;div class="monokai"&gt;&lt;pre&gt;# split brain prevent
 node.data: false
-&lt;/pre&gt;&lt;/div&gt;&lt;/hr&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Wed, 29 Jun 2016 00:00:00 +0800</pubDate><guid>tag:www.wklken.me,2016-06-29:posts/2016/06/29/deploy-es.html</guid><category>system</category></item><item><title>Logstash+ElasticSearch处理mysql慢查询日志</title><link>http://www.wklken.me/posts/2016/05/24/elk-mysql-slolog.html</link><description>&lt;p&gt;遇到一个需求, 需要查询某些业务的慢查询日志. 结果DBA平台那边提供的慢查询日志不能解决实际的业务场景(上报的字段补全), 无奈, 自己挽起袖子上&lt;/p&gt;
+&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Wed, 29 Jun 2016 00:00:00 +0800</pubDate><guid>tag:www.wklken.me,2016-06-29:posts/2016/06/29/deploy-es.html</guid><category>system</category></item><item><title>Logstash+ElasticSearch处理mysql慢查询日志</title><link>http://www.wklken.me/posts/2016/05/24/elk-mysql-slolog.html</link><description>&lt;p&gt;遇到一个需求, 需要查询某些业务的慢查询日志. 结果DBA平台那边提供的慢查询日志不能解决实际的业务场景(上报的字段补全), 无奈, 自己挽起袖子上&lt;/p&gt;
 &lt;p&gt;参考了 &lt;a href="https://www.phase2technology.com/blog/adding-mysql-slow-query-logs-to-logstash/"&gt;这篇文章&lt;/a&gt;, 不过自己根据需求做了较多的变更&lt;/p&gt;
 &lt;p&gt;开始吧&lt;/p&gt;
 &lt;h2 id="1"&gt;1. 找到日志的位置&lt;/h2&gt;
@@ -329,8 +329,8 @@ SELECT 1 from dbname;
 &lt;p&gt;最后算出来的md5, 放入了&lt;code&gt;logstash_checksum&lt;/code&gt;&lt;/p&gt;
 &lt;p&gt;第三个, 某些sql会非常大, 例如某些不规范的sql可能到几百M或是上G....会直接导致采集进程OOM, 所以, 处理时, 设定超过100k丢弃掉&lt;/p&gt;
 &lt;p&gt;第四个, 默认多行处理, 一条sql可能停留在采集端没有上报, 需要等到下一条sql进来, 这样是有问题的, 如果一直没有后续, 最后一条将不会进入引擎. 所以, 在配置中设定了超过5s自动上报&lt;/p&gt;
-&lt;p&gt;完整的logstash配置文件(具体使用可能需要根据自身日志格式做些小调整)&lt;br&gt;
-注意, 里面的pattern &lt;code&gt;ALLWORD [\s\S]*&lt;/code&gt;&lt;/br&gt;&lt;/p&gt;
+&lt;p&gt;完整的logstash配置文件(具体使用可能需要根据自身日志格式做些小调整)&lt;br/&gt;
+注意, 里面的pattern &lt;code&gt;ALLWORD [\s\S]*&lt;/code&gt;&lt;/p&gt;
 &lt;div class="monokai"&gt;&lt;pre&gt;&lt;span class="nt"&gt;input&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
   &lt;span class="n"&gt;file&lt;/span&gt; &lt;span class="err"&gt;{&lt;/span&gt;
     &lt;span class="n"&gt;path&lt;/span&gt; &lt;span class="o"&gt;=&amp;gt;&lt;/span&gt; &lt;span class="cp"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;"/data/mysqllog/20000/slow-query.log"&lt;/span&gt;&lt;span class="cp"&gt;]&lt;/span&gt;
@@ -509,7 +509,7 @@ WHERE id IN
    FROM bar);
 &lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;然后在页面上, 使用js进行语法高亮  &lt;a href="https://github.com/google/code-prettify"&gt;code-prettify&lt;/a&gt;&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Tue, 24 May 2016 00:00:00 +0800</pubDate><guid>tag:www.wklken.me,2016-05-24:posts/2016/05/24/elk-mysql-slolog.html</guid><category>system</category></item><item><title>ELK维护的一些点(二)</title><link>http://www.wklken.me/posts/2016/05/07/elk-about-2.html</link><description>&lt;p&gt;很杂, 涉及到最近处理的一些点&lt;/p&gt;
-&lt;hr&gt;
+&lt;hr/&gt;
 &lt;h3 id="string"&gt;根据string转浮点数的某个字段排序&lt;/h3&gt;
 &lt;p&gt;一个字段, &lt;code&gt;resp_time&lt;/code&gt;, mapping中是string, 有需求是, 按照响应时间降序排序, 此时需要构造qsl(在search中使用), 使用该字段转换为浮点数, 降序排列&lt;/p&gt;
 &lt;p&gt;第一步, 修改es配置, 增加groovy支持&lt;/p&gt;
@@ -587,7 +587,7 @@ WHERE id IN
 &lt;p&gt;相关 &lt;a href="https://discuss.elastic.co/t/scripts-of-type-inline-operation-aggs-and-lang-groovy-are-disabled/2493"&gt;文档&lt;/a&gt;&lt;/p&gt;
 &lt;h3 id="logstash-grok-default-patterns"&gt;logstash grok default patterns&lt;/h3&gt;
 &lt;p&gt;默认的一些pattern, 见 &lt;a href="https://github.com/logstash-plugins/logstash-patterns-core/blob/master/patterns/grok-patterns"&gt;grok-patterns&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;grok检查在线实时编辑, &lt;a href="https://grokdebug.herokuapp.com/"&gt;https://grokdebug.herokuapp.com/&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;grok检查在线实时编辑, https://grokdebug.herokuapp.com/&lt;/p&gt;
 &lt;h3 id="logstash-codec-multiline"&gt;logstash codec multiline 限制行数和日志大小&lt;/h3&gt;
 &lt;p&gt;配置, 具体见 &lt;a href="https://www.elastic.co/guide/en/logstash/current/plugins-codecs-multiline.html"&gt;multiline文档&lt;/a&gt;&lt;/p&gt;
 &lt;div class="monokai"&gt;&lt;pre&gt;input {
@@ -619,7 +619,7 @@ WHERE id IN
 &lt;p&gt;之前提到, 升级集群后, 使用supervisord统一管理logstash进程, &lt;a href="http://www.wklken.me/posts/2016/02/16/elk-about-upgrade.html#supervisord"&gt;链接&lt;/a&gt;&lt;/p&gt;
 &lt;h3 id="logstashtop"&gt;查看当前机器logstash进程top&lt;/h3&gt;
 &lt;p&gt;有时, 需要上机器看看对应采集端所有logstash进程是否存在问题, 常常用到&lt;code&gt;top&lt;/code&gt;命令, 所以写了个简单的脚本, 配合supervisord的脚本使用&lt;/p&gt;
-&lt;p&gt;&lt;a href="http://ltop.sh"&gt;ltop.sh&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;ltop.sh&lt;/p&gt;
 &lt;div class="monokai"&gt;&lt;pre&gt;&lt;span class="ch"&gt;#!/bin/bash&lt;/span&gt;
 ./logstashd.sh status
 top -p &lt;span class="k"&gt;$(&lt;/span&gt;./logstashd.sh status &lt;span class="p"&gt;|&lt;/span&gt; awk &lt;span class="s1"&gt;'{print $4}'&lt;/span&gt; &lt;span class="p"&gt;|&lt;/span&gt; awk -F&lt;span class="s1"&gt;','&lt;/span&gt; &lt;span class="s1"&gt;'{print $1}'&lt;/span&gt; &lt;span class="p"&gt;|&lt;/span&gt; tr &lt;span class="s1"&gt;'\n'&lt;/span&gt; &lt;span class="s1"&gt;','&lt;/span&gt; &lt;span class="p"&gt;|&lt;/span&gt; sed &lt;span class="s1"&gt;'s/,$//g'&lt;/span&gt;&lt;span class="k"&gt;)&lt;/span&gt;
@@ -684,14 +684,14 @@ on [AvemqKN-RGKy68zJXUapBg][node_01][/data/LogNewData/xxx/nodes/0] free: 75.5gb[
 logstash agent -f conf/xxx.conf -w 2
 &lt;/pre&gt;&lt;/div&gt;
 &lt;h3 id="_3"&gt;几个简单脚本&lt;/h3&gt;
-&lt;p&gt;&lt;a href="http://health.sh"&gt;health.sh&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;health.sh&lt;/p&gt;
 &lt;div class="monokai"&gt;&lt;pre&gt;&lt;span class="ch"&gt;#!/bin/bash&lt;/span&gt;
 curl &lt;span class="s1"&gt;'http://127.0.0.1:9200/_cluster/health?pretty=true'&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;&lt;a href="http://indices.sh"&gt;indices.sh&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;indices.sh&lt;/p&gt;
 &lt;div class="monokai"&gt;&lt;pre&gt;&lt;span class="ch"&gt;#!/bin/bash&lt;/span&gt;
 curl &lt;span class="s1"&gt;'http://127.0.0.1:9200/_cat/indices?v'&lt;/span&gt; &lt;span class="p"&gt;|&lt;/span&gt; sort -k 3
-&lt;/pre&gt;&lt;/div&gt;&lt;/hr&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sat, 07 May 2016 00:00:00 +0800</pubDate><guid>tag:www.wklken.me,2016-05-07:posts/2016/05/07/elk-about-2.html</guid><category>system</category></item><item><title>ELK 维护的一些点</title><link>http://www.wklken.me/posts/2016/02/16/elk-about-upgrade.html</link><description>&lt;p&gt;去年入职新公司之后, 负责维护平台的elk&lt;/p&gt;
+&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sat, 07 May 2016 00:00:00 +0800</pubDate><guid>tag:www.wklken.me,2016-05-07:posts/2016/05/07/elk-about-2.html</guid><category>system</category></item><item><title>ELK 维护的一些点</title><link>http://www.wklken.me/posts/2016/02/16/elk-about-upgrade.html</link><description>&lt;p&gt;去年入职新公司之后, 负责维护平台的elk&lt;/p&gt;
 &lt;p&gt;这套东西是2013年搭建的, 年久失修, 所以做了个方案, 开始了批量升级&lt;/p&gt;
 &lt;p&gt;将logstash从1.3升级到2.1, 将elasticsearch从1.4.1升级到2.0&lt;/p&gt;
 &lt;p&gt;期间踩了很多坑, 搞了一个多月, 总算搞完&lt;/p&gt;
@@ -765,7 +765,7 @@ curl &lt;span class="s1"&gt;'http://127.0.0.1:9200/_cat/indices?v'&lt;/span&gt; 
 &lt;p&gt;额, logstash和es, 如果要配置节点, 其实还是挺蛋疼的&lt;/p&gt;
 &lt;p&gt;要做的, 就是, logstash+不同类型配置文件+运维脚本, 达成一个包&lt;/p&gt;
 &lt;p&gt;然后, 如果要部署一台机器, 扔上去一键执行安装, 测试, 启动即可&lt;/p&gt;
-&lt;p&gt;例如, 运维脚本 &lt;code&gt;&lt;a href="http://logstashd.sh"&gt;logstashd.sh&lt;/a&gt;&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;例如, 运维脚本 &lt;code&gt;logstashd.sh&lt;/code&gt;&lt;/p&gt;
 &lt;div class="monokai"&gt;&lt;pre&gt;&lt;span class="ch"&gt;#!/bin/bash&lt;/span&gt;
 
 &lt;span class="nv"&gt;BASEDIR&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="k"&gt;$(&lt;/span&gt;dirname &lt;span class="nv"&gt;$0&lt;/span&gt;&lt;span class="k"&gt;)&lt;/span&gt;
@@ -881,8 +881,8 @@ supervisor&amp;gt; restart indexer
 &lt;p&gt;当然, 可以修改每个logstash indexer的时间, 但是会带来问题 &lt;a href="https://github.com/chenryn/logstash-best-practice-cn/blob/master/filter/date.md#时区问题的解释"&gt;问题&lt;/a&gt;: 1. logstash都要修改&lt;code&gt;getLocalTime&lt;/code&gt; 2.相对时间搜索 3. kibana等相关插件/组件要修正&lt;/p&gt;
 &lt;p&gt;运维/升级和后续使用上会有很多地雷&lt;/p&gt;
 &lt;p&gt;修正方案2: 不修正&lt;/p&gt;
-&lt;p&gt;接受这种设定, 学习kibana, 类似自行确定要搜索的index&lt;br&gt;
-对于&lt;code&gt;00:00-08:00&lt;/code&gt;的, 程序处理使用昨天的&lt;code&gt;indexer&lt;/code&gt;&lt;/br&gt;&lt;/p&gt;
+&lt;p&gt;接受这种设定, 学习kibana, 类似自行确定要搜索的index&lt;br/&gt;
+对于&lt;code&gt;00:00-08:00&lt;/code&gt;的, 程序处理使用昨天的&lt;code&gt;indexer&lt;/code&gt;&lt;/p&gt;
 &lt;p&gt;所以, 更好的方式是, 不修正......原来不变的才是最好的&lt;/p&gt;
 &lt;h4 id="rolling-restart"&gt;rolling restart&lt;/h4&gt;
 &lt;p&gt;当存在配置变更时, 需要重启es集群, 不可能全部重启的, 这样会导致服务不可用....&lt;/p&gt;
@@ -905,7 +905,7 @@ supervisor&amp;gt; restart indexer
 }'
 &lt;/pre&gt;&lt;/div&gt;
 &lt;h4 id="logstashgrok"&gt;logstash文本解析配置grok语法&lt;/h4&gt;
-&lt;p&gt;一个线上的工具, &lt;a href="https://grokdebug.herokuapp.com/"&gt;https://grokdebug.herokuapp.com/&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;一个线上的工具, https://grokdebug.herokuapp.com/&lt;/p&gt;
 &lt;p&gt;挺好用的, 但是有时候变更频繁相应有些缓慢&lt;/p&gt;
 &lt;p&gt;暂时没有找到命令行工具&lt;/p&gt;
 &lt;h4 id="grok"&gt;坑: GROK语法&lt;/h4&gt;
@@ -940,7 +940,7 @@ supervisor&amp;gt; restart indexer
 &lt;ul&gt;
 &lt;li&gt;查看plugin版本&lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;&lt;a href="https://www.elastic.co/guide/en/logstash/current/working-with-plugins.html"&gt;https://www.elastic.co/guide/en/logstash/current/working-with-plugins.html&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;https://www.elastic.co/guide/en/logstash/current/working-with-plugins.html&lt;/p&gt;
 &lt;div class="monokai"&gt;&lt;pre&gt;bin/plugin list --verbose
 &lt;/pre&gt;&lt;/div&gt;
 &lt;ul&gt;
@@ -972,14 +972,14 @@ curl -XDELETE &lt;span class="s2"&gt;"http://10.1.1.1:9100/logstash-&lt;/span&gt
 &lt;/pre&gt;&lt;/div&gt;
 &lt;h4 id="_2"&gt;尚未处理&lt;/h4&gt;
 &lt;p&gt;logstash2.1 muline codec, 配置多个数据来源, 存在串的情况, 生产中大数据量有, 小规模没有复现....&lt;/p&gt;
-&lt;hr&gt;
+&lt;hr/&gt;
 &lt;p&gt;好了, 先这些, 还有一些窝在某些目录下, 后续整理好了发&lt;/p&gt;
 &lt;p&gt;wklken&lt;/p&gt;
-&lt;p&gt;2016-02-16&lt;/p&gt;&lt;/hr&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Tue, 16 Feb 2016 00:00:00 +0800</pubDate><guid>tag:www.wklken.me,2016-02-16:posts/2016/02/16/elk-about-upgrade.html</guid><category>system</category></item><item><title>Logstash+ElasticSearch+Kibana处理nginx访问日志</title><link>http://www.wklken.me/posts/2015/04/26/elk-for-nginx-log.html</link><description>&lt;p&gt;&lt;code&gt;ELK&lt;/code&gt;似乎是当前最为流行的日志收集-存储-分析的全套解决方案.&lt;/p&gt;
+&lt;p&gt;2016-02-16&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Tue, 16 Feb 2016 00:00:00 +0800</pubDate><guid>tag:www.wklken.me,2016-02-16:posts/2016/02/16/elk-about-upgrade.html</guid><category>system</category></item><item><title>Logstash+ElasticSearch+Kibana处理nginx访问日志</title><link>http://www.wklken.me/posts/2015/04/26/elk-for-nginx-log.html</link><description>&lt;p&gt;&lt;code&gt;ELK&lt;/code&gt;似乎是当前最为流行的日志收集-存储-分析的全套解决方案.&lt;/p&gt;
 &lt;p&gt;去年年初, 公司里已经在用, 当时自己还&lt;code&gt;山寨&lt;/code&gt;了一个统计系统(postgresql-echarts, 日志无结构化, json形式存储到postgresql, 构建统一前端配置生成, 调用统一查询接口, &lt;a href="http://www.wklken.me/posts/2014/11/16/unit-statistics-system.html"&gt;具体细节&lt;/a&gt;), 已经过了一年有余.&lt;/p&gt;
 &lt;p&gt;一年刚好, 发生了很多事, 那套系统不知现在如何了.&lt;/p&gt;
 &lt;p&gt;在新的公司, 一切都得从0到1, 近期开始关注日志/数据上报/统计, 以及后续的数据挖掘等.&lt;/p&gt;
-&lt;hr&gt;
+&lt;hr/&gt;
 &lt;p&gt;搭建, 测试并上线了一套简单的系统, 初期将所有服务器的nginx日志, 以及搜索日志进行处理.&lt;/p&gt;
 &lt;p&gt;&lt;img alt="elk" src="/imgs/system/elk.png"/&gt;&lt;/p&gt;
 &lt;p&gt;下面主要介绍对nginx日志进行处理的过程, 不是针对&lt;code&gt;elk&lt;/code&gt;的介绍, 所有涉及ip的地方都改成&lt;code&gt;127.0.0.1&lt;/code&gt;了, 根据自己环境进行修改&lt;/p&gt;
@@ -1066,7 +1066,7 @@ elasticsearch {
 &lt;p&gt;&lt;code&gt;kibana&lt;/code&gt;中, 支持各种统计, 着实让人惊艳了一把.&lt;/p&gt;
 &lt;p&gt;除了基本的nginx日志, 还需要在各类url入口, 加入平台, 渠道等信息, 这样通过nginx访问日志, 可以统计到更多的信息&lt;/p&gt;
 &lt;p&gt;当然, 如果需要一些更为精确/特殊的统计, 需要自行进行数据上报的工作.&lt;/p&gt;
-&lt;hr&gt;
+&lt;hr/&gt;
 &lt;h2 id="_2"&gt;后续&lt;/h2&gt;
 &lt;ol&gt;
 &lt;li&gt;更多的类型的日志聚合, 包括各类访问日志, 统计上报日志等, 日志落地成文件, 永久留存, 转入es中, 只留存三个月&lt;/li&gt;
@@ -1075,7 +1075,7 @@ elasticsearch {
 &lt;li&gt;基于ES日志的业务自定义统计后台(kibana无法满足一些具体业务的统计需求)&lt;/li&gt;
 &lt;li&gt;为什么不使用&lt;code&gt;logstash forwarder&lt;/code&gt;, 因为目前日志组成等较为简单, 简单处理 , 后续需要用到时再考虑&lt;/li&gt;
 &lt;/ol&gt;
-&lt;hr&gt;
+&lt;hr/&gt;
 &lt;h1 id="_4"&gt;其他&lt;/h1&gt;
 &lt;h2 id="1-logformatgrok"&gt;1. 关于&lt;code&gt;logformat&lt;/code&gt;和对应&lt;code&gt;grok&lt;/code&gt;的配置&lt;/h2&gt;
 &lt;p&gt;&lt;code&gt;grok&lt;/code&gt;是&lt;code&gt;logstash&lt;/code&gt;的一个插件,  &lt;a href="http://logstash.net/docs/1.4.2/filters/grok"&gt;文档&lt;/a&gt;&lt;/p&gt;
@@ -1129,13 +1129,13 @@ NGINXACCESS %{IPORHOST:http_host} %{IPORHOST:clientip} \[%{HTTPDATE:timestamp}\]
 &lt;div class="monokai"&gt;&lt;pre&gt;start_position =&amp;gt; "beginning"
 &lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;logstash, 会记录一份文件读到的位置, 在$HOME/.sincedb_xxxxx 如果要让logstash重新读取文件, 删除之即可, 重启&lt;code&gt;shipper&lt;/code&gt;.&lt;/p&gt;
-&lt;p&gt;但是你可能发现es中重复记录了, 这是因为, 在&lt;code&gt;output&lt;/code&gt;中, 没有定义存储到es时使用的&lt;code&gt;document_id&lt;/code&gt;, es全部当成新纪录存入, 导致数据重复&lt;/p&gt;&lt;/hr&gt;&lt;/hr&gt;&lt;/hr&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sun, 26 Apr 2015 00:00:00 +0800</pubDate><guid>tag:www.wklken.me,2015-04-26:posts/2015/04/26/elk-for-nginx-log.html</guid><category>system</category></item><item><title>基于 PostgreSQL 的数据统计系统</title><link>http://www.wklken.me/posts/2014/11/16/unit-statistics-system.html</link><description>&lt;p&gt;看到标题就知道我要写什么了, 这是之前一个项目的小结吧, 自己对统计的一些认识和看法.&lt;/p&gt;
+&lt;p&gt;但是你可能发现es中重复记录了, 这是因为, 在&lt;code&gt;output&lt;/code&gt;中, 没有定义存储到es时使用的&lt;code&gt;document_id&lt;/code&gt;, es全部当成新纪录存入, 导致数据重复&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sun, 26 Apr 2015 00:00:00 +0800</pubDate><guid>tag:www.wklken.me,2015-04-26:posts/2015/04/26/elk-for-nginx-log.html</guid><category>system</category></item><item><title>基于 PostgreSQL 的数据统计系统</title><link>http://www.wklken.me/posts/2014/11/16/unit-statistics-system.html</link><description>&lt;p&gt;看到标题就知道我要写什么了, 这是之前一个项目的小结吧, 自己对统计的一些认识和看法.&lt;/p&gt;
 &lt;p&gt;当时从前到后, 包括技术选型, 花了接近一个月的时间, 也在生产上用了两三个月, 一致在持续维护, 做完图表配置化已然接近完工, 无奈后来离开了, 不过目前应该还在运转&lt;/p&gt;
 &lt;p&gt;至于源代码, 暂时不考虑开源, 太渣(其中在看了几天js情况下, 自己撸了1000行js的前端框架, 质量堪忧), 全套用python实现.&lt;/p&gt;
 &lt;p&gt;提供一种快速实现运营统计需求的思路.&lt;/p&gt;
 &lt;p&gt;(图为百度 echarts 示例)&lt;/p&gt;
 &lt;p&gt;&lt;img alt="statistics" src="/imgs/system/statistics.png"/&gt;&lt;/p&gt;
-&lt;hr&gt;
+&lt;hr/&gt;
 &lt;h3 id="_1"&gt;一. 场景&lt;/h3&gt;
 &lt;ul&gt;
 &lt;li&gt;统计&lt;/li&gt;
@@ -1157,7 +1157,7 @@ NGINXACCESS %{IPORHOST:http_host} %{IPORHOST:clientip} \[%{HTTPDATE:timestamp}\]
 &lt;div class="monokai"&gt;&lt;pre&gt;分析统计需求 -&amp;gt; 确认日志内容和格式  -&amp;gt; 统计后台配置输入/处理/输出逻辑 -&amp;gt; 查看结果
 &lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;说白了就是, 处理统计需求变成了 &lt;code&gt;写sql&lt;/code&gt; + &lt;code&gt;配置&lt;/code&gt;&lt;/p&gt;
-&lt;hr&gt;
+&lt;hr/&gt;
 &lt;h3 id="_2"&gt;二. 处理思路&lt;/h3&gt;
 &lt;ul&gt;
 &lt;li&gt;大体思路如下(从后往前):&lt;/li&gt;
@@ -1185,7 +1185,7 @@ NGINXACCESS %{IPORHOST:http_host} %{IPORHOST:clientip} \[%{HTTPDATE:timestamp}\]
 &lt;/ul&gt;
 &lt;div class="monokai"&gt;&lt;pre&gt;增加/修改统计需求: 只需要在后台配置数据来源(日志), 处理逻辑(一段 sql), 展示逻辑(一段前端 json配置), 就可以实现图标
 &lt;/pre&gt;&lt;/div&gt;
-&lt;hr&gt;
+&lt;hr/&gt;
 &lt;h3 id="_3"&gt;三. 具体&lt;/h3&gt;
 &lt;h3 id="0"&gt;0. 基本架构&lt;/h3&gt;
 &lt;div class="monokai"&gt;&lt;pre&gt;             ----------------------------------------------
@@ -1263,8 +1263,8 @@ table: projectName_moduleName_yyMMdd
 4. 运维简单
 5. 对于开发而言几乎没有学习成本, 会sql再学习下postgresql的json查询
 &lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;示例:&lt;br&gt;
-假设搜索日志:&lt;/br&gt;&lt;/p&gt;
+&lt;p&gt;示例:&lt;br/&gt;
+假设搜索日志:&lt;/p&gt;
 &lt;div class="monokai"&gt;&lt;pre&gt;{&amp;lsquo;ip&amp;rsquo;: &amp;lsquo;127.0.0.1&amp;rsquo;,
  &amp;lsquo;keyword&amp;rsquo;: &amp;lsquo;test&amp;rsquo;,
  &amp;lsquo;result_count&amp;rsquo;: &amp;lsquo;1&amp;rsquo;,
@@ -1393,19 +1393,19 @@ limit 100;
 &lt;p&gt;可以根据配置, 将统一查询层的接口返回数据直接灌入echats, 生成表单&lt;/p&gt;
 &lt;h3 id="10"&gt;10. 过程日志及监控&lt;/h3&gt;
 &lt;p&gt;需要一组管理表, 进行任务配置/调度/执行/执行结果, 整个过程中的操作可以配置和查看, 用于监控.&lt;/p&gt;
-&lt;hr&gt;
+&lt;hr/&gt;
 &lt;h3 id="_4"&gt;四. 小结&lt;/h3&gt;
 &lt;blockquote&gt;
 &lt;p&gt;It&amp;rsquo;s Simple, but it works.&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;p&gt;数据情况, 当时大概每天 10G 日志 load 到库(处理前&amp;gt;10G), 每天日志数据大概是五千万条, 具体业务上了大概40个的样子, 每天30分钟左右处理完. 对于开发的改进是, 将原先0.5-2d的工作, 缩减到了1-2小时, 对生产力的提升较为显著.(对于日志数多且单一日志量较小的情况处理尤为便捷)&lt;/p&gt;
 &lt;p&gt;适用范围: 对于一般团队应该足够了(流量百万级别), 每个项目每天3-5百万访问量, 日志数据10-20G, 当然, 一直没机会测试上限, 不过只要PostGresql能抗住, 量再大些应该也ok.(可以考虑上elasticsearch)&lt;/p&gt;
-&lt;p&gt;以上思路, 仅供借鉴:) 就这样吧&lt;/p&gt;&lt;/hr&gt;&lt;/hr&gt;&lt;/hr&gt;&lt;/hr&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sun, 16 Nov 2014 20:58:00 +0800</pubDate><guid>tag:www.wklken.me,2014-11-16:posts/2014/11/16/unit-statistics-system.html</guid><category>system</category></item><item><title>简单搜索系统组成总结</title><link>http://www.wklken.me/posts/2014/06/09/search-system.html</link><description>&lt;p&gt;最近在进行离职前交接工作了, 对之前做的一些东西也大概进行了下简单总结.&lt;/p&gt;
+&lt;p&gt;以上思路, 仅供借鉴:) 就这样吧&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sun, 16 Nov 2014 20:58:00 +0800</pubDate><guid>tag:www.wklken.me,2014-11-16:posts/2014/11/16/unit-statistics-system.html</guid><category>system</category></item><item><title>简单搜索系统组成总结</title><link>http://www.wklken.me/posts/2014/06/09/search-system.html</link><description>&lt;p&gt;最近在进行离职前交接工作了, 对之前做的一些东西也大概进行了下简单总结.&lt;/p&gt;
 &lt;p&gt;今天整理了下, 搜索系统组成简要描述, 一些思想, 不涉及太多具体实现.&lt;/p&gt;
 &lt;p&gt;这套系统从开始设计到最终完成, 前前后后花了3个月的样子(计算所有时间投入), 也算是做得感觉比较完善的一套系统.&lt;/p&gt;
 &lt;p&gt;上线接近一年, 支持快玩游戏搜索业务(快玩盒子/快玩网站/移动端等), 系统每天百万级的搜索(峰值在250w左右, 应用层两台机器负载均衡, 单机核心层, 单机引擎), 很遗憾, 由于业务所限, 一直没有看到这套系统能支持的量上限, 即使在峰值, 核心层qps大概也才50左右, 预计搜索量到千万级应该没什么压力, 当然, 优化的余地还很多.&lt;/p&gt;
 &lt;p&gt;外面正在狂风骤雨, 开始吧&lt;/p&gt;
-&lt;hr&gt;
+&lt;hr/&gt;
 &lt;h3 id="_1"&gt;目标&lt;/h3&gt;
 &lt;p&gt;当系统数据达到一定量时, 搜索就成为了除类目以外的第二大入口.&lt;/p&gt;
 &lt;ol&gt;
@@ -1437,16 +1437,16 @@ limit 100;
 &lt;/blockquote&gt;
 &lt;p&gt;搜索整体系统,对外提供服务包括&lt;/p&gt;
 &lt;ol&gt;
-&lt;li&gt;基本搜索服务&lt;br&gt;
-用户输入query, 系统返回筛选并且排序后的结果, 在前端进行展现&lt;/br&gt;&lt;/li&gt;
-&lt;li&gt;下拉提示服务&lt;br&gt;
-用户在输入框输入query时, 下拉框根据输入提示搜索关键词, google/baidu的搜索框&lt;/br&gt;&lt;/li&gt;
-&lt;li&gt;相关搜索服务&lt;br&gt;
-在搜索结果页,根据用户所在的系统(客户端/移动端/网站等)以及关键词,提示搜索query相关的搜索&lt;/br&gt;&lt;/li&gt;
-&lt;li&gt;热门搜索&lt;br&gt;
-在某些业务中,或者前端,展示热门搜索关键词&lt;/br&gt;&lt;/li&gt;
-&lt;li&gt;关键词改写&lt;br&gt;
-对用户输入关键词进行改写, 以获取更好的搜索结果, 或者进行关键词纠错, 转换&lt;/br&gt;&lt;/li&gt;
+&lt;li&gt;基本搜索服务&lt;br/&gt;
+用户输入query, 系统返回筛选并且排序后的结果, 在前端进行展现&lt;/li&gt;
+&lt;li&gt;下拉提示服务&lt;br/&gt;
+用户在输入框输入query时, 下拉框根据输入提示搜索关键词, google/baidu的搜索框&lt;/li&gt;
+&lt;li&gt;相关搜索服务&lt;br/&gt;
+在搜索结果页,根据用户所在的系统(客户端/移动端/网站等)以及关键词,提示搜索query相关的搜索&lt;/li&gt;
+&lt;li&gt;热门搜索&lt;br/&gt;
+在某些业务中,或者前端,展示热门搜索关键词&lt;/li&gt;
+&lt;li&gt;关键词改写&lt;br/&gt;
+对用户输入关键词进行改写, 以获取更好的搜索结果, 或者进行关键词纠错, 转换&lt;/li&gt;
 &lt;/ol&gt;
 &lt;blockquote&gt;
 &lt;p&gt;缓存&lt;/p&gt;
@@ -1482,7 +1482,7 @@ limit 100;
 &lt;/blockquote&gt;
 &lt;p&gt;对日志进行统计, 计算搜索pv/uv, 无结果率, 搜索关键词排行, 下拉提示点击率等等&lt;/p&gt;
 &lt;p&gt;用于关键性指标的统计, 方便针对性优化&lt;/p&gt;
-&lt;hr&gt;
+&lt;hr/&gt;
 &lt;p&gt;接下去, 分块简要说明下&lt;/p&gt;
 &lt;h3 id="-"&gt;搜索服务-数据层&lt;/h3&gt;
 &lt;p&gt;数据存储跟各自业务有关系, 信息录入渠道主要是运营录入或者抓取导入等, 存储使用&lt;code&gt;mysql/postgresql&lt;/code&gt;等数据库&lt;/p&gt;
@@ -1512,8 +1512,8 @@ limit 100;
 &lt;p&gt;如果不开缓存，实时计算的话，对cpu占用率非常高，每次都要搜索&lt;code&gt;trie&lt;/code&gt;树，所以开启了memcached外部缓存.&lt;/p&gt;
 &lt;p&gt;开源了一份, 但并不是线上的实现, 而是优化版本, 但是一直没有机会上到线上看下效果, 有兴趣可以看下 &lt;a href="https://github.com/wklken/suggestion"&gt;suggestion&lt;/a&gt;&lt;/p&gt;
 &lt;h3 id="_6"&gt;相关搜索服务&lt;/h3&gt;
-&lt;p&gt;目前做得比较简单, 使用同一个用户的搜索关键词链进行分析, 处理成&lt;br&gt;
-&lt;code&gt;[ 搜索关键词-后继搜索关键词]&lt;/code&gt;, 并进行统计, 最终获取统计结果.&lt;/br&gt;&lt;/p&gt;
+&lt;p&gt;目前做得比较简单, 使用同一个用户的搜索关键词链进行分析, 处理成&lt;br/&gt;
+&lt;code&gt;[ 搜索关键词-后继搜索关键词]&lt;/code&gt;, 并进行统计, 最终获取统计结果.&lt;/p&gt;
 &lt;p&gt;这个服务一直没有进行优化, 导致相关搜索的结果并不好, 存在很多bad case(推荐重复的内容/单字符推荐等).&lt;/p&gt;
 &lt;p&gt;可以基于算法进行重构.&lt;/p&gt;
 &lt;h3 id="_7"&gt;关键词改写&lt;/h3&gt;
@@ -1529,7 +1529,7 @@ limit 100;
 &lt;li&gt;报表数据: 不同平台不同渠道的每日pv/uv, 无结果率, 下拉提示点击率等&lt;/li&gt;
 &lt;li&gt;排行数据: 不同纬度下搜索排行, 用于反向作用于搜索引擎排序&lt;/li&gt;
 &lt;/ol&gt;
-&lt;hr&gt;
+&lt;hr/&gt;
 &lt;h3 id="_9"&gt;一些坑&lt;/h3&gt;
 &lt;ol&gt;
 &lt;li&gt;系统使用的&lt;code&gt;memcached&lt;/code&gt;集群作为缓存, 遇到一些坑, 例如&lt;code&gt;key&lt;/code&gt;最大长度250,   &lt;code&gt;key&lt;/code&gt;不能包含空格和控制字符, 存储数据最大1M. 即, 默认对用户的输入不信任(看日志才知道有多少奇葩的搜索query). 切成redis或许会好一些.&lt;/li&gt;
@@ -1537,7 +1537,7 @@ limit 100;
 &lt;li&gt;需要对整体系统进行监控, 使用&lt;code&gt;sentry&lt;/code&gt;和&lt;code&gt;statsd&lt;/code&gt;, 可以实时监测到流量变化以及程序错误.&lt;/li&gt;
 &lt;li&gt;日志很重要, 要针对自己需要了解的指标以及需要统计分析的字段, 设计尽可能完整的日志记录.&lt;/li&gt;
 &lt;/ol&gt;
-&lt;hr&gt;
+&lt;hr/&gt;
 &lt;h3 id="_10"&gt;一些感想&lt;/h3&gt;
 &lt;p&gt;需要确认整体目标, 然后建立关键性指标, 实现基础方案, 上线, 并持续地关注数据, 分析日志以及bad case, 然后进行优化, 观察指标变化. 记得系统最初的召回率84%, 后来一步步提升到了92%. 这是一个长期的, 不断优化的过程.&lt;/p&gt;
 &lt;p&gt;很多东西, 都需要自己一步步去摸索和尝试.&lt;/p&gt;
@@ -1547,7 +1547,7 @@ limit 100;
 &lt;/blockquote&gt;
 &lt;p&gt;系统总是跟随业务逐渐成长变化的, 很可惜, 业务夭折, 这个系统可能失去了在这里继续进化的可能. &lt;/p&gt;
 &lt;p&gt;希望提供一些可供大家借鉴的方法. That's all.&lt;/p&gt;
-&lt;hr&gt;
+&lt;hr/&gt;
 &lt;p&gt;先这样吧&lt;/p&gt;
 &lt;p&gt;wklken&lt;/p&gt;
-&lt;p&gt;2014-06-09 于深圳&lt;/p&gt;&lt;/hr&gt;&lt;/hr&gt;&lt;/hr&gt;&lt;/hr&gt;&lt;/hr&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Mon, 09 Jun 2014 00:00:00 +0800</pubDate><guid>tag:www.wklken.me,2014-06-09:posts/2014/06/09/search-system.html</guid><category>system</category></item></channel></rss>
+&lt;p&gt;2014-06-09 于深圳&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Mon, 09 Jun 2014 00:00:00 +0800</pubDate><guid>tag:www.wklken.me,2014-06-09:posts/2014/06/09/search-system.html</guid><category>system</category></item></channel></rss>
