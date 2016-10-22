@@ -75,7 +75,7 @@
     </section>
 
         <section id="toc">
-            <html><head></head><body><div id="toc"><ul><li><a class="toc-href" href="#" title="基于 PostgreSQL 的数据统计系统">基于 PostgreSQL 的数据统计系统</a><ul><li><a class="toc-href" href="#_1" title="一. 场景">一. 场景</a></li><li><a class="toc-href" href="#_2" title="二. 处理思路">二. 处理思路</a></li><li><a class="toc-href" href="#_3" title="三. 具体">三. 具体</a></li><li><a class="toc-href" href="#0" title="0. 基本架构">0. 基本架构</a></li><li><a class="toc-href" href="#1" title="1. 日志格式">1. 日志格式</a></li><li><a class="toc-href" href="#2" title="2. 日志收集汇总">2. 日志收集汇总</a></li><li><a class="toc-href" href="#3" title="3. 导入容器处理">3. 导入容器处理</a></li><li><a class="toc-href" href="#4" title="4. 容器">4. 容器</a></li><li><a class="toc-href" href="#5" title="5. 批处理">5. 批处理</a></li><li><a class="toc-href" href="#6" title="6. 输出">6. 输出</a></li><li><a class="toc-href" href="#7" title="7. 统一查询层">7. 统一查询层</a></li><li><a class="toc-href" href="#8" title="8. 前端框架及展现">8. 前端框架及展现</a></li><li><a class="toc-href" href="#9" title="9. 图表">9. 图表</a></li><li><a class="toc-href" href="#10" title="10. 过程日志及监控">10. 过程日志及监控</a></li><li><a class="toc-href" href="#_4" title="四. 小结">四. 小结</a></li></ul></li></ul></div></body></html>
+            <div id="toc"><ul><li><a class="toc-href" href="#" title="基于 PostgreSQL 的数据统计系统">基于 PostgreSQL 的数据统计系统</a><ul><li><a class="toc-href" href="#_1" title="一. 场景">一. 场景</a></li><li><a class="toc-href" href="#_2" title="二. 处理思路">二. 处理思路</a></li><li><a class="toc-href" href="#_3" title="三. 具体">三. 具体</a></li><li><a class="toc-href" href="#0" title="0. 基本架构">0. 基本架构</a></li><li><a class="toc-href" href="#1" title="1. 日志格式">1. 日志格式</a></li><li><a class="toc-href" href="#2" title="2. 日志收集汇总">2. 日志收集汇总</a></li><li><a class="toc-href" href="#3" title="3. 导入容器处理">3. 导入容器处理</a></li><li><a class="toc-href" href="#4" title="4. 容器">4. 容器</a></li><li><a class="toc-href" href="#5" title="5. 批处理">5. 批处理</a></li><li><a class="toc-href" href="#6" title="6. 输出">6. 输出</a></li><li><a class="toc-href" href="#7" title="7. 统一查询层">7. 统一查询层</a></li><li><a class="toc-href" href="#8" title="8. 前端框架及展现">8. 前端框架及展现</a></li><li><a class="toc-href" href="#9" title="9. 图表">9. 图表</a></li><li><a class="toc-href" href="#10" title="10. 过程日志及监控">10. 过程日志及监控</a></li><li><a class="toc-href" href="#_4" title="四. 小结">四. 小结</a></li></ul></li></ul></div>
         </section>
     <section id="content">
         <p>看到标题就知道我要写什么了, 这是之前一个项目的小结吧, 自己对统计的一些认识和看法.</p>
@@ -97,13 +97,13 @@
 <ul>
 <li>以往的统计方式:</li>
 </ul>
-<div class="monokai"><pre>分析统计需求 -&gt; 修改项目记录日志内容和格式(到磁盘) -&gt; 自行将日志汇总到一台机器(rsync) -&gt; crontab脚本分析日志(要删或备份历史数据) -&gt; 新建db表, 存储统计结果 -&gt; 写管理后台, 查询统计结果(最繁琐) -&gt; 处理分页/图表等
+<div class="monokai"><pre><span></span>分析统计需求 -&gt; 修改项目记录日志内容和格式(到磁盘) -&gt; 自行将日志汇总到一台机器(rsync) -&gt; crontab脚本分析日志(要删或备份历史数据) -&gt; 新建db表, 存储统计结果 -&gt; 写管理后台, 查询统计结果(最繁琐) -&gt; 处理分页/图表等
 </pre></div>
 <p>虽然每次耗时或许并不会太长(0.5-2d, 视需求大小), 但对于不同项目和需求变更, 这些工作都是纯体力毫无技术含量的枯燥工作, 可以说是无意义的资源浪费.</p>
 <ul>
 <li>新的方式</li>
 </ul>
-<div class="monokai"><pre>分析统计需求 -&gt; 确认日志内容和格式  -&gt; 统计后台配置输入/处理/输出逻辑 -&gt; 查看结果
+<div class="monokai"><pre><span></span>分析统计需求 -&gt; 确认日志内容和格式  -&gt; 统计后台配置输入/处理/输出逻辑 -&gt; 查看结果
 </pre></div>
 <p>说白了就是, 处理统计需求变成了 <code>写sql</code> + <code>配置</code></p>
 <hr/>
@@ -111,7 +111,7 @@
 <ul>
 <li>大体思路如下(从后往前):</li>
 </ul>
-<div class="monokai"><pre>1. 将日志进行汇总
+<div class="monokai"><pre><span></span>1. 将日志进行汇总
 2. 日志格式一致化
 3. 将日志导入到一个容器中
 4. 便捷地通过容器进行计算(计数)
@@ -123,7 +123,7 @@
 <ul>
 <li>需要统一的地方:</li>
 </ul>
-<div class="monokai"><pre>日志格式
+<div class="monokai"><pre><span></span>日志格式
 容器存储
 报告存储
 查询接口
@@ -132,12 +132,12 @@
 <ul>
 <li>系统成型后</li>
 </ul>
-<div class="monokai"><pre>增加/修改统计需求: 只需要在后台配置数据来源(日志), 处理逻辑(一段 sql), 展示逻辑(一段前端 json配置), 就可以实现图标
+<div class="monokai"><pre><span></span>增加/修改统计需求: 只需要在后台配置数据来源(日志), 处理逻辑(一段 sql), 展示逻辑(一段前端 json配置), 就可以实现图标
 </pre></div>
 <hr/>
 <h3 id="_3">三. 具体</h3>
 <h3 id="0">0. 基本架构</h3>
-<div class="monokai"><pre>             ----------------------------------------------
+<div class="monokai"><pre><span></span>             ----------------------------------------------
             |      日志(UniteStats or ApplicationLogs)     |
              ----------------------------------------------
                               ||
@@ -180,7 +180,7 @@
 <p>目的: 将日志汇总到同一台机器上, 便于统一处理</p>
 <p>命名规则: <code>$THE_LOG_PATH/{projectName}/{projectName}_{moduleName}_{ip}_{yyMMdd}.log</code> (示例)</p>
 <p>日志汇总的方案有很多:</p>
-<div class="monokai"><pre>scp
+<div class="monokai"><pre><span></span>scp
 rsync
 nfs
 logstash
@@ -190,10 +190,10 @@ logstash
 <p>到这里, 我们将所有json格式的日志汇集到了一起</p>
 <h3 id="3">3. 导入容器处理</h3>
 <p>目前每个项目的日志格式是,</p>
-<div class="monokai"><pre>{projectName}/{projectName}_{moduleName}_{ip}_{yyMMdd}.log
+<div class="monokai"><pre><span></span>{projectName}/{projectName}_{moduleName}_{ip}_{yyMMdd}.log
 </pre></div>
 <p>我们会将同一个项目, 可能来自不同机器的日志导入同一张表</p>
-<div class="monokai"><pre>{projectName}/{projectName}_{moduleName}_*_{yyMMdd}.log
+<div class="monokai"><pre><span></span>{projectName}/{projectName}_{moduleName}_*_{yyMMdd}.log
 =&gt;
 table: projectName_moduleName_yyMMdd
 </pre></div>
@@ -206,7 +206,7 @@ table: projectName_moduleName_yyMMdd
 <p><code>MySql</code> 对 <code>json</code> 的支持, 相对于 postgresql 而言逊色太多了, 对<code>json</code>格式存在限制(多层复杂嵌套的情况)</p>
 <p><code>Mongodb</code> 虽然对<code>json</code>支持不错, 但是对于数据量较大的情况支持并不好, 并且查询以及运维都会带来一定困难, 对于使用者有一定学习成本</p>
 <p>PostGresql作为容器的好处:</p>
-<div class="monokai"><pre>1. 支持的数据量
+<div class="monokai"><pre><span></span>1. 支持的数据量
 2. 查询简单，支持json, 所有sql查询，group by/order by/嵌套子查询，聚集等
 3. 各种聚集、统计函数均可用，搞定基本统计查询无障碍（再复杂的都可以）
 4. 运维简单
@@ -214,22 +214,22 @@ table: projectName_moduleName_yyMMdd
 </pre></div>
 <p>示例:<br/>
 假设搜索日志:</p>
-<div class="monokai"><pre>{&lsquo;ip&rsquo;: &lsquo;127.0.0.1&rsquo;,
+<div class="monokai"><pre><span></span>{&lsquo;ip&rsquo;: &lsquo;127.0.0.1&rsquo;,
  &lsquo;keyword&rsquo;: &lsquo;test&rsquo;,
  &lsquo;result_count&rsquo;: &lsquo;1&rsquo;,
 }
 </pre></div>
 <p>统计 pv</p>
-<div class="monokai"><pre>select count(data-&gt;'ip') from search_20141101;
+<div class="monokai"><pre><span></span>select count(data-&gt;'ip') from search_20141101;
 </pre></div>
 <p>统计 uv</p>
-<div class="monokai"><pre>select count(DISTINCT data-&gt;&gt;'ip') from search_20141101;
+<div class="monokai"><pre><span></span>select count(DISTINCT data-&gt;&gt;'ip') from search_20141101;
 </pre></div>
 <p>无结果数</p>
-<div class="monokai"><pre>select count(*) from search_20141101 where data-&gt;&gt;'result_count' = '0';
+<div class="monokai"><pre><span></span>select count(*) from search_20141101 where data-&gt;&gt;'result_count' = '0';
 </pre></div>
 <p>搜索热词排行榜</p>
-<div class="monokai"><pre>select data-&gt;&gt;&rsquo;keyword&rsquo;, count(*)
+<div class="monokai"><pre><span></span>select data-&gt;&gt;&rsquo;keyword&rsquo;, count(*)
 from search_20141101
 where data-&gt;&gt;'result_count' != '0'
 group by data-&gt;&gt;&rsquo;keyword&rsquo;
@@ -239,7 +239,7 @@ limit 100;
 <h3 id="5">5. 批处理</h3>
 <p>这里要做的事情, 需要有一个管理后台, 让开发可以配置上传自己的处理脚本, 设定脚本执行时间, 执行参数(处理日期/报告表名), 甚至是执行依赖.</p>
 <p>这里需要形成一个约定</p>
-<div class="monokai"><pre><span class="err">报告表名</span><span class="o">:</span> <span class="n">projectName_statsModuleName</span>
+<div class="monokai"><pre><span></span><span class="err">报告表名</span><span class="o">:</span> <span class="n">projectName_statsModuleName</span>
 <span class="err">报告表一些字段名</span><span class="o">(</span><span class="err">因为统一查询接口需要用到</span><span class="o">):</span> <span class="err">日期</span> <span class="n">date</span><span class="o">,</span>
 <span class="err">其他约定字段</span>
 </pre></div>
@@ -257,7 +257,7 @@ limit 100;
 <li>生成查询表单: 模块化组件, 通过json配置, 自动生成统计查询的表单, 支持各类维度</li>
 </ul>
 <p>配置示例:</p>
-<div class="monokai"><pre>// 产生条件html
+<div class="monokai"><pre><span></span>// 产生条件html
     var condition_configs = {
         title: "频道访问统计摘要",
         conditions: [
@@ -287,7 +287,7 @@ limit 100;
     };
 </pre></div>
 <p>就会自动生成表单</p>
-<div class="monokai"><pre><span class="n">begin_date</span><span class="o">:</span>
+<div class="monokai"><pre><span></span><span class="n">begin_date</span><span class="o">:</span>
 <span class="n">end_date</span><span class="o">:</span>
 <span class="n">channel</span><span class="o">:</span>
 <span class="n">version</span><span class="o">:</span>
@@ -301,7 +301,7 @@ limit 100;
 </li>
 </ul>
 <p>一个配置示例:</p>
-<div class="monokai"><pre><span class="x">一般文本</span>
+<div class="monokai"><pre><span></span><span class="x">一般文本</span>
 <span class="err">{</span><span class="x"></span>
 <span class="x">    'column': 'date',</span>
 <span class="x">    'name': '日期',</span>
@@ -360,7 +360,6 @@ limit 100;
         <div class="donation">
             <center>
                 <div style="width: 70%;">
-                    <img src="/imgs/life/donation.png" style="float: left; width:50%;"/>
                     <img src="/imgs/life/donation_w.png" style="float: left; width:50%;"/>
                     <strong> 如果我的文章对你有所帮助, 可以扫码进行小额捐赠 or 分享给更多人. 多谢支持:)</strong>
                 </div>

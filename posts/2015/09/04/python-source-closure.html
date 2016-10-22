@@ -75,12 +75,12 @@
     </section>
 
         <section id="toc">
-            <html><head></head><body><div id="toc"><ul><li><a class="toc-href" href="#" title="Python源码阅读-闭包的实现">Python源码阅读-闭包的实现</a><ul><li><a class="toc-href" href="#_1" title="闭包">闭包</a></li><li><a class="toc-href" href="#pycodeobject" title="PyCodeObject">PyCodeObject</a></li><li><a class="toc-href" href="#pycellobject" title="PyCellObject">PyCellObject</a></li><li><a class="toc-href" href="#_2" title="值的确认与传递过程">值的确认与传递过程</a></li><li><a class="toc-href" href="#pyframeobject" title="看看PyFrameObject">看看PyFrameObject</a></li><li><a class="toc-href" href="#f_localsplus" title="示例函数的f_localsplus">示例函数的f_localsplus</a></li><li><a class="toc-href" href="#_3" title="传递">传递</a></li><li><a class="toc-href" href="#_4" title="然后, 在嵌套函数被调用的时候">然后, 在嵌套函数被调用的时候</a></li><li><a class="toc-href" href="#dis" title="最后, 再来看一个闭包的dis">最后, 再来看一个闭包的dis</a></li></ul></li></ul></div></body></html>
+            <div id="toc"><ul><li><a class="toc-href" href="#" title="Python源码阅读-闭包的实现">Python源码阅读-闭包的实现</a><ul><li><a class="toc-href" href="#_1" title="闭包">闭包</a></li><li><a class="toc-href" href="#pycodeobject" title="PyCodeObject">PyCodeObject</a></li><li><a class="toc-href" href="#pycellobject" title="PyCellObject">PyCellObject</a></li><li><a class="toc-href" href="#_2" title="值的确认与传递过程">值的确认与传递过程</a></li><li><a class="toc-href" href="#pyframeobject" title="看看PyFrameObject">看看PyFrameObject</a></li><li><a class="toc-href" href="#f_localsplus" title="示例函数的f_localsplus">示例函数的f_localsplus</a></li><li><a class="toc-href" href="#_3" title="传递">传递</a></li><li><a class="toc-href" href="#_4" title="然后, 在嵌套函数被调用的时候">然后, 在嵌套函数被调用的时候</a></li><li><a class="toc-href" href="#dis" title="最后, 再来看一个闭包的dis">最后, 再来看一个闭包的dis</a></li></ul></li></ul></div>
         </section>
     <section id="content">
         <h3 id="_1">闭包</h3>
 <p>e.g.</p>
-<div class="monokai"><pre><span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+<div class="monokai"><pre><span></span><span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">do_add</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">x</span> <span class="o">+</span> <span class="n">value</span>
     <span class="k">return</span> <span class="n">do_add</span>
@@ -91,7 +91,7 @@
 </pre></div>
 <p>需要回答, 什么是闭包, CPython底层是如何实现的?</p>
 <h3 id="pycodeobject">PyCodeObject</h3>
-<div class="monokai"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>
+<div class="monokai"><pre><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>
     <span class="n">PyObject_HEAD</span>
     <span class="kt">int</span> <span class="n">co_argcount</span><span class="p">;</span>        <span class="cm">/* #arguments, except *args */</span>
     <span class="kt">int</span> <span class="n">co_nlocals</span><span class="p">;</span>         <span class="cm">/* #local variables */</span>
@@ -119,12 +119,12 @@
 <span class="p">}</span> <span class="n">PyCodeObject</span><span class="p">;</span>
 </pre></div>
 <p>我们关注两个, <code>co_freevars</code> 和 <code>co_cellvars</code></p>
-<div class="monokai"><pre>co_freevars, 保存使用了的外层作用域中的变量名集合 (编译时就知道的! 被嵌套的时候有用)
+<div class="monokai"><pre><span></span>co_freevars, 保存使用了的外层作用域中的变量名集合 (编译时就知道的! 被嵌套的时候有用)
 
 co_cellvars, 保存嵌套作用域中使用的变量名集合, (编译时就知道的! 包含嵌套函数时有用)
 </pre></div>
 <p>对于我们上面的那个示例, <code>add</code>是外层函数, <code>do_add</code>是嵌套函数, 我们可以通过<code>func_code</code>打印看看</p>
-<div class="monokai"><pre><span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>    <span class="c1"># 外层函数</span>
+<div class="monokai"><pre><span></span><span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>    <span class="c1"># 外层函数</span>
     <span class="c1"># 外层函数, 没有使用了外层作用域变量, 被嵌套函数使用了'x'</span>
     <span class="k">print</span> <span class="n">add</span><span class="o">.</span><span class="n">func_code</span><span class="o">.</span><span class="n">co_freevars</span>    <span class="c1"># ()</span>
     <span class="k">print</span> <span class="n">add</span><span class="o">.</span><span class="n">func_code</span><span class="o">.</span><span class="n">co_cellvars</span>    <span class="c1"># ('x',)</span>
@@ -141,12 +141,12 @@ co_cellvars, 保存嵌套作用域中使用的变量名集合, (编译时就知�
 <p><img alt="closure" src="/imgs/python-source/python-closure.png"/></p>
 <p>这时候, 只是记录了使用到的变量名, 标记下是否使用了外层的/被内层使用的变量</p>
 <p>具体的值是在运行时确定的, 例如</p>
-<div class="monokai"><pre><span class="n">add</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<div class="monokai"><pre><span></span><span class="n">add</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
 </pre></div>
 <p>此时<code>x=5</code>, 这个是在<code>add</code>的名字空间里面的, 那么, <code>x=5</code>是怎么传递到嵌套函数内? 嵌套函数又是如何知晓<code>x</code>的值?</p>
 <p>记住这两个问题, 然后我们首先来看一个新的数据结构</p>
 <h3 id="pycellobject">PyCellObject</h3>
-<div class="monokai"><pre>  <span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>
+<div class="monokai"><pre><span></span>  <span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>
     <span class="n">PyObject_HEAD</span>
     <span class="n">PyObject</span> <span class="o">*</span><span class="n">ob_ref</span><span class="p">;</span>   <span class="cm">/* Content of the cell or NULL when empty */</span> <span class="o">=&gt;</span> <span class="err">指向一个</span><span class="n">PyObject</span>
   <span class="p">}</span> <span class="n">PyCellObject</span><span class="p">;</span>
@@ -173,10 +173,10 @@ co_cellvars, 保存嵌套作用域中使用的变量名集合, (编译时就知�
 <p>作用呢?</p>
 <h3 id="_2">值的确认与传递过程</h3>
 <p>调用</p>
-<div class="monokai"><pre><span class="n">add</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<div class="monokai"><pre><span></span><span class="n">add</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
 </pre></div>
 <p>此时, 开始调用函数</p>
-<div class="monokai"><pre><span class="n">CALL_FUNCTION</span>
+<div class="monokai"><pre><span></span><span class="n">CALL_FUNCTION</span>
 
 <span class="o">=&gt;</span> <span class="n">x</span> <span class="o">=</span> <span class="n">call_function</span><span class="p">(</span><span class="o">&amp;</span><span class="n">sp</span><span class="p">,</span> <span class="n">oparg</span><span class="p">);</span>
 
@@ -261,7 +261,7 @@ co_cellvars, 保存嵌套作用域中使用的变量名集合, (编译时就知�
 <p>这里, 我们可以知道<code>x=5</code>被放进去了</p>
 <p>为什么放到<code>f-&gt;f_localsplus</code>中呢?</p>
 <h3 id="pyframeobject">看看PyFrameObject</h3>
-<div class="monokai"><pre><span class="k">typedef</span> <span class="k">struct</span> <span class="n">_frame</span> <span class="p">{</span>
+<div class="monokai"><pre><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="n">_frame</span> <span class="p">{</span>
     <span class="n">PyObject_VAR_HEAD</span>
     <span class="k">struct</span> <span class="n">_frame</span> <span class="o">*</span><span class="n">f_back</span><span class="p">;</span>  <span class="cm">/* previous frame, or NULL */</span>
     <span class="n">PyCodeObject</span> <span class="o">*</span><span class="n">f_code</span><span class="p">;</span>   <span class="cm">/* code segment */</span>
@@ -298,13 +298,13 @@ co_cellvars, 保存嵌套作用域中使用的变量名集合, (编译时就知�
 <span class="p">}</span> <span class="n">PyFrameObject</span><span class="p">;</span>
 </pre></div>
 <p>注意<code>f_localsplus</code></p>
-<div class="monokai"><pre>f_localsplus为一个PyObject的指针数组，大小为1。
+<div class="monokai"><pre><span></span>f_localsplus为一个PyObject的指针数组，大小为1。
 
 c语言中, 当申请一个大小超过sizeof(PyFrameObject)的结构体对象时，超过的部分就自动分配给f_localsplus
 </pre></div>
 <p>创建过程</p>
 <p>在<code>call_function</code>的时候, <code>new</code>了一个PyFrameObject</p>
-<div class="monokai"><pre><span class="n">f</span> <span class="o">=</span> <span class="n">PyFrame_New</span><span class="p">(</span><span class="n">tstate</span><span class="p">,</span> <span class="n">co</span><span class="p">,</span> <span class="n">globals</span><span class="p">,</span> <span class="n">locals</span><span class="p">);</span>
+<div class="monokai"><pre><span></span><span class="n">f</span> <span class="o">=</span> <span class="n">PyFrame_New</span><span class="p">(</span><span class="n">tstate</span><span class="p">,</span> <span class="n">co</span><span class="p">,</span> <span class="n">globals</span><span class="p">,</span> <span class="n">locals</span><span class="p">);</span>
 
 <span class="o">=&gt;</span>
 
@@ -323,13 +323,13 @@ c语言中, 当申请一个大小超过sizeof(PyFrameObject)的结构体对象�
 <span class="n">f</span> <span class="o">=</span> <span class="n">PyObject_GC_NewVar</span><span class="p">(</span><span class="n">PyFrameObject</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">PyFrame_Type</span><span class="p">,</span> <span class="n">extras</span><span class="p">);</span>
 </pre></div>
 <p>即</p>
-<div class="monokai"><pre>f_localsplus =&gt; 局部变量 + cell对象 + free对象 + 运行时栈
+<div class="monokai"><pre><span></span>f_localsplus =&gt; 局部变量 + cell对象 + free对象 + 运行时栈
 </pre></div>
 <p>原因: 因为函数中的局部变量总是固定不变的, 在编译时就能确定局部变量使用的内存空间的位置, 也能确定访问局部变量的字节码应该如何访问内存, 有了这些信息, Python就能借助静态的方法实现局部变量, 而不是动态查找PyDictObject, 提高执行效率</p>
 <p><img alt="closure" src="/imgs/python-source/python-closure3.png"/></p>
 <h3 id="f_localsplus">示例函数的f_localsplus</h3>
 <p>看一下上面赋值用的宏定义</p>
-<div class="monokai"><pre>  <span class="n">fastlocals</span> <span class="o">=</span> <span class="n">f</span><span class="o">-&gt;</span><span class="n">f_localsplus</span><span class="p">;</span>
+<div class="monokai"><pre><span></span>  <span class="n">fastlocals</span> <span class="o">=</span> <span class="n">f</span><span class="o">-&gt;</span><span class="n">f_localsplus</span><span class="p">;</span>
   <span class="cp">#define GETLOCAL(i)     (fastlocals[i])</span>
   <span class="cp">#define SETLOCAL(i, value)      do { PyObject *tmp = GETLOCAL(i); \</span>
 <span class="cp">                                       GETLOCAL(i) = value; \</span>
@@ -341,10 +341,10 @@ c语言中, 当申请一个大小超过sizeof(PyFrameObject)的结构体对象�
 <h3 id="_3">传递</h3>
 <p><code>CALL_FUNCTION</code> 完成<code>new</code>一个<code>PyFrameObject</code>之后,</p>
 <p>最终执行这个frame</p>
-<div class="monokai"><pre><span class="n">retval</span> <span class="o">=</span> <span class="n">PyEval_EvalFrameEx</span><span class="p">(</span><span class="n">f</span><span class="p">,</span><span class="mi">0</span><span class="p">);</span>
+<div class="monokai"><pre><span></span><span class="n">retval</span> <span class="o">=</span> <span class="n">PyEval_EvalFrameEx</span><span class="p">(</span><span class="n">f</span><span class="p">,</span><span class="mi">0</span><span class="p">);</span>
 </pre></div>
 <p>PyEval_EvalFrameEx</p>
-<div class="monokai"><pre>  <span class="n">PyObject</span> <span class="o">*</span>
+<div class="monokai"><pre><span></span>  <span class="n">PyObject</span> <span class="o">*</span>
   <span class="nf">PyEval_EvalFrameEx</span><span class="p">(</span><span class="n">PyFrameObject</span> <span class="o">*</span><span class="n">f</span><span class="p">,</span> <span class="kt">int</span> <span class="n">throwflag</span><span class="p">)</span>
   <span class="p">{</span>
 
@@ -355,7 +355,7 @@ c语言中, 当申请一个大小超过sizeof(PyFrameObject)的结构体对象�
 <span class="o">=&gt;</span> <span class="err">此时涉及</span><span class="n">op_code的执行了</span>
 </pre></div>
 <p>查看一下dis的结果</p>
-<div class="monokai"><pre><span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+<div class="monokai"><pre><span></span><span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">do_add</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">x</span> <span class="o">+</span> <span class="n">value</span>
     <span class="k">return</span> <span class="n">do_add</span>
@@ -370,7 +370,7 @@ c语言中, 当申请一个大小超过sizeof(PyFrameObject)的结构体对象�
              <span class="mi">18</span> <span class="n">RETURN_VALUE</span>
 </pre></div>
 <p>首先<code>LOAD_CLOSURE 0</code></p>
-<div class="monokai"><pre>          <span class="k">case</span> <span class="nl">LOAD_CLOSURE</span><span class="p">:</span>
+<div class="monokai"><pre><span></span>          <span class="k">case</span> <span class="nl">LOAD_CLOSURE</span><span class="p">:</span>
               <span class="n">x</span> <span class="o">=</span> <span class="n">freevars</span><span class="p">[</span><span class="n">oparg</span><span class="p">];</span>
               <span class="n">Py_INCREF</span><span class="p">(</span><span class="n">x</span><span class="p">);</span>
               <span class="n">PUSH</span><span class="p">(</span><span class="n">x</span><span class="p">);</span>
@@ -384,7 +384,7 @@ c语言中, 当申请一个大小超过sizeof(PyFrameObject)的结构体对象�
 <p>然后, <code>BUILD_TUPLE</code>, 将cell对象打包成tuple, 得到<code>('x', )</code></p>
 <p>然后, 开始, 载入嵌套函数<code>do_add</code>, 入栈</p>
 <p>调用<code>MAKE_CLOSURE</code></p>
-<div class="monokai"><pre>          <span class="k">case</span> <span class="nl">MAKE_CLOSURE</span><span class="p">:</span>
+<div class="monokai"><pre><span></span>          <span class="k">case</span> <span class="nl">MAKE_CLOSURE</span><span class="p">:</span>
           <span class="p">{</span>
               <span class="n">v</span> <span class="o">=</span> <span class="n">POP</span><span class="p">();</span> <span class="cm">/* code object */</span>  <span class="c1">// do_add函数</span>
               <span class="n">x</span> <span class="o">=</span> <span class="n">PyFunction_New</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">f</span><span class="o">-&gt;</span><span class="n">f_globals</span><span class="p">);</span> <span class="c1">//绑定global名字空间</span>
@@ -405,7 +405,7 @@ c语言中, 当申请一个大小超过sizeof(PyFrameObject)的结构体对象�
           <span class="p">}</span>
 </pre></div>
 <p>来关注一下 <code>PyFunction_SetClosure</code></p>
-<div class="monokai"><pre><span class="kt">int</span>
+<div class="monokai"><pre><span></span><span class="kt">int</span>
 <span class="nf">PyFunction_SetClosure</span><span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="n">op</span><span class="p">,</span> <span class="n">PyObject</span> <span class="o">*</span><span class="n">closure</span><span class="p">)</span>
 <span class="p">{</span>
     <span class="p">...</span>
@@ -417,7 +417,7 @@ c语言中, 当申请一个大小超过sizeof(PyFrameObject)的结构体对象�
 <p>即<code>do_add</code>的 <code>PyFunctionObject</code>的<code>func_closure</code>指向一个tuple</p>
 <p>注意: 这时候, 外层变量已经固定下来了!!!!!!</p>
 <h3 id="_4">然后, 在嵌套函数被调用的时候</h3>
-<div class="monokai"><pre><span class="n">CALL_FUNCTION</span>
+<div class="monokai"><pre><span></span><span class="n">CALL_FUNCTION</span>
 
 <span class="o">=&gt;</span>
 
@@ -435,11 +435,11 @@ c语言中, 当申请一个大小超过sizeof(PyFrameObject)的结构体对象�
                                <span class="n">PyFunction_GET_CLOSURE</span><span class="p">(</span><span class="n">func</span><span class="p">));</span>
 </pre></div>
 <p>看下<code>PyFunction_GET_CLOSURE</code></p>
-<div class="monokai"><pre>  <span class="cp">#define PyFunction_GET_CLOSURE(func) \</span>
+<div class="monokai"><pre><span></span>  <span class="cp">#define PyFunction_GET_CLOSURE(func) \</span>
 <span class="cp">      (((PyFunctionObject *)func) -&gt; func_closure)</span>
 </pre></div>
 <p>然后, 进入 <code>PyEval_EvalCodeEx</code>, 注意这里的<code>closure</code>参数即上一步取出来的<code>func_closure</code>, 即外层函数传进来的tuple</p>
-<div class="monokai"><pre>  <span class="n">PyObject</span> <span class="o">*</span>
+<div class="monokai"><pre><span></span>  <span class="n">PyObject</span> <span class="o">*</span>
   <span class="nf">PyEval_EvalCodeEx</span><span class="p">(</span><span class="n">PyCodeObject</span> <span class="o">*</span><span class="n">co</span><span class="p">,</span> <span class="n">PyObject</span> <span class="o">*</span><span class="n">globals</span><span class="p">,</span> <span class="n">PyObject</span> <span class="o">*</span><span class="n">locals</span><span class="p">,</span>
              <span class="n">PyObject</span> <span class="o">**</span><span class="n">args</span><span class="p">,</span> <span class="kt">int</span> <span class="n">argcount</span><span class="p">,</span> <span class="n">PyObject</span> <span class="o">**</span><span class="n">kws</span><span class="p">,</span> <span class="kt">int</span> <span class="n">kwcount</span><span class="p">,</span>
              <span class="n">PyObject</span> <span class="o">**</span><span class="n">defs</span><span class="p">,</span> <span class="kt">int</span> <span class="n">defcount</span><span class="p">,</span> <span class="n">PyObject</span> <span class="o">*</span><span class="n">closure</span><span class="p">)</span>
@@ -461,7 +461,7 @@ c语言中, 当申请一个大小超过sizeof(PyFrameObject)的结构体对象�
 </pre></div>
 <h3 id="dis">最后, 再来看一个闭包的dis</h3>
 <p>注意<code>BUILD_TUPLE</code></p>
-<div class="monokai"><pre><span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+<div class="monokai"><pre><span></span><span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
 
     <span class="k">def</span> <span class="nf">do_add</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">x</span> <span class="o">+</span> <span class="n">value</span>
@@ -475,7 +475,7 @@ c语言中, 当申请一个大小超过sizeof(PyFrameObject)的结构体对象�
     <span class="k">return</span> <span class="n">do_add</span>
 </pre></div>
 <p>dis结果</p>
-<div class="monokai"><pre> <span class="mi">18</span>           <span class="mi">0</span> <span class="n">LOAD_CLOSURE</span>             <span class="mi">0</span> <span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<div class="monokai"><pre><span></span> <span class="mi">18</span>           <span class="mi">0</span> <span class="n">LOAD_CLOSURE</span>             <span class="mi">0</span> <span class="p">(</span><span class="n">x</span><span class="p">)</span>
               <span class="mi">3</span> <span class="n">BUILD_TUPLE</span>              <span class="mi">1</span>
               <span class="mi">6</span> <span class="n">LOAD_CONST</span>               <span class="mi">1</span> <span class="p">(</span><span class="o">&lt;</span><span class="n">code</span> <span class="n">object</span> <span class="n">do_add</span> <span class="n">at</span> <span class="mh">0x10560dc30</span><span class="p">,</span> <span class="n">file</span> <span class="s">"a.py"</span><span class="p">,</span> <span class="n">line</span> <span class="mi">18</span><span class="o">&gt;</span><span class="p">)</span>
               <span class="mi">9</span> <span class="n">MAKE_CLOSURE</span>             <span class="mi">0</span>
@@ -507,7 +507,6 @@ c语言中, 当申请一个大小超过sizeof(PyFrameObject)的结构体对象�
         <div class="donation">
             <center>
                 <div style="width: 70%;">
-                    <img src="/imgs/life/donation.png" style="float: left; width:50%;"/>
                     <img src="/imgs/life/donation_w.png" style="float: left; width:50%;"/>
                     <strong> 如果我的文章对你有所帮助, 可以扫码进行小额捐赠 or 分享给更多人. 多谢支持:)</strong>
                 </div>

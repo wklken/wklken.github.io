@@ -75,7 +75,7 @@
     </section>
 
         <section id="toc">
-            <html><head></head><body><div id="toc"><ul><li><a class="toc-href" href="#" title="Python源码阅读-内存管理机制(一)">Python源码阅读-内存管理机制(一)</a><ul><li><a class="toc-href" href="#python" title="Python的内存管理架构">Python的内存管理架构</a><ul><li><a class="toc-href" href="#_1" title="基本分层">基本分层</a></li><li><a class="toc-href" href="#layer-1-pymem_-api" title="layer 1: PyMem_ API">layer 1: PyMem_ API</a></li></ul></li><li><a class="toc-href" href="#python_2" title="Python 的内存分配策略">Python 的内存分配策略</a><ul><li><a class="toc-href" href="#block" title="block">block</a></li><li><a class="toc-href" href="#pool" title="pool">pool</a><ul><li><a class="toc-href" href="#pool-size" title="pool size">pool size</a></li><li><a class="toc-href" href="#pool_1" title="pool组成">pool组成</a></li><li><a class="toc-href" href="#pool_2" title="pool初始化">pool初始化</a></li><li><a class="toc-href" href="#poolblock-0" title="pool进行block分配 - 0 总体代码">pool进行block分配 - 0 总体代码</a></li><li><a class="toc-href" href="#poolblock-1" title="pool进行block分配 - 1 刚开始">pool进行block分配 - 1 刚开始</a></li><li><a class="toc-href" href="#poolblock-2-block" title="pool进行block分配 - 2 回收了某几个block">pool进行block分配 - 2 回收了某几个block</a></li><li><a class="toc-href" href="#poolblock-3-pool" title="pool进行block分配 - 3 pool用完了">pool进行block分配 - 3 pool用完了</a></li></ul></li></ul></li></ul></li></ul></div></body></html>
+            <div id="toc"><ul><li><a class="toc-href" href="#" title="Python源码阅读-内存管理机制(一)">Python源码阅读-内存管理机制(一)</a><ul><li><a class="toc-href" href="#python" title="Python的内存管理架构">Python的内存管理架构</a><ul><li><a class="toc-href" href="#_1" title="基本分层">基本分层</a></li><li><a class="toc-href" href="#layer-1-pymem_-api" title="layer 1: PyMem_ API">layer 1: PyMem_ API</a></li></ul></li><li><a class="toc-href" href="#python_2" title="Python 的内存分配策略">Python 的内存分配策略</a><ul><li><a class="toc-href" href="#block" title="block">block</a></li><li><a class="toc-href" href="#pool" title="pool">pool</a><ul><li><a class="toc-href" href="#pool-size" title="pool size">pool size</a></li><li><a class="toc-href" href="#pool_1" title="pool组成">pool组成</a></li><li><a class="toc-href" href="#pool_2" title="pool初始化">pool初始化</a></li><li><a class="toc-href" href="#poolblock-0" title="pool进行block分配 - 0 总体代码">pool进行block分配 - 0 总体代码</a></li><li><a class="toc-href" href="#poolblock-1" title="pool进行block分配 - 1 刚开始">pool进行block分配 - 1 刚开始</a></li><li><a class="toc-href" href="#poolblock-2-block" title="pool进行block分配 - 2 回收了某几个block">pool进行block分配 - 2 回收了某几个block</a></li><li><a class="toc-href" href="#poolblock-3-pool" title="pool进行block分配 - 3 pool用完了">pool进行block分配 - 3 pool用完了</a></li></ul></li></ul></li></ul></li></ul></div>
         </section>
     <section id="content">
         <p>==========================</p>
@@ -86,7 +86,7 @@
 <h2 id="python">Python的内存管理架构</h2>
 <h3 id="_1">基本分层</h3>
 <p>在<code>Objects/obmalloc.c</code>源码中, 给了一个分层划分</p>
-<div class="monokai"><pre>    _____   ______   ______       ________
+<div class="monokai"><pre><span></span>    _____   ______   ______       ________
    [ int ] [ dict ] [ list ] ... [ string ]       Python core         |
 +3 | &lt;----- Object-specific memory -----&gt; | &lt;-- Non-object memory --&gt; |
     _______________________________       |                           |
@@ -108,7 +108,7 @@
 -2 | &lt;-- Physical memory: ROM/RAM --&gt; | | &lt;-- Secondary storage (swap) --&gt; |
 </pre></div>
 <p>可以看到</p>
-<div class="monokai"><pre>layer 3: Object-specific memory(int/dict/list/string....)
+<div class="monokai"><pre><span></span>layer 3: Object-specific memory(int/dict/list/string....)
          Python 实现并维护
          更高抽象层次的内存管理策略, 主要是各类特定对象的缓冲池机制. 具体见前面几篇涉及的内存分配机制
 
@@ -129,7 +129,7 @@ layer 0: Underlying general-purpose allocator (ex: C library malloc)
 <h3 id="layer-1-pymem_-api">layer 1: PyMem_ API</h3>
 <p><code>PyMem_ API</code>是对操作系统内存管理接口进行的封装</p>
 <p>查看<code>pymem.h</code>可以看到</p>
-<div class="monokai"><pre><span class="c1">// Raw memory interface</span>
+<div class="monokai"><pre><span></span><span class="c1">// Raw memory interface</span>
 <span class="c1">// 这里存在三个宏定义, 宏可以避免一次函数调用的开销, 提高运行效率</span>
 <span class="c1">// 不允许非配空间大小为0的内存空间</span>
 <span class="cp">#define PyMem_MALLOC(n)     ((size_t)(n) &gt; (size_t)PY_SSIZE_T_MAX ? NULL \</span>
@@ -164,7 +164,7 @@ layer 0: Underlying general-purpose allocator (ex: C library malloc)
 <span class="cp">    (type *) PyMem_REALLOC((p), (n) * sizeof(type)) )</span>
 </pre></div>
 <p>然后<code>object.c</code>中, 我们关注<code>实现</code>, 三个<code>实现</code>的函数调用了对应的宏</p>
-<div class="monokai"><pre><span class="c1">// 使用 C 写Python扩展模块时使用函数而不是对应的宏</span>
+<div class="monokai"><pre><span></span><span class="c1">// 使用 C 写Python扩展模块时使用函数而不是对应的宏</span>
 <span class="kt">void</span> <span class="o">*</span>
 <span class="nf">PyMem_Malloc</span><span class="p">(</span><span class="kt">size_t</span> <span class="n">nbytes</span><span class="p">)</span>
 <span class="p">{</span>
@@ -188,7 +188,7 @@ layer 0: Underlying general-purpose allocator (ex: C library malloc)
 <hr/>
 <h2 id="python_2">Python 的内存分配策略</h2>
 <p>先来看<code>Objects/obmalloc.c</code>中的一段注释</p>
-<div class="monokai"><pre><span class="cm">/*</span>
+<div class="monokai"><pre><span></span><span class="cm">/*</span>
 <span class="cm"> * "Memory management is where the rubber meets the road -- if we do the wrong</span>
 <span class="cm"> * thing at any level, the results will not be good. And if we don't make the</span>
 <span class="cm"> * levels work well together, we are in serious trouble." (1)</span>
@@ -200,11 +200,11 @@ layer 0: Underlying general-purpose allocator (ex: C library malloc)
 </pre></div>
 <p>Python引入了内存池机制, 用于管理对小块内存的申请和释放</p>
 <p>逻辑</p>
-<div class="monokai"><pre>1. 如果要分配的内存空间大于 SMALL_REQUEST_THRESHOLD bytes(512 bytes), 将直接使用layer 1的内存分配接口进行分配
+<div class="monokai"><pre><span></span>1. 如果要分配的内存空间大于 SMALL_REQUEST_THRESHOLD bytes(512 bytes), 将直接使用layer 1的内存分配接口进行分配
 2. 否则, 使用不同的block来满足分配需求
 </pre></div>
 <p>整个小块内存池可以视为一个层次结构</p>
-<div class="monokai"><pre>1. 内存池(概念上的, 标识Python对于整个小块内存分配和释放的内存管理机制)
+<div class="monokai"><pre><span></span>1. 内存池(概念上的, 标识Python对于整个小块内存分配和释放的内存管理机制)
 2. arena
 3. pool
 4. block
@@ -214,7 +214,7 @@ layer 0: Underlying general-purpose allocator (ex: C library malloc)
 <p>注意这里block只是一个概念, 在源代码中并没有实体存在.</p>
 <p>不同类型block, 对应不同内存大小, 这个内存大小的值被称为<code>size class</code>.</p>
 <p>不同长度的block</p>
-<div class="monokai"><pre> <span class="o">*</span> <span class="n">Request</span> <span class="n">in</span> <span class="n">bytes</span>     <span class="n">Size</span> <span class="n">of</span> <span class="n">allocated</span> <span class="n">block</span>      <span class="n">Size</span> <span class="n">class</span> <span class="n">idx</span>
+<div class="monokai"><pre><span></span> <span class="o">*</span> <span class="n">Request</span> <span class="n">in</span> <span class="n">bytes</span>     <span class="n">Size</span> <span class="n">of</span> <span class="n">allocated</span> <span class="n">block</span>      <span class="n">Size</span> <span class="n">class</span> <span class="n">idx</span>
  <span class="o">*</span> <span class="o">----------------------------------------------------------------</span>
  <span class="o">*</span>        <span class="mi">1</span><span class="o">-</span><span class="mi">8</span>                     <span class="mi">8</span>                       <span class="mi">0</span>
  <span class="o">*</span>        <span class="mi">9</span><span class="o">-</span><span class="mi">16</span>                   <span class="mi">16</span>                       <span class="mi">1</span>
@@ -234,13 +234,13 @@ layer 0: Underlying general-purpose allocator (ex: C library malloc)
  <span class="err">*/</span>
 </pre></div>
 <p>例如</p>
-<div class="monokai"><pre>申请一块大小28字节的内存, 实际从内存中划到32字节的一个block (从size class index为3的pool里面划出)
+<div class="monokai"><pre><span></span>申请一块大小28字节的内存, 实际从内存中划到32字节的一个block (从size class index为3的pool里面划出)
 </pre></div>
 <p>图示:</p>
 <p><img alt="blocks" src="/imgs/python-source/python-memory-blocks.png"/></p>
 <p>注意: 这里有个<code>Size class idx</code>, 这个主要为了后面pool中用到</p>
 <p><code>size class</code>和<code>size class index</code>之间的转换</p>
-<div class="monokai"><pre><span class="cp">#define ALIGNMENT               8               </span><span class="cm">/* must be 2^N */</span><span class="cp"></span>
+<div class="monokai"><pre><span></span><span class="cp">#define ALIGNMENT               8               </span><span class="cm">/* must be 2^N */</span><span class="cp"></span>
 <span class="cp">#define ALIGNMENT_SHIFT         3</span>
 <span class="cp">#define ALIGNMENT_MASK          (ALIGNMENT - 1)</span>
 
@@ -265,7 +265,7 @@ layer 0: Underlying general-purpose allocator (ex: C library malloc)
 <p>本质: pool管理着一大块内存, 它有一定的策略, 将这块大的内存划分为多个大小一致的小块内存.</p>
 <h4 id="pool-size">pool size</h4>
 <p>在Python中, 一个pool的大小通常为一个系统内存页. 4kB</p>
-<div class="monokai"><pre><span class="n">obmalloc</span><span class="p">.</span><span class="n">c</span>
+<div class="monokai"><pre><span></span><span class="n">obmalloc</span><span class="p">.</span><span class="n">c</span>
 
 <span class="cp">#define SYSTEM_PAGE_SIZE        (4 * 1024)</span>
 <span class="cp">#define SYSTEM_PAGE_SIZE_MASK   (SYSTEM_PAGE_SIZE - 1)</span>
@@ -278,7 +278,7 @@ layer 0: Underlying general-purpose allocator (ex: C library malloc)
 <p>pool的4kB内存 = pool_header + block集合(N多大小一样的block)</p>
 </blockquote>
 <p>pool_header</p>
-<div class="monokai"><pre><span class="cm">/* Pool for small blocks. */</span>
+<div class="monokai"><pre><span></span><span class="cm">/* Pool for small blocks. */</span>
 <span class="k">struct</span> <span class="n">pool_header</span> <span class="p">{</span>
     <span class="k">union</span> <span class="p">{</span> <span class="n">block</span> <span class="o">*</span><span class="n">_padding</span><span class="p">;</span>
             <span class="n">uint</span> <span class="n">count</span><span class="p">;</span> <span class="p">}</span> <span class="n">ref</span><span class="p">;</span>          <span class="cm">/* number of allocated blocks    */</span>
@@ -292,7 +292,7 @@ layer 0: Underlying general-purpose allocator (ex: C library malloc)
 <span class="p">};</span>
 </pre></div>
 <p>pool_header的作用</p>
-<div class="monokai"><pre>1. 与其他pool链接, 组成双向链表
+<div class="monokai"><pre><span></span>1. 与其他pool链接, 组成双向链表
 2. 维护pool中可用的block, 单链表
 3. 保存 szidx , 这个和该pool中block的大小有关系, (block size=8, szidx=0), (block size=16, szidx=1)...用于内存分配时匹配到拥有对应大小block的pool
 4. arenaindex, 后面说
@@ -302,7 +302,7 @@ layer 0: Underlying general-purpose allocator (ex: C library malloc)
 <h4 id="pool_2">pool初始化</h4>
 <p>从内存中初始化一个全新的空的<code>pool</code></p>
 <p><code>Objects/obmalloc.c</code>的</p>
-<div class="monokai"><pre><span class="kt">void</span> <span class="o">*</span>
+<div class="monokai"><pre><span></span><span class="kt">void</span> <span class="o">*</span>
 <span class="nf">PyObject_Malloc</span><span class="p">(</span><span class="kt">size_t</span> <span class="n">nbytes</span><span class="p">)</span>
 <span class="p">{</span>
   <span class="p">...</span>
@@ -368,7 +368,7 @@ layer 0: Underlying general-purpose allocator (ex: C library malloc)
 <p><img alt="pool2" src="/imgs/python-source/python-memory-pools2.png"/></p>
 <h4 id="poolblock-0">pool进行block分配 - 0 总体代码</h4>
 <p>总体分配的代码如下</p>
-<div class="monokai"><pre>     <span class="k">if</span> <span class="p">(</span><span class="n">pool</span> <span class="o">!=</span> <span class="n">pool</span><span class="o">-&gt;</span><span class="n">nextpool</span><span class="p">)</span> <span class="p">{</span>   <span class="c1">//</span>
+<div class="monokai"><pre><span></span>     <span class="k">if</span> <span class="p">(</span><span class="n">pool</span> <span class="o">!=</span> <span class="n">pool</span><span class="o">-&gt;</span><span class="n">nextpool</span><span class="p">)</span> <span class="p">{</span>   <span class="c1">//</span>
             <span class="cm">/*</span>
 <span class="cm">             * There is a used pool for this size class.</span>
 <span class="cm">             * Pick up the head block of its free list.</span>
@@ -417,10 +417,10 @@ layer 0: Underlying general-purpose allocator (ex: C library malloc)
 </pre></div>
 <h4 id="poolblock-1">pool进行block分配 - 1 刚开始</h4>
 <p>内存块尚未分配完, 且此时不存在回收的block, 全新进来的时候, 分配第一块block</p>
-<div class="monokai"><pre><span class="p">(</span><span class="n">pool</span><span class="o">-&gt;</span><span class="n">freeblock</span> <span class="o">=</span> <span class="o">*</span><span class="p">(</span><span class="n">block</span> <span class="o">**</span><span class="p">)</span><span class="n">bp</span><span class="p">)</span> <span class="o">==</span> <span class="nb">NULL</span>
+<div class="monokai"><pre><span></span><span class="p">(</span><span class="n">pool</span><span class="o">-&gt;</span><span class="n">freeblock</span> <span class="o">=</span> <span class="o">*</span><span class="p">(</span><span class="n">block</span> <span class="o">**</span><span class="p">)</span><span class="n">bp</span><span class="p">)</span> <span class="o">==</span> <span class="nb">NULL</span>
 </pre></div>
 <p>所以进入的逻辑是<code>代码-2</code></p>
-<div class="monokai"><pre>            <span class="n">bp</span> <span class="o">=</span> <span class="n">pool</span><span class="o">-&gt;</span><span class="n">freeblock</span><span class="p">;</span> <span class="c1">// 指针指向空闲block起始位置</span>
+<div class="monokai"><pre><span></span>            <span class="n">bp</span> <span class="o">=</span> <span class="n">pool</span><span class="o">-&gt;</span><span class="n">freeblock</span><span class="p">;</span> <span class="c1">// 指针指向空闲block起始位置</span>
 
             <span class="p">.....</span>
 
@@ -449,7 +449,7 @@ layer 0: Underlying general-purpose allocator (ex: C library malloc)
 <p><img alt="pool2" src="/imgs/python-source/python-memory-pools3.png"/></p>
 <h4 id="poolblock-2-block">pool进行block分配 - 2 回收了某几个block</h4>
 <p>回收涉及的代码</p>
-<div class="monokai"><pre><span class="kt">void</span>
+<div class="monokai"><pre><span></span><span class="kt">void</span>
 <span class="nf">PyObject_Free</span><span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="n">p</span><span class="p">)</span>
 <span class="p">{</span>
     <span class="n">poolp</span> <span class="n">pool</span><span class="p">;</span>
@@ -484,7 +484,7 @@ layer 0: Underlying general-purpose allocator (ex: C library malloc)
 <p>此时内存图示</p>
 <p><img alt="pool2" src="/imgs/python-source/python-memory-pools4.png"/></p>
 <p>此时再一个block分配调用进来, 执行分配, 进入的逻辑是<code>代码-1</code></p>
-<div class="monokai"><pre>            <span class="n">bp</span> <span class="o">=</span> <span class="n">pool</span><span class="o">-&gt;</span><span class="n">freeblock</span><span class="p">;</span> <span class="c1">// 指针指向空闲block起始位置</span>
+<div class="monokai"><pre><span></span>            <span class="n">bp</span> <span class="o">=</span> <span class="n">pool</span><span class="o">-&gt;</span><span class="n">freeblock</span><span class="p">;</span> <span class="c1">// 指针指向空闲block起始位置</span>
             <span class="c1">// 代码-1</span>
             <span class="c1">// 调整 pool-&gt;freeblock (假设A节点)指向链表下一个, 即bp首字节指向的下一个节点(假设B节点) , 如果此时!= NULL</span>
             <span class="c1">// 表示 A节点可用, 直接返回</span>
@@ -496,7 +496,7 @@ layer 0: Underlying general-purpose allocator (ex: C library malloc)
 <p><img alt="pool2" src="/imgs/python-source/python-memory-pools5.png"/></p>
 <h4 id="poolblock-3-pool">pool进行block分配 - 3 pool用完了</h4>
 <p>pool中内存空间都用完了, 进入<code>代码-3</code></p>
-<div class="monokai"><pre>            <span class="n">bp</span> <span class="o">=</span> <span class="n">pool</span><span class="o">-&gt;</span><span class="n">freeblock</span><span class="p">;</span> <span class="c1">// 指针指向空闲block起始位置</span>
+<div class="monokai"><pre><span></span>            <span class="n">bp</span> <span class="o">=</span> <span class="n">pool</span><span class="o">-&gt;</span><span class="n">freeblock</span><span class="p">;</span> <span class="c1">// 指针指向空闲block起始位置</span>
 
 
             <span class="c1">// 代码-3</span>
@@ -520,7 +520,6 @@ layer 0: Underlying general-purpose allocator (ex: C library malloc)
         <div class="donation">
             <center>
                 <div style="width: 70%;">
-                    <img src="/imgs/life/donation.png" style="float: left; width:50%;"/>
                     <img src="/imgs/life/donation_w.png" style="float: left; width:50%;"/>
                     <strong> 如果我的文章对你有所帮助, 可以扫码进行小额捐赠 or 分享给更多人. 多谢支持:)</strong>
                 </div>

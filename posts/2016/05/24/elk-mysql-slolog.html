@@ -75,7 +75,7 @@
     </section>
 
         <section id="toc">
-            <html><head></head><body><div id="toc"><ul><li><a class="toc-href" href="#" title="Logstash+ElasticSearch处理mysql慢查询日志">Logstash+ElasticSearch处理mysql慢查询日志</a><ul><li><a class="toc-href" href="#1" title="1. 找到日志的位置">1. 找到日志的位置</a></li><li><a class="toc-href" href="#2" title="2. 慢查询日志">2. 慢查询日志</a></li><li><a class="toc-href" href="#3-logstash" title="3. 使用 logstash 采集">3. 使用 logstash 采集</a></li><li><a class="toc-href" href="#4" title="4. 写查询">4. 写查询</a></li><li><a class="toc-href" href="#5" title="5. 渲染页面">5. 渲染页面</a></li></ul></li></ul></div></body></html>
+            <div id="toc"><ul><li><a class="toc-href" href="#" title="Logstash+ElasticSearch处理mysql慢查询日志">Logstash+ElasticSearch处理mysql慢查询日志</a><ul><li><a class="toc-href" href="#1" title="1. 找到日志的位置">1. 找到日志的位置</a></li><li><a class="toc-href" href="#2" title="2. 慢查询日志">2. 慢查询日志</a></li><li><a class="toc-href" href="#3-logstash" title="3. 使用 logstash 采集">3. 使用 logstash 采集</a></li><li><a class="toc-href" href="#4" title="4. 写查询">4. 写查询</a></li><li><a class="toc-href" href="#5" title="5. 渲染页面">5. 渲染页面</a></li></ul></li></ul></div>
         </section>
     <section id="content">
         <p>遇到一个需求, 需要查询某些业务的慢查询日志. 结果DBA平台那边提供的慢查询日志不能解决实际的业务场景(上报的字段补全), 无奈, 自己挽起袖子上</p>
@@ -83,7 +83,7 @@
 <p>开始吧</p>
 <h2 id="1">1. 找到日志的位置</h2>
 <p>先确认是否开启了, 然后找到日志文件的位置</p>
-<div class="monokai"><pre>&gt; show variables like '%slow%';
+<div class="monokai"><pre><span></span>&gt; show variables like '%slow%';
 +---------------------+-------------------------------------+
 | Variable_name       | Value                               |
 +---------------------+-------------------------------------+
@@ -95,7 +95,7 @@
 </pre></div>
 <h2 id="2">2. 慢查询日志</h2>
 <p>格式基本是如下, 当然, 格式如果有差异, 需要根据具体格式进行小的修改</p>
-<div class="monokai"><pre># Time: 160524  5:12:29
+<div class="monokai"><pre><span></span># Time: 160524  5:12:29
 # User@Host: user_a[xxxx] @  [10.166.140.109]
 # Query_time: 1.711086  Lock_time: 0.000040 Rows_sent: 385489  Rows_examined: 385489
 use dbname;
@@ -107,7 +107,7 @@ SELECT 1 from dbname;
 <p>但是, 需要处理的几个问题</p>
 <p>第一个是, 去除掉没用的信息</p>
 <p>第二个, 慢查询sql, 是会反复出现的, 所以, 执行次数成了一个很重要的指标. 我们要做的, 就是<code>降噪</code>(将参数去掉, 涉及带引号的内容+数字), 将参数类信息过滤掉, 留下核心的sql, 然后计算出一个hash, 这样就可以在查询, 根据这个字段进行聚合. 这里用到了 <a href="https://www.elastic.co/guide/en/logstash/current/plugins-filters-mutate.html#plugins-filters-mutate-add_field">mutate</a> 以及 <a href="https://www.elastic.co/guide/en/logstash/current/plugins-filters-checksum.html">checksum</a></p>
-<div class="monokai"><pre>  # calculate unique hash
+<div class="monokai"><pre><span></span>  # calculate unique hash
   mutate {
     add_field =&gt; {"sql_for_hash" =&gt; "%{sql}"}
   }
@@ -127,7 +127,7 @@ SELECT 1 from dbname;
 <p>第四个, 默认多行处理, 一条sql可能停留在采集端没有上报, 需要等到下一条sql进来, 这样是有问题的, 如果一直没有后续, 最后一条将不会进入引擎. 所以, 在配置中设定了超过5s自动上报</p>
 <p>完整的logstash配置文件(具体使用可能需要根据自身日志格式做些小调整)<br/>
 注意, 里面的pattern <code>ALLWORD [\s\S]*</code></p>
-<div class="monokai"><pre><span class="nt">input</span> <span class="p">{</span>
+<div class="monokai"><pre><span></span><span class="nt">input</span> <span class="p">{</span>
   <span class="n">file</span> <span class="err">{</span>
     <span class="n">path</span> <span class="o">=&gt;</span> <span class="cp">[</span><span class="s2">"/data/mysqllog/20000/slow-query.log"</span><span class="cp">]</span>
     <span class="n">sincedb_path</span> <span class="o">=&gt;</span> <span class="s2">"/data/LogNew/logstash/sincedb/mysql.sincedb"</span>
@@ -220,7 +220,7 @@ SELECT 1 from dbname;
 <span class="err">}</span>
 </pre></div>
 <p>采集进去的内容</p>
-<div class="monokai"><pre>{
+<div class="monokai"><pre><span></span>{
            "@timestamp" =&gt; "2016-05-23T21:12:59.000Z",
              "@version" =&gt; "1",
                  "tags" =&gt; [
@@ -244,7 +244,7 @@ SELECT 1 from dbname;
 <p>查询, 我们需要按<code>logstash_checksum</code>进行聚合, 然后按照次数由多到少降序展示, 同时, 每个<code>logstash_checksum</code>需要有一条具体的sql进行展示</p>
 <p>通过 es 的 <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-metrics-top-hits-aggregation.html">Top hits Aggregation</a> 可以完美地解决这个查询需求</p>
 <p>查询的query</p>
-<div class="monokai"><pre>body = {
+<div class="monokai"><pre><span></span>body = {
     "from": 0,
     "size": 0,
     "query": {
@@ -296,7 +296,7 @@ SELECT 1 from dbname;
 <p>跟这个写法相关的几个参考链接: <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-bucket-terms-aggregation.html#search-aggregations-bucket-terms-aggregation">Terms Aggregation</a> /  <a href="http://stackoverflow.com/questions/25986538/elasticsearch-filter-document-group-by-field">Elasticsearch filter document group by field</a></p>
 <h2 id="5">5. 渲染页面</h2>
 <p>python的后台, 使用<code>sqlparse</code>包, 将sql进行格式化(换行/缩进/大小写), 再往前端传. <a href="https://pypi.python.org/pypi/sqlparse">sqlparse</a></p>
-<div class="monokai"><pre>&gt;&gt;&gt; sql = 'select * from foo where id in (select id from bar);'
+<div class="monokai"><pre><span></span>&gt;&gt;&gt; sql = 'select * from foo where id in (select id from bar);'
 &gt;&gt;&gt; print sqlparse.format(sql, reindent=True, keyword_case='upper')
 SELECT *
 FROM foo
@@ -315,7 +315,6 @@ WHERE id IN
         <div class="donation">
             <center>
                 <div style="width: 70%;">
-                    <img src="/imgs/life/donation.png" style="float: left; width:50%;"/>
                     <img src="/imgs/life/donation_w.png" style="float: left; width:50%;"/>
                     <strong> 如果我的文章对你有所帮助, 可以扫码进行小额捐赠 or 分享给更多人. 多谢支持:)</strong>
                 </div>
