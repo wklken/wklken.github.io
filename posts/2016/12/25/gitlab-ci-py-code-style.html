@@ -75,12 +75,12 @@
     </section>
 
         <section id="toc">
-            <div id="toc"><ul><li><a class="toc-href" href="#" title="[文档]gitlab-ci配置python代码风格检查">[文档]gitlab-ci配置python代码风格检查</a><ul><li><a class="toc-href" href="#gitlab-ci" title="gitlab-ci">gitlab-ci</a></li><li><a class="toc-href" href="#gitlab-ci-multi-runner" title="gitlab-ci-multi-runner 配置">gitlab-ci-multi-runner 配置</a><ul><li><a class="toc-href" href="#1-runner" title="1. 部署runner">1. 部署runner</a></li><li><a class="toc-href" href="#2-pep8" title="2. pep8检查环境配置">2. pep8检查环境配置</a></li></ul></li><li><a class="toc-href" href="#flake8_1" title="在项目中使用flake8进行风格检查">在项目中使用flake8进行风格检查</a><ul><li><a class="toc-href" href="#1-flake8" title="1. 在项目中新增.flake8配置文件">1. 在项目中新增.flake8配置文件</a></li><li><a class="toc-href" href="#2-gitlab-ciyml" title="2. 在项目中新增.gitlab-ci.yml配置文件">2. 在项目中新增.gitlab-ci.yml配置文件</a></li><li><a class="toc-href" href="#3-runner" title="3. 配置项目的runner 及测试">3. 配置项目的runner 及测试</a></li></ul></li><li><a class="toc-href" href="#reference_1" title="reference">reference</a></li></ul></li></ul></div>
+            <div id="toc"><ul><li><a class="toc-href" href="#" title="[文档]gitlab-ci配置python代码风格检查">[文档]gitlab-ci配置python代码风格检查</a><ul><li><a class="toc-href" href="#gitlab-ci" title="gitlab-ci简介">gitlab-ci简介</a></li><li><a class="toc-href" href="#gitlab-ci-multi-runner" title="gitlab-ci-multi-runner 配置">gitlab-ci-multi-runner 配置</a><ul><li><a class="toc-href" href="#1-runner" title="1. 部署runner">1. 部署runner</a></li><li><a class="toc-href" href="#2-pep8" title="2. pep8检查环境配置">2. pep8检查环境配置</a></li></ul></li><li><a class="toc-href" href="#flake8_1" title="在项目中使用flake8进行风格检查">在项目中使用flake8进行风格检查</a><ul><li><a class="toc-href" href="#1-flake8" title="1. 在项目中新增.flake8配置文件">1. 在项目中新增.flake8配置文件</a></li><li><a class="toc-href" href="#2-gitlab-ciyml" title="2. 在项目中新增.gitlab-ci.yml配置文件">2. 在项目中新增.gitlab-ci.yml配置文件</a></li><li><a class="toc-href" href="#3-runner" title="3. 配置项目的runner 及测试">3. 配置项目的runner 及测试</a></li></ul></li><li><a class="toc-href" href="#reference_1" title="reference">reference</a></li></ul></li></ul></div>
         </section>
     <section id="content">
         <p>之前关注了下持续集成相关的东西, 做了<code>jenkins</code>和<code>gitlab-ci</code>两套东西对比, 发现其实对于轻量级的持续集成, <code>gitlab-ci</code>刚刚好, 风格检查/运行自动化测试/自动部署/提单等等, 通过简单几步就可以实现. 所以最终放弃了<code>jenkins</code>方案(环境/插件/维护等, 会耗费相对更多的时间, 违背了解决问题的初衷)</p>
 <p>以下, 简要描述了如何搭建一套<code>python</code>代码风格检查的流程</p>
-<h2 id="gitlab-ci">gitlab-ci</h2>
+<h2 id="gitlab-ci">gitlab-ci简介</h2>
 <ul>
 <li><a href="https://about.gitlab.com/gitlab-ci/">gitlab-ci 简介</a></li>
 <li><a href="https://docs.gitlab.com/ce/ci/">gitlab-ci 文档</a></li>
@@ -93,64 +93,56 @@
 <p>这里演示的是<code>centos</code>下部署</p>
 <ol>
 <li>确认部署机器(不和重要业务放在一起, runner可能占用资源)</li>
-<li>
-<p>添加repo到文件 <code>/etc/yum.repos.d/gitlab-ci-multi-runner.repo</code></p>
-<div class="monokai"><pre><span></span>```
-[gitlab-ci-multi-runner]
-name=gitlab-ci-multi-runner
-baseurl=http://mirrors.tuna.tsinghua.edu.cn/gitlab-ci-multi-runner/yum/el6
-repo_gpgcheck=0
-gpgcheck=0
-enabled=1
-gpgkey=https://packages.gitlab.com/gpg.key
-```
+<li>添加repo到文件 <code>/etc/yum.repos.d/gitlab-ci-multi-runner.repo</code></li>
+</ol>
+<div class="monokai"><pre><span></span><span class="k">[gitlab-ci-multi-runner]</span>
+<span class="na">name</span><span class="o">=</span><span class="s">gitlab-ci-multi-runner</span>
+<span class="na">baseurl</span><span class="o">=</span><span class="s">http://mirrors.tuna.tsinghua.edu.cn/gitlab-ci-multi-runner/yum/el6</span>
+<span class="na">repo_gpgcheck</span><span class="o">=</span><span class="s">0</span>
+<span class="na">gpgcheck</span><span class="o">=</span><span class="s">0</span>
+<span class="na">enabled</span><span class="o">=</span><span class="s">1</span>
+<span class="na">gpgkey</span><span class="o">=</span><span class="s">https://packages.gitlab.com/gpg.key</span>
 </pre></div>
-</li>
-<li>
-<p>执行</p>
-<div class="monokai"><pre><span></span>```
-$ yum makecache
+<ol>
+<li>执行</li>
+</ol>
+<div class="monokai"><pre><span></span>$ yum makecache
 $ yum install gitlab-ci-multi-runner
 
-# 可以指定版本
+<span class="c1"># 可以指定版本</span>
 $ yum install gitlab-ci-multi-runner-1.6.1-1.x86_64
-```
 </pre></div>
-</li>
+<ol>
 <li>
 <p>获取<code>token</code>: 到<code>gitlab</code>进入<code>admin area</code>-<code>overview</code>-<code>Runners</code>, 获取<code>token</code></p>
 </li>
 <li>
 <p>执行注册</p>
-<div class="monokai"><pre><span></span>```bash
-$ gitlab-ci-multi-runner register
+</li>
+</ol>
+<div class="monokai"><pre><span></span>$ gitlab-ci-multi-runner register
 
 Running in system-mode.
 
-Please enter the gitlab-ci coordinator URL (e.g. https://gitlab.com/):
-http://mygitlab.com/ci                 # 地址, 注意填写正确
-Please enter the gitlab-ci token for this runner:
-DX_XXXXXXXXXXXXXXXXX                   # token, 从 gitlab 项目/管理区域获取
-Please enter the gitlab-ci description for this runner:
-[argus-master]: runner for open_paas   # 描述
-Please enter the gitlab-ci tags for this runner (comma separated):
-open_paas,shell                        # tag
-Registering runner... succeeded                     runner=DX_VDrXj
+Please enter the gitlab-ci coordinator URL <span class="o">(</span>e.g. https://gitlab.com/<span class="o">)</span>:
+http://mygitlab.com/ci                 <span class="c1"># 地址, 注意填写正确</span>
+Please enter the gitlab-ci token <span class="k">for</span> this runner:
+DX_XXXXXXXXXXXXXXXXX                   <span class="c1"># token, 从 gitlab 项目/管理区域获取</span>
+Please enter the gitlab-ci description <span class="k">for</span> this runner:
+<span class="o">[</span>argus-master<span class="o">]</span>: runner <span class="k">for</span> open_paas   <span class="c1"># 描述</span>
+Please enter the gitlab-ci tags <span class="k">for</span> this runner <span class="o">(</span>comma separated<span class="o">)</span>:
+open_paas,shell                        <span class="c1"># tag</span>
+Registering runner... succeeded                     <span class="nv">runner</span><span class="o">=</span>DX_VDrXj
 Please enter the executor: docker, shell, docker+machine, docker-ssh+machine, kubernetes, docker-ssh, parallels, ssh, virtualbox:
-shell                                  # runner执行类型, 选shell
-Runner registered successfully. Feel free to start it, but if it's running already the config should be automatically reloaded!
-```
+shell                                  <span class="c1"># runner执行类型, 选shell</span>
+Runner registered successfully. Feel free to start it, but <span class="k">if</span> it<span class="err">'</span>s running already the config should be automatically reloaded!
 </pre></div>
-</li>
-<li>
-<p>启动, 以<code>root</code>权限</p>
-<div class="monokai"><pre><span></span>```bash
-$ gitlab-ci-multi-runner  start
-$ ps aux | grep gitlab-ci-multi-runner | grep -v 'grep'
-```
-</pre></div>
-</li>
+<ol>
+<li>启动, 以<code>root</code>权限</li>
 </ol>
+<div class="monokai"><pre><span></span>$ gitlab-ci-multi-runner  start
+$ ps aux <span class="p">|</span> grep gitlab-ci-multi-runner <span class="p">|</span> grep -v <span class="s1">'grep'</span>
+</pre></div>
 <h3 id="2-pep8">2. pep8检查环境配置</h3>
 <p>在<code>runner</code>运行的机器上, 部署对应<code>python</code>环境. 这里我使用的是<code>stackless-python</code>, 可以根据自身机器环境配置. 建议用<code>virtualenv</code>虚拟环境</p>
 <p>在<code>runner</code>机器上安装<code>python2.7</code>及<code>flake8</code></p>

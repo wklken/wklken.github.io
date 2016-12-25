@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom"><title>wklken's blog</title><link href="http://www.wklken.me/" rel="alternate"></link><link href="http://www.wklken.me/feeds/all.atom.xml" rel="self"></link><id>http://www.wklken.me/</id><updated>2016-12-25T00:00:00+08:00</updated><entry><title>[文档]gitlab-ci配置python代码风格检查</title><link href="http://www.wklken.me/posts/2016/12/25/gitlab-ci-py-code-style.html" rel="alternate"></link><published>2016-12-25T00:00:00+08:00</published><updated>2016-12-25T00:00:00+08:00</updated><author><name>wklken</name></author><id>tag:www.wklken.me,2016-12-25:posts/2016/12/25/gitlab-ci-py-code-style.html</id><summary type="html">&lt;p&gt;之前关注了下持续集成相关的东西, 做了&lt;code&gt;jenkins&lt;/code&gt;和&lt;code&gt;gitlab-ci&lt;/code&gt;两套东西对比, 发现其实对于轻量级的持续集成, &lt;code&gt;gitlab-ci&lt;/code&gt;刚刚好, 风格检查/运行自动化测试/自动部署/提单等等, 通过简单几步就可以实现. 所以最终放弃了&lt;code&gt;jenkins&lt;/code&gt;方案(环境/插件/维护等, 会耗费相对更多的时间, 违背了解决问题的初衷)&lt;/p&gt;
 &lt;p&gt;以下, 简要描述了如何搭建一套&lt;code&gt;python&lt;/code&gt;代码风格检查的流程&lt;/p&gt;
-&lt;h2 id="gitlab-ci"&gt;gitlab-ci&lt;/h2&gt;
+&lt;h2 id="gitlab-ci"&gt;gitlab-ci简介&lt;/h2&gt;
 &lt;ul&gt;
 &lt;li&gt;&lt;a href="https://about.gitlab.com/gitlab-ci/"&gt;gitlab-ci 简介&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href="https://docs.gitlab.com/ce/ci/"&gt;gitlab-ci 文档&lt;/a&gt;&lt;/li&gt;
@@ -14,64 +14,56 @@
 &lt;p&gt;这里演示的是&lt;code&gt;centos&lt;/code&gt;下部署&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;确认部署机器(不和重要业务放在一起, runner可能占用资源)&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;添加repo到文件 &lt;code&gt;/etc/yum.repos.d/gitlab-ci-multi-runner.repo&lt;/code&gt;&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;```
-[gitlab-ci-multi-runner]
-name=gitlab-ci-multi-runner
-baseurl=http://mirrors.tuna.tsinghua.edu.cn/gitlab-ci-multi-runner/yum/el6
-repo_gpgcheck=0
-gpgcheck=0
-enabled=1
-gpgkey=https://packages.gitlab.com/gpg.key
-```
+&lt;li&gt;添加repo到文件 &lt;code&gt;/etc/yum.repos.d/gitlab-ci-multi-runner.repo&lt;/code&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;[gitlab-ci-multi-runner]&lt;/span&gt;
+&lt;span class="na"&gt;name&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;gitlab-ci-multi-runner&lt;/span&gt;
+&lt;span class="na"&gt;baseurl&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;http://mirrors.tuna.tsinghua.edu.cn/gitlab-ci-multi-runner/yum/el6&lt;/span&gt;
+&lt;span class="na"&gt;repo_gpgcheck&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;0&lt;/span&gt;
+&lt;span class="na"&gt;gpgcheck&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;0&lt;/span&gt;
+&lt;span class="na"&gt;enabled&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;1&lt;/span&gt;
+&lt;span class="na"&gt;gpgkey&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;https://packages.gitlab.com/gpg.key&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;执行&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;```
-$ yum makecache
+&lt;ol&gt;
+&lt;li&gt;执行&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ yum makecache
 $ yum install gitlab-ci-multi-runner
 
-# 可以指定版本
+&lt;span class="c1"&gt;# 可以指定版本&lt;/span&gt;
 $ yum install gitlab-ci-multi-runner-1.6.1-1.x86_64
-```
 &lt;/pre&gt;&lt;/div&gt;
-&lt;/li&gt;
+&lt;ol&gt;
 &lt;li&gt;
 &lt;p&gt;获取&lt;code&gt;token&lt;/code&gt;: 到&lt;code&gt;gitlab&lt;/code&gt;进入&lt;code&gt;admin area&lt;/code&gt;-&lt;code&gt;overview&lt;/code&gt;-&lt;code&gt;Runners&lt;/code&gt;, 获取&lt;code&gt;token&lt;/code&gt;&lt;/p&gt;
 &lt;/li&gt;
 &lt;li&gt;
 &lt;p&gt;执行注册&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;```bash
-$ gitlab-ci-multi-runner register
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ gitlab-ci-multi-runner register
 
 Running in system-mode.
 
-Please enter the gitlab-ci coordinator URL (e.g. https://gitlab.com/):
-http://mygitlab.com/ci                 # 地址, 注意填写正确
-Please enter the gitlab-ci token for this runner:
-DX_XXXXXXXXXXXXXXXXX                   # token, 从 gitlab 项目/管理区域获取
-Please enter the gitlab-ci description for this runner:
-[argus-master]: runner for open_paas   # 描述
-Please enter the gitlab-ci tags for this runner (comma separated):
-open_paas,shell                        # tag
-Registering runner... succeeded                     runner=DX_VDrXj
+Please enter the gitlab-ci coordinator URL &lt;span class="o"&gt;(&lt;/span&gt;e.g. https://gitlab.com/&lt;span class="o"&gt;)&lt;/span&gt;:
+http://mygitlab.com/ci                 &lt;span class="c1"&gt;# 地址, 注意填写正确&lt;/span&gt;
+Please enter the gitlab-ci token &lt;span class="k"&gt;for&lt;/span&gt; this runner:
+DX_XXXXXXXXXXXXXXXXX                   &lt;span class="c1"&gt;# token, 从 gitlab 项目/管理区域获取&lt;/span&gt;
+Please enter the gitlab-ci description &lt;span class="k"&gt;for&lt;/span&gt; this runner:
+&lt;span class="o"&gt;[&lt;/span&gt;argus-master&lt;span class="o"&gt;]&lt;/span&gt;: runner &lt;span class="k"&gt;for&lt;/span&gt; open_paas   &lt;span class="c1"&gt;# 描述&lt;/span&gt;
+Please enter the gitlab-ci tags &lt;span class="k"&gt;for&lt;/span&gt; this runner &lt;span class="o"&gt;(&lt;/span&gt;comma separated&lt;span class="o"&gt;)&lt;/span&gt;:
+open_paas,shell                        &lt;span class="c1"&gt;# tag&lt;/span&gt;
+Registering runner... succeeded                     &lt;span class="nv"&gt;runner&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;DX_VDrXj
 Please enter the executor: docker, shell, docker+machine, docker-ssh+machine, kubernetes, docker-ssh, parallels, ssh, virtualbox:
-shell                                  # runner执行类型, 选shell
-Runner registered successfully. Feel free to start it, but if it's running already the config should be automatically reloaded!
-```
+shell                                  &lt;span class="c1"&gt;# runner执行类型, 选shell&lt;/span&gt;
+Runner registered successfully. Feel free to start it, but &lt;span class="k"&gt;if&lt;/span&gt; it&lt;span class="err"&gt;'&lt;/span&gt;s running already the config should be automatically reloaded!
 &lt;/pre&gt;&lt;/div&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;启动, 以&lt;code&gt;root&lt;/code&gt;权限&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;```bash
-$ gitlab-ci-multi-runner  start
-$ ps aux | grep gitlab-ci-multi-runner | grep -v 'grep'
-```
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/li&gt;
+&lt;ol&gt;
+&lt;li&gt;启动, 以&lt;code&gt;root&lt;/code&gt;权限&lt;/li&gt;
 &lt;/ol&gt;
+&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ gitlab-ci-multi-runner  start
+$ ps aux &lt;span class="p"&gt;|&lt;/span&gt; grep gitlab-ci-multi-runner &lt;span class="p"&gt;|&lt;/span&gt; grep -v &lt;span class="s1"&gt;'grep'&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
 &lt;h3 id="2-pep8"&gt;2. pep8检查环境配置&lt;/h3&gt;
 &lt;p&gt;在&lt;code&gt;runner&lt;/code&gt;运行的机器上, 部署对应&lt;code&gt;python&lt;/code&gt;环境. 这里我使用的是&lt;code&gt;stackless-python&lt;/code&gt;, 可以根据自身机器环境配置. 建议用&lt;code&gt;virtualenv&lt;/code&gt;虚拟环境&lt;/p&gt;
 &lt;p&gt;在&lt;code&gt;runner&lt;/code&gt;机器上安装&lt;code&gt;python2.7&lt;/code&gt;及&lt;code&gt;flake8&lt;/code&gt;&lt;/p&gt;
