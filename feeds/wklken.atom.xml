@@ -1,5 +1,146 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>wklken's blog</title><link href="http://www.wklken.me/" rel="alternate"></link><link href="http://www.wklken.me/feeds/wklken.atom.xml" rel="self"></link><id>http://www.wklken.me/</id><updated>2016-12-04T20:56:00+08:00</updated><entry><title>读书笔记-重构: 章11 处理概括关系</title><link href="http://www.wklken.me/posts/2016/12/04/refactoring-06.html" rel="alternate"></link><published>2016-12-04T20:56:00+08:00</published><updated>2016-12-04T20:56:00+08:00</updated><author><name>wklken</name></author><id>tag:www.wklken.me,2016-12-04:posts/2016/12/04/refactoring-06.html</id><summary type="html">&lt;p&gt;重构的读书笔记, 简单转成python版本的code, 供参考&lt;/p&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>wklken's blog</title><link href="http://www.wklken.me/" rel="alternate"></link><link href="http://www.wklken.me/feeds/wklken.atom.xml" rel="self"></link><id>http://www.wklken.me/</id><updated>2016-12-25T00:00:00+08:00</updated><entry><title>[文档]gitlab-ci配置python代码风格检查</title><link href="http://www.wklken.me/posts/2016/12/25/gitlab-ci-py-code-style.html" rel="alternate"></link><published>2016-12-25T00:00:00+08:00</published><updated>2016-12-25T00:00:00+08:00</updated><author><name>wklken</name></author><id>tag:www.wklken.me,2016-12-25:posts/2016/12/25/gitlab-ci-py-code-style.html</id><summary type="html">&lt;p&gt;之前关注了下持续集成相关的东西, 做了&lt;code&gt;jenkins&lt;/code&gt;和&lt;code&gt;gitlab-ci&lt;/code&gt;两套东西对比, 发现其实对于轻量级的持续集成, &lt;code&gt;gitlab-ci&lt;/code&gt;刚刚好, 风格检查/运行自动化测试/自动部署/提单等等, 通过简单几步就可以实现. 所以最终放弃了&lt;code&gt;jenkins&lt;/code&gt;方案(环境/插件/维护等, 会耗费相对更多的时间, 违背了解决问题的初衷)&lt;/p&gt;
+&lt;p&gt;以下, 简要描述了如何搭建一套&lt;code&gt;python&lt;/code&gt;代码风格检查的流程&lt;/p&gt;
+&lt;h2 id="gitlab-ci"&gt;gitlab-ci&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://about.gitlab.com/gitlab-ci/"&gt;gitlab-ci 简介&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://docs.gitlab.com/ce/ci/"&gt;gitlab-ci 文档&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img alt="gitlab_ci" src="/imgs/cicd/gitlab_ci.jpg"/&gt;&lt;/p&gt;
+&lt;p&gt;即, 除了我们本身部署的&lt;code&gt;gitlab&lt;/code&gt;服务器, 我们还需要部署至少一台&lt;code&gt;runner&lt;/code&gt;机器&lt;/p&gt;
+&lt;h2 id="gitlab-ci-multi-runner"&gt;gitlab-ci-multi-runner 配置&lt;/h2&gt;
+&lt;h3 id="1-runner"&gt;1. 部署runner&lt;/h3&gt;
+&lt;p&gt;官方的安装 &lt;a href="https://gitlab.com/gitlab-org/gitlab-ci-multi-runner#install-gitlab-runner"&gt;文档&lt;/a&gt;. 根据部署系统选择对应部署文档.&lt;/p&gt;
+&lt;p&gt;这里演示的是&lt;code&gt;centos&lt;/code&gt;下部署&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;确认部署机器(不和重要业务放在一起, runner可能占用资源)&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;添加repo到文件 &lt;code&gt;/etc/yum.repos.d/gitlab-ci-multi-runner.repo&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;[gitlab-ci-multi-runner]
+name=gitlab-ci-multi-runner
+baseurl=http://mirrors.tuna.tsinghua.edu.cn/gitlab-ci-multi-runner/yum/el6
+repo_gpgcheck=0
+gpgcheck=0
+enabled=1
+gpgkey=https://packages.gitlab.com/gpg.key&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;执行&lt;/p&gt;
+&lt;p&gt;```&lt;br/&gt;
+$ yum makecache&lt;br/&gt;
+$ yum install gitlab-ci-multi-runner&lt;/p&gt;
+&lt;h1 id="_3"&gt;可以指定版本&lt;/h1&gt;
+&lt;p&gt;$ yum install gitlab-ci-multi-runner-1.6.1-1.x86_64&lt;br/&gt;
+```&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;获取&lt;code&gt;token&lt;/code&gt;: 到&lt;code&gt;gitlab&lt;/code&gt;进入&lt;code&gt;admin area&lt;/code&gt;-&lt;code&gt;overview&lt;/code&gt;-&lt;code&gt;Runners&lt;/code&gt;, 获取&lt;code&gt;token&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;执行注册&lt;/p&gt;
+&lt;p&gt;```bash&lt;br/&gt;
+$ gitlab-ci-multi-runner register&lt;/p&gt;
+&lt;p&gt;Running in system-mode.&lt;/p&gt;
+&lt;p&gt;Please enter the gitlab-ci coordinator URL (e.g. https://gitlab.com/):&lt;br/&gt;
+http://mygitlab.com/ci                 # 地址, 注意填写正确&lt;br/&gt;
+Please enter the gitlab-ci token for this runner:&lt;br/&gt;
+DX_XXXXXXXXXXXXXXXXX                   # token, 从 gitlab 项目/管理区域获取&lt;br/&gt;
+Please enter the gitlab-ci description for this runner:&lt;br/&gt;
+[argus-master]: runner for open_paas   # 描述&lt;br/&gt;
+Please enter the gitlab-ci tags for this runner (comma separated):&lt;br/&gt;
+open_paas,shell                        # tag&lt;br/&gt;
+Registering runner... succeeded                     runner=DX_VDrXj&lt;br/&gt;
+Please enter the executor: docker, shell, docker+machine, docker-ssh+machine, kubernetes, docker-ssh, parallels, ssh, virtualbox:&lt;br/&gt;
+shell                                  # runner执行类型, 选shell&lt;br/&gt;
+Runner registered successfully. Feel free to start it, but if it's running already the config should be automatically reloaded!&lt;br/&gt;
+```&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;启动, 以&lt;code&gt;root&lt;/code&gt;权限&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;bash
+$ gitlab-ci-multi-runner  start
+$ ps aux | grep gitlab-ci-multi-runner | grep -v 'grep'&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id="2-pep8"&gt;2. pep8检查环境配置&lt;/h3&gt;
+&lt;p&gt;在&lt;code&gt;runner&lt;/code&gt;运行的机器上, 部署对应&lt;code&gt;python&lt;/code&gt;环境. 这里我使用的是&lt;code&gt;stackless-python&lt;/code&gt;, 可以根据自身机器环境配置. 建议用&lt;code&gt;virtualenv&lt;/code&gt;虚拟环境&lt;/p&gt;
+&lt;p&gt;在&lt;code&gt;runner&lt;/code&gt;机器上安装&lt;code&gt;python2.7&lt;/code&gt;及&lt;code&gt;flake8&lt;/code&gt;&lt;/p&gt;
+&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;# install python2.7&lt;/span&gt;
+&lt;span class="c1"&gt;# download stackless-279-export.tar.xz from https://bitbucket.org/stackless-dev/stackless/wiki/Download&lt;/span&gt;
+tar -xf stackless-279-export.tar.xz
+&lt;span class="nb"&gt;cd&lt;/span&gt; stackless-279-export
+mkdir -p /data/gitlab-runner/env/ &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; ./configure --prefix&lt;span class="o"&gt;=&lt;/span&gt;/data/gitlab-runner/env/ &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; make &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; make install
+
+&lt;span class="c1"&gt;# install pip&lt;/span&gt;
+&lt;span class="nb"&gt;cd&lt;/span&gt; /data/gitlab-runner/
+wget https://bootstrap.pypa.io/get-pip.py --no-check-certificate
+
+&lt;span class="c1"&gt;# install flake8&lt;/span&gt;
+env/bin/python get-pip.py
+env/bin/pip install flake8 pep8-naming
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h2 id="flake8_1"&gt;在项目中使用&lt;code&gt;flake8&lt;/code&gt;进行风格检查&lt;/h2&gt;
+&lt;p&gt;需要在项目根目录下增加两个文件: &lt;code&gt;.flake8&lt;/code&gt;及&lt;code&gt;.gitlab-ci.yml&lt;/code&gt;, 提交到&lt;code&gt;gitlab&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;可以设置为项目初始化模板&lt;/p&gt;
+&lt;h3 id="1-flake8"&gt;1. 在项目中新增&lt;code&gt;.flake8&lt;/code&gt;配置文件&lt;/h3&gt;
+&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;[flake8]&lt;/span&gt;
+&lt;span class="na"&gt;ignore&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;W292&lt;/span&gt;
+&lt;span class="na"&gt;exclude&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;&lt;/span&gt;
+&lt;span class="s"&gt;    *migrations*,&lt;/span&gt;
+&lt;span class="s"&gt;    # python related&lt;/span&gt;
+&lt;span class="s"&gt;    *.pyc,&lt;/span&gt;
+&lt;span class="s"&gt;    .git,&lt;/span&gt;
+&lt;span class="s"&gt;    __pycache__,&lt;/span&gt;
+
+&lt;span class="na"&gt;max-line-length&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;120&lt;/span&gt;
+&lt;span class="na"&gt;max-complexity&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;12&lt;/span&gt;
+&lt;span class="na"&gt;format&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;pylint&lt;/span&gt;
+&lt;span class="na"&gt;show_source&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;True&lt;/span&gt;
+&lt;span class="na"&gt;statistics&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;True&lt;/span&gt;
+&lt;span class="na"&gt;count&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;True&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;说明:&lt;/p&gt;
+&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;注意, .flake8里面不要带中文
+ignore = 忽略错误类型
+exclude = 不检查的文件正则列表
+max-line-length = 单行最大字符数120
+max-complexity = 代码复杂度等级
+format = 展示格式
+show_source = 显示源代码
+statistics = 展示统计
+count = 展示总错误数
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;本地运行:&lt;/p&gt;
+&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ pip install flake8 pep8-naming
+$ flake8 .
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h3 id="2-gitlab-ciyml"&gt;2. 在项目中新增&lt;code&gt;.gitlab-ci.yml&lt;/code&gt;配置文件&lt;/h3&gt;
+&lt;p&gt;注意, 这里将&lt;code&gt;runner&lt;/code&gt;上的虚拟环境安装在了&lt;code&gt;/data/gitlab-runner&lt;/code&gt;, 需要自行根据&lt;code&gt;runner&lt;/code&gt;机器上python环境进行变更&lt;/p&gt;
+&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;before_script&lt;/span&gt;&lt;span class="p p-Indicator"&gt;:&lt;/span&gt;
+  &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;source /data/gitlab-runner/env/bin/activate&lt;/span&gt;
+  &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;which python&lt;/span&gt;
+  &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;python --version&lt;/span&gt;
+  &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;pip install flake8 pep8-naming&lt;/span&gt;
+
+
+&lt;span class="l l-Scalar l-Scalar-Plain"&gt;pep8&lt;/span&gt;&lt;span class="p p-Indicator"&gt;:&lt;/span&gt;
+  &lt;span class="l l-Scalar l-Scalar-Plain"&gt;script&lt;/span&gt;&lt;span class="p p-Indicator"&gt;:&lt;/span&gt;
+    &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;flake8 .&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h3 id="3-runner"&gt;3. 配置项目的runner 及测试&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;给项目增加runnser: 到&lt;code&gt;gitlab&lt;/code&gt; - &lt;code&gt;projects&lt;/code&gt; - 点击到达项目主页   - &lt;code&gt;settings&lt;/code&gt; - &lt;code&gt;runners&lt;/code&gt; - 配置shard runners&lt;/li&gt;
+&lt;li&gt;测试: 提交一次代码, 查看 &lt;code&gt;gitlab&lt;/code&gt; - &lt;code&gt;projects&lt;/code&gt; - 项目主页 - &lt;code&gt;Pipelines&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;配置邮件接收人: 项目管理员可以开启邮件通知: &lt;code&gt;project-settings-Services-Builds Emails&lt;/code&gt;.  &lt;strong&gt;重要&lt;/strong&gt; 启用 &lt;code&gt;build emails&lt;/code&gt;服务, &lt;code&gt;build&lt;/code&gt;之后发送报告&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;之后, 将可以在&lt;code&gt;gitlab&lt;/code&gt;项目主页, 看到每一次代码提交后的风格检查结果&lt;/p&gt;
+&lt;h2 id="reference_1"&gt;reference&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://gitlab.com/gitlab-org/gitlab-ci-multi-runner#install-gitlab-runner"&gt;gitlab-ci-multi-runner文档&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://flake8.pycqa.org/en/latest/user/options.html"&gt;flake8-options&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;the end!&lt;/p&gt;
+&lt;p&gt;后续, 将介绍, 配置进行单元测试(测试用例/覆盖率等), 部署等.&lt;/p&gt;</summary><category term="cicd"></category></entry><entry><title>读书笔记-重构: 章11 处理概括关系</title><link href="http://www.wklken.me/posts/2016/12/04/refactoring-06.html" rel="alternate"></link><published>2016-12-04T20:56:00+08:00</published><updated>2016-12-04T20:56:00+08:00</updated><author><name>wklken</name></author><id>tag:www.wklken.me,2016-12-04:posts/2016/12/04/refactoring-06.html</id><summary type="html">&lt;p&gt;重构的读书笔记, 简单转成python版本的code, 供参考&lt;/p&gt;
 &lt;h2 id="11"&gt;章11 处理概括关系&lt;/h2&gt;
 &lt;p&gt;多是类相关, 浅显易懂, 不写示例代码了, 有兴趣可以看看原书的例子&lt;/p&gt;
 &lt;h4 id="111-pull-up-field"&gt;11.1 Pull Up Field 字段上移&lt;/h4&gt;
