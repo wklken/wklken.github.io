@@ -84,45 +84,23 @@
 <p>ps. 之前一篇 <a href="http://www.wklken.me/posts/2013/11/23/nginx-base.html">nginx基础笔记</a></p>
 <h2 id="shi-yong-du-li-mu-lu-ran-hou-includeju-ti-pei-zhi">使用独立目录, 然后include具体配置</h2>
 <p>目录</p>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
-2
-3
-4</pre></div></td><td class="code"><div class="monokai"><pre><span></span>nginx.conf
+<div class="monokai"><pre><span></span>nginx.conf
 site/
     a.conf
     b.conf
 </pre></div>
-</td></tr></table>
 <p>nginx.conf</p>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
-2
-3
-4
-5
-6</pre></div></td><td class="code"><div class="monokai"><pre><span></span>http {
+<div class="monokai"><pre><span></span>http {
 
     .......
     include /etc/nginx/conf.d/*.conf;
     include sites/*.conf;
 }
 </pre></div>
-</td></tr></table>
 <h3 id="gzip-on">gzip on</h3>
 <p>加到<code>http</code>模块中, 开启<code>gzip</code>, 注意<code>gzip_types</code>配置得是压缩的资源类型</p>
 <p>nginx.conf</p>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13</pre></div></td><td class="code"><div class="monokai"><pre><span></span>http {
+<div class="monokai"><pre><span></span>http {
 
 
     .....
@@ -136,17 +114,9 @@ site/
     gzip_vary on;
 }
 </pre></div>
-</td></tr></table>
 <h2 id="for-multi-processers_1">for multi processers</h2>
 <p>nginx.conf</p>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
-2
-3
-4
-5
-6
-7
-8</pre></div></td><td class="code"><div class="monokai"><pre><span></span>worker_processes  4;
+<div class="monokai"><pre><span></span>worker_processes  4;
 events {
     worker_connections  2048;
     use epoll;
@@ -155,15 +125,8 @@ events {
 
 worker_rlimit_nofile 100000;
 </pre></div>
-</td></tr></table>
 <h2 id="static-file-cache">static file cache</h2>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
-2
-3
-4
-5
-6
-7</pre></div></td><td class="code"><div class="monokai"><pre><span></span>    <span class="nt">location</span> <span class="o">~*</span> <span class="err">\</span><span class="o">.(?</span><span class="nd">:css</span><span class="o">|</span><span class="nt">js</span><span class="o">)$</span> <span class="p">{</span>
+<div class="monokai"><pre><span></span>    <span class="nt">location</span> <span class="o">~*</span> <span class="err">\</span><span class="o">.(?</span><span class="nd">:css</span><span class="o">|</span><span class="nt">js</span><span class="o">)$</span> <span class="p">{</span>
       <span class="n">expires</span> <span class="m">12</span><span class="n">h</span><span class="p">;</span>
       <span class="n">access_log</span> <span class="n">off</span><span class="p">;</span>
       <span class="n">add_header</span> <span class="n">Cache</span><span class="o">-</span><span class="n">Control</span> <span class="s2">"public"</span><span class="p">;</span>
@@ -171,18 +134,8 @@ worker_rlimit_nofile 100000;
       <span class="n">proxy_redirect</span> <span class="n">off</span><span class="p">;</span>
     <span class="p">}</span>
 </pre></div>
-</td></tr></table>
 <h2 id="proxy-pass">proxy pass</h2>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10</pre></div></td><td class="code"><div class="monokai"><pre><span></span>    <span class="nt">location</span> <span class="o">/</span>
+<div class="monokai"><pre><span></span>    <span class="nt">location</span> <span class="o">/</span>
     <span class="p">{</span>
         <span class="n">proxy_pass</span> <span class="n">http</span><span class="o">://</span><span class="m">127</span><span class="o">.</span><span class="m">0</span><span class="o">.</span><span class="m">0</span><span class="o">.</span><span class="m">1</span><span class="o">:</span><span class="m">8000</span><span class="p">;</span>
         <span class="n">proxy_pass_header</span> <span class="n">Server</span><span class="p">;</span>
@@ -193,26 +146,13 @@ worker_rlimit_nofile 100000;
         <span class="n">proxy_redirect</span> <span class="n">off</span><span class="p">;</span>
     <span class="p">}</span>
 </pre></div>
-</td></tr></table>
 <p>可以设置超时时间</p>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
-2
-3</pre></div></td><td class="code"><div class="monokai"><pre><span></span>        proxy_connect_timeout 500s;
+<div class="monokai"><pre><span></span>        proxy_connect_timeout 500s;
         proxy_read_timeout 500s;
         proxy_send_timeout 500s;
 </pre></div>
-</td></tr></table>
 <h2 id="jing-tai-mu-lu-or-wen-jian">静态目录 or 文件</h2>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10</pre></div></td><td class="code"><div class="monokai"><pre><span></span>    location /movies/ {
+<div class="monokai"><pre><span></span>    location /movies/ {
         alias /Volumes/Media/Movies/;
         allow all;
     }
@@ -223,20 +163,8 @@ worker_rlimit_nofile 100000;
         access_log off;
     }
 </pre></div>
-</td></tr></table>
 <h2 id="jing-tai-zhan">静态站</h2>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12</pre></div></td><td class="code"><div class="monokai"><pre><span></span><span class="nt">server</span> <span class="p">{</span>
+<div class="monokai"><pre><span></span><span class="nt">server</span> <span class="p">{</span>
     <span class="n">listen</span>       <span class="m">192</span><span class="o">.</span><span class="m">168</span><span class="o">.</span><span class="m">1</span><span class="o">.</span><span class="m">1</span><span class="o">:</span><span class="m">80</span><span class="p">;</span>
     <span class="n">server_name</span>  <span class="n">www</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">com</span><span class="p">;</span>
 
@@ -249,17 +177,9 @@ worker_rlimit_nofile 100000;
 
 <span class="p">}</span>
 </pre></div>
-</td></tr></table>
 <h2 id="fu-wu-zhuan-fa">服务转发</h2>
 <p>将收到的服务url/参数等, 原封不动转给另一个服务</p>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
-2
-3
-4
-5
-6
-7
-8</pre></div></td><td class="code"><div class="monokai"><pre><span></span><span class="nt">server</span> <span class="p">{</span>
+<div class="monokai"><pre><span></span><span class="nt">server</span> <span class="p">{</span>
     <span class="n">listen</span> <span class="m">80</span><span class="p">;</span>
     <span class="n">server_name</span>  <span class="n">www</span><span class="o">.</span><span class="n">xxxx</span><span class="o">.</span><span class="n">com</span><span class="p">;</span>
     <span class="n">location</span> <span class="o">~</span> <span class="o">^/</span><span class="p">(</span><span class="o">.*</span><span class="p">)</span><span class="err">$</span> <span class="err">{</span>
@@ -268,27 +188,14 @@ worker_rlimit_nofile 100000;
     <span class="p">}</span>
 <span class="err">}</span>
 </pre></div>
-</td></tr></table>
 <h2 id="return">return</h2>
 <p>直接<code>return</code></p>
 <p>语法</p>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
-2</pre></div></td><td class="code"><div class="monokai"><pre><span></span>return http_code;
+<div class="monokai"><pre><span></span>return http_code;
 return http_code "content";
 </pre></div>
-</td></tr></table>
 <p>e.g.</p>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11</pre></div></td><td class="code"><div class="monokai"><pre><span></span>location /api/test/ {
+<div class="monokai"><pre><span></span>location /api/test/ {
     return 403;
 }
 
@@ -300,69 +207,9 @@ location /ping/ {
     return 200;
 }
 </pre></div>
-</td></tr></table>
 <h2 id="for-mobile">for mobile</h2>
 <p>移动端和网站端互相跳转</p>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41
-42
-43
-44
-45
-46
-47
-48
-49
-50
-51
-52
-53
-54
-55
-56
-57
-58
-59
-60</pre></div></td><td class="code"><div class="monokai"><pre><span></span>    <span class="nt">location</span> <span class="o">=</span> <span class="o">/</span> <span class="p">{</span>
+<div class="monokai"><pre><span></span>    <span class="nt">location</span> <span class="o">=</span> <span class="o">/</span> <span class="p">{</span>
         <span class="n">try_files</span> <span class="err">$</span><span class="n">uri</span> <span class="o">@</span><span class="n">mobile_rewrite</span><span class="p">;</span>
     <span class="p">}</span>
 
@@ -423,39 +270,23 @@ location /ping/ {
         <span class="nt">proxy_redirect</span> <span class="nt">off</span><span class="o">;</span>
     <span class="err">}</span>
 </pre></div>
-</td></tr></table>
 <h2 id="redirect-to-www">redirect to www</h2>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
-2
-3
-4</pre></div></td><td class="code"><div class="monokai"><pre><span></span><span class="nt">server</span> <span class="p">{</span>
+<div class="monokai"><pre><span></span><span class="nt">server</span> <span class="p">{</span>
     <span class="n">server_name</span>  <span class="n">abc</span><span class="o">.</span><span class="n">com</span><span class="p">;</span>
     <span class="n">rewrite</span> <span class="o">^</span><span class="p">(</span><span class="o">.*</span><span class="p">)</span> <span class="n">http</span><span class="o">://</span><span class="n">www</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">com</span><span class="err">$</span><span class="m">1</span> <span class="n">permanent</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
-</td></tr></table>
 <h2 id="allow-and-deny">allow and deny</h2>
 <p>访问ip控制</p>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
-2
-3
-4
-5</pre></div></td><td class="code"><div class="monokai"><pre><span></span>location /test/ {
+<div class="monokai"><pre><span></span>location /test/ {
     allow 192.168.1.1;
     deny all;
 
 }
 </pre></div>
-</td></tr></table>
 <h2 id="fu-zai-jun-heng">负载均衡</h2>
 <p>nginx.conf</p>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
-2
-3
-4
-5
-6
-7</pre></div></td><td class="code"><div class="monokai"><pre><span></span><span class="nt">http</span> <span class="p">{</span>
+<div class="monokai"><pre><span></span><span class="nt">http</span> <span class="p">{</span>
 
     <span class="n">upstream</span> <span class="n">A</span> <span class="err">{</span>
         <span class="n">server</span> <span class="m">192</span><span class="o">.</span><span class="m">168</span><span class="o">.</span><span class="m">1</span><span class="o">.</span><span class="m">1</span><span class="o">:</span><span class="m">5000</span><span class="p">;</span>
@@ -463,15 +294,8 @@ location /ping/ {
     <span class="p">}</span>
 <span class="err">}</span>
 </pre></div>
-</td></tr></table>
 <p>sites/a.conf</p>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
-2
-3
-4
-5
-6
-7</pre></div></td><td class="code"><div class="monokai"><pre><span></span>server {
+<div class="monokai"><pre><span></span>server {
 
     location / {
         proxy_pass A;
@@ -479,23 +303,16 @@ location /ping/ {
 
 }
 </pre></div>
-</td></tr></table>
 <hr/>
 <p>其他</p>
 <h2 id="centos-service-cmds">centos service cmds</h2>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
-2
-3
-4
-5
-6</pre></div></td><td class="code"><div class="monokai"><pre><span></span>检查配置文件正确性
+<div class="monokai"><pre><span></span>检查配置文件正确性
 service nginx configtest
 
 
 重新加载配置
 service nginx reload
 </pre></div>
-</td></tr></table>
     </section>
 
     <section id="copyright">

@@ -92,17 +92,7 @@
 <p><img alt="" src="http://www.wklken.me/imgs/python-source/PyObject.png"/>￼</p>
 <p><img alt="" src="http://www.wklken.me/imgs/python-source/PyVarObject.png"/>￼</p>
 <p>e.g. 引用计数增加以及减少</p>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11</pre></div></td><td class="code"><div class="monokai"><pre><span></span><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">sys</span> <span class="kn">import</span> <span class="n">getrefcount</span>
+<div class="monokai"><pre><span></span><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">sys</span> <span class="kn">import</span> <span class="n">getrefcount</span>
 <span class="o">&gt;&gt;&gt;</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">a</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">getrefcount</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
@@ -114,29 +104,15 @@
 <span class="o">&gt;&gt;&gt;</span> <span class="n">getrefcount</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
 <span class="mi">2</span>
 </pre></div>
-</td></tr></table>
 <h3 id="ji-shu-zeng-jia">计数增加</h3>
 <p>增加对象引用计数, refcnt incr</p>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
-2
-3</pre></div></td><td class="code"><div class="monokai"><pre><span></span><span class="cp">#define Py_INCREF(op) (                         \</span>
+<div class="monokai"><pre><span></span><span class="cp">#define Py_INCREF(op) (                         \</span>
 <span class="cp">    _Py_INC_REFTOTAL  _Py_REF_DEBUG_COMMA       \</span>
 <span class="cp">    ((PyObject*)(op))-&gt;ob_refcnt++)</span>
 </pre></div>
-</td></tr></table>
 <h3 id="ji-shu-jian-shao">计数减少</h3>
 <p>减少对象引用计数, refcnt desc</p>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11</pre></div></td><td class="code"><div class="monokai"><pre><span></span><span class="cp">#define _Py_DEC_REFTOTAL        _Py_RefTotal--</span>
+<div class="monokai"><pre><span></span><span class="cp">#define _Py_DEC_REFTOTAL        _Py_RefTotal--</span>
 <span class="cp">#define _Py_REF_DEBUG_COMMA     ,</span>
 
 <span class="cp">#define Py_DECREF(op)                                   \</span>
@@ -148,15 +124,8 @@
 <span class="cp">        _Py_Dealloc((PyObject *)(op));                  \</span>
 <span class="cp">    } while (0)</span>
 </pre></div>
-</td></tr></table>
 <p>即, 发现refcnt变成0的时候, 会调用<code>_Py_Dealloc</code></p>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
-2
-3
-4
-5
-6
-7</pre></div></td><td class="code"><div class="monokai"><pre><span></span><span class="n">PyAPI_FUNC</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="n">_Py_Dealloc</span><span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="p">);</span>
+<div class="monokai"><pre><span></span><span class="n">PyAPI_FUNC</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="n">_Py_Dealloc</span><span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="p">);</span>
 <span class="cp">#define _Py_REF_DEBUG_COMMA     ,</span>
 
 <span class="cp">#define _Py_Dealloc(op) (                               \</span>
@@ -164,31 +133,9 @@
 <span class="cp">    (*Py_TYPE(op)-&gt;tp_dealloc)((PyObject *)(op)))</span>
 <span class="cp">#endif </span><span class="cm">/* !Py_TRACE_REFS */</span><span class="cp"></span>
 </pre></div>
-</td></tr></table>
 <p>会调用各自类型的<code>tp_dealloc</code></p>
 <p>例如dict</p>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22</pre></div></td><td class="code"><div class="monokai"><pre><span></span><span class="n">PyTypeObject</span> <span class="n">PyDict_Type</span> <span class="o">=</span> <span class="p">{</span>
+<div class="monokai"><pre><span></span><span class="n">PyTypeObject</span> <span class="n">PyDict_Type</span> <span class="o">=</span> <span class="p">{</span>
     <span class="n">PyVarObject_HEAD_INIT</span><span class="p">(</span><span class="o">&amp;</span><span class="n">PyType_Type</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
     <span class="s">"dict"</span><span class="p">,</span>
     <span class="k">sizeof</span><span class="p">(</span><span class="n">PyDictObject</span><span class="p">),</span>
@@ -211,47 +158,33 @@
     <span class="n">Py_TRASHCAN_SAFE_END</span><span class="p">(</span><span class="n">mp</span><span class="p">)</span>
 <span class="p">}</span>
 </pre></div>
-</td></tr></table>
 <p>Python基本类型的<code>tp_dealloc</code>, 通常都会与各自的缓冲池机制相关, 释放会优先放入缓冲池中(对应的分配会优先从缓冲池取). 这个内存分配与回收同缓冲池机制相关</p>
 <p>当无法放入缓冲池时, 会调用各自类型的<code>tp_free</code></p>
 <p>int, 比较特殊</p>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
-2</pre></div></td><td class="code"><div class="monokai"><pre><span></span><span class="c1">// int, 通用整数对象缓冲池机制</span>
+<div class="monokai"><pre><span></span><span class="c1">// int, 通用整数对象缓冲池机制</span>
       <span class="p">(</span><span class="n">freefunc</span><span class="p">)</span><span class="n">int_free</span><span class="p">,</span>                         <span class="cm">/* tp_free */</span>
 </pre></div>
-</td></tr></table>
 <p>string</p>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
-2</pre></div></td><td class="code"><div class="monokai"><pre><span></span><span class="c1">// string</span>
+<div class="monokai"><pre><span></span><span class="c1">// string</span>
     <span class="n">PyObject_Del</span><span class="p">,</span>                               <span class="cm">/* tp_free */</span>
 </pre></div>
-</td></tr></table>
 <p>dict/tuple/list</p>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="monokai"><pre><span></span>    <span class="n">PyObject_GC_Del</span><span class="p">,</span>                            <span class="cm">/* tp_free */</span>
+<div class="monokai"><pre><span></span>    <span class="n">PyObject_GC_Del</span><span class="p">,</span>                            <span class="cm">/* tp_free */</span>
 </pre></div>
-</td></tr></table>
 <p>然后, 我们再回头看, 自定义对象的<code>tp_free</code></p>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
-2
-3
-4
-5
-6</pre></div></td><td class="code"><div class="monokai"><pre><span></span><span class="n">PyTypeObject</span> <span class="n">PyType_Type</span> <span class="o">=</span> <span class="p">{</span>
+<div class="monokai"><pre><span></span><span class="n">PyTypeObject</span> <span class="n">PyType_Type</span> <span class="o">=</span> <span class="p">{</span>
     <span class="n">PyVarObject_HEAD_INIT</span><span class="p">(</span><span class="o">&amp;</span><span class="n">PyType_Type</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
     <span class="s">"type"</span><span class="p">,</span>                                     <span class="cm">/* tp_name */</span>
     <span class="p">...</span>
     <span class="n">PyObject_GC_Del</span><span class="p">,</span>                            <span class="cm">/* tp_free */</span>
 <span class="p">};</span>
 </pre></div>
-</td></tr></table>
 <p>即, 最终, 当计数变为0, 触发内存回收动作. 涉及函数<code>PyObject_Del</code>和<code>PyObject_GC_Del</code>, 并且, 自定义类以及容器类型(dict/list/tuple/set等)使用的都是后者<code>PyObject_GC_Del</code>.</p>
 <h3 id="nei-cun-hui-shou-pyobject_del-pyobject_gc_del">内存回收 PyObject_Del / PyObject_GC_Del</h3>
 <p>如果引用计数=0:</p>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
-2</pre></div></td><td class="code"><div class="monokai"><pre><span></span>1. 放入缓冲池
+<div class="monokai"><pre><span></span>1. 放入缓冲池
 2. 真正销毁, PyObject_Del/PyObject_GC_Del内存操作
 </pre></div>
-</td></tr></table>
 <p>这两个操作都是进行内存级别的操作</p>
 <ul>
 <li>PyObject_Del</li>
@@ -264,20 +197,7 @@
 <ul>
 <li>PyObject_GC_Del</li>
 </ul>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14</pre></div></td><td class="code"><div class="monokai"><pre><span></span><span class="kt">void</span>
+<div class="monokai"><pre><span></span><span class="kt">void</span>
 <span class="nf">PyObject_GC_Del</span><span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="n">op</span><span class="p">)</span>
 <span class="p">{</span>
     <span class="n">PyGC_Head</span> <span class="o">*</span><span class="n">g</span> <span class="o">=</span> <span class="n">AS_GC</span><span class="p">(</span><span class="n">op</span><span class="p">);</span>
@@ -292,7 +212,6 @@
     <span class="n">PyObject_FREE</span><span class="p">(</span><span class="n">g</span><span class="p">);</span>
 <span class="p">}</span>
 </pre></div>
-</td></tr></table>
 <p><code>IS_TRACKED</code> 涉及到标记-清除的机制</p>
 <p><code>generations</code> 涉及到了分代回收</p>
 <p><code>PyObject_FREE</code>, 则和Python底层内存池机制相关</p>
@@ -305,19 +224,7 @@
 <h3 id="ke-shou-ji-dui-xiang-lian-biao">可收集对象链表</h3>
 <p>可收集对象链表: 将需要被收集和跟踪的container, 放到可收集的链表中</p>
 <p>任何一个python对象都分为两部分: PyObject_HEAD + 对象本身数据</p>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13</pre></div></td><td class="code"><div class="monokai"><pre><span></span><span class="cm">/* PyObject_HEAD defines the initial segment of every PyObject. */</span>
+<div class="monokai"><pre><span></span><span class="cm">/* PyObject_HEAD defines the initial segment of every PyObject. */</span>
 <span class="cp">#define PyObject_HEAD                   \</span>
 <span class="cp">    _PyObject_HEAD_EXTRA                \</span>
 <span class="cp">    Py_ssize_t ob_refcnt;               \</span>
@@ -331,21 +238,8 @@
 
 <span class="c1">// 双向链表结构, 垃圾回收</span>
 </pre></div>
-</td></tr></table>
 <p>可收集对象链表</p>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13</pre></div></td><td class="code"><div class="monokai"><pre><span></span><span class="n">Modules</span><span class="o">/</span><span class="n">gcmodule</span><span class="p">.</span><span class="n">c</span>
+<div class="monokai"><pre><span></span><span class="n">Modules</span><span class="o">/</span><span class="n">gcmodule</span><span class="p">.</span><span class="n">c</span>
 
 <span class="cm">/* GC information is stored BEFORE the object structure. */</span>
 <span class="k">typedef</span> <span class="k">union</span> <span class="n">_gc_head</span> <span class="p">{</span>
@@ -359,54 +253,8 @@
     <span class="kt">long</span> <span class="kt">double</span> <span class="n">dummy</span><span class="p">;</span>  <span class="cm">/* force worst-case alignment */</span>
 <span class="p">}</span> <span class="n">PyGC_Head</span><span class="p">;</span>
 </pre></div>
-</td></tr></table>
 <p>创建container的过程: <code>container对象 = pyGC_Head | PyObject_HEAD | Container Object</code></p>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41
-42
-43
-44
-45
-46</pre></div></td><td class="code"><div class="monokai"><pre><span></span><span class="n">PyObject</span> <span class="o">*</span>
+<div class="monokai"><pre><span></span><span class="n">PyObject</span> <span class="o">*</span>
 <span class="nf">_PyObject_GC_New</span><span class="p">(</span><span class="n">PyTypeObject</span> <span class="o">*</span><span class="n">tp</span><span class="p">)</span>
 <span class="p">{</span>
     <span class="n">PyObject</span> <span class="o">*</span><span class="n">op</span> <span class="o">=</span> <span class="n">_PyObject_GC_Malloc</span><span class="p">(</span><span class="n">_PyObject_SIZE</span><span class="p">(</span><span class="n">tp</span><span class="p">));</span>
@@ -453,20 +301,9 @@
     <span class="k">return</span> <span class="n">op</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
-</td></tr></table>
 <h3 id="pyobject_head-and-pygc_head">PyObject_HEAD and PyGC_HEAD</h3>
 <p>注意, <code>FROM_GC</code>和<code>AS_GC</code>用于 <code>PyObject_HEAD &lt;=&gt; PyGC_HEAD</code>地址相互转换</p>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11</pre></div></td><td class="code"><div class="monokai"><pre><span></span><span class="c1">// =&gt; Modules/gcmodule.c</span>
+<div class="monokai"><pre><span></span><span class="c1">// =&gt; Modules/gcmodule.c</span>
 
 <span class="cm">/* Get an object's GC head */</span>
 <span class="cp">#define AS_GC(o) ((PyGC_Head *)(o)-1)</span>
@@ -478,35 +315,9 @@
 
 <span class="cp">#define _Py_AS_GC(o) ((PyGC_Head *)(o)-1)</span>
 </pre></div>
-</td></tr></table>
 <h3 id="wen-ti-shi-yao-shi-hou-jiang-containerfang-dao-zhe-ge-dui-xiang-lian-biao-zhong">问题: 什么时候将container放到这个对象链表中</h3>
 <p>e.g list</p>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26</pre></div></td><td class="code"><div class="monokai"><pre><span></span><span class="c1">// =&gt; listobject.c</span>
+<div class="monokai"><pre><span></span><span class="c1">// =&gt; listobject.c</span>
 
 <span class="n">PyObject</span> <span class="o">*</span>
 <span class="nf">PyList_New</span><span class="p">(</span><span class="n">Py_ssize_t</span> <span class="n">size</span><span class="p">)</span>
@@ -533,29 +344,8 @@
 <span class="cp">    _PyGC_generation0-&gt;gc.gc_prev = g; \</span>
 <span class="cp">    } while (0);</span>
 </pre></div>
-</td></tr></table>
 <h3 id="wen-ti-shi-yao-shi-hou-jiang-containercong-zhe-ge-dui-xiang-lian-biao-zhong-zhai-chu">问题: 什么时候将container从这个对象链表中摘除</h3>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21</pre></div></td><td class="code"><div class="monokai"><pre><span></span><span class="c1">// Objects/listobject.c</span>
+<div class="monokai"><pre><span></span><span class="c1">// Objects/listobject.c</span>
 
 <span class="k">static</span> <span class="kt">void</span>
 <span class="nf">list_dealloc</span><span class="p">(</span><span class="n">PyListObject</span> <span class="o">*</span><span class="n">op</span><span class="p">)</span>
@@ -577,56 +367,13 @@
 <span class="cp">    g-&gt;gc.gc_next = NULL; \</span>
 <span class="cp">    } while (0);</span>
 </pre></div>
-</td></tr></table>
 <h3 id="wen-ti-ru-he-jin-xing-biao-ji-qing-chu">问题: 如何进行标记-清除</h3>
 <p>现在, 我们得到了一个链表</p>
 <p>Python将自己的垃圾收集限制在这个链表上, 循环引用一定发生在这个链表的一群独享之间.</p>
 <h4 id="0-gai-lan">0. 概览</h4>
 <p><code>_PyObject_GC_Malloc</code> 分配内存时, 发现超过阈值, 此时, 会触发gc, <code>collect_generations</code>
 然后调用<code>collect</code>, <code>collect</code>包含标记-清除逻辑</p>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41
-42
-43</pre></div></td><td class="code"><div class="monokai"><pre><span></span><span class="n">gcmodule</span><span class="p">.</span><span class="n">c</span>
+<div class="monokai"><pre><span></span><span class="n">gcmodule</span><span class="p">.</span><span class="n">c</span>
 
   <span class="cm">/* This is the main function.  Read this to understand how the</span>
 <span class="cm">   * collection process works. */</span>
@@ -670,37 +417,9 @@
 
   <span class="p">}</span>
 </pre></div>
-</td></tr></table>
 <h4 id="1-di-yi-bu-gc_list_merge">1. 第一步:  gc_list_merge</h4>
 <p>将所有比 当前代 年轻的代中的对象 都放到 当前代 的对象链表中</p>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28</pre></div></td><td class="code"><div class="monokai"><pre><span></span><span class="c1">// =&gt; gc_list_merge</span>
+<div class="monokai"><pre><span></span><span class="c1">// =&gt; gc_list_merge</span>
 
 <span class="c1">// 执行拷贝而已</span>
 <span class="cm">/* append list `from` onto list `to`; `from` becomes an empty list */</span>
@@ -729,7 +448,6 @@
     <span class="n">list</span><span class="o">-&gt;</span><span class="n">gc</span><span class="p">.</span><span class="n">gc_next</span> <span class="o">=</span> <span class="n">list</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
-</td></tr></table>
 <p>即, 此刻, 所有待进行处理的对象都集中在同一个链表中</p>
 <p>处理,</p>
 <p>其逻辑是, 要去除循环引用, 得到有效引用计数</p>
@@ -737,36 +455,7 @@
 <p>实际操作, 并不要直接修改对象的 ob_refcnt, 而是修改其副本, <code>PyGC_Head</code>中的<code>gc.gc_ref</code></p>
 <h4 id="2-di-er-bu-update_refs">2. 第二步: update_refs</h4>
 <p>遍历对象链表, 将每个对象的gc.gc_ref值设置为ob_refcnt</p>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30</pre></div></td><td class="code"><div class="monokai"><pre><span></span><span class="c1">// =&gt; gcmodule.c</span>
+<div class="monokai"><pre><span></span><span class="c1">// =&gt; gcmodule.c</span>
 
 <span class="k">static</span> <span class="kt">void</span>
 <span class="nf">update_refs</span><span class="p">(</span><span class="n">PyGC_Head</span> <span class="o">*</span><span class="n">containers</span><span class="p">)</span>
@@ -797,48 +486,8 @@
     <span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
-</td></tr></table>
 <h4 id="3-di-san-bu-ji-suan-you-xiao-yin-yong-ji-shu">3. 第三步: 计算有效引用计数</h4>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40</pre></div></td><td class="code"><div class="monokai"><pre><span></span>  <span class="cm">/* A traversal callback for subtract_refs. */</span>
+<div class="monokai"><pre><span></span>  <span class="cm">/* A traversal callback for subtract_refs. */</span>
   <span class="k">static</span> <span class="kt">int</span>
   <span class="nf">visit_decref</span><span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="n">op</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="n">data</span><span class="p">)</span>
   <span class="p">{</span>
@@ -879,22 +528,8 @@
       <span class="p">}</span>
   <span class="p">}</span>
 </pre></div>
-</td></tr></table>
 <p>我们可以看看dictobject的traverse函数</p>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14</pre></div></td><td class="code"><div class="monokai"><pre><span></span>  <span class="k">static</span> <span class="kt">int</span>
+<div class="monokai"><pre><span></span>  <span class="k">static</span> <span class="kt">int</span>
   <span class="nf">dict_traverse</span><span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="n">op</span><span class="p">,</span> <span class="n">visitproc</span> <span class="n">visit</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="n">arg</span><span class="p">)</span>
   <span class="p">{</span>
       <span class="n">Py_ssize_t</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
@@ -909,77 +544,11 @@
       <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
   <span class="p">}</span>
 </pre></div>
-</td></tr></table>
 <p>逻辑大概是: 遍历容器对象里面的所有对象, 通过<code>visit_decref</code>将这些对象的引用计数都-1,</p>
 <p>最终, 遍历完链表之后, 整个可收集对象链表中所有container对象之间的循环引用都被去掉了</p>
 <h4 id="4-di-si-bu-la-ji-biao-ji">4. 第四步: 垃圾标记</h4>
 <p><code>move_unreachable</code>, 将可收集对象链表中, 根据有效引用计数 不等于0(root对象) 和 等于0(非root对象, 垃圾, 可回收), 一分为二</p>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41
-42
-43
-44
-45
-46
-47
-48
-49
-50
-51
-52
-53
-54
-55
-56
-57
-58
-59
-60
-61
-62
-63
-64
-65
-66</pre></div></td><td class="code"><div class="monokai"><pre><span></span> <span class="cm">/* Move the unreachable objects from young to unreachable.  After this,</span>
+<div class="monokai"><pre><span></span> <span class="cm">/* Move the unreachable objects from young to unreachable.  After this,</span>
 <span class="cm">   * all objects in young have gc_refs = GC_REACHABLE, and all objects in</span>
 <span class="cm">   * unreachable have gc_refs = GC_TENTATIVELY_UNREACHABLE.  All tracked</span>
 <span class="cm">   * gc objects not in young or unreachable still have gc_refs = GC_REACHABLE.</span>
@@ -1046,22 +615,8 @@
       <span class="p">}</span>
   <span class="p">}</span>
 </pre></div>
-</td></tr></table>
 <h4 id="5-di-wu-bu-jiang-cun-huo-dui-xiang-fang-ru-xia-yi-dai">5. 第五步: 将存活对象放入下一代</h4>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14</pre></div></td><td class="code"><div class="monokai"><pre><span></span>      <span class="cm">/* Move reachable objects to next generation. */</span>
+<div class="monokai"><pre><span></span>      <span class="cm">/* Move reachable objects to next generation. */</span>
       <span class="k">if</span> <span class="p">(</span><span class="n">young</span> <span class="o">!=</span> <span class="n">old</span><span class="p">)</span> <span class="p">{</span>
           <span class="k">if</span> <span class="p">(</span><span class="n">generation</span> <span class="o">==</span> <span class="n">NUM_GENERATIONS</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span> <span class="p">{</span>
               <span class="n">long_lived_pending</span> <span class="o">+=</span> <span class="n">gc_list_size</span><span class="p">(</span><span class="n">young</span><span class="p">);</span>
@@ -1076,110 +631,8 @@
           <span class="n">long_lived_total</span> <span class="o">=</span> <span class="n">gc_list_size</span><span class="p">(</span><span class="n">young</span><span class="p">);</span>
       <span class="p">}</span>
 </pre></div>
-</td></tr></table>
 <h4 id="6-di-liu-bu-zhi-xing-hui-shou">6. 第六步: 执行回收</h4>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
- 10
- 11
- 12
- 13
- 14
- 15
- 16
- 17
- 18
- 19
- 20
- 21
- 22
- 23
- 24
- 25
- 26
- 27
- 28
- 29
- 30
- 31
- 32
- 33
- 34
- 35
- 36
- 37
- 38
- 39
- 40
- 41
- 42
- 43
- 44
- 45
- 46
- 47
- 48
- 49
- 50
- 51
- 52
- 53
- 54
- 55
- 56
- 57
- 58
- 59
- 60
- 61
- 62
- 63
- 64
- 65
- 66
- 67
- 68
- 69
- 70
- 71
- 72
- 73
- 74
- 75
- 76
- 77
- 78
- 79
- 80
- 81
- 82
- 83
- 84
- 85
- 86
- 87
- 88
- 89
- 90
- 91
- 92
- 93
- 94
- 95
- 96
- 97
- 98
- 99
-100
-101
-102</pre></div></td><td class="code"><div class="monokai"><pre><span></span><span class="n">gcmoudle</span><span class="p">.</span><span class="n">c</span>
+<div class="monokai"><pre><span></span><span class="n">gcmoudle</span><span class="p">.</span><span class="n">c</span>
 
   <span class="k">static</span> <span class="kt">int</span>
   <span class="n">gc_list_is_empty</span><span class="p">(</span><span class="n">PyGC_Head</span> <span class="o">*</span><span class="n">list</span><span class="p">)</span>
@@ -1282,19 +735,8 @@
     <span class="n">Py_TRASHCAN_SAFE_END</span><span class="p">(</span><span class="n">op</span><span class="p">)</span>
 <span class="p">}</span>
 </pre></div>
-</td></tr></table>
 <h4 id="7-gcluo-ji">7. gc逻辑</h4>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11</pre></div></td><td class="code"><div class="monokai"><pre><span></span>分配内存
+<div class="monokai"><pre><span></span>分配内存
 -&gt; 发现超过阈值了
 -&gt; 触发垃圾回收
 -&gt; 将所有可收集对象链表放到一起
@@ -1306,21 +748,12 @@
 -&gt; 执行-1的逻辑, 若发现对象引用计数=0, 触发内存回收
 -&gt; python底层内存管理机制回收内存
 </pre></div>
-</td></tr></table>
 <h2 id="fen-dai-hui-shou_2">分代回收</h2>
 <p>分代收集: 以空间换时间</p>
 <p>思想: 将系统中的所有内存块根据其存货的时间划分为不同的集合, 每个集合就成为一个"代", 垃圾收集的频率随着"代"的存活时间的增大而减小(活得越长的对象, 就越不可能是垃圾, 就应该减少去收集的频率)</p>
 <p>Python中, 引入了分代收集, 总共三个"代". Python 中, 一个代就是一个链表, 所有属于同一"代"的内存块都链接在同一个链表中</p>
 <h3 id="biao-tou-shu-ju-jie-gou">表头数据结构</h3>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
-2
-3
-4
-5
-6
-7
-8
-9</pre></div></td><td class="code"><div class="monokai"><pre><span></span><span class="n">gcmodule</span><span class="p">.</span><span class="n">c</span>
+<div class="monokai"><pre><span></span><span class="n">gcmodule</span><span class="p">.</span><span class="n">c</span>
 
 
   <span class="k">struct</span> <span class="n">gc_generation</span> <span class="p">{</span>
@@ -1330,21 +763,8 @@
 <span class="cm">                    generations */</span>    <span class="c1">// 实时个数</span>
   <span class="p">};</span>
 </pre></div>
-</td></tr></table>
 <h3 id="san-ge-dai-de-ding-yi">三个代的定义</h3>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13</pre></div></td><td class="code"><div class="monokai"><pre><span></span>  <span class="cp">#define NUM_GENERATIONS 3</span>
+<div class="monokai"><pre><span></span>  <span class="cp">#define NUM_GENERATIONS 3</span>
   <span class="cp">#define GEN_HEAD(n) (&amp;generations[n].head)</span>
 
   <span class="c1">//  三代都放到这个数组中</span>
@@ -1358,56 +778,8 @@
 
   <span class="n">PyGC_Head</span> <span class="o">*</span><span class="n">_PyGC_generation0</span> <span class="o">=</span> <span class="n">GEN_HEAD</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
 </pre></div>
-</td></tr></table>
 <h3 id="chao-guo-yu-zhi-hong-fa-la-ji-hui-shou">超过阈值, 触发垃圾回收</h3>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41
-42
-43
-44
-45
-46
-47
-48</pre></div></td><td class="code"><div class="monokai"><pre><span></span> <span class="n">PyObject</span> <span class="o">*</span>
+<div class="monokai"><pre><span></span> <span class="n">PyObject</span> <span class="o">*</span>
   <span class="nf">_PyObject_GC_Malloc</span><span class="p">(</span><span class="kt">size_t</span> <span class="n">basicsize</span><span class="p">)</span>
   <span class="p">{</span>
       <span class="c1">// 执行分配</span>
@@ -1456,20 +828,14 @@
       <span class="k">return</span> <span class="n">n</span><span class="p">;</span>
   <span class="p">}</span>
 </pre></div>
-</td></tr></table>
 <h2 id="python-zhong-de-gcmo-kuai_1">Python 中的gc模块</h2>
 <p>gc模块, 提供了观察和手动使用gc的接口</p>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
-2
-3
-4
-5</pre></div></td><td class="code"><div class="monokai"><pre><span></span><span class="kn">import</span> <span class="nn">gc</span>
+<div class="monokai"><pre><span></span><span class="kn">import</span> <span class="nn">gc</span>
 
 <span class="n">gc</span><span class="o">.</span><span class="n">set_debug</span><span class="p">(</span><span class="n">gc</span><span class="o">.</span><span class="n">DEBUG_STATS</span> <span class="o">|</span> <span class="n">gc</span><span class="o">.</span><span class="n">DEBUG_LEAK</span><span class="p">)</span>
 
 <span class="n">gc</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>
 </pre></div>
-</td></tr></table>
 <p>注意<code>__del__</code>给gc带来的影响</p>
     </section>
 

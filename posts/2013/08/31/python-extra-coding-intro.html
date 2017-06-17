@@ -87,25 +87,17 @@
 <p>然后，大多数人的做法是，调用encode/decode进行调试，并没有明确思考为何出现乱码</p>
 <p>所以调试时最常出现的错误</p>
 <p>错误1</p>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
-2
-3</pre></div></td><td class="code"><div class="monokai"><pre><span></span>Traceback (most recent call last):
+<div class="monokai"><pre><span></span>Traceback (most recent call last):
 File "&lt;stdin&gt;", line 1, in &lt;module&gt;
 UnicodeDecodeError: 'ascii' codec can't decode byte 0xe6 in position 0: ordinal not in range(128)
 </pre></div>
-</td></tr></table>
 <p>错误2</p>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
-2
-3
-4
-5</pre></div></td><td class="code"><div class="monokai"><pre><span></span>Traceback (most recent call last):
+<div class="monokai"><pre><span></span>Traceback (most recent call last):
 File "&lt;stdin&gt;", line 1, in &lt;module&gt;
 File "/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/encodings/utf_8.py", line 16, in decode
     return codecs.utf_8_decode(input, errors, True)
 UnicodeEncodeError: 'ascii' codec can't encode characters in position 0-1: ordinal not in range(128)
 </pre></div>
-</td></tr></table>
 <hr/>
 <h2 id="shou-xian">首先</h2>
 <p>必须有大体概念，了解下字符集，<a href="http://zh.wikipedia.org/wiki/%E5%AD%97%E7%AC%A6%E7%BC%96%E7%A0%81">字符编码</a></p>
@@ -118,86 +110,55 @@ UnicodeEncodeError: 'ascii' codec can't encode characters in position 0-1: ordin
 <p>str和unicode都是basestring的子类</p>
 </blockquote>
 <p>所以有判断是否是字符串的方法</p>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
-2</pre></div></td><td class="code"><div class="monokai"><pre><span></span><span class="k">def</span> <span class="nf">is_str</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+<div class="monokai"><pre><span></span><span class="k">def</span> <span class="nf">is_str</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
     <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">)</span>
 </pre></div>
-</td></tr></table>
 <blockquote>
 <p>str和unicode 转换</p>
 </blockquote>
 <p>decode <a href="http://www.tutorialspoint.com/python/string_decode.htm">文档</a></p>
 <p>encode <a href="http://www.tutorialspoint.com/python/string_encode.htm">文档</a></p>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
-2</pre></div></td><td class="code"><div class="monokai"><pre><span></span>str  -&gt; decode('the_coding_of_str') -&gt; unicode
+<div class="monokai"><pre><span></span>str  -&gt; decode('the_coding_of_str') -&gt; unicode
 unicode -&gt; encode('the_coding_you_want') -&gt; str
 </pre></div>
-</td></tr></table>
 <blockquote>
 <p>区别</p>
 </blockquote>
 <p>str是字节串，由unicode经过编码(encode)后的字节组成的</p>
 <p>声明方式</p>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
-2
-3
-4
-5</pre></div></td><td class="code"><div class="monokai"><pre><span></span>s = '中文'
+<div class="monokai"><pre><span></span>s = '中文'
 s = u'中文'.encode('utf-8')
 
 &gt;&gt;&gt; type('中文')
 &lt;type 'str'&gt;
 </pre></div>
-</td></tr></table>
 <p>求长度(返回字节数)</p>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
-2
-3
-4</pre></div></td><td class="code"><div class="monokai"><pre><span></span>&gt;&gt;&gt; u'中文'.encode('utf-8')
+<div class="monokai"><pre><span></span>&gt;&gt;&gt; u'中文'.encode('utf-8')
 '\xe4\xb8\xad\xe6\x96\x87'
 &gt;&gt;&gt; len(u'中文'.encode('utf-8'))
 6
 </pre></div>
-</td></tr></table>
 <p>unicode才是真正意义上的字符串，由字符组成</p>
 <p>声明方式</p>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
-2
-3
-4
-5
-6</pre></div></td><td class="code"><div class="monokai"><pre><span></span>s = u'中文'
+<div class="monokai"><pre><span></span>s = u'中文'
 s = '中文'.decode('utf-8')
 s = unicode('中文', 'utf-8')
 
 &gt;&gt;&gt; type(u'中文')
 &lt;type 'unicode'&gt;
 </pre></div>
-</td></tr></table>
 <p>求长度(返回字符数),在逻辑中真正想要用的</p>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
-2
-3
-4</pre></div></td><td class="code"><div class="monokai"><pre><span></span>&gt;&gt;&gt; u'中文'
+<div class="monokai"><pre><span></span>&gt;&gt;&gt; u'中文'
 u'\u4e2d\u6587'
 &gt;&gt;&gt; len(u'中文')
 2
 </pre></div>
-</td></tr></table>
 <blockquote>
 <p>结论</p>
 </blockquote>
 <p>搞明白要处理的是str还是unicode, 使用对的处理方法(str.decode/unicode.encode)</p>
 <p>下面是判断是否为unicode/str的方法</p>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
-2
-3
-4
-5
-6
-7
-8
-9</pre></div></td><td class="code"><div class="monokai"><pre><span></span>&gt;&gt;&gt; isinstance(u'中文', unicode)
+<div class="monokai"><pre><span></span>&gt;&gt;&gt; isinstance(u'中文', unicode)
 True
 &gt;&gt;&gt; isinstance('中文', unicode)
 False
@@ -207,19 +168,8 @@ True
 &gt;&gt;&gt; isinstance(u'中文', str)
 False
 </pre></div>
-</td></tr></table>
 <p>简单原则：不要对str使用encode，不要对unicode使用decode (事实上可以对str进行encode的，具体见最后，为了保证简单，不建议)</p>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11</pre></div></td><td class="code"><div class="monokai"><pre><span></span>&gt;&gt;&gt; '中文'.encode('utf-8')
+<div class="monokai"><pre><span></span>&gt;&gt;&gt; '中文'.encode('utf-8')
 Traceback (most recent call last):
 File "&lt;stdin&gt;", line 1, in &lt;module&gt;
 UnicodeDecodeError: 'ascii' codec can't decode byte 0xe4 in position 0: ordinal not in range(128)
@@ -231,26 +181,15 @@ File "/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/enc
     return codecs.utf_8_decode(input, errors, True)
 UnicodeEncodeError: 'ascii' codec can't encode characters in position 0-1: ordinal not in range(128)
 </pre></div>
-</td></tr></table>
 <p>不同编码转换,使用unicode作为中间编码</p>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
-2</pre></div></td><td class="code"><div class="monokai"><pre><span></span><span class="c1">#s是code_A的str</span>
+<div class="monokai"><pre><span></span><span class="c1">#s是code_A的str</span>
 <span class="n">s</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">'code_A'</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">'code_B'</span><span class="p">)</span>
 </pre></div>
-</td></tr></table>
 <hr/>
 <h2 id="wen-jian-chu-li-idehe-kong-zhi-tai">文件处理,IDE和控制台</h2>
 <p>处理流程，可以这么使用，把python看做一个水池，一个入口，一个出口</p>
 <p>入口处，全部转成unicode, 池里全部使用unicode处理，出口处，再转成目标编码(当然，有例外，处理逻辑中要用到具体编码的情况)</p>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
-2
-3
-4
-5
-6
-7
-8
-9</pre></div></td><td class="code"><div class="monokai"><pre><span></span>读文件
+<div class="monokai"><pre><span></span>读文件
 
 外部输入编码，decode转成unicode
 
@@ -260,18 +199,13 @@ encode转成需要的目标编码
 
 写到目标输出(文件或控制台)
 </pre></div>
-</td></tr></table>
 <p>IDE和控制台报错，原因是print时，编码和IDE自身编码不一致导致</p>
 <p>输出时将编码转换成一致的就可以正常输出</p>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
-2
-3
-4</pre></div></td><td class="code"><div class="monokai"><pre><span></span>&gt;&gt;&gt; print u'中文'.encode('gbk')
+<div class="monokai"><pre><span></span>&gt;&gt;&gt; print u'中文'.encode('gbk')
 ����
 &gt;&gt;&gt; print u'中文'.encode('utf-8')
 中文
 </pre></div>
-</td></tr></table>
 <hr/>
 <h2 id="jian-yi">建议</h2>
 <blockquote>
@@ -285,19 +219,14 @@ encode转成需要的目标编码
 <p>这个很重要</p>
 <p>py文件默认编码是ASCII, 在源代码文件中，如果用到非ASCII字符，需要在文件头部进行编码声明 <a href="http://www.python.org/dev/peps/pep-0263/">文档</a></p>
 <p>不声明的话，输入非ASCII会遇到的错误,必须放在文件第一行或第二行</p>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
-2</pre></div></td><td class="code"><div class="monokai"><pre><span></span><span class="nt">File</span> <span class="s2">"XXX.py"</span><span class="o">,</span> <span class="nt">line</span> <span class="nt">3</span>
+<div class="monokai"><pre><span></span><span class="nt">File</span> <span class="s2">"XXX.py"</span><span class="o">,</span> <span class="nt">line</span> <span class="nt">3</span>
 <span class="nt">SyntaxError</span><span class="o">:</span> <span class="nt">Non-ASCII</span> <span class="nt">character</span> <span class="s1">'\xd6'</span> <span class="nt">in</span> <span class="nt">file</span> <span class="nt">c</span><span class="nc">.py</span> <span class="nt">on</span> <span class="nt">line</span> <span class="nt">3</span><span class="o">,</span> <span class="nt">but</span> <span class="nt">no</span> <span class="nt">encoding</span> <span class="nt">declared</span><span class="o">;</span> <span class="nt">see</span> <span class="nt">http</span><span class="o">://</span><span class="nt">www</span><span class="nc">.python.org</span><span class="o">/</span><span class="nt">peps</span><span class="o">/</span><span class="nt">pep-0263</span><span class="nc">.html</span> <span class="nt">for</span> <span class="nt">details</span>
 </pre></div>
-</td></tr></table>
 <p>声明方法</p>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
-2
-3</pre></div></td><td class="code"><div class="monokai"><pre><span></span># -*- coding: utf-8 -*-
+<div class="monokai"><pre><span></span># -*- coding: utf-8 -*-
 或者
 #coding=utf-8
 </pre></div>
-</td></tr></table>
 <p>若头部声明coding=utf-8, a = '中文' 其编码为utf-8</p>
 <p>若头部声明coding=gb2312, a = '中文' 其编码为gbk</p>
 <p>so, 同一项目中所有源文件头部统一一个编码,并且声明的编码要和源文件保存的编码一致(编辑器相关)</p>
@@ -305,37 +234,23 @@ encode转成需要的目标编码
 <p>在源代码用作处理的硬编码字符串，统一用unicode</p>
 </blockquote>
 <p>将其类型和源文件本身的编码隔离开, 独立无依赖方便流程中各个位置处理</p>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
-2
-3</pre></div></td><td class="code"><div class="monokai"><pre><span></span><span class="k">if</span> <span class="n">s</span> <span class="o">==</span> <span class="s1">u'中文'</span><span class="p">:</span>  <span class="c1">#而不是 s == '中文'</span>
+<div class="monokai"><pre><span></span><span class="k">if</span> <span class="n">s</span> <span class="o">==</span> <span class="s1">u'中文'</span><span class="p">:</span>  <span class="c1">#而不是 s == '中文'</span>
     <span class="k">pass</span>
 <span class="c1">#注意这里 s到这里时，确保转为unicode</span>
 </pre></div>
-</td></tr></table>
 <p>以上几步搞定后，你只需要关注两个 unicode和 你设定的编码(一般使用utf-8)</p>
 <blockquote>
 <p>处理顺序</p>
 </blockquote>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
-2
-3</pre></div></td><td class="code"><div class="monokai"><pre><span></span>1. Decode early
+<div class="monokai"><pre><span></span>1. Decode early
 2. Unicode everywhere
 3. Encode later
 </pre></div>
-</td></tr></table>
 <h2 id="xiang-guan-mo-kuai-ji-yi-xie-fang-fa">相关模块及一些方法</h2>
 <blockquote>
 <p>获得和设置系统默认编码</p>
 </blockquote>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
-2
-3
-4
-5
-6
-7
-8
-9</pre></div></td><td class="code"><div class="monokai"><pre><span></span><span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">sys</span>
+<div class="monokai"><pre><span></span><span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">sys</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">sys</span><span class="o">.</span><span class="n">getdefaultencoding</span><span class="p">()</span>
 <span class="s1">'ascii'</span>
 
@@ -345,53 +260,32 @@ encode转成需要的目标编码
 <span class="o">&gt;&gt;&gt;</span> <span class="n">sys</span><span class="o">.</span><span class="n">getdefaultencoding</span><span class="p">()</span>
 <span class="s1">'utf-8'</span>
 </pre></div>
-</td></tr></table>
 <blockquote>
 <p>str.encode('other_coding')</p>
 </blockquote>
 <p>在python中，直接将某种编码的str进行encode成另一种编码str</p>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
-2
-3
-4
-5
-6</pre></div></td><td class="code"><div class="monokai"><pre><span></span><span class="c1">#str_A为utf-8</span>
+<div class="monokai"><pre><span></span><span class="c1">#str_A为utf-8</span>
 <span class="n">str_A</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">'gbk'</span><span class="p">)</span>
 
 <span class="err">执行的操作是</span>
 <span class="n">str_A</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">'sys_codec'</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">'gbk'</span><span class="p">)</span>
 <span class="err">这里</span><span class="n">sys_codec</span><span class="err">即为上一步</span> <span class="n">sys</span><span class="o">.</span><span class="n">getdefaultencoding</span><span class="p">()</span> <span class="err">的编码</span>
 </pre></div>
-</td></tr></table>
 <p>'获得和设置系统默认编码'和这里的str.encode是相关的，但我一般很少这么用，主要是觉得复杂不可控,还是输入明确decode，输出明确encode来得简单些(个人观点)</p>
 <blockquote>
 <p>chardet</p>
 </blockquote>
 <p>文件编码检测，<a href="https://pypi.python.org/pypi/chardet">下载</a></p>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
-2
-3
-4
-5</pre></div></td><td class="code"><div class="monokai"><pre><span></span><span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">chardet</span>
+<div class="monokai"><pre><span></span><span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">chardet</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s1">'test.txt'</span><span class="p">,</span><span class="s1">'r'</span><span class="p">)</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">result</span> <span class="o">=</span> <span class="n">chardet</span><span class="o">.</span><span class="n">detect</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">result</span>
 <span class="p">{</span><span class="s1">'confidence'</span><span class="p">:</span> <span class="mf">0.99</span><span class="p">,</span> <span class="s1">'encoding'</span><span class="p">:</span> <span class="s1">'utf-8'</span><span class="p">}</span>
 </pre></div>
-</td></tr></table>
 <blockquote>
 <p>\u字符串转对应unicode字符串</p>
 </blockquote>
-<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10</pre></div></td><td class="code"><div class="monokai"><pre><span></span>&gt;&gt;&gt; u'中'
+<div class="monokai"><pre><span></span>&gt;&gt;&gt; u'中'
 u'\u4e2d'
 
 &gt;&gt;&gt; s = '\u4e2d'
@@ -402,7 +296,6 @@ u'\u4e2d'
 &gt;&gt;&gt; a.decode('unicode_escape')
 u'\u4fee\u6539\u8282\u70b9\u72b6\u6001\u6210\u529f'
 </pre></div>
-</td></tr></table>
 <blockquote>
 <p>python unicode文档</p>
 </blockquote>
