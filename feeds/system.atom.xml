@@ -1032,9 +1032,9 @@ supervisor&amp;gt; restart indexer
 &lt;p&gt;例如, 目录树, 不要监控celery.log&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;logs
 ├── a
-│&amp;nbsp;&amp;nbsp; ├── a.log
-│&amp;nbsp;&amp;nbsp; ├── b.log
-│&amp;nbsp;&amp;nbsp; └── celery.log
+│   ├── a.log
+│   ├── b.log
+│   └── celery.log
 └── b
     ├── c.log
         └── d.log
@@ -1370,7 +1370,7 @@ NGINXACCESS %{IPORHOST:http_host} %{IPORHOST:clientip} \[%{HTTPDATE:timestamp}\]
 &lt;/pre&gt;&lt;/div&gt;
 &lt;h3 id="1-ri-zhi-ge-shi"&gt;1. 日志格式&lt;/h3&gt;
 &lt;p&gt;日志, 即文本.&lt;/p&gt;
-&lt;p&gt;但是文本存在各种格式, 例如常见的&amp;rsquo;\t&amp;rsquo;分隔的列, csv, json, xml等等.&lt;/p&gt;
+&lt;p&gt;但是文本存在各种格式, 例如常见的’\t’分隔的列, csv, json, xml等等.&lt;/p&gt;
 &lt;p&gt;这里的要求是: 一定要满足自描述, 易读(人), 易处理(生成和解析).&lt;/p&gt;
 &lt;p&gt;最终选择了&lt;code&gt;json&lt;/code&gt;. 将原先无结构数据转成半结构化数据.&lt;/p&gt;
 &lt;p&gt;原因之一, &lt;code&gt;容器&lt;/code&gt;对半结构化的数据支持已经非常完善了, 例如postgresql, mongodb等, 对于后续计算很重要.&lt;/p&gt;
@@ -1414,9 +1414,9 @@ table: projectName_moduleName_yyMMdd
 &lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;示例:
 假设搜索日志:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;{&amp;lsquo;ip&amp;rsquo;: &amp;lsquo;127.0.0.1&amp;rsquo;,
- &amp;lsquo;keyword&amp;rsquo;: &amp;lsquo;test&amp;rsquo;,
- &amp;lsquo;result_count&amp;rsquo;: &amp;lsquo;1&amp;rsquo;,
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;{‘ip’: ‘127.0.0.1’,
+ ‘keyword’: ‘test’,
+ ‘result_count’: ‘1’,
 }
 &lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;统计 pv&lt;/p&gt;
@@ -1429,10 +1429,10 @@ table: projectName_moduleName_yyMMdd
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;select count(*) from search_20141101 where data-&amp;gt;&amp;gt;'result_count' = '0';
 &lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;搜索热词排行榜&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;select data-&amp;gt;&amp;gt;&amp;rsquo;keyword&amp;rsquo;, count(*)
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;select data-&amp;gt;&amp;gt;’keyword’, count(*)
 from search_20141101
 where data-&amp;gt;&amp;gt;'result_count' != '0'
-group by data-&amp;gt;&amp;gt;&amp;rsquo;keyword&amp;rsquo;
+group by data-&amp;gt;&amp;gt;’keyword’
 order by count(*) desc
 limit 100;
 &lt;/pre&gt;&lt;/div&gt;
@@ -1545,7 +1545,7 @@ limit 100;
 &lt;hr/&gt;
 &lt;h3 id="si-xiao-jie"&gt;四. 小结&lt;/h3&gt;
 &lt;blockquote&gt;
-&lt;p&gt;It&amp;rsquo;s Simple, but it works.&lt;/p&gt;
+&lt;p&gt;It’s Simple, but it works.&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;p&gt;数据情况, 当时大概每天 10G 日志 load 到库(处理前&amp;gt;10G), 每天日志数据大概是五千万条, 具体业务上了大概40个的样子, 每天30分钟左右处理完. 对于开发的改进是, 将原先0.5-2d的工作, 缩减到了1-2小时, 对生产力的提升较为显著.(对于日志数多且单一日志量较小的情况处理尤为便捷)&lt;/p&gt;
 &lt;p&gt;适用范围: 对于一般团队应该足够了(流量百万级别), 每个项目每天3-5百万访问量, 日志数据10-20G, 当然, 一直没机会测试上限, 不过只要PostGresql能抗住, 量再大些应该也ok.(可以考虑上elasticsearch)&lt;/p&gt;

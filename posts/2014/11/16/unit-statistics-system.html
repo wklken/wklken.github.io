@@ -170,7 +170,7 @@
 </pre></div>
 <h3 id="1-ri-zhi-ge-shi">1. 日志格式</h3>
 <p>日志, 即文本.</p>
-<p>但是文本存在各种格式, 例如常见的&rsquo;\t&rsquo;分隔的列, csv, json, xml等等.</p>
+<p>但是文本存在各种格式, 例如常见的’\t’分隔的列, csv, json, xml等等.</p>
 <p>这里的要求是: 一定要满足自描述, 易读(人), 易处理(生成和解析).</p>
 <p>最终选择了<code>json</code>. 将原先无结构数据转成半结构化数据.</p>
 <p>原因之一, <code>容器</code>对半结构化的数据支持已经非常完善了, 例如postgresql, mongodb等, 对于后续计算很重要.</p>
@@ -214,9 +214,9 @@ table: projectName_moduleName_yyMMdd
 </pre></div>
 <p>示例:
 假设搜索日志:</p>
-<div class="highlight"><pre><span></span>{&lsquo;ip&rsquo;: &lsquo;127.0.0.1&rsquo;,
- &lsquo;keyword&rsquo;: &lsquo;test&rsquo;,
- &lsquo;result_count&rsquo;: &lsquo;1&rsquo;,
+<div class="highlight"><pre><span></span>{‘ip’: ‘127.0.0.1’,
+ ‘keyword’: ‘test’,
+ ‘result_count’: ‘1’,
 }
 </pre></div>
 <p>统计 pv</p>
@@ -229,10 +229,10 @@ table: projectName_moduleName_yyMMdd
 <div class="highlight"><pre><span></span>select count(*) from search_20141101 where data-&gt;&gt;'result_count' = '0';
 </pre></div>
 <p>搜索热词排行榜</p>
-<div class="highlight"><pre><span></span>select data-&gt;&gt;&rsquo;keyword&rsquo;, count(*)
+<div class="highlight"><pre><span></span>select data-&gt;&gt;’keyword’, count(*)
 from search_20141101
 where data-&gt;&gt;'result_count' != '0'
-group by data-&gt;&gt;&rsquo;keyword&rsquo;
+group by data-&gt;&gt;’keyword’
 order by count(*) desc
 limit 100;
 </pre></div>
@@ -345,7 +345,7 @@ limit 100;
 <hr/>
 <h3 id="si-xiao-jie">四. 小结</h3>
 <blockquote>
-<p>It&rsquo;s Simple, but it works.</p>
+<p>It’s Simple, but it works.</p>
 </blockquote>
 <p>数据情况, 当时大概每天 10G 日志 load 到库(处理前&gt;10G), 每天日志数据大概是五千万条, 具体业务上了大概40个的样子, 每天30分钟左右处理完. 对于开发的改进是, 将原先0.5-2d的工作, 缩减到了1-2小时, 对生产力的提升较为显著.(对于日志数多且单一日志量较小的情况处理尤为便捷)</p>
 <p>适用范围: 对于一般团队应该足够了(流量百万级别), 每个项目每天3-5百万访问量, 日志数据10-20G, 当然, 一直没机会测试上限, 不过只要PostGresql能抗住, 量再大些应该也ok.(可以考虑上elasticsearch)</p>
