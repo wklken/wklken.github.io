@@ -81,263 +81,263 @@
         <p>还差一篇......写完写简历&gt;_&lt;#</p>
 <hr/>
 <p>示例</p>
-<div class="monokai"><pre><span></span>&gt;&gt;&gt; a = ()
-&gt;&gt;&gt; b = ()
-&gt;&gt;&gt; id(a) == id(b)
-True
-
-&gt;&gt;&gt; a = (1, )
-&gt;&gt;&gt; b = (1, )
-&gt;&gt;&gt; id(a) == id(b)
-False
+<div class="monokai"><pre><span class="code-line"><span></span>&gt;&gt;&gt; a = ()</span>
+<span class="code-line">&gt;&gt;&gt; b = ()</span>
+<span class="code-line">&gt;&gt;&gt; id(a) == id(b)</span>
+<span class="code-line">True</span>
+<span class="code-line"></span>
+<span class="code-line">&gt;&gt;&gt; a = (1, )</span>
+<span class="code-line">&gt;&gt;&gt; b = (1, )</span>
+<span class="code-line">&gt;&gt;&gt; id(a) == id(b)</span>
+<span class="code-line">False</span>
 </pre></div>
 <p>源码位置 <a href="https://github.com/wklken/Python-2.7.8/blob/master/Include/tupleobject.h">Include/tupleobject.h</a> |
          <a href="https://github.com/wklken/Python-2.7.8/blob/master/Objects/tupleobject.c">Objects/tupleobject.c</a></p>
 <hr/>
 <h1 id="jie-gou">结构</h1>
 <p>定义</p>
-<div class="monokai"><pre><span></span>typedef struct {
-    PyObject_VAR_HEAD
-    PyObject *ob_item[1];
-
-} PyTupleObject;
+<div class="monokai"><pre><span class="code-line"><span></span>typedef struct {</span>
+<span class="code-line">    PyObject_VAR_HEAD</span>
+<span class="code-line">    PyObject *ob_item[1];</span>
+<span class="code-line"></span>
+<span class="code-line">} PyTupleObject;</span>
 </pre></div>
 <p>说明</p>
-<div class="monokai"><pre><span></span>1. PyObject_VAR_HEAD
-PyTupleObject在底层是个变长对象(需要存储列表元素个数).
-虽然, 在python中, tuple是不可变对象
-
-2. PyObject *ob_item[1];
-指向存储元素的数组
-
-3.
+<div class="monokai"><pre><span class="code-line"><span></span>1. PyObject_VAR_HEAD</span>
+<span class="code-line">PyTupleObject在底层是个变长对象(需要存储列表元素个数).</span>
+<span class="code-line">虽然, 在python中, tuple是不可变对象</span>
+<span class="code-line"></span>
+<span class="code-line">2. PyObject *ob_item[1];</span>
+<span class="code-line">指向存储元素的数组</span>
+<span class="code-line"></span>
+<span class="code-line">3.</span>
 </pre></div>
 <p>结构</p>
 <p><img alt="PyTupleObject" src="/imgs/python-source/PyTupleObject.png"/></p>
 <p>构造方法</p>
-<div class="monokai"><pre><span></span>PyAPI_FUNC(PyObject *) PyTuple_New(Py_ssize_t size);
+<div class="monokai"><pre><span class="code-line"><span></span>PyAPI_FUNC(PyObject *) PyTuple_New(Py_ssize_t size);</span>
 </pre></div>
 <hr/>
 <h1 id="gou-zao">构造</h1>
 <p>看下构造方法定义</p>
-<div class="monokai"><pre><span></span><span class="n">PyObject</span> <span class="o">*</span>
-<span class="nf">PyTuple_New</span><span class="p">(</span><span class="k">register</span> <span class="n">Py_ssize_t</span> <span class="n">size</span><span class="p">)</span>
-<span class="p">{</span>
-    <span class="k">register</span> <span class="n">PyTupleObject</span> <span class="o">*</span><span class="n">op</span><span class="p">;</span>
-    <span class="n">Py_ssize_t</span> <span class="n">i</span><span class="p">;</span>
-
-    <span class="c1">// 大小为负数, return</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">size</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">PyErr_BadInternalCall</span><span class="p">();</span>
-        <span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span>
-    <span class="p">}</span>
-
-    <span class="c1">// 如果大小=0, 空元组, 直接取free_list第一个返回</span>
-<span class="cp">#if PyTuple_MAXSAVESIZE &gt; 0</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="n">free_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="p">{</span>
-        <span class="n">op</span> <span class="o">=</span> <span class="n">free_list</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
-        <span class="n">Py_INCREF</span><span class="p">(</span><span class="n">op</span><span class="p">);</span>
-
-<span class="cp">#ifdef COUNT_ALLOCS</span>
-        <span class="n">tuple_zero_allocs</span><span class="o">++</span><span class="p">;</span>
-<span class="cp">#endif</span>
-
-        <span class="k">return</span> <span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="p">)</span> <span class="n">op</span><span class="p">;</span>
-    <span class="p">}</span>
-
-    <span class="c1">// 如果free_list可分配, 从free_list取一个</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">size</span> <span class="o">&lt;</span> <span class="n">PyTuple_MAXSAVESIZE</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="n">op</span> <span class="o">=</span> <span class="n">free_list</span><span class="p">[</span><span class="n">size</span><span class="p">])</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>
-        <span class="c1">// 上面  op = free_list[size] 取得单链表头</span>
-        <span class="c1">// free_list指向单链表下一个元素, 对应位置阈值--</span>
-        <span class="n">free_list</span><span class="p">[</span><span class="n">size</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">PyTupleObject</span> <span class="o">*</span><span class="p">)</span> <span class="n">op</span><span class="o">-&gt;</span><span class="n">ob_item</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
-        <span class="n">numfree</span><span class="p">[</span><span class="n">size</span><span class="p">]</span><span class="o">--</span><span class="p">;</span>
-
-<span class="cp">#ifdef COUNT_ALLOCS</span>
-        <span class="n">fast_tuple_allocs</span><span class="o">++</span><span class="p">;</span>
-<span class="cp">#endif</span>
-
-      <span class="c1">// 初始化 ob_size和ob_type</span>
-      <span class="cm">/* Inline PyObject_InitVar */</span>
-<span class="cp">#ifdef Py_TRACE_REFS</span>
-        <span class="n">Py_SIZE</span><span class="p">(</span><span class="n">op</span><span class="p">)</span> <span class="o">=</span> <span class="n">size</span><span class="p">;</span>
-        <span class="n">Py_TYPE</span><span class="p">(</span><span class="n">op</span><span class="p">)</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">PyTuple_Type</span><span class="p">;</span>
-<span class="cp">#endif</span>
-        <span class="n">_Py_NewReference</span><span class="p">((</span><span class="n">PyObject</span> <span class="o">*</span><span class="p">)</span><span class="n">op</span><span class="p">);</span>
-    <span class="p">}</span>
-    <span class="k">else</span>
-<span class="cp">#endif   </span><span class="c1">// free_list不可用</span>
-    <span class="p">{</span>
-        <span class="c1">// 计算空间</span>
-        <span class="n">Py_ssize_t</span> <span class="n">nbytes</span> <span class="o">=</span> <span class="n">size</span> <span class="o">*</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="p">);</span>
-        <span class="cm">/* Check for overflow */</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">nbytes</span> <span class="o">/</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="p">)</span> <span class="o">!=</span> <span class="p">(</span><span class="kt">size_t</span><span class="p">)</span><span class="n">size</span> <span class="o">||</span>
-            <span class="p">(</span><span class="n">nbytes</span> <span class="o">&gt;</span> <span class="n">PY_SSIZE_T_MAX</span> <span class="o">-</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">PyTupleObject</span><span class="p">)</span> <span class="o">-</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="p">)))</span>
-        <span class="p">{</span>
-            <span class="k">return</span> <span class="n">PyErr_NoMemory</span><span class="p">();</span>
-        <span class="p">}</span>
-
-        <span class="c1">// 分配内存</span>
-        <span class="n">op</span> <span class="o">=</span> <span class="n">PyObject_GC_NewVar</span><span class="p">(</span><span class="n">PyTupleObject</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">PyTuple_Type</span><span class="p">,</span> <span class="n">size</span><span class="p">);</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">op</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span>
-            <span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span>
-    <span class="p">}</span>
-
-    <span class="c1">// 初始化ob_item每个元素</span>
-    <span class="k">for</span> <span class="p">(</span><span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">size</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
-        <span class="n">op</span><span class="o">-&gt;</span><span class="n">ob_item</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
-
-    <span class="c1">// 第一次分配空数组, 将其放入free_list第一个位置</span>
-<span class="cp">#if PyTuple_MAXSAVESIZE &gt; 0</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">free_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">op</span><span class="p">;</span>
-        <span class="o">++</span><span class="n">numfree</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
-        <span class="n">Py_INCREF</span><span class="p">(</span><span class="n">op</span><span class="p">);</span>          <span class="cm">/* extra INCREF so that this is never freed */</span>
-    <span class="p">}</span>
-<span class="cp">#endif</span>
-
-
-<span class="cp">#ifdef SHOW_TRACK_COUNT</span>
-    <span class="n">count_tracked</span><span class="o">++</span><span class="p">;</span>
-<span class="cp">#endif</span>
-
-    <span class="n">_PyObject_GC_TRACK</span><span class="p">(</span><span class="n">op</span><span class="p">);</span>
-
-    <span class="c1">// 返回</span>
-    <span class="k">return</span> <span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="p">)</span> <span class="n">op</span><span class="p">;</span>
-<span class="p">}</span>
+<div class="monokai"><pre><span class="code-line"><span></span><span class="n">PyObject</span> <span class="o">*</span></span>
+<span class="code-line"><span class="nf">PyTuple_New</span><span class="p">(</span><span class="k">register</span> <span class="n">Py_ssize_t</span> <span class="n">size</span><span class="p">)</span></span>
+<span class="code-line"><span class="p">{</span></span>
+<span class="code-line">    <span class="k">register</span> <span class="n">PyTupleObject</span> <span class="o">*</span><span class="n">op</span><span class="p">;</span></span>
+<span class="code-line">    <span class="n">Py_ssize_t</span> <span class="n">i</span><span class="p">;</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="c1">// 大小为负数, return</span></span>
+<span class="code-line">    <span class="k">if</span> <span class="p">(</span><span class="n">size</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span></span>
+<span class="code-line">        <span class="n">PyErr_BadInternalCall</span><span class="p">();</span></span>
+<span class="code-line">        <span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span></span>
+<span class="code-line">    <span class="p">}</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="c1">// 如果大小=0, 空元组, 直接取free_list第一个返回</span></span>
+<span class="code-line"><span class="cp">#if PyTuple_MAXSAVESIZE &gt; 0</span></span>
+<span class="code-line">    <span class="k">if</span> <span class="p">(</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="n">free_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="p">{</span></span>
+<span class="code-line">        <span class="n">op</span> <span class="o">=</span> <span class="n">free_list</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span></span>
+<span class="code-line">        <span class="n">Py_INCREF</span><span class="p">(</span><span class="n">op</span><span class="p">);</span></span>
+<span class="code-line"></span>
+<span class="code-line"><span class="cp">#ifdef COUNT_ALLOCS</span></span>
+<span class="code-line">        <span class="n">tuple_zero_allocs</span><span class="o">++</span><span class="p">;</span></span>
+<span class="code-line"><span class="cp">#endif</span></span>
+<span class="code-line"></span>
+<span class="code-line">        <span class="k">return</span> <span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="p">)</span> <span class="n">op</span><span class="p">;</span></span>
+<span class="code-line">    <span class="p">}</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="c1">// 如果free_list可分配, 从free_list取一个</span></span>
+<span class="code-line">    <span class="k">if</span> <span class="p">(</span><span class="n">size</span> <span class="o">&lt;</span> <span class="n">PyTuple_MAXSAVESIZE</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="n">op</span> <span class="o">=</span> <span class="n">free_list</span><span class="p">[</span><span class="n">size</span><span class="p">])</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span></span>
+<span class="code-line">        <span class="c1">// 上面  op = free_list[size] 取得单链表头</span></span>
+<span class="code-line">        <span class="c1">// free_list指向单链表下一个元素, 对应位置阈值--</span></span>
+<span class="code-line">        <span class="n">free_list</span><span class="p">[</span><span class="n">size</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">PyTupleObject</span> <span class="o">*</span><span class="p">)</span> <span class="n">op</span><span class="o">-&gt;</span><span class="n">ob_item</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span></span>
+<span class="code-line">        <span class="n">numfree</span><span class="p">[</span><span class="n">size</span><span class="p">]</span><span class="o">--</span><span class="p">;</span></span>
+<span class="code-line"></span>
+<span class="code-line"><span class="cp">#ifdef COUNT_ALLOCS</span></span>
+<span class="code-line">        <span class="n">fast_tuple_allocs</span><span class="o">++</span><span class="p">;</span></span>
+<span class="code-line"><span class="cp">#endif</span></span>
+<span class="code-line"></span>
+<span class="code-line">      <span class="c1">// 初始化 ob_size和ob_type</span></span>
+<span class="code-line">      <span class="cm">/* Inline PyObject_InitVar */</span></span>
+<span class="code-line"><span class="cp">#ifdef Py_TRACE_REFS</span></span>
+<span class="code-line">        <span class="n">Py_SIZE</span><span class="p">(</span><span class="n">op</span><span class="p">)</span> <span class="o">=</span> <span class="n">size</span><span class="p">;</span></span>
+<span class="code-line">        <span class="n">Py_TYPE</span><span class="p">(</span><span class="n">op</span><span class="p">)</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">PyTuple_Type</span><span class="p">;</span></span>
+<span class="code-line"><span class="cp">#endif</span></span>
+<span class="code-line">        <span class="n">_Py_NewReference</span><span class="p">((</span><span class="n">PyObject</span> <span class="o">*</span><span class="p">)</span><span class="n">op</span><span class="p">);</span></span>
+<span class="code-line">    <span class="p">}</span></span>
+<span class="code-line">    <span class="k">else</span></span>
+<span class="code-line"><span class="cp">#endif   </span><span class="c1">// free_list不可用</span></span>
+<span class="code-line">    <span class="p">{</span></span>
+<span class="code-line">        <span class="c1">// 计算空间</span></span>
+<span class="code-line">        <span class="n">Py_ssize_t</span> <span class="n">nbytes</span> <span class="o">=</span> <span class="n">size</span> <span class="o">*</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="p">);</span></span>
+<span class="code-line">        <span class="cm">/* Check for overflow */</span></span>
+<span class="code-line">        <span class="k">if</span> <span class="p">(</span><span class="n">nbytes</span> <span class="o">/</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="p">)</span> <span class="o">!=</span> <span class="p">(</span><span class="kt">size_t</span><span class="p">)</span><span class="n">size</span> <span class="o">||</span></span>
+<span class="code-line">            <span class="p">(</span><span class="n">nbytes</span> <span class="o">&gt;</span> <span class="n">PY_SSIZE_T_MAX</span> <span class="o">-</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">PyTupleObject</span><span class="p">)</span> <span class="o">-</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="p">)))</span></span>
+<span class="code-line">        <span class="p">{</span></span>
+<span class="code-line">            <span class="k">return</span> <span class="n">PyErr_NoMemory</span><span class="p">();</span></span>
+<span class="code-line">        <span class="p">}</span></span>
+<span class="code-line"></span>
+<span class="code-line">        <span class="c1">// 分配内存</span></span>
+<span class="code-line">        <span class="n">op</span> <span class="o">=</span> <span class="n">PyObject_GC_NewVar</span><span class="p">(</span><span class="n">PyTupleObject</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">PyTuple_Type</span><span class="p">,</span> <span class="n">size</span><span class="p">);</span></span>
+<span class="code-line">        <span class="k">if</span> <span class="p">(</span><span class="n">op</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span></span>
+<span class="code-line">            <span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span></span>
+<span class="code-line">    <span class="p">}</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="c1">// 初始化ob_item每个元素</span></span>
+<span class="code-line">    <span class="k">for</span> <span class="p">(</span><span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">size</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span></span>
+<span class="code-line">        <span class="n">op</span><span class="o">-&gt;</span><span class="n">ob_item</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="c1">// 第一次分配空数组, 将其放入free_list第一个位置</span></span>
+<span class="code-line"><span class="cp">#if PyTuple_MAXSAVESIZE &gt; 0</span></span>
+<span class="code-line">    <span class="k">if</span> <span class="p">(</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span></span>
+<span class="code-line">        <span class="n">free_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">op</span><span class="p">;</span></span>
+<span class="code-line">        <span class="o">++</span><span class="n">numfree</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span></span>
+<span class="code-line">        <span class="n">Py_INCREF</span><span class="p">(</span><span class="n">op</span><span class="p">);</span>          <span class="cm">/* extra INCREF so that this is never freed */</span></span>
+<span class="code-line">    <span class="p">}</span></span>
+<span class="code-line"><span class="cp">#endif</span></span>
+<span class="code-line"></span>
+<span class="code-line"></span>
+<span class="code-line"><span class="cp">#ifdef SHOW_TRACK_COUNT</span></span>
+<span class="code-line">    <span class="n">count_tracked</span><span class="o">++</span><span class="p">;</span></span>
+<span class="code-line"><span class="cp">#endif</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="n">_PyObject_GC_TRACK</span><span class="p">(</span><span class="n">op</span><span class="p">);</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="c1">// 返回</span></span>
+<span class="code-line">    <span class="k">return</span> <span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="p">)</span> <span class="n">op</span><span class="p">;</span></span>
+<span class="code-line"><span class="p">}</span></span>
 </pre></div>
 <p>简化步骤</p>
-<div class="monokai"><pre><span></span>1. 如果size=0, 从free_list[0]取, 直接返回
-
-2. 否则, 确认free_list[size], 是否可用, 可用获取
-
-3. 否则, 从内存分配新的空间
-
-4. 初始化, 返回
+<div class="monokai"><pre><span class="code-line"><span></span>1. 如果size=0, 从free_list[0]取, 直接返回</span>
+<span class="code-line"></span>
+<span class="code-line">2. 否则, 确认free_list[size], 是否可用, 可用获取</span>
+<span class="code-line"></span>
+<span class="code-line">3. 否则, 从内存分配新的空间</span>
+<span class="code-line"></span>
+<span class="code-line">4. 初始化, 返回</span>
 </pre></div>
 <hr/>
 <h1 id="hui-shou">回收</h1>
 <p>定义</p>
-<div class="monokai"><pre><span></span>static void
-tupledealloc(register PyTupleObject *op)
-{
-    register Py_ssize_t i;
-    // 获取元素个数
-    register Py_ssize_t len =  Py_SIZE(op);
-
-    PyObject_GC_UnTrack(op);
-    Py_TRASHCAN_SAFE_BEGIN(op)
-
-
-    if (len &gt; 0) {
-        i = len;
-        // 遍历, 析构每个元素
-        while (--i &gt;= 0)
-            Py_XDECREF(op-&gt;ob_item[i]);
-
-         // 与对象缓冲池相关
-#if PyTuple_MAXSAVESIZE &gt; 0
-        if (len &lt; PyTuple_MAXSAVESIZE &amp;&amp;
-            numfree[len] &lt; PyTuple_MAXFREELIST &amp;&amp;
-            Py_TYPE(op) == &amp;PyTuple_Type)
-        {
-            op-&gt;ob_item[0] = (PyObject *) free_list[len];
-            numfree[len]++;
-            free_list[len] = op;
-            goto done; /* return */
-        }
-#endif
-
-    }
-    // 调用回收
-    Py_TYPE(op)-&gt;tp_free((PyObject *)op);
-
-done:
-    Py_TRASHCAN_SAFE_END(op)
-}
+<div class="monokai"><pre><span class="code-line"><span></span>static void</span>
+<span class="code-line">tupledealloc(register PyTupleObject *op)</span>
+<span class="code-line">{</span>
+<span class="code-line">    register Py_ssize_t i;</span>
+<span class="code-line">    // 获取元素个数</span>
+<span class="code-line">    register Py_ssize_t len =  Py_SIZE(op);</span>
+<span class="code-line"></span>
+<span class="code-line">    PyObject_GC_UnTrack(op);</span>
+<span class="code-line">    Py_TRASHCAN_SAFE_BEGIN(op)</span>
+<span class="code-line"></span>
+<span class="code-line"></span>
+<span class="code-line">    if (len &gt; 0) {</span>
+<span class="code-line">        i = len;</span>
+<span class="code-line">        // 遍历, 析构每个元素</span>
+<span class="code-line">        while (--i &gt;= 0)</span>
+<span class="code-line">            Py_XDECREF(op-&gt;ob_item[i]);</span>
+<span class="code-line"></span>
+<span class="code-line">         // 与对象缓冲池相关</span>
+<span class="code-line">#if PyTuple_MAXSAVESIZE &gt; 0</span>
+<span class="code-line">        if (len &lt; PyTuple_MAXSAVESIZE &amp;&amp;</span>
+<span class="code-line">            numfree[len] &lt; PyTuple_MAXFREELIST &amp;&amp;</span>
+<span class="code-line">            Py_TYPE(op) == &amp;PyTuple_Type)</span>
+<span class="code-line">        {</span>
+<span class="code-line">            op-&gt;ob_item[0] = (PyObject *) free_list[len];</span>
+<span class="code-line">            numfree[len]++;</span>
+<span class="code-line">            free_list[len] = op;</span>
+<span class="code-line">            goto done; /* return */</span>
+<span class="code-line">        }</span>
+<span class="code-line">#endif</span>
+<span class="code-line"></span>
+<span class="code-line">    }</span>
+<span class="code-line">    // 调用回收</span>
+<span class="code-line">    Py_TYPE(op)-&gt;tp_free((PyObject *)op);</span>
+<span class="code-line"></span>
+<span class="code-line">done:</span>
+<span class="code-line">    Py_TRASHCAN_SAFE_END(op)</span>
+<span class="code-line">}</span>
 </pre></div>
 <p>简化流程</p>
-<div class="monokai"><pre><span></span>1. 回收ob_item每个元素
-
-2. 如果符合条件, 放入到free_list
-
-3. 否则, 回收
+<div class="monokai"><pre><span class="code-line"><span></span>1. 回收ob_item每个元素</span>
+<span class="code-line"></span>
+<span class="code-line">2. 如果符合条件, 放入到free_list</span>
+<span class="code-line"></span>
+<span class="code-line">3. 否则, 回收</span>
 </pre></div>
 <hr/>
 <h1 id="tupledui-xiang-huan-chong-chi">tuple对象缓冲池</h1>
 <p>定义</p>
-<div class="monokai"><pre><span></span><span class="cm">/* Speed optimization to avoid frequent malloc/free of small tuples */</span>
-<span class="cp">#ifndef PyTuple_MAXSAVESIZE</span>
-<span class="cp">#define PyTuple_MAXSAVESIZE     20</span>
-<span class="cp">#endif</span>
-
-<span class="cp">#ifndef PyTuple_MAXFREELIST</span>
-<span class="cp">#define PyTuple_MAXFREELIST  2000</span>
-<span class="cp">#endif</span>
-
-<span class="cp">#if PyTuple_MAXSAVESIZE &gt; 0</span>
-
-<span class="k">static</span> <span class="n">PyTupleObject</span> <span class="o">*</span><span class="n">free_list</span><span class="p">[</span><span class="n">PyTuple_MAXSAVESIZE</span><span class="p">];</span>
-<span class="k">static</span> <span class="kt">int</span> <span class="n">numfree</span><span class="p">[</span><span class="n">PyTuple_MAXSAVESIZE</span><span class="p">];</span>
-<span class="cp">#endif</span>
+<div class="monokai"><pre><span class="code-line"><span></span><span class="cm">/* Speed optimization to avoid frequent malloc/free of small tuples */</span></span>
+<span class="code-line"><span class="cp">#ifndef PyTuple_MAXSAVESIZE</span></span>
+<span class="code-line"><span class="cp">#define PyTuple_MAXSAVESIZE     20</span></span>
+<span class="code-line"><span class="cp">#endif</span></span>
+<span class="code-line"></span>
+<span class="code-line"><span class="cp">#ifndef PyTuple_MAXFREELIST</span></span>
+<span class="code-line"><span class="cp">#define PyTuple_MAXFREELIST  2000</span></span>
+<span class="code-line"><span class="cp">#endif</span></span>
+<span class="code-line"></span>
+<span class="code-line"><span class="cp">#if PyTuple_MAXSAVESIZE &gt; 0</span></span>
+<span class="code-line"></span>
+<span class="code-line"><span class="k">static</span> <span class="n">PyTupleObject</span> <span class="o">*</span><span class="n">free_list</span><span class="p">[</span><span class="n">PyTuple_MAXSAVESIZE</span><span class="p">];</span></span>
+<span class="code-line"><span class="k">static</span> <span class="kt">int</span> <span class="n">numfree</span><span class="p">[</span><span class="n">PyTuple_MAXSAVESIZE</span><span class="p">];</span></span>
+<span class="code-line"><span class="cp">#endif</span></span>
 </pre></div>
 <p>结论</p>
-<div class="monokai"><pre><span></span>1. 作用: 优化小tuple的mall/free
-
-2. PyTuple_MAXSAVESIZE = 20
-会被缓存的tuple长度阈值, 20, 长度&lt;20的, 才会走对象缓冲池逻辑
-
-3. PyTuple_MAXFREELIST  2000
-每种size的tuple最多会被缓存2000个
-
-4. PyTupleObject *free_list[PyTuple_MAXSAVESIZE]
-free_list, 指针数组, 每个位置, 存储了指向一个单链表头的地址
-
-5. numfree[PyTuple_MAXSAVESIZE]
-numfree, 一个计数数组, 存储free_list对应位置的单链表长度
-
-6. free_list[0], 指向空数组, 有且仅有一个
+<div class="monokai"><pre><span class="code-line"><span></span>1. 作用: 优化小tuple的mall/free</span>
+<span class="code-line"></span>
+<span class="code-line">2. PyTuple_MAXSAVESIZE = 20</span>
+<span class="code-line">会被缓存的tuple长度阈值, 20, 长度&lt;20的, 才会走对象缓冲池逻辑</span>
+<span class="code-line"></span>
+<span class="code-line">3. PyTuple_MAXFREELIST  2000</span>
+<span class="code-line">每种size的tuple最多会被缓存2000个</span>
+<span class="code-line"></span>
+<span class="code-line">4. PyTupleObject *free_list[PyTuple_MAXSAVESIZE]</span>
+<span class="code-line">free_list, 指针数组, 每个位置, 存储了指向一个单链表头的地址</span>
+<span class="code-line"></span>
+<span class="code-line">5. numfree[PyTuple_MAXSAVESIZE]</span>
+<span class="code-line">numfree, 一个计数数组, 存储free_list对应位置的单链表长度</span>
+<span class="code-line"></span>
+<span class="code-line">6. free_list[0], 指向空数组, 有且仅有一个</span>
 </pre></div>
 <p>free_list的结构</p>
 <p><img alt="PyTupleObjectPool" src="/imgs/python-source/PyTupleObjectPool.png"/></p>
 <p>回头看回收跟对象缓冲池相关的逻辑</p>
 <p>条件:</p>
-<div class="monokai"><pre><span></span>if (len &lt; PyTuple_MAXSAVESIZE &amp;&amp;         // len &lt; 20
-    numfree[len] &lt; PyTuple_MAXFREELIST &amp;&amp; // numfree[len] &lt; 2000
-    Py_TYPE(op) == &amp;PyTuple_Type) // 是tuple类型
+<div class="monokai"><pre><span class="code-line"><span></span>if (len &lt; PyTuple_MAXSAVESIZE &amp;&amp;         // len &lt; 20</span>
+<span class="code-line">    numfree[len] &lt; PyTuple_MAXFREELIST &amp;&amp; // numfree[len] &lt; 2000</span>
+<span class="code-line">    Py_TYPE(op) == &amp;PyTuple_Type) // 是tuple类型</span>
 </pre></div>
 <p>操作</p>
-<div class="monokai"><pre><span></span>op-&gt;ob_item[0] = (PyObject *) free_list[len]; //ob_item指向free_list[len] 单链表头
-numfree[len]++;  // len位置计数+1
-free_list[len] = op; // op变成单链表的头
-goto done; /* return */
+<div class="monokai"><pre><span class="code-line"><span></span>op-&gt;ob_item[0] = (PyObject *) free_list[len]; //ob_item指向free_list[len] 单链表头</span>
+<span class="code-line">numfree[len]++;  // len位置计数+1</span>
+<span class="code-line">free_list[len] = op; // op变成单链表的头</span>
+<span class="code-line">goto done; /* return */</span>
 </pre></div>
 <p>即过程</p>
-<div class="monokai"><pre><span></span>1. 如果size=0, 直接从free_list[0]取
-
-2. 如果size!=0, 判断size&lt;20?
-
-3.1 size &lt; 20, 从free_list对应size位置的单链表, 取头部第一个位置
-
-3.2 size &lt; 20, free_list对应size位置还没有可用对象的话, 走内存分配逻辑
-
-4 size &gt; 20  走内存分配逻辑
-
-
-------------------
-
-回收时
-
-如果size&lt;20, 且free_list对应位置单链表长度没达到上限(2000), 将对象放入到单链表头
+<div class="monokai"><pre><span class="code-line"><span></span>1. 如果size=0, 直接从free_list[0]取</span>
+<span class="code-line"></span>
+<span class="code-line">2. 如果size!=0, 判断size&lt;20?</span>
+<span class="code-line"></span>
+<span class="code-line">3.1 size &lt; 20, 从free_list对应size位置的单链表, 取头部第一个位置</span>
+<span class="code-line"></span>
+<span class="code-line">3.2 size &lt; 20, free_list对应size位置还没有可用对象的话, 走内存分配逻辑</span>
+<span class="code-line"></span>
+<span class="code-line">4 size &gt; 20  走内存分配逻辑</span>
+<span class="code-line"></span>
+<span class="code-line"></span>
+<span class="code-line">------------------</span>
+<span class="code-line"></span>
+<span class="code-line">回收时</span>
+<span class="code-line"></span>
+<span class="code-line">如果size&lt;20, 且free_list对应位置单链表长度没达到上限(2000), 将对象放入到单链表头</span>
 </pre></div>
 <p>注意</p>
-<div class="monokai"><pre><span></span>1. 回收时, ob_item都会被回收, 只是本身对象缓存下来
-
-2. 这里free_list, 复用ob_item作为链表指针, 指向下一个位置(通用整数对象池也是复用指针的方式, 不过用的是ob_type)
+<div class="monokai"><pre><span class="code-line"><span></span>1. 回收时, ob_item都会被回收, 只是本身对象缓存下来</span>
+<span class="code-line"></span>
+<span class="code-line">2. 这里free_list, 复用ob_item作为链表指针, 指向下一个位置(通用整数对象池也是复用指针的方式, 不过用的是ob_type)</span>
 </pre></div>
 <hr/>
 <p>changelog</p>
-<div class="monokai"><pre><span></span>2014-08-10 first version
+<div class="monokai"><pre><span class="code-line"><span></span>2014-08-10 first version</span>
 </pre></div>
     </section>
 

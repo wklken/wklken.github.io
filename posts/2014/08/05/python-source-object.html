@@ -82,10 +82,10 @@
 <p>参考内容: Python源码 + <code>&lt;&lt;Python源码剖析&gt;&gt;</code></p>
 <p>用<code>源代码+说明+图解</code>的方式, 尽量说明白吧, 有一份注释在github上</p>
 <p>内容:</p>
-<div class="monokai"><pre><span></span>-&gt; 对象/类型
--&gt; 各种内建类型对象及机制
--&gt; 虚拟机相关(编译及执行)
--&gt; 内存管理/动态加载/多线程等
+<div class="monokai"><pre><span class="code-line"><span></span>-&gt; 对象/类型</span>
+<span class="code-line">-&gt; 各种内建类型对象及机制</span>
+<span class="code-line">-&gt; 虚拟机相关(编译及执行)</span>
+<span class="code-line">-&gt; 内存管理/动态加载/多线程等</span>
 </pre></div>
 <p>PS: 画图的话google doc很好用</p>
 <p>好的, 第一篇开始</p>
@@ -100,52 +100,52 @@
 <h3 id="pyobject_head">PyObject_HEAD</h3>
 <p>Python 内部, 每个对象拥有相同的头部.</p>
 <p>定义</p>
-<div class="monokai"><pre><span></span><span class="cm">/* PyObject_HEAD defines the initial segment of every PyObject. */</span><span class="w"></span>
-<span class="err">#</span>define<span class="w"> </span>PyObject_HEAD<span class="w">                   </span><span class="o">\</span><span class="w"></span>
-<span class="w">    </span>_PyObject_HEAD_EXTRA<span class="w">                </span><span class="o">\</span><span class="w"></span>
-<span class="w">    </span>Py_ssize_t<span class="w"> </span>ob_refcnt<span class="err">;</span><span class="w">               </span><span class="o">\</span><span class="w"></span>
-<span class="w">    </span>struct<span class="w"> </span>_typeobject<span class="w"> </span><span class="o">*</span>ob_type<span class="err">;</span><span class="w"></span>
+<div class="monokai"><pre><span class="code-line"><span></span><span class="cm">/* PyObject_HEAD defines the initial segment of every PyObject. */</span><span class="w"></span></span>
+<span class="code-line"><span class="err">#</span>define<span class="w"> </span>PyObject_HEAD<span class="w">                   </span><span class="o">\</span><span class="w"></span></span>
+<span class="code-line"><span class="w">    </span>_PyObject_HEAD_EXTRA<span class="w">                </span><span class="o">\</span><span class="w"></span></span>
+<span class="code-line"><span class="w">    </span>Py_ssize_t<span class="w"> </span>ob_refcnt<span class="err">;</span><span class="w">               </span><span class="o">\</span><span class="w"></span></span>
+<span class="code-line"><span class="w">    </span>struct<span class="w"> </span>_typeobject<span class="w"> </span><span class="o">*</span>ob_type<span class="err">;</span><span class="w"></span></span>
 </pre></div>
 <p>说明</p>
-<div class="monokai"><pre><span></span>1. _PyObject_HEAD_EXTRA
-先忽略, 双向链表结构, 后面垃圾回收再说
-
-2. Py_ssize_t ob_refcnt
-Py_ssize_t在编译时确定, 整型
-ob_refcnt, 引用计数, 跟Python的内存管理机制相关(基于引用计数的垃圾回收)
-
-3. struct _typeobject *ob_type
-*ob_type 指向类型对象的指针(指向_typeobject结构体)
-决定了这个对象的类型!
+<div class="monokai"><pre><span class="code-line"><span></span>1. _PyObject_HEAD_EXTRA</span>
+<span class="code-line">先忽略, 双向链表结构, 后面垃圾回收再说</span>
+<span class="code-line"></span>
+<span class="code-line">2. Py_ssize_t ob_refcnt</span>
+<span class="code-line">Py_ssize_t在编译时确定, 整型</span>
+<span class="code-line">ob_refcnt, 引用计数, 跟Python的内存管理机制相关(基于引用计数的垃圾回收)</span>
+<span class="code-line"></span>
+<span class="code-line">3. struct _typeobject *ob_type</span>
+<span class="code-line">*ob_type 指向类型对象的指针(指向_typeobject结构体)</span>
+<span class="code-line">决定了这个对象的类型!</span>
 </pre></div>
 <h3 id="pyobject">PyObject</h3>
 <p>定义</p>
-<div class="monokai"><pre><span></span> typedef struct _object {
-     PyObject_HEAD
- } PyObject;
+<div class="monokai"><pre><span class="code-line"><span></span> typedef struct _object {</span>
+<span class="code-line">     PyObject_HEAD</span>
+<span class="code-line"> } PyObject;</span>
 </pre></div>
 <p>说明</p>
-<div class="monokai"><pre><span></span> 1. 依赖关系
- PyObject -&gt; PyObject_HEAD
+<div class="monokai"><pre><span class="code-line"><span></span> 1. 依赖关系</span>
+<span class="code-line"> PyObject -&gt; PyObject_HEAD</span>
 </pre></div>
 <p>结构</p>
 <p><img alt="PyObject" src="/imgs/python-source/PyObject.png"/></p>
 <h3 id="pyvarobject">PyVarObject</h3>
 <p>定义</p>
-<div class="monokai"><pre><span></span>typedef struct {
-    PyObject_VAR_HEAD
-} PyVarObject;
-
-#define PyObject_VAR_HEAD               \
-  PyObject_HEAD                       \
-  Py_ssize_t ob_size; /* Number of items in variable part */
+<div class="monokai"><pre><span class="code-line"><span></span>typedef struct {</span>
+<span class="code-line">    PyObject_VAR_HEAD</span>
+<span class="code-line">} PyVarObject;</span>
+<span class="code-line"></span>
+<span class="code-line">#define PyObject_VAR_HEAD               \</span>
+<span class="code-line">  PyObject_HEAD                       \</span>
+<span class="code-line">  Py_ssize_t ob_size; /* Number of items in variable part */</span>
 </pre></div>
 <p>说明</p>
-<div class="monokai"><pre><span></span> 1. 依赖关系
- PyVarObject -&gt; PyObject_VAR_HEAD -&gt; PyObject_HEAD
-
- 2.Py_ssize_t ob_size
- ob_size, 变长对象容纳的元素个数
+<div class="monokai"><pre><span class="code-line"><span></span> 1. 依赖关系</span>
+<span class="code-line"> PyVarObject -&gt; PyObject_VAR_HEAD -&gt; PyObject_HEAD</span>
+<span class="code-line"></span>
+<span class="code-line"> 2.Py_ssize_t ob_size</span>
+<span class="code-line"> ob_size, 变长对象容纳的元素个数</span>
 </pre></div>
 <p>结构</p>
 <p><img alt="PyVarObject" src="/imgs/python-source/PyVarObject.png"/></p>
@@ -153,30 +153,30 @@ ob_refcnt, 引用计数, 跟Python的内存管理机制相关(基于引用计数
 <p><img alt="PyObjectCode" src="/imgs/python-source/PyObjectCode.png"/></p>
 <h3 id="ji-ge-fang-fa">几个方法</h3>
 <p>跟对象相关的方法</p>
-<div class="monokai"><pre><span></span>#define Py_REFCNT(ob)           (((PyObject*)(ob))-&gt;ob_refcnt)
-读取引用计数
-
-#define Py_TYPE(ob)             (((PyObject*)(ob))-&gt;ob_type)
-获取对象类型
-
-#define Py_SIZE(ob)             (((PyVarObject*)(ob))-&gt;ob_size)
-读取元素个数(len)
+<div class="monokai"><pre><span class="code-line"><span></span>#define Py_REFCNT(ob)           (((PyObject*)(ob))-&gt;ob_refcnt)</span>
+<span class="code-line">读取引用计数</span>
+<span class="code-line"></span>
+<span class="code-line">#define Py_TYPE(ob)             (((PyObject*)(ob))-&gt;ob_type)</span>
+<span class="code-line">获取对象类型</span>
+<span class="code-line"></span>
+<span class="code-line">#define Py_SIZE(ob)             (((PyVarObject*)(ob))-&gt;ob_size)</span>
+<span class="code-line">读取元素个数(len)</span>
 </pre></div>
 <p>跟引用计数相关的方法</p>
-<div class="monokai"><pre><span></span>Py_INCREF(op)  增加对象引用计数
-
-Py_DECREF(op)  减少对象引用计数, 如果计数位0, 调用_Py_Dealloc
-
-_Py_Dealloc(op) 调用对应类型的 tp_dealloc 方法(每种类型回收行为不一样的, 各种缓存池机制, 后面看)
+<div class="monokai"><pre><span class="code-line"><span></span>Py_INCREF(op)  增加对象引用计数</span>
+<span class="code-line"></span>
+<span class="code-line">Py_DECREF(op)  减少对象引用计数, 如果计数位0, 调用_Py_Dealloc</span>
+<span class="code-line"></span>
+<span class="code-line">_Py_Dealloc(op) 调用对应类型的 tp_dealloc 方法(每种类型回收行为不一样的, 各种缓存池机制, 后面看)</span>
 </pre></div>
 <h3 id="qi-ta">其他</h3>
 <p>几个参数涉及</p>
-<div class="monokai"><pre><span></span>ob_refcnt 引用计数, 与内存管理/垃圾回收相关
-ob_type   类型, 涉及Python的类型系统
+<div class="monokai"><pre><span class="code-line"><span></span>ob_refcnt 引用计数, 与内存管理/垃圾回收相关</span>
+<span class="code-line">ob_type   类型, 涉及Python的类型系统</span>
 </pre></div>
 <hr/>
 <p>changelog:</p>
-<div class="monokai"><pre><span></span>2013-08-05 first version
+<div class="monokai"><pre><span class="code-line"><span></span>2013-08-05 first version</span>
 </pre></div>
     </section>
 

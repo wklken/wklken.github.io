@@ -114,70 +114,70 @@
 <h3 id="jian-jie_1">简介</h3>
 <p>Redis(REmote DIctionary Server),远程字典服务器，以字典结构存储数据，允许通过TCP协议读取字典中内容. 高性能键值对数据库</p>
 <p>作用：</p>
-<div class="monokai"><pre><span></span>1.缓存系统： 可以为每个键设置TTL(Time To Live),生存时间到期后键会自动被删除
-             可限定数据占用最大内存空间，数据大道空间限制后自动按照一定规则淘汰不需要键
-2.任务队列： redis列表类型可以用来实现队列, 支持阻塞式读取，很容易用作高性能队列，还支持“发布/订阅“消息的模式
+<div class="monokai"><pre><span class="code-line"><span></span>1.缓存系统： 可以为每个键设置TTL(Time To Live),生存时间到期后键会自动被删除</span>
+<span class="code-line">             可限定数据占用最大内存空间，数据大道空间限制后自动按照一定规则淘汰不需要键</span>
+<span class="code-line">2.任务队列： redis列表类型可以用来实现队列, 支持阻塞式读取，很容易用作高性能队列，还支持“发布/订阅“消息的模式</span>
 </pre></div>
 <p>其他:</p>
-<div class="monokai"><pre><span></span>1.Redis中, 所有数据都存储在内存中, 但提供了持久化支持, 内存中数据可以异步写入硬盘, 不影响现有服务
-2.与memcached对比, redis单线程模型, memcached支持多线程. 但redis支持高级数据类型和持久化
+<div class="monokai"><pre><span class="code-line"><span></span>1.Redis中, 所有数据都存储在内存中, 但提供了持久化支持, 内存中数据可以异步写入硬盘, 不影响现有服务</span>
+<span class="code-line">2.与memcached对比, redis单线程模型, memcached支持多线程. 但redis支持高级数据类型和持久化</span>
 </pre></div>
 <h3 id="an-zhuang">安装</h3>
 <p>安装</p>
-<div class="monokai"><pre><span></span>1.wget http://download.redis.io/releases/redis-2.6.16.tar.gz
-2.tar -xzvf redis-2.6.16.tar.gz
-3.cd redis-2.6.16
-4.make
-5.make install
+<div class="monokai"><pre><span class="code-line"><span></span>1.wget http://download.redis.io/releases/redis-2.6.16.tar.gz</span>
+<span class="code-line">2.tar -xzvf redis-2.6.16.tar.gz</span>
+<span class="code-line">3.cd redis-2.6.16</span>
+<span class="code-line">4.make</span>
+<span class="code-line">5.make install</span>
 </pre></div>
 <p>osx</p>
-<div class="monokai"><pre><span></span>brew install redis
+<div class="monokai"><pre><span class="code-line"><span></span>brew install redis</span>
 </pre></div>
 <p>安装后，在/usr/local/bin下面有</p>
-<div class="monokai"><pre><span></span>redis-server     服务器, 重点
-redis-cli        命令行客户端, 重点
-
-redis-benchmark  性能测试工具
-redis-check-aof  AOF文件修复工具
-redis-check-dump RDB文件检查工具
+<div class="monokai"><pre><span class="code-line"><span></span>redis-server     服务器, 重点</span>
+<span class="code-line">redis-cli        命令行客户端, 重点</span>
+<span class="code-line"></span>
+<span class="code-line">redis-benchmark  性能测试工具</span>
+<span class="code-line">redis-check-aof  AOF文件修复工具</span>
+<span class="code-line">redis-check-dump RDB文件检查工具</span>
 </pre></div>
 <p>启动</p>
 <p>直接启动</p>
-<div class="monokai"><pre><span></span>redis-server #默认6379
-redis-server --port 6380
-# 启动命令中配置将覆盖配置文件中同名参数
-redis-server /path/to/redis.conf --loglevel warning
+<div class="monokai"><pre><span class="code-line"><span></span>redis-server #默认6379</span>
+<span class="code-line">redis-server --port 6380</span>
+<span class="code-line"># 启动命令中配置将覆盖配置文件中同名参数</span>
+<span class="code-line">redis-server /path/to/redis.conf --loglevel warning</span>
 </pre></div>
 <p>通过初始化脚本运行(生产环境)</p>
-<div class="monokai"><pre><span></span>在安装包目录redis-2.6.16/utils/redis_init_script
-
-1.将脚本复制到/etc/init.d目录下，文件名为 redis_端口号, 修改文件第六行 REDISPORT为相同端口号
-2.建立目录
-    /etc/redis           存放配置文件
-    /var/redis/端口号    存放持久化文件
-3.修改配置文件
-    将配置文件redis-2.6.16/redis.conf 复制到/etc/redis目录下，以端口号命名 e.g.  6379.conf
-    修改配置文件中部分参数
-        daemonize   yes                         使redis以守护进程模式运行
-        pidfile     /var/run/redis_端口号.pid   设置redis的PID文件按位置
-        port        端口号                      设置监听的端口号
-        dir         /var/redis/端口号           设置持久化文件存放位置
+<div class="monokai"><pre><span class="code-line"><span></span>在安装包目录redis-2.6.16/utils/redis_init_script</span>
+<span class="code-line"></span>
+<span class="code-line">1.将脚本复制到/etc/init.d目录下，文件名为 redis_端口号, 修改文件第六行 REDISPORT为相同端口号</span>
+<span class="code-line">2.建立目录</span>
+<span class="code-line">    /etc/redis           存放配置文件</span>
+<span class="code-line">    /var/redis/端口号    存放持久化文件</span>
+<span class="code-line">3.修改配置文件</span>
+<span class="code-line">    将配置文件redis-2.6.16/redis.conf 复制到/etc/redis目录下，以端口号命名 e.g.  6379.conf</span>
+<span class="code-line">    修改配置文件中部分参数</span>
+<span class="code-line">        daemonize   yes                         使redis以守护进程模式运行</span>
+<span class="code-line">        pidfile     /var/run/redis_端口号.pid   设置redis的PID文件按位置</span>
+<span class="code-line">        port        端口号                      设置监听的端口号</span>
+<span class="code-line">        dir         /var/redis/端口号           设置持久化文件存放位置</span>
 </pre></div>
 <p>停止</p>
-<div class="monokai"><pre><span></span>redis-cli SHUTDOWN
-//server断开所有客户端连接, 根据配置执行持久化, 最后退出
+<div class="monokai"><pre><span class="code-line"><span></span>redis-cli SHUTDOWN</span>
+<span class="code-line">//server断开所有客户端连接, 根据配置执行持久化, 最后退出</span>
 </pre></div>
 <p>Redis命令行客户端</p>
-<div class="monokai"><pre><span></span>发送命令：
-    redis-cli -h 127.0.0.1 -p 6379
-    redis-cli PING
-    redis-cli
-命令返回值
-    状态回复，e.g.  &gt;PING
-    错误恢复, e.g.  &gt;ECMD
-    整数回复, e.g.  &gt;INCR foo
-    字符串回复，e.g. &gt;GET foo   &gt;GET notexists`
-    多行字符串回复，e.g. &gt;KEYS *
+<div class="monokai"><pre><span class="code-line"><span></span>发送命令：</span>
+<span class="code-line">    redis-cli -h 127.0.0.1 -p 6379</span>
+<span class="code-line">    redis-cli PING</span>
+<span class="code-line">    redis-cli</span>
+<span class="code-line">命令返回值</span>
+<span class="code-line">    状态回复，e.g.  &gt;PING</span>
+<span class="code-line">    错误恢复, e.g.  &gt;ECMD</span>
+<span class="code-line">    整数回复, e.g.  &gt;INCR foo</span>
+<span class="code-line">    字符串回复，e.g. &gt;GET foo   &gt;GET notexists`</span>
+<span class="code-line">    多行字符串回复，e.g. &gt;KEYS *</span>
 </pre></div>
 <h2 id="wu-chong-shu-ju-lei-xing-ji-xiang-ying-ming-ling_1">五种数据类型及相应命令</h2>
 <p>基础命令(redis-cli)</p>
@@ -185,420 +185,420 @@ redis-server /path/to/redis.conf --loglevel warning
 <li>返回符合规则的键名列表</li>
 </ul>
 <p>pattern支持通配符, ? * [] 等, 会遍历所有键, 当键的数量较多时影响性能</p>
-<div class="monokai"><pre><span></span>&gt;KEYS pattern
+<div class="monokai"><pre><span class="code-line"><span></span>&gt;KEYS pattern</span>
 </pre></div>
 <p>e.g.</p>
-<div class="monokai"><pre><span></span>&gt;SET bar 1
-&gt;KEYS *
+<div class="monokai"><pre><span class="code-line"><span></span>&gt;SET bar 1</span>
+<span class="code-line">&gt;KEYS *</span>
 </pre></div>
 <ul>
 <li>判断一个键是否存在</li>
 </ul>
 <p>返回，0不存在，1存在</p>
-<div class="monokai"><pre><span></span>&gt;EXISTS key
+<div class="monokai"><pre><span class="code-line"><span></span>&gt;EXISTS key</span>
 </pre></div>
 <p>e.g.</p>
-<div class="monokai"><pre><span></span>127.0.0.1:6379&gt; EXISTS bar
-(integer) 1
-127.0.0.1:6379&gt; EXISTS foo
-(integer) 0
+<div class="monokai"><pre><span class="code-line"><span></span>127.0.0.1:6379&gt; EXISTS bar</span>
+<span class="code-line">(integer) 1</span>
+<span class="code-line">127.0.0.1:6379&gt; EXISTS foo</span>
+<span class="code-line">(integer) 0</span>
 </pre></div>
 <ul>
 <li>删除键</li>
 </ul>
 <p>可以删除多个键, 返回删除的个数</p>
-<div class="monokai"><pre><span></span>&gt;DEL key [key ...]
+<div class="monokai"><pre><span class="code-line"><span></span>&gt;DEL key [key ...]</span>
 </pre></div>
 <p>e.g.</p>
-<div class="monokai"><pre><span></span>127.0.0.1:6379&gt; DEL bar
-(integer) 1
-127.0.0.1:6379&gt; DEL bar
-(integer) 0
+<div class="monokai"><pre><span class="code-line"><span></span>127.0.0.1:6379&gt; DEL bar</span>
+<span class="code-line">(integer) 1</span>
+<span class="code-line">127.0.0.1:6379&gt; DEL bar</span>
+<span class="code-line">(integer) 0</span>
 </pre></div>
 <ul>
 <li>获取键值的数据类型</li>
 </ul>
 <p>返回string,hash(散列),list(列表),set(集合),zset(有序集合)</p>
-<div class="monokai"><pre><span></span>&gt;TYPE key
+<div class="monokai"><pre><span class="code-line"><span></span>&gt;TYPE key</span>
 </pre></div>
 <p>e.g.</p>
-<div class="monokai"><pre><span></span>127.0.0.1:6379&gt; SET bar 1
-OK
-127.0.0.1:6379&gt; TYPE bar
-string
+<div class="monokai"><pre><span class="code-line"><span></span>127.0.0.1:6379&gt; SET bar 1</span>
+<span class="code-line">OK</span>
+<span class="code-line">127.0.0.1:6379&gt; TYPE bar</span>
+<span class="code-line">string</span>
 </pre></div>
 <h3 id="1-zi-fu-chuan-lei-xing">1. 字符串类型</h3>
 <p>最基本类型, 能存储任何形式/编码字符串, 包括二进制. 允许存储最大容量是512M</p>
 <ul>
-<li>赋值和取值命令<div class="monokai"><pre><span></span>&gt;SET key value
-&gt;GET key
+<li>赋值和取值命令<div class="monokai"><pre><span class="code-line"><span></span>&gt;SET key value</span>
+<span class="code-line">&gt;GET key</span>
 </pre></div>
 </li>
 </ul>
 <p>e.g.</p>
-<div class="monokai"><pre><span></span>127.0.0.1:6379&gt; SET hi "hello world"
-OK
-127.0.0.1:6379&gt; GET hi
-"hello world"
-127.0.0.1:6379&gt; GET abc
-(nil)
+<div class="monokai"><pre><span class="code-line"><span></span>127.0.0.1:6379&gt; SET hi "hello world"</span>
+<span class="code-line">OK</span>
+<span class="code-line">127.0.0.1:6379&gt; GET hi</span>
+<span class="code-line">"hello world"</span>
+<span class="code-line">127.0.0.1:6379&gt; GET abc</span>
+<span class="code-line">(nil)</span>
 </pre></div>
 <ul>
-<li>递增数字(当存储的字符串是整数形式时)<div class="monokai"><pre><span></span>当操作键不存在时，默认值0，第一次递增后结果1，当键值不是整数时，报错
-&gt;INCR key
-原子操作，可用于类似访问量统计, 自增id
-
-&gt;INCRBY key increment
-&gt;INCRBY bar 2
+<li>递增数字(当存储的字符串是整数形式时)<div class="monokai"><pre><span class="code-line"><span></span>当操作键不存在时，默认值0，第一次递增后结果1，当键值不是整数时，报错</span>
+<span class="code-line">&gt;INCR key</span>
+<span class="code-line">原子操作，可用于类似访问量统计, 自增id</span>
+<span class="code-line"></span>
+<span class="code-line">&gt;INCRBY key increment</span>
+<span class="code-line">&gt;INCRBY bar 2</span>
 </pre></div>
 </li>
 </ul>
 <p>e.g.</p>
-<div class="monokai"><pre><span></span>127.0.0.1:6379&gt; INCR abc
-(integer) 1
-127.0.0.1:6379&gt; GET abc
-"1"
-127.0.0.1:6379&gt; INCRBY abc 2
-(integer) 3
-127.0.0.1:6379&gt; GET abc
-"3"
+<div class="monokai"><pre><span class="code-line"><span></span>127.0.0.1:6379&gt; INCR abc</span>
+<span class="code-line">(integer) 1</span>
+<span class="code-line">127.0.0.1:6379&gt; GET abc</span>
+<span class="code-line">"1"</span>
+<span class="code-line">127.0.0.1:6379&gt; INCRBY abc 2</span>
+<span class="code-line">(integer) 3</span>
+<span class="code-line">127.0.0.1:6379&gt; GET abc</span>
+<span class="code-line">"3"</span>
 </pre></div>
 <ul>
-<li>减少数字<div class="monokai"><pre><span></span>&gt;DECR key
-&gt;DECRBY key decrement
+<li>减少数字<div class="monokai"><pre><span class="code-line"><span></span>&gt;DECR key</span>
+<span class="code-line">&gt;DECRBY key decrement</span>
 </pre></div>
 </li>
 </ul>
 <p>e.g.</p>
-<div class="monokai"><pre><span></span>127.0.0.1:6379&gt; DECR abc
-(integer) 2
-127.0.0.1:6379&gt; DECRBY abc 2
-(integer) 0
+<div class="monokai"><pre><span class="code-line"><span></span>127.0.0.1:6379&gt; DECR abc</span>
+<span class="code-line">(integer) 2</span>
+<span class="code-line">127.0.0.1:6379&gt; DECRBY abc 2</span>
+<span class="code-line">(integer) 0</span>
 </pre></div>
 <ul>
-<li>浮点数<div class="monokai"><pre><span></span>&gt;INCRBYFLOAT key increment
-&gt;INCRBYFLOAT bar 2.7
+<li>浮点数<div class="monokai"><pre><span class="code-line"><span></span>&gt;INCRBYFLOAT key increment</span>
+<span class="code-line">&gt;INCRBYFLOAT bar 2.7</span>
 </pre></div>
 </li>
 </ul>
 <p>e.g.</p>
-<div class="monokai"><pre><span></span>127.0.0.1:6379&gt; GET bar
-"1"
-127.0.0.1:6379&gt; INCRBYFLOAT bar 1.5
-"2.5"
+<div class="monokai"><pre><span class="code-line"><span></span>127.0.0.1:6379&gt; GET bar</span>
+<span class="code-line">"1"</span>
+<span class="code-line">127.0.0.1:6379&gt; INCRBYFLOAT bar 1.5</span>
+<span class="code-line">"2.5"</span>
 </pre></div>
 <ul>
-<li>向尾部追加<div class="monokai"><pre><span></span>返回追加字符串长度
-
-&gt;APPEND key value
+<li>向尾部追加<div class="monokai"><pre><span class="code-line"><span></span>返回追加字符串长度</span>
+<span class="code-line"></span>
+<span class="code-line">&gt;APPEND key value</span>
 </pre></div>
 </li>
 </ul>
 <p>e.g.</p>
-<div class="monokai"><pre><span></span>&gt;SET key hello
-&gt;APPEND key "world"
+<div class="monokai"><pre><span class="code-line"><span></span>&gt;SET key hello</span>
+<span class="code-line">&gt;APPEND key "world"</span>
 </pre></div>
 <ul>
-<li>获取字符串长度<div class="monokai"><pre><span></span>&gt;STRLEN key
+<li>获取字符串长度<div class="monokai"><pre><span class="code-line"><span></span>&gt;STRLEN key</span>
 </pre></div>
 </li>
 </ul>
 <p>e.g.</p>
-<div class="monokai"><pre><span></span>127.0.0.1:6379&gt; GET hi
-"hello world"
-127.0.0.1:6379&gt; STRLEN hi
-(integer) 11
+<div class="monokai"><pre><span class="code-line"><span></span>127.0.0.1:6379&gt; GET hi</span>
+<span class="code-line">"hello world"</span>
+<span class="code-line">127.0.0.1:6379&gt; STRLEN hi</span>
+<span class="code-line">(integer) 11</span>
 </pre></div>
 <ul>
-<li>同时设置，获取多个键值<div class="monokai"><pre><span></span>&gt;MGET key [key ...]
-&gt;MSET key value [key value ...]
+<li>同时设置，获取多个键值<div class="monokai"><pre><span class="code-line"><span></span>&gt;MGET key [key ...]</span>
+<span class="code-line">&gt;MSET key value [key value ...]</span>
 </pre></div>
 </li>
 </ul>
 <p>e.g.</p>
-<div class="monokai"><pre><span></span>127.0.0.1:6379&gt; MSET k1 v1 k2 v2
-OK
-127.0.0.1:6379&gt; GET k1
-"v1"
-127.0.0.1:6379&gt; MGET k1 k2
-1) "v1"
-2) "v2"
+<div class="monokai"><pre><span class="code-line"><span></span>127.0.0.1:6379&gt; MSET k1 v1 k2 v2</span>
+<span class="code-line">OK</span>
+<span class="code-line">127.0.0.1:6379&gt; GET k1</span>
+<span class="code-line">"v1"</span>
+<span class="code-line">127.0.0.1:6379&gt; MGET k1 k2</span>
+<span class="code-line">1) "v1"</span>
+<span class="code-line">2) "v2"</span>
 </pre></div>
 <ul>
-<li>位操作<div class="monokai"><pre><span></span>&gt;GETBIT key offset
-&gt;SETBIT key offset value
-
-&gt;BITCOUNT key [start] [end] #获取值为1的二进制位个数
-
-&gt;BITOP operation destkey key [key ...] #对多个字符串类型键进行位运算, 并将结果存储到destkey
-e.g. BITOP OR res fol fo2
-    GET res
+<li>位操作<div class="monokai"><pre><span class="code-line"><span></span>&gt;GETBIT key offset</span>
+<span class="code-line">&gt;SETBIT key offset value</span>
+<span class="code-line"></span>
+<span class="code-line">&gt;BITCOUNT key [start] [end] #获取值为1的二进制位个数</span>
+<span class="code-line"></span>
+<span class="code-line">&gt;BITOP operation destkey key [key ...] #对多个字符串类型键进行位运算, 并将结果存储到destkey</span>
+<span class="code-line">e.g. BITOP OR res fol fo2</span>
+<span class="code-line">    GET res</span>
 </pre></div>
 </li>
 </ul>
 <p>e.g.</p>
-<div class="monokai"><pre><span></span>a  97 01100001
-
-127.0.0.1:6379&gt; SET k 'a'
-OK
-127.0.0.1:6379&gt; GET k
-"a"
-
-127.0.0.1:6379&gt; GETBIT k 0
-(integer) 0
-127.0.0.1:6379&gt; GETBIT k 1
-(integer) 1
-
-127.0.0.1:6379&gt; BITCOUNT k
-(integer) 3
+<div class="monokai"><pre><span class="code-line"><span></span>a  97 01100001</span>
+<span class="code-line"></span>
+<span class="code-line">127.0.0.1:6379&gt; SET k 'a'</span>
+<span class="code-line">OK</span>
+<span class="code-line">127.0.0.1:6379&gt; GET k</span>
+<span class="code-line">"a"</span>
+<span class="code-line"></span>
+<span class="code-line">127.0.0.1:6379&gt; GETBIT k 0</span>
+<span class="code-line">(integer) 0</span>
+<span class="code-line">127.0.0.1:6379&gt; GETBIT k 1</span>
+<span class="code-line">(integer) 1</span>
+<span class="code-line"></span>
+<span class="code-line">127.0.0.1:6379&gt; BITCOUNT k</span>
+<span class="code-line">(integer) 3</span>
 </pre></div>
 <p>BP: redis对键的命名，  对象类型:对象id:对象属性</p>
 <h3 id="2-san-lie-lei-xing">2. 散列类型</h3>
 <p>一种字典结构，其存储了字段(field)和字段值映射，但字段值只能是字符串，不支持其他数据类型(即散列类型不支持数据类型嵌套)</p>
 <p>散列类型适合存储对象</p>
-<div class="monokai"><pre><span></span>对象类型:id - 对象属性 - 对象属性值
+<div class="monokai"><pre><span class="code-line"><span></span>对象类型:id - 对象属性 - 对象属性值</span>
 </pre></div>
 <ul>
-<li>基本命令<div class="monokai"><pre><span></span>&gt;HSET key field value
-&gt;HGET key field
-#HSET不区分插入更新
-
-&gt;HMSET key field value [field value ...]
-&gt;HMGET key field [field ...]
-
-&gt;HGETALL key
+<li>基本命令<div class="monokai"><pre><span class="code-line"><span></span>&gt;HSET key field value</span>
+<span class="code-line">&gt;HGET key field</span>
+<span class="code-line">#HSET不区分插入更新</span>
+<span class="code-line"></span>
+<span class="code-line">&gt;HMSET key field value [field value ...]</span>
+<span class="code-line">&gt;HMGET key field [field ...]</span>
+<span class="code-line"></span>
+<span class="code-line">&gt;HGETALL key</span>
 </pre></div>
 </li>
 </ul>
 <p>e.g.</p>
-<div class="monokai"><pre><span></span>127.0.0.1:6379&gt; HSET car name bmw
-(integer) 1
-127.0.0.1:6379&gt; HGET car name
-"bmw"
-
-127.0.0.1:6379&gt; HMSET car price 100 score 50
-OK
-127.0.0.1:6379&gt; HMGET car name price score
-1) "bmw"
-2) "100"
-3) "50"
-
-127.0.0.1:6379&gt; HGETALL car
-1) "name"
-2) "bmw"
-3) "price"
-4) "100"
-5) "score"
-6) "50"
+<div class="monokai"><pre><span class="code-line"><span></span>127.0.0.1:6379&gt; HSET car name bmw</span>
+<span class="code-line">(integer) 1</span>
+<span class="code-line">127.0.0.1:6379&gt; HGET car name</span>
+<span class="code-line">"bmw"</span>
+<span class="code-line"></span>
+<span class="code-line">127.0.0.1:6379&gt; HMSET car price 100 score 50</span>
+<span class="code-line">OK</span>
+<span class="code-line">127.0.0.1:6379&gt; HMGET car name price score</span>
+<span class="code-line">1) "bmw"</span>
+<span class="code-line">2) "100"</span>
+<span class="code-line">3) "50"</span>
+<span class="code-line"></span>
+<span class="code-line">127.0.0.1:6379&gt; HGETALL car</span>
+<span class="code-line">1) "name"</span>
+<span class="code-line">2) "bmw"</span>
+<span class="code-line">3) "price"</span>
+<span class="code-line">4) "100"</span>
+<span class="code-line">5) "score"</span>
+<span class="code-line">6) "50"</span>
 </pre></div>
 <ul>
-<li>判断字段是否存在<div class="monokai"><pre><span></span>#存在返回1，否则返回0
-&gt;HEXISTS key field
+<li>判断字段是否存在<div class="monokai"><pre><span class="code-line"><span></span>#存在返回1，否则返回0</span>
+<span class="code-line">&gt;HEXISTS key field</span>
 </pre></div>
 </li>
 </ul>
 <p>e.g.</p>
-<div class="monokai"><pre><span></span>127.0.0.1:6379&gt; HEXISTS car name
-(integer) 1
-127.0.0.1:6379&gt; HEXISTS car model
-(integer) 0
+<div class="monokai"><pre><span class="code-line"><span></span>127.0.0.1:6379&gt; HEXISTS car name</span>
+<span class="code-line">(integer) 1</span>
+<span class="code-line">127.0.0.1:6379&gt; HEXISTS car model</span>
+<span class="code-line">(integer) 0</span>
 </pre></div>
 <ul>
-<li>当字段不存在时赋值<div class="monokai"><pre><span></span>#已存在不进行任何操作, 不存在赋值
-&gt;HSETNX key field value
+<li>当字段不存在时赋值<div class="monokai"><pre><span class="code-line"><span></span>#已存在不进行任何操作, 不存在赋值</span>
+<span class="code-line">&gt;HSETNX key field value</span>
 </pre></div>
 </li>
 </ul>
 <p>e.g.</p>
-<div class="monokai"><pre><span></span>127.0.0.1:6379&gt; HSETNX car name  abc
-(integer) 0
-127.0.0.1:6379&gt; HGET car name
-"bmw"
-
-127.0.0.1:6379&gt; HEXISTS car model
-(integer) 0
-127.0.0.1:6379&gt; HSETNX car model 1
-(integer) 1
-127.0.0.1:6379&gt; HGET car model
-"1"
+<div class="monokai"><pre><span class="code-line"><span></span>127.0.0.1:6379&gt; HSETNX car name  abc</span>
+<span class="code-line">(integer) 0</span>
+<span class="code-line">127.0.0.1:6379&gt; HGET car name</span>
+<span class="code-line">"bmw"</span>
+<span class="code-line"></span>
+<span class="code-line">127.0.0.1:6379&gt; HEXISTS car model</span>
+<span class="code-line">(integer) 0</span>
+<span class="code-line">127.0.0.1:6379&gt; HSETNX car model 1</span>
+<span class="code-line">(integer) 1</span>
+<span class="code-line">127.0.0.1:6379&gt; HGET car model</span>
+<span class="code-line">"1"</span>
 </pre></div>
 <ul>
-<li>增加数字<div class="monokai"><pre><span></span>&gt;HINCRBY key field increment
+<li>增加数字<div class="monokai"><pre><span class="code-line"><span></span>&gt;HINCRBY key field increment</span>
 </pre></div>
 </li>
 </ul>
 <p>e.g.</p>
-<div class="monokai"><pre><span></span>&gt;HINCRBY person score 60
+<div class="monokai"><pre><span class="code-line"><span></span>&gt;HINCRBY person score 60</span>
 </pre></div>
 <ul>
-<li>删除字段<div class="monokai"><pre><span></span>&gt;HDEL key field [field ...]
+<li>删除字段<div class="monokai"><pre><span class="code-line"><span></span>&gt;HDEL key field [field ...]</span>
 </pre></div>
 </li>
 </ul>
 <p>e.g.</p>
-<div class="monokai"><pre><span></span>HDEL car price
+<div class="monokai"><pre><span class="code-line"><span></span>HDEL car price</span>
 </pre></div>
 <ul>
-<li>只获取字段名或字段值<div class="monokai"><pre><span></span>&gt;HKEYS key
-&gt;HVALS key
+<li>只获取字段名或字段值<div class="monokai"><pre><span class="code-line"><span></span>&gt;HKEYS key</span>
+<span class="code-line">&gt;HVALS key</span>
 </pre></div>
 </li>
 </ul>
 <p>e.g.</p>
-<div class="monokai"><pre><span></span>127.0.0.1:6379&gt; HKEYS car
-1) "name"
-2) "price"
-3) "score"
-4) "model"
-127.0.0.1:6379&gt; HVALS car
-1) "bmw"
-2) "100"
-3) "50"
-4) "1"
+<div class="monokai"><pre><span class="code-line"><span></span>127.0.0.1:6379&gt; HKEYS car</span>
+<span class="code-line">1) "name"</span>
+<span class="code-line">2) "price"</span>
+<span class="code-line">3) "score"</span>
+<span class="code-line">4) "model"</span>
+<span class="code-line">127.0.0.1:6379&gt; HVALS car</span>
+<span class="code-line">1) "bmw"</span>
+<span class="code-line">2) "100"</span>
+<span class="code-line">3) "50"</span>
+<span class="code-line">4) "1"</span>
 </pre></div>
 <ul>
-<li>获取字段数量<div class="monokai"><pre><span></span>&gt;HLEN key
+<li>获取字段数量<div class="monokai"><pre><span class="code-line"><span></span>&gt;HLEN key</span>
 </pre></div>
 </li>
 </ul>
 <p>e.g.</p>
-<div class="monokai"><pre><span></span>127.0.0.1:6379&gt; HLEN car
-(integer) 4
+<div class="monokai"><pre><span class="code-line"><span></span>127.0.0.1:6379&gt; HLEN car</span>
+<span class="code-line">(integer) 4</span>
 </pre></div>
 <h3 id="3-lie-biao-lei-xing">3. 列表类型</h3>
 <p>List, 可以存储一个有序的字符串列表, 列表内元素非唯一性，可以向两端加入元素，或者获得列表的某一个片段</p>
 <p>内部使用双向链表实现,两端添加元素复杂度O(1), 通过索引访问的速度较慢</p>
 <p>可以用在分页, 新鲜事, 记录日志等</p>
 <ul>
-<li>向列表两端增加元素(可同时增加多个)<div class="monokai"><pre><span></span>&gt;LPUSH key value [value ...]
-&gt;RPUSH key value [value ...]
+<li>向列表两端增加元素(可同时增加多个)<div class="monokai"><pre><span class="code-line"><span></span>&gt;LPUSH key value [value ...]</span>
+<span class="code-line">&gt;RPUSH key value [value ...]</span>
 </pre></div>
 </li>
 </ul>
 <p>e.g.</p>
-<div class="monokai"><pre><span></span>127.0.0.1:6379&gt; LPUSH num 1 2 3
-(integer) 3
-127.0.0.1:6379&gt; RPUSH num 0
-(integer) 4
-# 3 2 1 0
+<div class="monokai"><pre><span class="code-line"><span></span>127.0.0.1:6379&gt; LPUSH num 1 2 3</span>
+<span class="code-line">(integer) 3</span>
+<span class="code-line">127.0.0.1:6379&gt; RPUSH num 0</span>
+<span class="code-line">(integer) 4</span>
+<span class="code-line"># 3 2 1 0</span>
 </pre></div>
 <ul>
 <li>从列表两端弹出元素</li>
 </ul>
 <p>先移除一个元素，然后返回之</p>
-<div class="monokai"><pre><span></span>&gt;LPOP key
-&gt;RPOP key
+<div class="monokai"><pre><span class="code-line"><span></span>&gt;LPOP key</span>
+<span class="code-line">&gt;RPOP key</span>
 </pre></div>
 <p>e.g.</p>
-<div class="monokai"><pre><span></span>127.0.0.1:6379&gt; LPOP num
-"3"
-127.0.0.1:6379&gt; RPOP num
-"0"
+<div class="monokai"><pre><span class="code-line"><span></span>127.0.0.1:6379&gt; LPOP num</span>
+<span class="code-line">"3"</span>
+<span class="code-line">127.0.0.1:6379&gt; RPOP num</span>
+<span class="code-line">"0"</span>
 </pre></div>
 <ul>
-<li>获取元素个数<div class="monokai"><pre><span></span>&gt;LLEN key
+<li>获取元素个数<div class="monokai"><pre><span class="code-line"><span></span>&gt;LLEN key</span>
 </pre></div>
 </li>
 </ul>
 <p>e.g.</p>
-<div class="monokai"><pre><span></span>127.0.0.1:6379&gt; LLEN num
-(integer) 2
+<div class="monokai"><pre><span class="code-line"><span></span>127.0.0.1:6379&gt; LLEN num</span>
+<span class="code-line">(integer) 2</span>
 </pre></div>
 <ul>
-<li>获取片段(同python切片，-1表最后一个, stop超出返回最右边元素, start大于stop返回空)<div class="monokai"><pre><span></span>&gt;LRANGE key start stop
+<li>获取片段(同python切片，-1表最后一个, stop超出返回最右边元素, start大于stop返回空)<div class="monokai"><pre><span class="code-line"><span></span>&gt;LRANGE key start stop</span>
 </pre></div>
 </li>
 </ul>
 <p>e.g.</p>
-<div class="monokai"><pre><span></span>127.0.0.1:6379&gt; LPUSH test a b c d e f g
-(integer) 7
-127.0.0.1:6379&gt; LRANGE test 0 2
-1) "g"
-2) "f"
-3) "e"
+<div class="monokai"><pre><span class="code-line"><span></span>127.0.0.1:6379&gt; LPUSH test a b c d e f g</span>
+<span class="code-line">(integer) 7</span>
+<span class="code-line">127.0.0.1:6379&gt; LRANGE test 0 2</span>
+<span class="code-line">1) "g"</span>
+<span class="code-line">2) "f"</span>
+<span class="code-line">3) "e"</span>
 </pre></div>
 <ul>
-<li>删除列表中指定值的元素<div class="monokai"><pre><span></span>&gt;LREM key count value
-
-删除列表中前count个值为value的元素，返回值为实际删除元素的个数
-            count = 0 所有
-                  &gt; 0 从左边开始删count个
-                  &lt; 0 从右边开始删|count|个
+<li>删除列表中指定值的元素<div class="monokai"><pre><span class="code-line"><span></span>&gt;LREM key count value</span>
+<span class="code-line"></span>
+<span class="code-line">删除列表中前count个值为value的元素，返回值为实际删除元素的个数</span>
+<span class="code-line">            count = 0 所有</span>
+<span class="code-line">                  &gt; 0 从左边开始删count个</span>
+<span class="code-line">                  &lt; 0 从右边开始删|count|个</span>
 </pre></div>
 </li>
 </ul>
 <p>e.g.</p>
-<div class="monokai"><pre><span></span>127.0.0.1:6379&gt; LRANGE test 0 2
-1) "g"
-2) "f"
-3) "e"
-127.0.0.1:6379&gt; LREM test 0 f
-(integer) 1
-127.0.0.1:6379&gt; LRANGE test 0 2
-1) "g"
-2) "e"
-3) "d"
+<div class="monokai"><pre><span class="code-line"><span></span>127.0.0.1:6379&gt; LRANGE test 0 2</span>
+<span class="code-line">1) "g"</span>
+<span class="code-line">2) "f"</span>
+<span class="code-line">3) "e"</span>
+<span class="code-line">127.0.0.1:6379&gt; LREM test 0 f</span>
+<span class="code-line">(integer) 1</span>
+<span class="code-line">127.0.0.1:6379&gt; LRANGE test 0 2</span>
+<span class="code-line">1) "g"</span>
+<span class="code-line">2) "e"</span>
+<span class="code-line">3) "d"</span>
 </pre></div>
 <ul>
-<li>设置指定索引元素值<div class="monokai"><pre><span></span>&gt;LINDEX key index
-&gt;LSET key index value
+<li>设置指定索引元素值<div class="monokai"><pre><span class="code-line"><span></span>&gt;LINDEX key index</span>
+<span class="code-line">&gt;LSET key index value</span>
 </pre></div>
 </li>
 </ul>
 <p>e.g.</p>
-<div class="monokai"><pre><span></span>127.0.0.1:6379&gt; LPUSH lt 3 2 1
-(integer) 3
-127.0.0.1:6379&gt; LINDEX lt 0
-"1"
-
-127.0.0.1:6379&gt; LSET lt 0 -1
-OK
-127.0.0.1:6379&gt; LINDEX lt 0
-"-1"
+<div class="monokai"><pre><span class="code-line"><span></span>127.0.0.1:6379&gt; LPUSH lt 3 2 1</span>
+<span class="code-line">(integer) 3</span>
+<span class="code-line">127.0.0.1:6379&gt; LINDEX lt 0</span>
+<span class="code-line">"1"</span>
+<span class="code-line"></span>
+<span class="code-line">127.0.0.1:6379&gt; LSET lt 0 -1</span>
+<span class="code-line">OK</span>
+<span class="code-line">127.0.0.1:6379&gt; LINDEX lt 0</span>
+<span class="code-line">"-1"</span>
 </pre></div>
 <ul>
-<li>只保留列表指定片段<div class="monokai"><pre><span></span>删除指定索引范围之外的所有元素
-&gt;LTRIM key start end
+<li>只保留列表指定片段<div class="monokai"><pre><span class="code-line"><span></span>删除指定索引范围之外的所有元素</span>
+<span class="code-line">&gt;LTRIM key start end</span>
 </pre></div>
 </li>
 </ul>
 <p>e.g.</p>
-<div class="monokai"><pre><span></span>127.0.0.1:6379&gt; LRANGE la 0 99
-1) "6"
-2) "5"
-3) "4"
-4) "3"
-5) "2"
-6) "1"
-127.0.0.1:6379&gt; LTRIM la 0 2
-OK
-127.0.0.1:6379&gt; LRANGE la 0 99
-1) "6"
-2) "5"
-3) "4"
+<div class="monokai"><pre><span class="code-line"><span></span>127.0.0.1:6379&gt; LRANGE la 0 99</span>
+<span class="code-line">1) "6"</span>
+<span class="code-line">2) "5"</span>
+<span class="code-line">3) "4"</span>
+<span class="code-line">4) "3"</span>
+<span class="code-line">5) "2"</span>
+<span class="code-line">6) "1"</span>
+<span class="code-line">127.0.0.1:6379&gt; LTRIM la 0 2</span>
+<span class="code-line">OK</span>
+<span class="code-line">127.0.0.1:6379&gt; LRANGE la 0 99</span>
+<span class="code-line">1) "6"</span>
+<span class="code-line">2) "5"</span>
+<span class="code-line">3) "4"</span>
 </pre></div>
 <ul>
-<li>向列表中插入元素<div class="monokai"><pre><span></span>&gt;LINSERT key BEFORE|AFTER pivot value
-从左到右查找值为pivot的元素，然后根据BEFORE/AFTER决定将value插入该元素前面还是后面
+<li>向列表中插入元素<div class="monokai"><pre><span class="code-line"><span></span>&gt;LINSERT key BEFORE|AFTER pivot value</span>
+<span class="code-line">从左到右查找值为pivot的元素，然后根据BEFORE/AFTER决定将value插入该元素前面还是后面</span>
 </pre></div>
 </li>
 </ul>
 <p>e.g.</p>
-<div class="monokai"><pre><span></span>127.0.0.1:6379&gt; LRANGE la 0 99
-1) "6"
-2) "5"
-3) "4"
-127.0.0.1:6379&gt; LINSERT la AFTER 5 3
-(integer) 4
-127.0.0.1:6379&gt; LRANGE la 0 99
-1) "6"
-2) "5"
-3) "3"
-4) "4"
+<div class="monokai"><pre><span class="code-line"><span></span>127.0.0.1:6379&gt; LRANGE la 0 99</span>
+<span class="code-line">1) "6"</span>
+<span class="code-line">2) "5"</span>
+<span class="code-line">3) "4"</span>
+<span class="code-line">127.0.0.1:6379&gt; LINSERT la AFTER 5 3</span>
+<span class="code-line">(integer) 4</span>
+<span class="code-line">127.0.0.1:6379&gt; LRANGE la 0 99</span>
+<span class="code-line">1) "6"</span>
+<span class="code-line">2) "5"</span>
+<span class="code-line">3) "3"</span>
+<span class="code-line">4) "4"</span>
 </pre></div>
 <p>将元素从一个列表转到另一个列表</p>
-<div class="monokai"><pre><span></span>RPOPLPUSH source destination
-#RPOP，然后LPUSH，返回每个元素值，e.g.循环测试网址的可用性
+<div class="monokai"><pre><span class="code-line"><span></span>RPOPLPUSH source destination</span>
+<span class="code-line">#RPOP，然后LPUSH，返回每个元素值，e.g.循环测试网址的可用性</span>
 </pre></div>
 <h3 id="4-ji-he-lei-xing">4. 集合类型</h3>
 <p>无序，无重复(唯一)，可以存储最多2^32 - 1 个字符串</p>
@@ -606,397 +606,397 @@ OK
 <li>增加删除元素</li>
 </ul>
 <p>返回操作成功的个数</p>
-<div class="monokai"><pre><span></span>    &gt;SADD key member [member ...]
-    &gt;SREM key member [member ...]
+<div class="monokai"><pre><span class="code-line"><span></span>    &gt;SADD key member [member ...]</span>
+<span class="code-line">    &gt;SREM key member [member ...]</span>
 </pre></div>
 <p>e.g.</p>
-<div class="monokai"><pre><span></span>127.0.0.1:6379&gt; SADD letters a
-(integer) 1
-127.0.0.1:6379&gt; SADD letters a b c
-(integer) 2
+<div class="monokai"><pre><span class="code-line"><span></span>127.0.0.1:6379&gt; SADD letters a</span>
+<span class="code-line">(integer) 1</span>
+<span class="code-line">127.0.0.1:6379&gt; SADD letters a b c</span>
+<span class="code-line">(integer) 2</span>
 </pre></div>
 <ul>
-<li>获得集合中的所有元素<div class="monokai"><pre><span></span>&gt;SMEMBERS key
+<li>获得集合中的所有元素<div class="monokai"><pre><span class="code-line"><span></span>&gt;SMEMBERS key</span>
 </pre></div>
 </li>
 </ul>
 <p>e.g.</p>
-<div class="monokai"><pre><span></span>127.0.0.1:6379&gt; SMEMBERS letters
-1) "c"
-2) "a"
-3) "b"
+<div class="monokai"><pre><span class="code-line"><span></span>127.0.0.1:6379&gt; SMEMBERS letters</span>
+<span class="code-line">1) "c"</span>
+<span class="code-line">2) "a"</span>
+<span class="code-line">3) "b"</span>
 </pre></div>
 <ul>
-<li>判断元素是否在集合中(复杂度O(1))<div class="monokai"><pre><span></span>&gt;SISMEMBER key member
+<li>判断元素是否在集合中(复杂度O(1))<div class="monokai"><pre><span class="code-line"><span></span>&gt;SISMEMBER key member</span>
 </pre></div>
 </li>
 </ul>
 <p>e.g.</p>
-<div class="monokai"><pre><span></span>127.0.0.1:6379&gt; SISMEMBER letters a
-(integer) 1
-127.0.0.1:6379&gt; SISMEMBER letters d
-(integer) 0
+<div class="monokai"><pre><span class="code-line"><span></span>127.0.0.1:6379&gt; SISMEMBER letters a</span>
+<span class="code-line">(integer) 1</span>
+<span class="code-line">127.0.0.1:6379&gt; SISMEMBER letters d</span>
+<span class="code-line">(integer) 0</span>
 </pre></div>
 <ul>
 <li>
 <p>集合间运算</p>
-<div class="monokai"><pre><span></span># 差集
-&gt;SDIFF key [key ...]
-# 交集
-&gt;SINTER key [key ...]
-# 并集
-&gt;SUNION key [key ...]
+<div class="monokai"><pre><span class="code-line"><span></span># 差集</span>
+<span class="code-line">&gt;SDIFF key [key ...]</span>
+<span class="code-line"># 交集</span>
+<span class="code-line">&gt;SINTER key [key ...]</span>
+<span class="code-line"># 并集</span>
+<span class="code-line">&gt;SUNION key [key ...]</span>
 </pre></div>
 </li>
 <li>
 <p>进行集合运算并将结果存储</p>
-<div class="monokai"><pre><span></span>&gt;SDIFFSTORE destination_key key [key ...]
-&gt;SINTERSTORE destination_key key [key ...]
-&gt;SUNIONSTORE destination_key key [key ...]
+<div class="monokai"><pre><span class="code-line"><span></span>&gt;SDIFFSTORE destination_key key [key ...]</span>
+<span class="code-line">&gt;SINTERSTORE destination_key key [key ...]</span>
+<span class="code-line">&gt;SUNIONSTORE destination_key key [key ...]</span>
 </pre></div>
 </li>
 <li>
 <p>获得集合中元素个数</p>
-<div class="monokai"><pre><span></span>&gt;SCARD key
+<div class="monokai"><pre><span class="code-line"><span></span>&gt;SCARD key</span>
 </pre></div>
 </li>
 </ul>
 <p>e.g.</p>
-<div class="monokai"><pre><span></span>127.0.0.1:6379&gt; SCARD letters
-(integer) 3
+<div class="monokai"><pre><span class="code-line"><span></span>127.0.0.1:6379&gt; SCARD letters</span>
+<span class="code-line">(integer) 3</span>
 </pre></div>
 <ul>
-<li>随机获取集合中元素<div class="monokai"><pre><span></span>&gt;SRANDMEMBER key [count]
-count，正数，获取count个不重复的元素
-count, 负数，获取|count|个，可能重复
+<li>随机获取集合中元素<div class="monokai"><pre><span class="code-line"><span></span>&gt;SRANDMEMBER key [count]</span>
+<span class="code-line">count，正数，获取count个不重复的元素</span>
+<span class="code-line">count, 负数，获取|count|个，可能重复</span>
 </pre></div>
 </li>
 </ul>
 <p>e.g.</p>
-<div class="monokai"><pre><span></span>127.0.0.1:6379&gt; SRANDMEMBER letters
-"b"
-127.0.0.1:6379&gt; SRANDMEMBER letters 2
-1) "a"
-2) "c"
-
-127.0.0.1:6379&gt; SRANDMEMBER letters -2
-1) "b"
-2) "b"
+<div class="monokai"><pre><span class="code-line"><span></span>127.0.0.1:6379&gt; SRANDMEMBER letters</span>
+<span class="code-line">"b"</span>
+<span class="code-line">127.0.0.1:6379&gt; SRANDMEMBER letters 2</span>
+<span class="code-line">1) "a"</span>
+<span class="code-line">2) "c"</span>
+<span class="code-line"></span>
+<span class="code-line">127.0.0.1:6379&gt; SRANDMEMBER letters -2</span>
+<span class="code-line">1) "b"</span>
+<span class="code-line">2) "b"</span>
 </pre></div>
 <ul>
-<li>弹出一个元素<div class="monokai"><pre><span></span>&gt;SPOP key
+<li>弹出一个元素<div class="monokai"><pre><span class="code-line"><span></span>&gt;SPOP key</span>
 </pre></div>
 </li>
 </ul>
 <p>e.g.</p>
-<div class="monokai"><pre><span></span>127.0.0.1:6379&gt; SPOP letters
-"c"
-127.0.0.1:6379&gt; SCARD letters
-(integer) 2
+<div class="monokai"><pre><span class="code-line"><span></span>127.0.0.1:6379&gt; SPOP letters</span>
+<span class="code-line">"c"</span>
+<span class="code-line">127.0.0.1:6379&gt; SCARD letters</span>
+<span class="code-line">(integer) 2</span>
 </pre></div>
 <h3 id="5-you-xu-ji-he">5. 有序集合</h3>
 <p>sorted set,集合中每个元素都关联一个分数(不同元素分数可以相同)，可以根据分数进行排序(最高/最低N个)，进行有序相关的操作(分数可以相同)</p>
 <p>有序集合使用散列表和跳跃表实现, 读取复杂度更低, 更耗费内存</p>
 <p>按点击量排序，按时间排序等等，时间轴操作</p>
 <ul>
-<li>增加元素<div class="monokai"><pre><span></span><span class="o">&gt;</span><span class="n">ZADD</span> <span class="n">key</span> <span class="n">score</span> <span class="n">member</span> <span class="p">[</span><span class="n">score</span> <span class="n">member</span><span class="p">]</span>
+<li>增加元素<div class="monokai"><pre><span class="code-line"><span></span><span class="o">&gt;</span><span class="n">ZADD</span> <span class="n">key</span> <span class="n">score</span> <span class="n">member</span> <span class="p">[</span><span class="n">score</span> <span class="n">member</span><span class="p">]</span></span>
 </pre></div>
 </li>
 </ul>
 <p>e.g.</p>
-<div class="monokai"><pre><span></span>127.0.0.1:6379&gt; ZADD scoreboard 89 tom 67 peter 100 david
-(integer) 3
-127.0.0.1:6379&gt; ZADD scoreboard 70 peter
-(integer) 0
+<div class="monokai"><pre><span class="code-line"><span></span>127.0.0.1:6379&gt; ZADD scoreboard 89 tom 67 peter 100 david</span>
+<span class="code-line">(integer) 3</span>
+<span class="code-line">127.0.0.1:6379&gt; ZADD scoreboard 70 peter</span>
+<span class="code-line">(integer) 0</span>
 </pre></div>
 <ul>
-<li>获取元素分数<div class="monokai"><pre><span></span>&gt;ZSCORE key member
+<li>获取元素分数<div class="monokai"><pre><span class="code-line"><span></span>&gt;ZSCORE key member</span>
 </pre></div>
 </li>
 </ul>
 <p>e.g.</p>
-<div class="monokai"><pre><span></span>127.0.0.1:6379&gt; ZSCORE scoreboard peter
-"70"
+<div class="monokai"><pre><span class="code-line"><span></span>127.0.0.1:6379&gt; ZSCORE scoreboard peter</span>
+<span class="code-line">"70"</span>
 </pre></div>
 <ul>
 <li>获取排名在某个范围内的元素列表</li>
 </ul>
 <p>分数相同，按字典序排,中文的话，取决于编码方式</p>
-<div class="monokai"><pre><span></span>#分数从小到大排，返回索引从 start-stop之间的所有元素，包含两端元素, WITHSCORES同时获得元素分数
-&gt;ZRANGE key start stop [WITHSCORES]
-&gt;ZREVRANGE key start stop [WITHSCORES]
+<div class="monokai"><pre><span class="code-line"><span></span>#分数从小到大排，返回索引从 start-stop之间的所有元素，包含两端元素, WITHSCORES同时获得元素分数</span>
+<span class="code-line">&gt;ZRANGE key start stop [WITHSCORES]</span>
+<span class="code-line">&gt;ZREVRANGE key start stop [WITHSCORES]</span>
 </pre></div>
 <p>e.g.</p>
-<div class="monokai"><pre><span></span>127.0.0.1:6379&gt; ZRANGE scoreboard 0 2
-1) "peter"
-2) "tom"
-3) "david"
-127.0.0.1:6379&gt; ZRANGE scoreboard 0 2 WITHSCORES
-1) "peter"
-2) "70"
-3) "tom"
-4) "89"
-5) "david"
-6) "100"
-
-127.0.0.1:6379&gt; ZREVRANGE scoreboard 0 2 WITHSCORES
-1) "david"
-2) "100"
-3) "tom"
-4) "89"
-5) "peter"
-6) "70"
+<div class="monokai"><pre><span class="code-line"><span></span>127.0.0.1:6379&gt; ZRANGE scoreboard 0 2</span>
+<span class="code-line">1) "peter"</span>
+<span class="code-line">2) "tom"</span>
+<span class="code-line">3) "david"</span>
+<span class="code-line">127.0.0.1:6379&gt; ZRANGE scoreboard 0 2 WITHSCORES</span>
+<span class="code-line">1) "peter"</span>
+<span class="code-line">2) "70"</span>
+<span class="code-line">3) "tom"</span>
+<span class="code-line">4) "89"</span>
+<span class="code-line">5) "david"</span>
+<span class="code-line">6) "100"</span>
+<span class="code-line"></span>
+<span class="code-line">127.0.0.1:6379&gt; ZREVRANGE scoreboard 0 2 WITHSCORES</span>
+<span class="code-line">1) "david"</span>
+<span class="code-line">2) "100"</span>
+<span class="code-line">3) "tom"</span>
+<span class="code-line">4) "89"</span>
+<span class="code-line">5) "peter"</span>
+<span class="code-line">6) "70"</span>
 </pre></div>
 <ul>
-<li>获取指定分数范围的元素<div class="monokai"><pre><span></span>&gt;ZRANGEBYSCORE key min max [WITHSCORES] [LIMIT offset count]
+<li>获取指定分数范围的元素<div class="monokai"><pre><span class="code-line"><span></span>&gt;ZRANGEBYSCORE key min max [WITHSCORES] [LIMIT offset count]</span>
 </pre></div>
 </li>
 </ul>
 <p>e.g.</p>
-<div class="monokai"><pre><span></span>127.0.0.1:6379&gt; ZRANGEBYSCORE scoreboard 80 100 WITHSCORES
-1) "tom"
-2) "89"
-3) "david"
-4) "100"
+<div class="monokai"><pre><span class="code-line"><span></span>127.0.0.1:6379&gt; ZRANGEBYSCORE scoreboard 80 100 WITHSCORES</span>
+<span class="code-line">1) "tom"</span>
+<span class="code-line">2) "89"</span>
+<span class="code-line">3) "david"</span>
+<span class="code-line">4) "100"</span>
 </pre></div>
 <p>希望不包含端点值</p>
-<div class="monokai"><pre><span></span>&gt;ZRANGEBYSCORE scoreboard 80 (100
-正负无穷大 +inf -inf
+<div class="monokai"><pre><span class="code-line"><span></span>&gt;ZRANGEBYSCORE scoreboard 80 (100</span>
+<span class="code-line">正负无穷大 +inf -inf</span>
 </pre></div>
 <p>e.g.</p>
-<div class="monokai"><pre><span></span>127.0.0.1:6379&gt; ZRANGEBYSCORE scoreboard 80 (100 WITHSCORES
-1) "tom"
-2) "89"
-
-127.0.0.1:6379&gt; ZRANGEBYSCORE scoreboard 80 +inf WITHSCORES
-1) "tom"
-2) "89"
-3) "david"
-4) "100"
-
-127.0.0.1:6379&gt; ZRANGEBYSCORE scoreboard 80 +inf WITHSCORES LIMIT 0 1
-1) "tom"
-2) "89"
+<div class="monokai"><pre><span class="code-line"><span></span>127.0.0.1:6379&gt; ZRANGEBYSCORE scoreboard 80 (100 WITHSCORES</span>
+<span class="code-line">1) "tom"</span>
+<span class="code-line">2) "89"</span>
+<span class="code-line"></span>
+<span class="code-line">127.0.0.1:6379&gt; ZRANGEBYSCORE scoreboard 80 +inf WITHSCORES</span>
+<span class="code-line">1) "tom"</span>
+<span class="code-line">2) "89"</span>
+<span class="code-line">3) "david"</span>
+<span class="code-line">4) "100"</span>
+<span class="code-line"></span>
+<span class="code-line">127.0.0.1:6379&gt; ZRANGEBYSCORE scoreboard 80 +inf WITHSCORES LIMIT 0 1</span>
+<span class="code-line">1) "tom"</span>
+<span class="code-line">2) "89"</span>
 </pre></div>
 <ul>
-<li>增加某个元素分数<div class="monokai"><pre><span></span>&gt;ZINCRBY key increment member
+<li>增加某个元素分数<div class="monokai"><pre><span class="code-line"><span></span>&gt;ZINCRBY key increment member</span>
 </pre></div>
 </li>
 </ul>
 <p>e.g.</p>
-<div class="monokai"><pre><span></span>127.0.0.1:6379&gt; ZSCORE scoreboard tom
-"89"
-127.0.0.1:6379&gt; ZINCRBY scoreboard 2 tom
-"91"
-127.0.0.1:6379&gt; ZSCORE scoreboard tom
-"91"
+<div class="monokai"><pre><span class="code-line"><span></span>127.0.0.1:6379&gt; ZSCORE scoreboard tom</span>
+<span class="code-line">"89"</span>
+<span class="code-line">127.0.0.1:6379&gt; ZINCRBY scoreboard 2 tom</span>
+<span class="code-line">"91"</span>
+<span class="code-line">127.0.0.1:6379&gt; ZSCORE scoreboard tom</span>
+<span class="code-line">"91"</span>
 </pre></div>
 <ul>
-<li>获得集合中元素数量<div class="monokai"><pre><span></span>&gt;ZCARD key
+<li>获得集合中元素数量<div class="monokai"><pre><span class="code-line"><span></span>&gt;ZCARD key</span>
 </pre></div>
 </li>
 </ul>
 <p>e.g.</p>
-<div class="monokai"><pre><span></span>127.0.0.1:6379&gt; ZCARD scoreboard
-(integer) 3
+<div class="monokai"><pre><span class="code-line"><span></span>127.0.0.1:6379&gt; ZCARD scoreboard</span>
+<span class="code-line">(integer) 3</span>
 </pre></div>
 <ul>
-<li>获得指定分数范围内的元素个数<div class="monokai"><pre><span></span>&gt;ZCOUNT key min max
+<li>获得指定分数范围内的元素个数<div class="monokai"><pre><span class="code-line"><span></span>&gt;ZCOUNT key min max</span>
 </pre></div>
 </li>
 </ul>
 <p>e.g.</p>
-<div class="monokai"><pre><span></span>127.0.0.1:6379&gt; ZCOUNT scoreboard 80 100
-(integer) 2
+<div class="monokai"><pre><span class="code-line"><span></span>127.0.0.1:6379&gt; ZCOUNT scoreboard 80 100</span>
+<span class="code-line">(integer) 2</span>
 </pre></div>
 <ul>
 <li>
 <p>删除一个或多个元素</p>
-<div class="monokai"><pre><span></span>&gt;ZREM key member [member ...]
+<div class="monokai"><pre><span class="code-line"><span></span>&gt;ZREM key member [member ...]</span>
 </pre></div>
 </li>
 <li>
 <p>按照排名范围删除元素</p>
-<div class="monokai"><pre><span></span>&gt;ZREMRANGEBYRANK key start stop
+<div class="monokai"><pre><span class="code-line"><span></span>&gt;ZREMRANGEBYRANK key start stop</span>
 </pre></div>
 </li>
 <li>
 <p>按照分数范围删除</p>
-<div class="monokai"><pre><span></span>&gt;ZREMRANGEBYSCORE key min max
+<div class="monokai"><pre><span class="code-line"><span></span>&gt;ZREMRANGEBYSCORE key min max</span>
 </pre></div>
 </li>
 <li>
 <p>获得元素排名</p>
-<div class="monokai"><pre><span></span>&gt;ZRANK key member #从小到大
-&gt;ZREVRANK key member #相反
+<div class="monokai"><pre><span class="code-line"><span></span>&gt;ZRANK key member #从小到大</span>
+<span class="code-line">&gt;ZREVRANK key member #相反</span>
 </pre></div>
 </li>
 </ul>
 <p>e.g.</p>
-<div class="monokai"><pre><span></span>127.0.0.1:6379&gt; ZRANK scoreboard tom
-(integer) 1
+<div class="monokai"><pre><span class="code-line"><span></span>127.0.0.1:6379&gt; ZRANK scoreboard tom</span>
+<span class="code-line">(integer) 1</span>
 </pre></div>
 <ul>
-<li>计算有序集合的交集<div class="monokai"><pre><span></span>&gt;ZINTERSTORE destination numkeys key [key ...] [WEIGHTS weight [weight ...]] [AGGREGATE SUM|MIN|MAX]
-
-#返回值为destination中元素个数
-#AGGREGATE sum默认值，destination键中元素分数是每个参与计算的集合中该元素分数的和
-        min取最小值
-        max取最大值
-#WEIGHTS 设置每个集合的权重，每个集合在参与计算时分数会被乘以权重
+<li>计算有序集合的交集<div class="monokai"><pre><span class="code-line"><span></span>&gt;ZINTERSTORE destination numkeys key [key ...] [WEIGHTS weight [weight ...]] [AGGREGATE SUM|MIN|MAX]</span>
+<span class="code-line"></span>
+<span class="code-line">#返回值为destination中元素个数</span>
+<span class="code-line">#AGGREGATE sum默认值，destination键中元素分数是每个参与计算的集合中该元素分数的和</span>
+<span class="code-line">        min取最小值</span>
+<span class="code-line">        max取最大值</span>
+<span class="code-line">#WEIGHTS 设置每个集合的权重，每个集合在参与计算时分数会被乘以权重</span>
 </pre></div>
 </li>
 </ul>
 <h2 id="qi-ta_1">其他</h2>
 <h3 id="shi-wu">事务</h3>
 <p>Redis中事务是一组命令的集合, 一个事务中的命令要么都执行, 要么都不执行</p>
-<div class="monokai"><pre><span></span>&gt; MULTI
-&gt; SADD k1 v1
-&gt; SADD k2 v2
-&gt; EXEC
+<div class="monokai"><pre><span class="code-line"><span></span>&gt; MULTI</span>
+<span class="code-line">&gt; SADD k1 v1</span>
+<span class="code-line">&gt; SADD k2 v2</span>
+<span class="code-line">&gt; EXEC</span>
 </pre></div>
 <p>注意, 不支持回滚功能</p>
 <h3 id="sort">SORT</h3>
 <p>可以对列表/集合/有序集合进行排序</p>
 <p>最强大最复杂, 用不好可能成为性能瓶颈 O(n + mlogm) n为排序个数, m为返回个数</p>
-<div class="monokai"><pre><span></span>&gt;SORT key #从小到大
-&gt;SORT key DESC #从大到小
+<div class="monokai"><pre><span class="code-line"><span></span>&gt;SORT key #从小到大</span>
+<span class="code-line">&gt;SORT key DESC #从大到小</span>
 </pre></div>
 <p>SORTBY</p>
-<div class="monokai"><pre><span></span>127.0.0.1:6379&gt; LPUSH sortbylist  2 1 3
-(integer) 3
-127.0.0.1:6379&gt; SET itemscore:1 50
-OK
-127.0.0.1:6379&gt; SET itemscore:2 100
-OK
-127.0.0.1:6379&gt; SET itemscore:3 -10
-OK
-127.0.0.1:6379&gt; SORT sortbylist BY itemscore:* DESC
-1) "2"
-2) "1"
-3) "3"
+<div class="monokai"><pre><span class="code-line"><span></span>127.0.0.1:6379&gt; LPUSH sortbylist  2 1 3</span>
+<span class="code-line">(integer) 3</span>
+<span class="code-line">127.0.0.1:6379&gt; SET itemscore:1 50</span>
+<span class="code-line">OK</span>
+<span class="code-line">127.0.0.1:6379&gt; SET itemscore:2 100</span>
+<span class="code-line">OK</span>
+<span class="code-line">127.0.0.1:6379&gt; SET itemscore:3 -10</span>
+<span class="code-line">OK</span>
+<span class="code-line">127.0.0.1:6379&gt; SORT sortbylist BY itemscore:* DESC</span>
+<span class="code-line">1) "2"</span>
+<span class="code-line">2) "1"</span>
+<span class="code-line">3) "3"</span>
 </pre></div>
 <p>SORTBY GET</p>
-<div class="monokai"><pre><span></span>127.0.0.1:6379&gt; SORT sortbylist BY itemscore:* DESC GET POST:*-&gt;title GET POST:*-&gt;time
+<div class="monokai"><pre><span class="code-line"><span></span>127.0.0.1:6379&gt; SORT sortbylist BY itemscore:* DESC GET POST:*-&gt;title GET POST:*-&gt;time</span>
 </pre></div>
 <p>SOTRBY GET STORE</p>
-<div class="monokai"><pre><span></span>127.0.0.1:6379&gt; SORT sortbylist BY itemscore:* DESC GET POST:*-&gt;title GET POST:*-&gt;time STORE new_key
+<div class="monokai"><pre><span class="code-line"><span></span>127.0.0.1:6379&gt; SORT sortbylist BY itemscore:* DESC GET POST:*-&gt;title GET POST:*-&gt;time STORE new_key</span>
 </pre></div>
 <h3 id="sheng-cun-shi-jian">生存时间</h3>
 <p>TTL, time to live</p>
 <p>时效数据，过一定时间删除这些数据</p>
-<div class="monokai"><pre><span></span>#设置
-&gt;EXPIRE key seconds
-1表示设置成功, 0表键不存在或设置失败
-
-#查询
-&gt;TTL key
-键不存在返回-1 or 没有设置生存时间
-
-#去除时效
-&gt;PERSIST key
-
-#SET/GETSET为键赋值会同时清除键的生存时间
+<div class="monokai"><pre><span class="code-line"><span></span>#设置</span>
+<span class="code-line">&gt;EXPIRE key seconds</span>
+<span class="code-line">1表示设置成功, 0表键不存在或设置失败</span>
+<span class="code-line"></span>
+<span class="code-line">#查询</span>
+<span class="code-line">&gt;TTL key</span>
+<span class="code-line">键不存在返回-1 or 没有设置生存时间</span>
+<span class="code-line"></span>
+<span class="code-line">#去除时效</span>
+<span class="code-line">&gt;PERSIST key</span>
+<span class="code-line"></span>
+<span class="code-line">#SET/GETSET为键赋值会同时清除键的生存时间</span>
 </pre></div>
 <h3 id="ren-wu-dui-lie">任务队列</h3>
 <p>一般队列</p>
-<div class="monokai"><pre><span></span>生产者 LPUSH
-消费者 RPOP
-
-BRPOP 和RPOP类似，但是当列表中没有元素时，BRPOP会一直阻塞住链接，直到有新元素加入
+<div class="monokai"><pre><span class="code-line"><span></span>生产者 LPUSH</span>
+<span class="code-line">消费者 RPOP</span>
+<span class="code-line"></span>
+<span class="code-line">BRPOP 和RPOP类似，但是当列表中没有元素时，BRPOP会一直阻塞住链接，直到有新元素加入</span>
 </pre></div>
 <p>优先队列</p>
-<div class="monokai"><pre><span></span>BLPOP key [key ...] timeout,同时检测多个键，如果所有键都没有元素则阻塞，如果其中有一个键有元素，则从该键中弹出元素
-如果都有，则从左到右的顺序取第一个键中的一个元素
-
-BLPOP queue:1 queue:2 queue:3 0
+<div class="monokai"><pre><span class="code-line"><span></span>BLPOP key [key ...] timeout,同时检测多个键，如果所有键都没有元素则阻塞，如果其中有一个键有元素，则从该键中弹出元素</span>
+<span class="code-line">如果都有，则从左到右的顺序取第一个键中的一个元素</span>
+<span class="code-line"></span>
+<span class="code-line">BLPOP queue:1 queue:2 queue:3 0</span>
 </pre></div>
 <h3 id="fa-bu-ding-yue-mo-shi">发布/订阅模式</h3>
 <p>进程间消息传递</p>
 <p>订阅者：订阅者可以订阅一个或多个频道</p>
-<div class="monokai"><pre><span></span>&gt;SUBSCRIBE channel1
+<div class="monokai"><pre><span class="code-line"><span></span>&gt;SUBSCRIBE channel1</span>
 </pre></div>
 <p>发布者：可以向指定的频道发送消息，所有订阅此频道的订阅者都会受到此消息</p>
-<div class="monokai"><pre><span></span>&gt;PUBLISH channel1 helloworld
+<div class="monokai"><pre><span class="code-line"><span></span>&gt;PUBLISH channel1 helloworld</span>
 </pre></div>
 <h3 id="pythonzhong-shi-yong-redis">Python中使用Redis</h3>
 <p>官方推荐<a href="https://github.com/andymccurdy/redis-py">redis-py</a></p>
 <p>安装</p>
-<div class="monokai"><pre><span></span>sudo pip install redis
-sudo easy_install redis
+<div class="monokai"><pre><span class="code-line"><span></span>sudo pip install redis</span>
+<span class="code-line">sudo easy_install redis</span>
 </pre></div>
 <p>使用</p>
-<div class="monokai"><pre><span></span><span class="n">redis</span><span class="o">-</span><span class="n">py</span><span class="err">提供两个类</span><span class="n">Redis</span><span class="err">和</span><span class="n">StrictRedis</span><span class="err">用于实现</span><span class="n">Redis</span><span class="err">的命令，</span>
-<span class="n">StrictRedis</span><span class="err">用于实现大部分官方的命令，并使用官方的语法和命令（比如，</span><span class="n">SET</span><span class="err">命令对应与</span><span class="n">StrictRedis</span><span class="o">.</span><span class="n">set</span><span class="err">方法）</span>
-<span class="n">Redis</span><span class="err">是</span><span class="n">StrictRedis</span><span class="err">的子类，用于向后兼容旧版本的</span><span class="n">redis</span><span class="o">-</span><span class="n">py</span>
-
-<span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">redis</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">r</span> <span class="o">=</span> <span class="n">redis</span><span class="o">.</span><span class="n">StrictRedis</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="s1">'localhost'</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">6379</span><span class="p">,</span> <span class="n">db</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">r</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">'foo'</span><span class="p">,</span> <span class="s1">'bar'</span><span class="p">)</span>
-<span class="bp">True</span>
-<span class="o">&gt;&gt;&gt;</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'foo'</span><span class="p">)</span>
-<span class="s1">'bar'</span>
+<div class="monokai"><pre><span class="code-line"><span></span><span class="n">redis</span><span class="o">-</span><span class="n">py</span><span class="err">提供两个类</span><span class="n">Redis</span><span class="err">和</span><span class="n">StrictRedis</span><span class="err">用于实现</span><span class="n">Redis</span><span class="err">的命令，</span></span>
+<span class="code-line"><span class="n">StrictRedis</span><span class="err">用于实现大部分官方的命令，并使用官方的语法和命令（比如，</span><span class="n">SET</span><span class="err">命令对应与</span><span class="n">StrictRedis</span><span class="o">.</span><span class="n">set</span><span class="err">方法）</span></span>
+<span class="code-line"><span class="n">Redis</span><span class="err">是</span><span class="n">StrictRedis</span><span class="err">的子类，用于向后兼容旧版本的</span><span class="n">redis</span><span class="o">-</span><span class="n">py</span></span>
+<span class="code-line"></span>
+<span class="code-line"><span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">redis</span></span>
+<span class="code-line"><span class="o">&gt;&gt;&gt;</span> <span class="n">r</span> <span class="o">=</span> <span class="n">redis</span><span class="o">.</span><span class="n">StrictRedis</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="s1">'localhost'</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">6379</span><span class="p">,</span> <span class="n">db</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></span>
+<span class="code-line"><span class="o">&gt;&gt;&gt;</span> <span class="n">r</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">'foo'</span><span class="p">,</span> <span class="s1">'bar'</span><span class="p">)</span></span>
+<span class="code-line"><span class="bp">True</span></span>
+<span class="code-line"><span class="o">&gt;&gt;&gt;</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'foo'</span><span class="p">)</span></span>
+<span class="code-line"><span class="s1">'bar'</span></span>
 </pre></div>
 <p>connection pool</p>
-<div class="monokai"><pre><span></span>管理对一个redis server的所有连接，避免每次建立、释放连接的开销。
-默认，每个Redis实例都会维护一个自己的连接池。可以直接建立一个连接池，然后作为参数Redis，这样就可以实现多个Redis实例共享一个连接池。
-
-pool = redis.ConnectionPool(host='127.0.0.1', port=6379)
-r = redis.Redis(connection_pool=pool)
+<div class="monokai"><pre><span class="code-line"><span></span>管理对一个redis server的所有连接，避免每次建立、释放连接的开销。</span>
+<span class="code-line">默认，每个Redis实例都会维护一个自己的连接池。可以直接建立一个连接池，然后作为参数Redis，这样就可以实现多个Redis实例共享一个连接池。</span>
+<span class="code-line"></span>
+<span class="code-line">pool = redis.ConnectionPool(host='127.0.0.1', port=6379)</span>
+<span class="code-line">r = redis.Redis(connection_pool=pool)</span>
 </pre></div>
 <p>pipeline机制</p>
-<div class="monokai"><pre><span></span>可以在一次请求中执行多个命令，这样避免了多次的往返时延
-当一组命令中每条命令都不依赖于之前的执行结果, 可以使用
-
-pipe = r.pipeline()
-pipe.set('one', 'first')
-pipe.set('two', 'second')
-pipe.execute()
-
-pipeline中的操作是原子的，要改变这种方式，可以传入transaction=False
-
-pipe = r.pipeline(transaction=False)
+<div class="monokai"><pre><span class="code-line"><span></span>可以在一次请求中执行多个命令，这样避免了多次的往返时延</span>
+<span class="code-line">当一组命令中每条命令都不依赖于之前的执行结果, 可以使用</span>
+<span class="code-line"></span>
+<span class="code-line">pipe = r.pipeline()</span>
+<span class="code-line">pipe.set('one', 'first')</span>
+<span class="code-line">pipe.set('two', 'second')</span>
+<span class="code-line">pipe.execute()</span>
+<span class="code-line"></span>
+<span class="code-line">pipeline中的操作是原子的，要改变这种方式，可以传入transaction=False</span>
+<span class="code-line"></span>
+<span class="code-line">pipe = r.pipeline(transaction=False)</span>
 </pre></div>
 <h3 id="shi-ji-shi-li">实际实例</h3>
 <p>什么应用，都用什么方式处理的</p>
 <p>1.一般的缓存</p>
 <p>用字符串类型足矣,
 e.g.注册时得用户名冲突,在线用户</p>
-<div class="monokai"><pre><span></span>&gt;SET key value
-&gt;GET
+<div class="monokai"><pre><span class="code-line"><span></span>&gt;SET key value</span>
+<span class="code-line">&gt;GET</span>
 </pre></div>
 <p>一些缓存场景</p>
-<div class="monokai"><pre><span></span>存储会话缓存(Session Cache), 利用持久化, 保存一些信息, 例如购物车
-全页缓存(FPC)
+<div class="monokai"><pre><span class="code-line"><span></span>存储会话缓存(Session Cache), 利用持久化, 保存一些信息, 例如购物车</span>
+<span class="code-line">全页缓存(FPC)</span>
 </pre></div>
 <p>2.计数,访问量统计，自增id等</p>
-<div class="monokai"><pre><span></span>&gt;INCR key
+<div class="monokai"><pre><span class="code-line"><span></span>&gt;INCR key</span>
 </pre></div>
 <p>3.存储对象实例</p>
-<div class="monokai"><pre><span></span>用散列
-&gt;HSET key field value
-&gt;HGET key field
+<div class="monokai"><pre><span class="code-line"><span></span>用散列</span>
+<span class="code-line">&gt;HSET key field value</span>
+<span class="code-line">&gt;HGET key field</span>
 </pre></div>
 <p>4.存列表，队列相关</p>
 <p>作为队列使用</p>
 <p>文章分类列表，评论列表等</p>
-<div class="monokai"><pre><span></span>用列表
-&gt;LPUSH key value
-&gt;RPUSH key value
-
-&gt;LPOP key
-&gt;RPOP key
+<div class="monokai"><pre><span class="code-line"><span></span>用列表</span>
+<span class="code-line">&gt;LPUSH key value</span>
+<span class="code-line">&gt;RPUSH key value</span>
+<span class="code-line"></span>
+<span class="code-line">&gt;LPOP key</span>
+<span class="code-line">&gt;RPOP key</span>
 </pre></div>
 <p>5.集合相关的</p>
 <p>标签云等</p>
-<div class="monokai"><pre><span></span>&gt;SADD key member
-&gt;SREM key member
+<div class="monokai"><pre><span class="code-line"><span></span>&gt;SADD key member</span>
+<span class="code-line">&gt;SREM key member</span>
 </pre></div>
 <p>6.排序相关</p>
 <p>排行榜</p>
 <p>访问量排序,点击量等</p>
-<div class="monokai"><pre><span></span>用有序结合
-&gt;ZADD key score member
+<div class="monokai"><pre><span class="code-line"><span></span>用有序结合</span>
+<span class="code-line">&gt;ZADD key score member</span>
 </pre></div>
 <p>7.访问频率控制</p>
 <p>设置key的失效时间
@@ -1009,32 +1009,32 @@ e.g.注册时得用户名冲突,在线用户</p>
 <p>重启后数据不丢失, 两种方式, 可单独使用或者结合使用</p>
 <p>持久化：</p>
 <p>RDB</p>
-<div class="monokai"><pre><span></span>快照,符合一定条件时，将内存中的所有数据进行快照并存储到硬盘上
-快照的条件可以在配置文件中配置, 两个参数: 时间和改动的键的个数
-Redis默认采用的持久化方式
-
-过程
-1. Redis使用fork函数复制一份当前进程(父进程)的副本(子进程) (存的是fork时刻的数据)
-   写时复制copy-on-write 开始时父子共享同一内存数据, 当父进程修改某片数据, 操作系统复制一份以保证子进程数据不受影响
-2. 父进程继续接收命令, 子进程开始将内存中数据写入硬盘中临时文件
-3. 写入结束后, 替换旧的RDB文件
-
-任意时刻rdb文件都是完整地, 可以用于备份
-
-可以手动发SAVE / BGSAVE 让redis执行快照(前者由主进程进行快照操作,阻塞其他请求, 后者fork子进程)
+<div class="monokai"><pre><span class="code-line"><span></span>快照,符合一定条件时，将内存中的所有数据进行快照并存储到硬盘上</span>
+<span class="code-line">快照的条件可以在配置文件中配置, 两个参数: 时间和改动的键的个数</span>
+<span class="code-line">Redis默认采用的持久化方式</span>
+<span class="code-line"></span>
+<span class="code-line">过程</span>
+<span class="code-line">1. Redis使用fork函数复制一份当前进程(父进程)的副本(子进程) (存的是fork时刻的数据)</span>
+<span class="code-line">   写时复制copy-on-write 开始时父子共享同一内存数据, 当父进程修改某片数据, 操作系统复制一份以保证子进程数据不受影响</span>
+<span class="code-line">2. 父进程继续接收命令, 子进程开始将内存中数据写入硬盘中临时文件</span>
+<span class="code-line">3. 写入结束后, 替换旧的RDB文件</span>
+<span class="code-line"></span>
+<span class="code-line">任意时刻rdb文件都是完整地, 可以用于备份</span>
+<span class="code-line"></span>
+<span class="code-line">可以手动发SAVE / BGSAVE 让redis执行快照(前者由主进程进行快照操作,阻塞其他请求, 后者fork子进程)</span>
 </pre></div>
 <p>AOF</p>
-<div class="monokai"><pre><span></span>每次执行一条会修改Redis中数据的命令，Redis会将该命令写到硬盘中的AOF文件
-开启, 设置 appendonly yes
-默认文件名 appendonly.aof 可以通过appendfilename设置
-
-纯文本文件, 每当达到一定条件时可以进行重写
-auto-aof-rewrite-percentage 100 #超过上一次百分比
-auto-aof-rewrite-min-size 64mb #允许重写的最小aof文件大小
-
-默认30s, 执行的命令同步到aof
-可以配置
-appendfsync everysec # 每秒一次
+<div class="monokai"><pre><span class="code-line"><span></span>每次执行一条会修改Redis中数据的命令，Redis会将该命令写到硬盘中的AOF文件</span>
+<span class="code-line">开启, 设置 appendonly yes</span>
+<span class="code-line">默认文件名 appendonly.aof 可以通过appendfilename设置</span>
+<span class="code-line"></span>
+<span class="code-line">纯文本文件, 每当达到一定条件时可以进行重写</span>
+<span class="code-line">auto-aof-rewrite-percentage 100 #超过上一次百分比</span>
+<span class="code-line">auto-aof-rewrite-min-size 64mb #允许重写的最小aof文件大小</span>
+<span class="code-line"></span>
+<span class="code-line">默认30s, 执行的命令同步到aof</span>
+<span class="code-line">可以配置</span>
+<span class="code-line">appendfsync everysec # 每秒一次</span>
 </pre></div>
 <p>Redis可以配置主从数据库</p>
 <p>redis-server --port 6380 --slaveof 127.0.0.1 6379</p>
@@ -1043,29 +1043,29 @@ appendfsync everysec # 每秒一次
 <p>读写分离: 主库禁用持久化, 从库启用. 从库崩溃, 重启自动更新. 主库崩溃, 从库提升为主库再修复</p>
 <p>常用查看命令</p>
 <p>telnet连接</p>
-<div class="monokai"><pre><span></span>&gt;telnet 127.0.0.1 6379
+<div class="monokai"><pre><span class="code-line"><span></span>&gt;telnet 127.0.0.1 6379</span>
 </pre></div>
 <p>设定最大可用内存</p>
 <p>如果服务器内存有限, 大量使用缓存且生存时间设置过长会导致Redis占满内存. or 为了防止占用内存过大而将生存时间设太短导致命中率过低</p>
 <p>可以限制redis使用的最大内存, 按照一定规则淘汰不需要的键</p>
-<div class="monokai"><pre><span></span>配置文件 
-maxmemory 限制最大可用内存大小(单位字节)
-maxmemory-policy 超过限制时的删除策略，一直删除直到小于指定内存
-
-volatile-lru  使用LRU算法删除一个键，只对设置了生存时间的
-allkeys-lru   使用LRU算法删除一个键
-volatile-random 随机，只对设置了生存时间的
-allkeys-random
-volatile-ttl    删除生存时间最近的
-noeviction      不删除键，返回错误
+<div class="monokai"><pre><span class="code-line"><span></span>配置文件 </span>
+<span class="code-line">maxmemory 限制最大可用内存大小(单位字节)</span>
+<span class="code-line">maxmemory-policy 超过限制时的删除策略，一直删除直到小于指定内存</span>
+<span class="code-line"></span>
+<span class="code-line">volatile-lru  使用LRU算法删除一个键，只对设置了生存时间的</span>
+<span class="code-line">allkeys-lru   使用LRU算法删除一个键</span>
+<span class="code-line">volatile-random 随机，只对设置了生存时间的</span>
+<span class="code-line">allkeys-random</span>
+<span class="code-line">volatile-ttl    删除生存时间最近的</span>
+<span class="code-line">noeviction      不删除键，返回错误</span>
 </pre></div>
 <p>耗时命令日志</p>
-<div class="monokai"><pre><span></span>&gt; SLOWLOG GET
+<div class="monokai"><pre><span class="code-line"><span></span>&gt; SLOWLOG GET</span>
 </pre></div>
 <h3 id="qi-ta_2">其他</h3>
 <p>批量删除</p>
-<div class="monokai"><pre><span></span>#删除 /test/*开始的
-./redis-cli -a password -n 0 keys "/test/*" | xargs ./redis-cli -a password -n 0 del
+<div class="monokai"><pre><span class="code-line"><span></span>#删除 /test/*开始的</span>
+<span class="code-line">./redis-cli -a password -n 0 keys "/test/*" | xargs ./redis-cli -a password -n 0 del</span>
 </pre></div>
 <p>精简键名和键值, 最直观的减少内存占用的方式</p>
 <hr/>

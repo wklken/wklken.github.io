@@ -85,102 +85,102 @@
 <p>你直接访问一个字段, 但字段间的耦合关系逐渐变额笨拙. 为这个字段建立取值/设置函数, 并且只以这些函数来访问字段</p>
 </blockquote>
 <p>间接访问的好处是, 可以灵活改变获取数据的途径</p>
-<div class="monokai"><pre><span></span><span class="k">class</span> <span class="nc">A</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">include</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arg</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">low</span> <span class="o">&lt;</span> <span class="n">arg</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">high</span>
+<div class="monokai"><pre><span class="code-line"><span></span><span class="k">class</span> <span class="nc">A</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span></span>
+<span class="code-line">    <span class="k">def</span> <span class="nf">include</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arg</span><span class="p">):</span></span>
+<span class="code-line">        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">low</span> <span class="o">&lt;</span> <span class="n">arg</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">high</span></span>
 </pre></div>
 <p>to</p>
-<div class="monokai"><pre><span></span><span class="k">class</span> <span class="nc">A</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">include</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arg</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">low</span> <span class="o">&lt;</span> <span class="n">arg</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">high</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">low</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_low</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">height</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_high</span>
+<div class="monokai"><pre><span class="code-line"><span></span><span class="k">class</span> <span class="nc">A</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span></span>
+<span class="code-line">    <span class="k">def</span> <span class="nf">include</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arg</span><span class="p">):</span></span>
+<span class="code-line">        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">low</span> <span class="o">&lt;</span> <span class="n">arg</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">high</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="nd">@property</span></span>
+<span class="code-line">    <span class="k">def</span> <span class="nf">low</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></span>
+<span class="code-line">        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_low</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="nd">@property</span></span>
+<span class="code-line">    <span class="k">def</span> <span class="nf">height</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></span>
+<span class="code-line">        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_high</span></span>
 </pre></div>
 <h4 id="82-replace-data-value-with-object-yi-dui-xiang-qu-dai-shu-ju-zhi">8.2 Replace Data Value with Object 以对象取代数据值</h4>
 <blockquote>
 <p>你有一个数据项, 需要与其他数据和行为一起使用才有意义</p>
 </blockquote>
 <p>独立成对象</p>
-<div class="monokai"><pre><span></span><span class="k">class</span> <span class="nc">Customer</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="n">def__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">area_code</span><span class="p">,</span> <span class="n">number</span><span class="p">):</span>
-        <span class="o">....</span>
-
-    <span class="k">def</span> <span class="nf">get_phone_number</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s2">"</span><span class="si">%s</span><span class="s2">-</span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">area_code</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">number</span><span class="p">)</span>
+<div class="monokai"><pre><span class="code-line"><span></span><span class="k">class</span> <span class="nc">Customer</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span></span>
+<span class="code-line">    <span class="n">def__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">area_code</span><span class="p">,</span> <span class="n">number</span><span class="p">):</span></span>
+<span class="code-line">        <span class="o">....</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="k">def</span> <span class="nf">get_phone_number</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></span>
+<span class="code-line">        <span class="k">return</span> <span class="s2">"</span><span class="si">%s</span><span class="s2">-</span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">area_code</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">number</span><span class="p">)</span></span>
 </pre></div>
 <p>to</p>
-<div class="monokai"><pre><span></span><span class="k">class</span> <span class="nc">Phone</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">area_code</span> <span class="p">,</span><span class="n">number</span><span class="p">):</span>
-        <span class="o">....</span>
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">number</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s2">"</span><span class="si">%s</span><span class="s2">-</span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">area_code</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">number</span><span class="p">)</span>
-
-
-<span class="k">class</span> <span class="nc">Customer</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="n">def__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">area_code</span><span class="p">,</span> <span class="n">number</span><span class="p">):</span>
-        <span class="o">....</span>
+<div class="monokai"><pre><span class="code-line"><span></span><span class="k">class</span> <span class="nc">Phone</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span></span>
+<span class="code-line">    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">area_code</span> <span class="p">,</span><span class="n">number</span><span class="p">):</span></span>
+<span class="code-line">        <span class="o">....</span></span>
+<span class="code-line">    <span class="nd">@property</span></span>
+<span class="code-line">    <span class="k">def</span> <span class="nf">number</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></span>
+<span class="code-line">        <span class="k">return</span> <span class="s2">"</span><span class="si">%s</span><span class="s2">-</span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">area_code</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">number</span><span class="p">)</span></span>
+<span class="code-line"></span>
+<span class="code-line"></span>
+<span class="code-line"><span class="k">class</span> <span class="nc">Customer</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span></span>
+<span class="code-line">    <span class="n">def__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">area_code</span><span class="p">,</span> <span class="n">number</span><span class="p">):</span></span>
+<span class="code-line">        <span class="o">....</span></span>
 </pre></div>
 <h4 id="83-change-value-to-reference-jiang-zhi-dui-xiang-gai-wei-yin-yong-dui-xiang">8.3 Change Value to Reference 将值对象改为饮用对象</h4>
 <blockquote>
 <p>你从一个类衍生出许多彼此相等的实例, 希望将他们替换为同一个对象. 将这个值对象变成引用对象</p>
 </blockquote>
-<div class="monokai"><pre><span></span><span class="c1"># only 4 types, but 10000 A instance</span>
-<span class="k">class</span> <span class="nc">A</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">type_id</span><span class="p">,</span> <span class="n">type_name</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">type_id</span> <span class="o">=</span> <span class="n">type_id</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">type_name</span> <span class="o">=</span> <span class="n">type_name</span>
+<div class="monokai"><pre><span class="code-line"><span></span><span class="c1"># only 4 types, but 10000 A instance</span></span>
+<span class="code-line"><span class="k">class</span> <span class="nc">A</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span></span>
+<span class="code-line">    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">type_id</span><span class="p">,</span> <span class="n">type_name</span><span class="p">):</span></span>
+<span class="code-line">        <span class="bp">self</span><span class="o">.</span><span class="n">type_id</span> <span class="o">=</span> <span class="n">type_id</span></span>
+<span class="code-line">        <span class="bp">self</span><span class="o">.</span><span class="n">type_name</span> <span class="o">=</span> <span class="n">type_name</span></span>
 </pre></div>
 <p>to</p>
-<div class="monokai"><pre><span></span><span class="k">class</span> <span class="nc">Type</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">type_id</span><span class="p">,</span> <span class="n">type_name</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">type_id</span> <span class="o">=</span> <span class="n">type_id</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">type_name</span> <span class="o">=</span> <span class="n">type_name</span>
-
-<span class="k">class</span> <span class="nc">A</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_type</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_type</span> <span class="o">=</span> <span class="n">_type</span>
+<div class="monokai"><pre><span class="code-line"><span></span><span class="k">class</span> <span class="nc">Type</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span></span>
+<span class="code-line">    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">type_id</span><span class="p">,</span> <span class="n">type_name</span><span class="p">):</span></span>
+<span class="code-line">        <span class="bp">self</span><span class="o">.</span><span class="n">type_id</span> <span class="o">=</span> <span class="n">type_id</span></span>
+<span class="code-line">        <span class="bp">self</span><span class="o">.</span><span class="n">type_name</span> <span class="o">=</span> <span class="n">type_name</span></span>
+<span class="code-line"></span>
+<span class="code-line"><span class="k">class</span> <span class="nc">A</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span></span>
+<span class="code-line">    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_type</span><span class="p">):</span></span>
+<span class="code-line">        <span class="bp">self</span><span class="o">.</span><span class="n">_type</span> <span class="o">=</span> <span class="n">_type</span></span>
 </pre></div>
 <h4 id="84-change-reference-to-value-jiang-yin-yong-dui-xiang-gai-wei-zhi-dui-xiang">8.4 Change Reference to Value 将引用对象改为值对象</h4>
 <blockquote>
 <p>你有一个引用对象, 很小且值不可变, 而且不易管理. 将它变成一个值对象</p>
 </blockquote>
 <p>手法, 将重构目标变成不可变对象. 即, 只有可以变成不可变对象的才能运用这个技巧</p>
-<div class="monokai"><pre><span></span><span class="k">class</span> <span class="nc">Currency</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">code</span> <span class="o">=</span> <span class="n">code</span>
+<div class="monokai"><pre><span class="code-line"><span></span><span class="k">class</span> <span class="nc">Currency</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span></span>
+<span class="code-line">    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">):</span></span>
+<span class="code-line">        <span class="bp">self</span><span class="o">.</span><span class="n">code</span> <span class="o">=</span> <span class="n">code</span></span>
 </pre></div>
 <p>to</p>
-<div class="monokai"><pre><span></span><span class="k">class</span> <span class="nc">Currency</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_code</span> <span class="o">=</span> <span class="n">code</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">code</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_code</span>
-
-    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">code</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">code</span>
+<div class="monokai"><pre><span class="code-line"><span></span><span class="k">class</span> <span class="nc">Currency</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span></span>
+<span class="code-line">    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">):</span></span>
+<span class="code-line">        <span class="bp">self</span><span class="o">.</span><span class="n">_code</span> <span class="o">=</span> <span class="n">code</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="nd">@property</span></span>
+<span class="code-line">    <span class="k">def</span> <span class="nf">code</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></span>
+<span class="code-line">        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_code</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span></span>
+<span class="code-line">        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">code</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">code</span></span>
 </pre></div>
 <h4 id="85-replace-array-with-object-yi-dui-xiang-qu-dai-shu-zu">8.5 Replace Array with Object 以对象取代数组</h4>
 <blockquote>
 <p>你有一个数组, 其中元素各自代表不同的东西. 以对象替换数组, 对于数组中的每个元素, 以一个字段来表示</p>
 </blockquote>
-<div class="monokai"><pre><span></span><span class="n">row</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"Liverpoo"</span><span class="p">,</span> <span class="mi">15</span><span class="p">]</span>
+<div class="monokai"><pre><span class="code-line"><span></span><span class="n">row</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"Liverpoo"</span><span class="p">,</span> <span class="mi">15</span><span class="p">]</span></span>
 </pre></div>
 <p>to</p>
-<div class="monokai"><pre><span></span><span class="n">claas</span> <span class="n">Record</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">wins</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">wins</span> <span class="o">=</span> <span class="n">wins</span>
-
-<span class="n">record</span> <span class="o">=</span> <span class="n">Record</span><span class="p">(</span><span class="s2">"Liverpoo"</span><span class="p">,</span> <span class="mi">15</span><span class="p">)</span>
+<div class="monokai"><pre><span class="code-line"><span></span><span class="n">claas</span> <span class="n">Record</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span></span>
+<span class="code-line">    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">wins</span><span class="p">):</span></span>
+<span class="code-line">        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span></span>
+<span class="code-line">        <span class="bp">self</span><span class="o">.</span><span class="n">wins</span> <span class="o">=</span> <span class="n">wins</span></span>
+<span class="code-line"></span>
+<span class="code-line"><span class="n">record</span> <span class="o">=</span> <span class="n">Record</span><span class="p">(</span><span class="s2">"Liverpoo"</span><span class="p">,</span> <span class="mi">15</span><span class="p">)</span></span>
 </pre></div>
 <h4 id="86-duplicate-observed-data-fu-zhi-bei-jian-shi-shu-ju">8.6 Duplicate Observed Data 复制"被监视数据"</h4>
 <blockquote>
@@ -191,50 +191,50 @@
 <blockquote>
 <p>两个类都需要使用对方特性, 但其间只有一条单向连接. 添加一个反向指针, 并使修改函数能够同时更新到两条连接</p>
 </blockquote>
-<div class="monokai"><pre><span></span><span class="k">class</span> <span class="nc">Customer</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">get_orders</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1"># need a lot of codes here</span>
-
-<span class="k">class</span> <span class="nc">Order</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">pass</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">customer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_customer</span>
-    <span class="nd">@customer.setter</span>
-    <span class="k">def</span> <span class="nf">customer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">customer</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_customer</span> <span class="o">=</span> <span class="n">customer</span>
-
-    <span class="k">def</span> <span class="nf">get_customer_address</span><span class="p">():</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_customer</span><span class="o">.</span><span class="n">address</span>
+<div class="monokai"><pre><span class="code-line"><span></span><span class="k">class</span> <span class="nc">Customer</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span></span>
+<span class="code-line">    <span class="k">def</span> <span class="nf">get_orders</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></span>
+<span class="code-line">        <span class="c1"># need a lot of codes here</span></span>
+<span class="code-line"></span>
+<span class="code-line"><span class="k">class</span> <span class="nc">Order</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span></span>
+<span class="code-line">    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></span>
+<span class="code-line">        <span class="k">pass</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="nd">@property</span></span>
+<span class="code-line">    <span class="k">def</span> <span class="nf">customer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></span>
+<span class="code-line">        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_customer</span></span>
+<span class="code-line">    <span class="nd">@customer.setter</span></span>
+<span class="code-line">    <span class="k">def</span> <span class="nf">customer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">customer</span><span class="p">):</span></span>
+<span class="code-line">        <span class="bp">self</span><span class="o">.</span><span class="n">_customer</span> <span class="o">=</span> <span class="n">customer</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="k">def</span> <span class="nf">get_customer_address</span><span class="p">():</span></span>
+<span class="code-line">        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_customer</span><span class="o">.</span><span class="n">address</span></span>
 </pre></div>
 <p>to</p>
-<div class="monokai"><pre><span></span><span class="k">class</span> <span class="nc">Customer</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">orders</span> <span class="o">=</span> <span class="p">[]</span>
-
-    <span class="k">def</span> <span class="nf">add_order</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">order</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">orders</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">order</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">get_orders</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">orders</span>
-
-<span class="k">class</span> <span class="nc">Order</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">pass</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">customer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_customer</span>
-
-    <span class="nd">@customer.setter</span>
-    <span class="k">def</span> <span class="nf">customer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">customer</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_customer</span> <span class="o">=</span> <span class="n">customer</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_customer</span><span class="o">.</span><span class="n">add_order</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">get_customer_address</span><span class="p">():</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_customer</span><span class="o">.</span><span class="n">address</span>
+<div class="monokai"><pre><span class="code-line"><span></span><span class="k">class</span> <span class="nc">Customer</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span></span>
+<span class="code-line">    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></span>
+<span class="code-line">        <span class="bp">self</span><span class="o">.</span><span class="n">orders</span> <span class="o">=</span> <span class="p">[]</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="k">def</span> <span class="nf">add_order</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">order</span><span class="p">):</span></span>
+<span class="code-line">        <span class="bp">self</span><span class="o">.</span><span class="n">orders</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">order</span><span class="p">)</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="k">def</span> <span class="nf">get_orders</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></span>
+<span class="code-line">        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">orders</span></span>
+<span class="code-line"></span>
+<span class="code-line"><span class="k">class</span> <span class="nc">Order</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span></span>
+<span class="code-line">    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></span>
+<span class="code-line">        <span class="k">pass</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="nd">@property</span></span>
+<span class="code-line">    <span class="k">def</span> <span class="nf">customer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></span>
+<span class="code-line">        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_customer</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="nd">@customer.setter</span></span>
+<span class="code-line">    <span class="k">def</span> <span class="nf">customer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">customer</span><span class="p">):</span></span>
+<span class="code-line">        <span class="bp">self</span><span class="o">.</span><span class="n">_customer</span> <span class="o">=</span> <span class="n">customer</span></span>
+<span class="code-line">        <span class="bp">self</span><span class="o">.</span><span class="n">_customer</span><span class="o">.</span><span class="n">add_order</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="k">def</span> <span class="nf">get_customer_address</span><span class="p">():</span></span>
+<span class="code-line">        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_customer</span><span class="o">.</span><span class="n">address</span></span>
 </pre></div>
 <h4 id="88-change-bidirectional-association-to-unidirectional-jiang-shuang-xiang-guan-lian-gai-wei-dan-xiang-guan-lian">8.8 Change Bidirectional Association to Unidirectional 将双向关联改为单向关联</h4>
 <blockquote>
@@ -245,57 +245,57 @@
 <blockquote>
 <p>你有一个字面数值, 带有特别含义. 创建一个常量, 根据其意义为它命名, 并将上述字面数值替换为这个常量</p>
 </blockquote>
-<div class="monokai"><pre><span></span><span class="k">def</span> <span class="nf">potential_energy</span><span class="p">(</span><span class="n">mass</span><span class="p">,</span> <span class="n">height</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">mass</span> <span class="o">*</span> <span class="mf">9.81</span> <span class="o">*</span> <span class="n">height</span>
+<div class="monokai"><pre><span class="code-line"><span></span><span class="k">def</span> <span class="nf">potential_energy</span><span class="p">(</span><span class="n">mass</span><span class="p">,</span> <span class="n">height</span><span class="p">):</span></span>
+<span class="code-line">    <span class="k">return</span> <span class="n">mass</span> <span class="o">*</span> <span class="mf">9.81</span> <span class="o">*</span> <span class="n">height</span></span>
 </pre></div>
 <p>to</p>
-<div class="monokai"><pre><span></span><span class="n">GRAVITATIONAL_CONSTANT</span> <span class="o">=</span> <span class="mf">9.81</span>
-<span class="k">def</span> <span class="nf">potential_energy</span><span class="p">(</span><span class="n">mass</span><span class="p">,</span> <span class="n">height</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">mass</span> <span class="o">*</span> <span class="n">GRAVITATIONAL_CONSTANT</span> <span class="o">*</span> <span class="n">height</span>
+<div class="monokai"><pre><span class="code-line"><span></span><span class="n">GRAVITATIONAL_CONSTANT</span> <span class="o">=</span> <span class="mf">9.81</span></span>
+<span class="code-line"><span class="k">def</span> <span class="nf">potential_energy</span><span class="p">(</span><span class="n">mass</span><span class="p">,</span> <span class="n">height</span><span class="p">):</span></span>
+<span class="code-line">    <span class="k">return</span> <span class="n">mass</span> <span class="o">*</span> <span class="n">GRAVITATIONAL_CONSTANT</span> <span class="o">*</span> <span class="n">height</span></span>
 </pre></div>
 <h4 id="810-encapsulate-field-feng-zhuang-zi-duan">8.10 Encapsulate Field 封装字段</h4>
 <blockquote>
 <p>你的类中存在一个public字段, 将它声明为private, 并提供相应访问函数</p>
 </blockquote>
-<div class="monokai"><pre><span></span><span class="k">class</span> <span class="nc">A</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">value</span>
+<div class="monokai"><pre><span class="code-line"><span></span><span class="k">class</span> <span class="nc">A</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span></span>
+<span class="code-line">    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span></span>
+<span class="code-line">        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">value</span></span>
 </pre></div>
 <p>to</p>
-<div class="monokai"><pre><span></span><span class="k">class</span> <span class="nc">A</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__value</span> <span class="o">=</span> <span class="n">value</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__value</span>
-
-    <span class="nd">@value.setter</span>
-    <span class="k">def</span> <span class="nf">value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__value</span> <span class="o">=</span> <span class="n">v</span>
+<div class="monokai"><pre><span class="code-line"><span></span><span class="k">class</span> <span class="nc">A</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span></span>
+<span class="code-line">    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span></span>
+<span class="code-line">        <span class="bp">self</span><span class="o">.</span><span class="n">__value</span> <span class="o">=</span> <span class="n">value</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="nd">@property</span></span>
+<span class="code-line">    <span class="k">def</span> <span class="nf">value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></span>
+<span class="code-line">        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__value</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="nd">@value.setter</span></span>
+<span class="code-line">    <span class="k">def</span> <span class="nf">value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span></span>
+<span class="code-line">        <span class="bp">self</span><span class="o">.</span><span class="n">__value</span> <span class="o">=</span> <span class="n">v</span></span>
 </pre></div>
 <h4 id="811-encapsulate-collection-feng-zhuang-ji-he">8.11 Encapsulate Collection 封装集合</h4>
 <blockquote>
 <p>有个函数返回一个集合. 让这个函数返回该集合的一个只读副本, 并在这个类中提供添加/移除集合元素的函数</p>
 </blockquote>
-<div class="monokai"><pre><span></span><span class="k">class</span> <span class="nc">A</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_members</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">def</span> <span class="nf">get_members</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_members</span>
+<div class="monokai"><pre><span class="code-line"><span></span><span class="k">class</span> <span class="nc">A</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span></span>
+<span class="code-line">    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></span>
+<span class="code-line">        <span class="bp">self</span><span class="o">.</span><span class="n">_members</span> <span class="o">=</span> <span class="p">[]</span></span>
+<span class="code-line">    <span class="k">def</span> <span class="nf">get_members</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></span>
+<span class="code-line">        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_members</span></span>
 </pre></div>
 <p>to</p>
-<div class="monokai"><pre><span></span><span class="k">class</span> <span class="nc">A</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_members</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">def</span> <span class="nf">get_members</span><span class="p">():</span>
-        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_members</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">add_member</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">member</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">members</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">member</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">remove_member</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">member</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">members</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">member</span><span class="p">)</span>
+<div class="monokai"><pre><span class="code-line"><span></span><span class="k">class</span> <span class="nc">A</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span></span>
+<span class="code-line">    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></span>
+<span class="code-line">        <span class="bp">self</span><span class="o">.</span><span class="n">_members</span> <span class="o">=</span> <span class="p">[]</span></span>
+<span class="code-line">    <span class="k">def</span> <span class="nf">get_members</span><span class="p">():</span></span>
+<span class="code-line">        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_members</span><span class="p">)</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="k">def</span> <span class="nf">add_member</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">member</span><span class="p">):</span></span>
+<span class="code-line">        <span class="bp">self</span><span class="o">.</span><span class="n">members</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">member</span><span class="p">)</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="k">def</span> <span class="nf">remove_member</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">member</span><span class="p">):</span></span>
+<span class="code-line">        <span class="bp">self</span><span class="o">.</span><span class="n">members</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">member</span><span class="p">)</span></span>
 </pre></div>
 <h4 id="812-replace-record-with-data-class-yi-shu-ju-lei-qu-dai-ji-lu">8.12 Replace Record with Data Class 以数据类取代记录</h4>
 <blockquote>
@@ -306,38 +306,38 @@
 <blockquote>
 <p>类之中有一个类型码, 但它并不影响类的行为. 以一个新的类替换该数值类型码</p>
 </blockquote>
-<div class="monokai"><pre><span></span><span class="k">class</span> <span class="nc">Person</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">O</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">A</span> <span class="o">=</span> <span class="mi">1</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">B</span> <span class="o">=</span> <span class="mi">2</span>
-        <span class="n">slef</span><span class="o">.</span><span class="n">AB</span> <span class="o">=</span> <span class="mi">3</span>
+<div class="monokai"><pre><span class="code-line"><span></span><span class="k">class</span> <span class="nc">Person</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span></span>
+<span class="code-line">    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></span>
+<span class="code-line">        <span class="bp">self</span><span class="o">.</span><span class="n">O</span> <span class="o">=</span> <span class="mi">0</span></span>
+<span class="code-line">        <span class="bp">self</span><span class="o">.</span><span class="n">A</span> <span class="o">=</span> <span class="mi">1</span></span>
+<span class="code-line">        <span class="bp">self</span><span class="o">.</span><span class="n">B</span> <span class="o">=</span> <span class="mi">2</span></span>
+<span class="code-line">        <span class="n">slef</span><span class="o">.</span><span class="n">AB</span> <span class="o">=</span> <span class="mi">3</span></span>
 </pre></div>
 <p>to</p>
-<div class="monokai"><pre><span></span><span class="k">class</span> <span class="nc">Person</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">O</span> <span class="o">=</span> <span class="n">BloodGroup</span><span class="o">.</span><span class="n">O</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">A</span> <span class="o">=</span> <span class="n">BloodGroup</span><span class="o">.</span><span class="n">A</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">B</span> <span class="o">=</span> <span class="n">BloodGroup</span><span class="o">.</span><span class="n">B</span>
-        <span class="n">slef</span><span class="o">.</span><span class="n">AB</span> <span class="o">=</span> <span class="n">BloodGroup</span><span class="o">.</span><span class="n">AB</span>
+<div class="monokai"><pre><span class="code-line"><span></span><span class="k">class</span> <span class="nc">Person</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span></span>
+<span class="code-line">    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></span>
+<span class="code-line">        <span class="bp">self</span><span class="o">.</span><span class="n">O</span> <span class="o">=</span> <span class="n">BloodGroup</span><span class="o">.</span><span class="n">O</span></span>
+<span class="code-line">        <span class="bp">self</span><span class="o">.</span><span class="n">A</span> <span class="o">=</span> <span class="n">BloodGroup</span><span class="o">.</span><span class="n">A</span></span>
+<span class="code-line">        <span class="bp">self</span><span class="o">.</span><span class="n">B</span> <span class="o">=</span> <span class="n">BloodGroup</span><span class="o">.</span><span class="n">B</span></span>
+<span class="code-line">        <span class="n">slef</span><span class="o">.</span><span class="n">AB</span> <span class="o">=</span> <span class="n">BloodGroup</span><span class="o">.</span><span class="n">AB</span></span>
 </pre></div>
 <h4 id="814-replace-type-code-with-subclasses-yi-zi-lei-qu-dai-lei-xing-ma">8.14 Replace Type Code with Subclasses 以子类取代类型码</h4>
 <blockquote>
 <p>你有一个不可变的类型码, 它会影响到类行为. 以子类取代类型码</p>
 </blockquote>
 <p>使用多态来处理, 需要在一个类中使用<code>if-else</code>或者<code>switch</code>来根据类型码做出不同行为的类</p>
-<div class="monokai"><pre><span></span><span class="k">class</span> <span class="nc">Employee</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">ENGINEER</span> <span class="o">=</span> <span class="mi">1</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">SALESMAN</span> <span class="o">=</span> <span class="mi">0</span>
+<div class="monokai"><pre><span class="code-line"><span></span><span class="k">class</span> <span class="nc">Employee</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span></span>
+<span class="code-line">    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></span>
+<span class="code-line">        <span class="bp">self</span><span class="o">.</span><span class="n">ENGINEER</span> <span class="o">=</span> <span class="mi">1</span></span>
+<span class="code-line">        <span class="bp">self</span><span class="o">.</span><span class="n">SALESMAN</span> <span class="o">=</span> <span class="mi">0</span></span>
 </pre></div>
 <p>to</p>
-<div class="monokai"><pre><span></span><span class="k">class</span> <span class="nc">Employee</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="k">class</span> <span class="nc">Engineer</span><span class="p">(</span><span class="n">Employee</span><span class="p">):</span>
-    <span class="k">pass</span>
-<span class="k">class</span> <span class="nc">Salesman</span><span class="p">(</span><span class="n">Employee</span><span class="p">):</span>
-    <span class="k">pass</span>
+<div class="monokai"><pre><span class="code-line"><span></span><span class="k">class</span> <span class="nc">Employee</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span></span>
+<span class="code-line">    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></span>
+<span class="code-line"><span class="k">class</span> <span class="nc">Engineer</span><span class="p">(</span><span class="n">Employee</span><span class="p">):</span></span>
+<span class="code-line">    <span class="k">pass</span></span>
+<span class="code-line"><span class="k">class</span> <span class="nc">Salesman</span><span class="p">(</span><span class="n">Employee</span><span class="p">):</span></span>
+<span class="code-line">    <span class="k">pass</span></span>
 </pre></div>
 <h4 id="815-replace-type-code-with-statestrategy-yi-statstrategyqu-dai-lei-xing-ma">8.15 Replace Type Code with State/Strategy 以Stat/Strategy取代类型码</h4>
 <blockquote>
@@ -348,30 +348,30 @@
 <blockquote>
 <p>你的各个子类的唯一差别只在"返回常量数据"的函数上. 修改这些函数, 使它们返回超类中的某个(新增)字段, 然后销毁子类</p>
 </blockquote>
-<div class="monokai"><pre><span></span><span class="k">class</span> <span class="nc">Person</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">is_male</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">pass</span>
-    <span class="k">def</span> <span class="nf">get_code</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">pass</span>
-
-<span class="k">class</span> <span class="nc">Male</span><span class="p">(</span><span class="n">Person</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">is_male</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">True</span>
-    <span class="k">def</span> <span class="nf">get_code</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s2">"M"</span>
-
-<span class="k">class</span> <span class="nc">Feale</span><span class="p">(</span><span class="n">Person</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">is_male</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">False</span>
-    <span class="k">def</span> <span class="nf">get_code</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s2">"F"</span>
+<div class="monokai"><pre><span class="code-line"><span></span><span class="k">class</span> <span class="nc">Person</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span></span>
+<span class="code-line">    <span class="k">def</span> <span class="nf">is_male</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></span>
+<span class="code-line">        <span class="k">pass</span></span>
+<span class="code-line">    <span class="k">def</span> <span class="nf">get_code</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></span>
+<span class="code-line">        <span class="k">pass</span></span>
+<span class="code-line"></span>
+<span class="code-line"><span class="k">class</span> <span class="nc">Male</span><span class="p">(</span><span class="n">Person</span><span class="p">):</span></span>
+<span class="code-line">    <span class="k">def</span> <span class="nf">is_male</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></span>
+<span class="code-line">        <span class="k">return</span> <span class="bp">True</span></span>
+<span class="code-line">    <span class="k">def</span> <span class="nf">get_code</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></span>
+<span class="code-line">        <span class="k">return</span> <span class="s2">"M"</span></span>
+<span class="code-line"></span>
+<span class="code-line"><span class="k">class</span> <span class="nc">Feale</span><span class="p">(</span><span class="n">Person</span><span class="p">):</span></span>
+<span class="code-line">    <span class="k">def</span> <span class="nf">is_male</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></span>
+<span class="code-line">        <span class="k">return</span> <span class="bp">False</span></span>
+<span class="code-line">    <span class="k">def</span> <span class="nf">get_code</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></span>
+<span class="code-line">        <span class="k">return</span> <span class="s2">"F"</span></span>
 </pre></div>
 <p>to</p>
-<div class="monokai"><pre><span></span><span class="k">class</span> <span class="nc">Person</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">is_male</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_male</span>
-    <span class="k">def</span> <span class="nf">get_code</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s1">'M'</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_male</span> <span class="k">else</span> <span class="s2">"F"</span>
+<div class="monokai"><pre><span class="code-line"><span></span><span class="k">class</span> <span class="nc">Person</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span></span>
+<span class="code-line">    <span class="k">def</span> <span class="nf">is_male</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></span>
+<span class="code-line">        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_male</span></span>
+<span class="code-line">    <span class="k">def</span> <span class="nf">get_code</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></span>
+<span class="code-line">        <span class="k">return</span> <span class="s1">'M'</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_male</span> <span class="k">else</span> <span class="s2">"F"</span></span>
 </pre></div>
     </section>
 

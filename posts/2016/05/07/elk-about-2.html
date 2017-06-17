@@ -84,75 +84,75 @@
 <p>一个字段, <code>resp_time</code>, mapping中是string, 有需求是, 按照响应时间降序排序, 此时需要构造qsl(在search中使用), 使用该字段转换为浮点数, 降序排列</p>
 <p>第一步, 修改es配置, 增加groovy支持</p>
 <p>elasticsearch.yml中加入</p>
-<div class="monokai"><pre><span></span>script.engine.groovy.inline.search: on
+<div class="monokai"><pre><span class="code-line"><span></span>script.engine.groovy.inline.search: on</span>
 </pre></div>
 <p>然后, 执行 <a href="http://www.wklken.me/posts/2016/02/16/elk-about-upgrade.html#rolling-restart">rolling restart</a>, 逐一重启集群每个节点</p>
 <p>第二步, 构造qsl,  <code>sort</code>中,  增加<code>_script</code> 使用groovy脚本, 将对应字段从string转成数字, 再进行排序</p>
-<div class="monokai"><pre><span></span>'sort': [{'_script': {'lang': 'groovy',
-                       'order': 'desc',
-                       'script': 'Float.parseFloat(doc["resp_time"].value)',
-                       'type': 'number'}},
-          {'@timestamp': 'desc'}
-          ]
+<div class="monokai"><pre><span class="code-line"><span></span>'sort': [{'_script': {'lang': 'groovy',</span>
+<span class="code-line">                       'order': 'desc',</span>
+<span class="code-line">                       'script': 'Float.parseFloat(doc["resp_time"].value)',</span>
+<span class="code-line">                       'type': 'number'}},</span>
+<span class="code-line">          {'@timestamp': 'desc'}</span>
+<span class="code-line">          ]</span>
 </pre></div>
 <p>附 <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/modules-scripting.html">scripting文档</a></p>
 <h3 id="fielddata-format-disableddao-zhi-de-pai-xu-shi-xiao"><code>fielddata-format-disabled</code>导致的排序失效</h3>
 <p>有个集群, 升级后, 发现<code>resp_time</code>字段的mapping是</p>
-<div class="monokai"><pre><span></span>"resp_time" : {
-"type" : "string",
-"norms" : {
-    "enabled" : false
-},
-"fielddata" : {
-    "format" : "disabled"
-},
-"fields" : {
-    "raw" : {
-    "type" : "string",
-    "index" : "not_analyzed",
-    "ignore_above" : 256
-    }
-}
+<div class="monokai"><pre><span class="code-line"><span></span>"resp_time" : {</span>
+<span class="code-line">"type" : "string",</span>
+<span class="code-line">"norms" : {</span>
+<span class="code-line">    "enabled" : false</span>
+<span class="code-line">},</span>
+<span class="code-line">"fielddata" : {</span>
+<span class="code-line">    "format" : "disabled"</span>
+<span class="code-line">},</span>
+<span class="code-line">"fields" : {</span>
+<span class="code-line">    "raw" : {</span>
+<span class="code-line">    "type" : "string",</span>
+<span class="code-line">    "index" : "not_analyzed",</span>
+<span class="code-line">    "ignore_above" : 256</span>
+<span class="code-line">    }</span>
+<span class="code-line">}</span>
 </pre></div>
 <p>注意这里的, 是因为升级es 2.0之后, 默认值变更带来的问题</p>
-<div class="monokai"><pre><span></span>"fielddata" : {
-  "format" : "disabled"
-},
+<div class="monokai"><pre><span class="code-line"><span></span>"fielddata" : {</span>
+<span class="code-line">  "format" : "disabled"</span>
+<span class="code-line">},</span>
 </pre></div>
 <p><a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/fielddata.html">fielddata文档</a></p>
 <p>此时, 排序的qsl将会报错, 无法按照对应要求排序</p>
-<div class="monokai"><pre><span></span>Field data loading is forbidden on resp_time
+<div class="monokai"><pre><span class="code-line"><span></span>Field data loading is forbidden on resp_time</span>
 </pre></div>
 <p>解决方案, 挺简单的, 使用<code>foo.raw</code>即可</p>
-<div class="monokai"><pre><span></span>'sort': [{'_script': {'lang': 'groovy',
-    'order': 'desc',
-    'script': 'Float.parseFloat(doc["resp_time.raw"].value)',
-    'type': 'number'}},
-{'@timestamp': 'desc'}
-]
+<div class="monokai"><pre><span class="code-line"><span></span>'sort': [{'_script': {'lang': 'groovy',</span>
+<span class="code-line">    'order': 'desc',</span>
+<span class="code-line">    'script': 'Float.parseFloat(doc["resp_time.raw"].value)',</span>
+<span class="code-line">    'type': 'number'}},</span>
+<span class="code-line">{'@timestamp': 'desc'}</span>
+<span class="code-line">]</span>
 </pre></div>
 <h3 id="shi-yong-ju-he">使用聚合</h3>
 <p>把string类型的<code>resp_time</code>放到<code>aggs</code>中做聚合的时候.</p>
-<div class="monokai"><pre><span></span>"aggs": {
-     "resp_time_stats": {"stats": {"script": 'Float.parseFloat(doc["resp_time.raw"].value)'}}
-}
+<div class="monokai"><pre><span class="code-line"><span></span>"aggs": {</span>
+<span class="code-line">     "resp_time_stats": {"stats": {"script": 'Float.parseFloat(doc["resp_time.raw"].value)'}}</span>
+<span class="code-line">}</span>
 </pre></div>
 <p>此时, 会报错</p>
-<div class="monokai"><pre><span></span>{u'error': {u'failed_shards': [{u'index': u'logstash-2016.04.10',
-                                u'node': u'AvemqKN-RGKy68zJXUapBg',
-                                u'reason': {u'reason': u'scripts of type [inline], operation [aggs] and lang [groovy] are disabled',
-                                            u'type': u'script_exception'},
-                                u'shard': 0}],
-            u'grouped': True,
-            u'phase': u'query',
-            u'reason': u'all shards failed',
-            u'root_cause': [{u'reason': u'scripts of type [inline], operation [aggs] and lang [groovy] are disabled',
-                             u'type': u'script_exception'}],
-            u'type': u'search_phase_execution_exception'},
- u'status': 500}
+<div class="monokai"><pre><span class="code-line"><span></span>{u'error': {u'failed_shards': [{u'index': u'logstash-2016.04.10',</span>
+<span class="code-line">                                u'node': u'AvemqKN-RGKy68zJXUapBg',</span>
+<span class="code-line">                                u'reason': {u'reason': u'scripts of type [inline], operation [aggs] and lang [groovy] are disabled',</span>
+<span class="code-line">                                            u'type': u'script_exception'},</span>
+<span class="code-line">                                u'shard': 0}],</span>
+<span class="code-line">            u'grouped': True,</span>
+<span class="code-line">            u'phase': u'query',</span>
+<span class="code-line">            u'reason': u'all shards failed',</span>
+<span class="code-line">            u'root_cause': [{u'reason': u'scripts of type [inline], operation [aggs] and lang [groovy] are disabled',</span>
+<span class="code-line">                             u'type': u'script_exception'}],</span>
+<span class="code-line">            u'type': u'search_phase_execution_exception'},</span>
+<span class="code-line"> u'status': 500}</span>
 </pre></div>
 <p>处理, es加配置, 逐一重启</p>
-<div class="monokai"><pre><span></span>script.engine.groovy.inline.aggs: on
+<div class="monokai"><pre><span class="code-line"><span></span>script.engine.groovy.inline.aggs: on</span>
 </pre></div>
 <p>相关 <a href="https://discuss.elastic.co/t/scripts-of-type-inline-operation-aggs-and-lang-groovy-are-disabled/2493">文档</a></p>
 <h3 id="logstash-grok-default-patterns">logstash grok default patterns</h3>
@@ -160,107 +160,107 @@
 <p>grok检查在线实时编辑, https://grokdebug.herokuapp.com/</p>
 <h3 id="logstash-codec-multiline-xian-zhi-xing-shu-he-ri-zhi-da-xiao">logstash codec multiline 限制行数和日志大小</h3>
 <p>配置, 具体见 <a href="https://www.elastic.co/guide/en/logstash/current/plugins-codecs-multiline.html">multiline文档</a></p>
-<div class="monokai"><pre><span></span>input {
-        codec =&gt; multiline {
-            patterns_dir =&gt; "./patterns"
-            pattern =&gt; ""
-            what =&gt; "previous"
-            negate  =&gt; true
-            max_lines =&gt; 100
-            max_bytes =&gt; "50kib"
-        }
-}
+<div class="monokai"><pre><span class="code-line"><span></span>input {</span>
+<span class="code-line">        codec =&gt; multiline {</span>
+<span class="code-line">            patterns_dir =&gt; "./patterns"</span>
+<span class="code-line">            pattern =&gt; ""</span>
+<span class="code-line">            what =&gt; "previous"</span>
+<span class="code-line">            negate  =&gt; true</span>
+<span class="code-line">            max_lines =&gt; 100</span>
+<span class="code-line">            max_bytes =&gt; "50kib"</span>
+<span class="code-line">        }</span>
+<span class="code-line">}</span>
 </pre></div>
 <p>单位 <a href="https://www.elastic.co/guide/en/logstash/current/configuration-file-structure.html#bytes">bytes</a></p>
 <p>实践中, 使用<code>max_bytes</code>, 当<code>what=previous + negate=true</code>的情况下, 即不匹配模式的, 归属前一部分, 这种情况下, 性能ok, 反之<code>what=next + negate=true</code>的情况下, 不匹配成功归属于后半部分, 此时产生的cpu消耗非常之大, 可以将一台机器跑满.</p>
 <p>另外, 假设配置<code>max_bytes=1M</code>, 此时用户打了50M, 会给这个event打上tag <code>multiline_codec_max_bytes_reache</code>, 但是, 这50M 最终还是会经logstash灌入到es里面. 即, 超了, 但是并不自动截掉</p>
 <p>这时候, 我们可以, 使用<code>mutate-replace</code>直接替换掉</p>
-<div class="monokai"><pre><span></span>    # if multiline_codec_max_lines_reached
-    if ("multiline_codec_max_bytes_reached" in [tags]) {
-        mutate {
-            replace =&gt; {
-                "message" =&gt; "Log System Warnning: multiline_codec_max_lines_reached, Your log has exceeded 50kB(51200 chars), it was blocked by log system. Please check your code to make your log info shorter and useful"
-                "msg" =&gt; "Log System Warnning: multiline_codec_max_lines_reached, Your log has exceeded 50kB(51200 chars), it was blocked by log system. Please check your code to make your log info shorter and useful"
-            }
-        }
-    }
+<div class="monokai"><pre><span class="code-line"><span></span>    # if multiline_codec_max_lines_reached</span>
+<span class="code-line">    if ("multiline_codec_max_bytes_reached" in [tags]) {</span>
+<span class="code-line">        mutate {</span>
+<span class="code-line">            replace =&gt; {</span>
+<span class="code-line">                "message" =&gt; "Log System Warnning: multiline_codec_max_lines_reached, Your log has exceeded 50kB(51200 chars), it was blocked by log system. Please check your code to make your log info shorter and useful"</span>
+<span class="code-line">                "msg" =&gt; "Log System Warnning: multiline_codec_max_lines_reached, Your log has exceeded 50kB(51200 chars), it was blocked by log system. Please check your code to make your log info shorter and useful"</span>
+<span class="code-line">            }</span>
+<span class="code-line">        }</span>
+<span class="code-line">    }</span>
 </pre></div>
 <h3 id="shi-yong-supervisordguan-li-logstashjin-cheng">使用supervisord管理logstash进程</h3>
 <p>之前提到, 升级集群后, 使用supervisord统一管理logstash进程, <a href="http://www.wklken.me/posts/2016/02/16/elk-about-upgrade.html#supervisord">链接</a></p>
 <h3 id="cha-kan-dang-qian-ji-qi-logstashjin-cheng-top">查看当前机器logstash进程top</h3>
 <p>有时, 需要上机器看看对应采集端所有logstash进程是否存在问题, 常常用到<code>top</code>命令, 所以写了个简单的脚本, 配合supervisord的脚本使用</p>
 <p>ltop.sh</p>
-<div class="monokai"><pre><span></span><span class="ch">#!/bin/bash</span>
-./logstashd.sh status
-top -p <span class="k">$(</span>./logstashd.sh status <span class="p">|</span> awk <span class="s1">'{print $4}'</span> <span class="p">|</span> awk -F<span class="s1">','</span> <span class="s1">'{print $1}'</span> <span class="p">|</span> tr <span class="s1">'\n'</span> <span class="s1">','</span> <span class="p">|</span> sed <span class="s1">'s/,$//g'</span><span class="k">)</span>
+<div class="monokai"><pre><span class="code-line"><span></span><span class="ch">#!/bin/bash</span></span>
+<span class="code-line">./logstashd.sh status</span>
+<span class="code-line">top -p <span class="k">$(</span>./logstashd.sh status <span class="p">|</span> awk <span class="s1">'{print $4}'</span> <span class="p">|</span> awk -F<span class="s1">','</span> <span class="s1">'{print $1}'</span> <span class="p">|</span> tr <span class="s1">'\n'</span> <span class="s1">','</span> <span class="p">|</span> sed <span class="s1">'s/,$//g'</span><span class="k">)</span></span>
 </pre></div>
 <h3 id="jin-cheng-zhan-yong-cpujian-ce-jiao-ben">进程占用cpu检测脚本</h3>
-<div class="monokai"><pre><span></span><span class="ch">#!/bin/bash</span>
-<span class="nv">BASEDIR</span><span class="o">=</span><span class="k">$(</span>dirname <span class="nv">$0</span><span class="k">)</span>
-<span class="nb">cd</span> <span class="nv">$BASEDIR</span>
-<span class="nv">CURRENT_DIR</span><span class="o">=</span><span class="sb">`</span><span class="nb">pwd</span><span class="sb">`</span>
-
-<span class="nb">exec</span> &gt;&gt; /tmp/log/monitor.log 2&gt;<span class="p">&amp;</span>1
-<span class="nb">echo</span> <span class="s2">"=============================================="</span>
-date
-<span class="k">function</span> check<span class="o">()</span> <span class="o">{</span>
-    <span class="nv">PNAME</span><span class="o">=</span><span class="nv">$1</span>
-    <span class="nv">PID</span><span class="o">=</span><span class="nv">$2</span>
-    <span class="nv">CPU_USE</span><span class="o">=</span><span class="k">$(</span>ps -p <span class="nv">$PID</span> -o %cpu <span class="p">|</span> sed -n <span class="s1">'2p'</span><span class="k">)</span>
-    <span class="nv">INT_CPU_USE</span><span class="o">=</span><span class="k">$(</span><span class="nb">printf</span> <span class="s2">"%.0f\n"</span> <span class="nv">$CPU_USE</span><span class="k">)</span>
-    <span class="nb">echo</span> <span class="nv">$PNAME</span><span class="s2">" - "</span><span class="nv">$CPU_USE</span><span class="s2">" - "</span><span class="nv">$INT_CPU_USE</span>
-
-    <span class="k">if</span> <span class="o">[</span> <span class="nv">$INT_CPU_USE</span> -gt <span class="m">85</span> <span class="o">]</span>
-    <span class="k">then</span>
-       <span class="nb">echo</span> <span class="s2">"</span><span class="nv">$PNAME</span><span class="s2"> cpu usage greater than 85%,do restart"</span>
-       ./logstashd.sh restart <span class="nv">$PNAME</span>
-    <span class="k">fi</span>
-<span class="o">}</span>
-<span class="nb">export</span> -f check
-./logstashd.sh status <span class="p">|</span> awk <span class="s1">'{print "-", $1, $4}'</span> <span class="p">|</span> awk -F<span class="s1">','</span> <span class="s1">'{print $1}'</span> <span class="p">|</span> xargs -n3 bash -c <span class="s1">'check $@'</span>
+<div class="monokai"><pre><span class="code-line"><span></span><span class="ch">#!/bin/bash</span></span>
+<span class="code-line"><span class="nv">BASEDIR</span><span class="o">=</span><span class="k">$(</span>dirname <span class="nv">$0</span><span class="k">)</span></span>
+<span class="code-line"><span class="nb">cd</span> <span class="nv">$BASEDIR</span></span>
+<span class="code-line"><span class="nv">CURRENT_DIR</span><span class="o">=</span><span class="sb">`</span><span class="nb">pwd</span><span class="sb">`</span></span>
+<span class="code-line"></span>
+<span class="code-line"><span class="nb">exec</span> &gt;&gt; /tmp/log/monitor.log 2&gt;<span class="p">&amp;</span>1</span>
+<span class="code-line"><span class="nb">echo</span> <span class="s2">"=============================================="</span></span>
+<span class="code-line">date</span>
+<span class="code-line"><span class="k">function</span> check<span class="o">()</span> <span class="o">{</span></span>
+<span class="code-line">    <span class="nv">PNAME</span><span class="o">=</span><span class="nv">$1</span></span>
+<span class="code-line">    <span class="nv">PID</span><span class="o">=</span><span class="nv">$2</span></span>
+<span class="code-line">    <span class="nv">CPU_USE</span><span class="o">=</span><span class="k">$(</span>ps -p <span class="nv">$PID</span> -o %cpu <span class="p">|</span> sed -n <span class="s1">'2p'</span><span class="k">)</span></span>
+<span class="code-line">    <span class="nv">INT_CPU_USE</span><span class="o">=</span><span class="k">$(</span><span class="nb">printf</span> <span class="s2">"%.0f\n"</span> <span class="nv">$CPU_USE</span><span class="k">)</span></span>
+<span class="code-line">    <span class="nb">echo</span> <span class="nv">$PNAME</span><span class="s2">" - "</span><span class="nv">$CPU_USE</span><span class="s2">" - "</span><span class="nv">$INT_CPU_USE</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="k">if</span> <span class="o">[</span> <span class="nv">$INT_CPU_USE</span> -gt <span class="m">85</span> <span class="o">]</span></span>
+<span class="code-line">    <span class="k">then</span></span>
+<span class="code-line">       <span class="nb">echo</span> <span class="s2">"</span><span class="nv">$PNAME</span><span class="s2"> cpu usage greater than 85%,do restart"</span></span>
+<span class="code-line">       ./logstashd.sh restart <span class="nv">$PNAME</span></span>
+<span class="code-line">    <span class="k">fi</span></span>
+<span class="code-line"><span class="o">}</span></span>
+<span class="code-line"><span class="nb">export</span> -f check</span>
+<span class="code-line">./logstashd.sh status <span class="p">|</span> awk <span class="s1">'{print "-", $1, $4}'</span> <span class="p">|</span> awk -F<span class="s1">','</span> <span class="s1">'{print $1}'</span> <span class="p">|</span> xargs -n3 bash -c <span class="s1">'check $@'</span></span>
 </pre></div>
 <h3 id="shu-ju-pan-man-liao-dao-zhi-ji-qun-zhuang-tai-yellow">数据盘满了导致集群状态yellow</h3>
 <p>机器节点本身有1T 硬盘, 由两块盘组成, 配置es的时候, 数据分别写到了两个盘上, 然后有一天集群状态告警了</p>
-<div class="monokai"><pre><span></span>"status" : "yellow",
+<div class="monokai"><pre><span class="code-line"><span></span>"status" : "yellow",</span>
 </pre></div>
 <p>查看es的日志</p>
-<div class="monokai"><pre><span></span>[2016-03-21 12:43:45,934][INFO ][cluster.routing.allocation.decider] [node_01] low disk watermark [85%] exceeded
-on [AvemqKN-RGKy68zJXUapBg][node_01][/data/LogNewData/xxx/nodes/0] free: 75.5gb[14.1%], replicas will not be assigned to this node
+<div class="monokai"><pre><span class="code-line"><span></span>[2016-03-21 12:43:45,934][INFO ][cluster.routing.allocation.decider] [node_01] low disk watermark [85%] exceeded</span>
+<span class="code-line">on [AvemqKN-RGKy68zJXUapBg][node_01][/data/LogNewData/xxx/nodes/0] free: 75.5gb[14.1%], replicas will not be assigned to this node</span>
 </pre></div>
 <p>处理: 腾磁盘空间出来, es会自动检测恢复</p>
 <p>PS: 磁盘大小要预估好</p>
 <h3 id="cha-kan-rediszhong-dui-lie-de-dui-ji">查看redis中队列的堆积</h3>
 <p>历史遗留问题, 有些节点采集发送到redis的key, 在indexer阶段并没有被消费, 导致越堆越多....</p>
 <p>这时候, 可以通过redis查下哪些队列堆积了</p>
-<div class="monokai"><pre><span></span>bin/redis-cli -h 127.0.0.1 -p 6379 -a blueking_log --bigkeys
+<div class="monokai"><pre><span class="code-line"><span></span>bin/redis-cli -h 127.0.0.1 -p 6379 -a blueking_log --bigkeys</span>
 </pre></div>
 <p>需要redis版本支持<code>bigkeys</code> =&gt; This is a "new" feature beginning with 2.8</p>
 <h3 id="jie-xi-shi-bai-diu-qi-ji-hei-ming-dan-shi-xian">解析失败丢弃及黑名单实现</h3>
 <p>grok解析失败, 丢弃</p>
-<div class="monokai"><pre><span></span>if ("_grokparsefailure" in [tags]) {
-    drop {}
-}
+<div class="monokai"><pre><span class="code-line"><span></span>if ("_grokparsefailure" in [tags]) {</span>
+<span class="code-line">    drop {}</span>
+<span class="code-line">}</span>
 </pre></div>
 <p>有时候, 需要禁止采集某些文件, 但由于<code>file</code>类型的<code>exclude</code>只能用文件名, 而没有更强大的规则, 所以只能采集进来再丢弃, 此时, 可以根据路径grok解析出关键字, 然后判断丢弃</p>
-<div class="monokai"><pre><span></span>if ([keyworod] in ["data", "not_exists"])
-{
-    drop {}
-}
+<div class="monokai"><pre><span class="code-line"><span></span>if ([keyworod] in ["data", "not_exists"])</span>
+<span class="code-line">{</span>
+<span class="code-line">    drop {}</span>
+<span class="code-line">}</span>
 </pre></div>
 <h3 id="qi-dong-xian-zhi-shi-yong-de-workershu">启动限制使用的worker数</h3>
 <p>默认情况, 有可能把所有cpu跑满, 这时候, 可以专门加下</p>
-<div class="monokai"><pre><span></span>-w, --pipeline-workers COUNT  Sets the number of pipeline workers to run. (default: 24)
-
-logstash agent -f conf/xxx.conf -w 2
+<div class="monokai"><pre><span class="code-line"><span></span>-w, --pipeline-workers COUNT  Sets the number of pipeline workers to run. (default: 24)</span>
+<span class="code-line"></span>
+<span class="code-line">logstash agent -f conf/xxx.conf -w 2</span>
 </pre></div>
 <h3 id="ji-ge-jian-dan-jiao-ben">几个简单脚本</h3>
 <p>health.sh</p>
-<div class="monokai"><pre><span></span><span class="ch">#!/bin/bash</span>
-curl <span class="s1">'http://127.0.0.1:9200/_cluster/health?pretty=true'</span>
+<div class="monokai"><pre><span class="code-line"><span></span><span class="ch">#!/bin/bash</span></span>
+<span class="code-line">curl <span class="s1">'http://127.0.0.1:9200/_cluster/health?pretty=true'</span></span>
 </pre></div>
 <p>indices.sh</p>
-<div class="monokai"><pre><span></span><span class="ch">#!/bin/bash</span>
-curl <span class="s1">'http://127.0.0.1:9200/_cat/indices?v'</span> <span class="p">|</span> sort -k 3
+<div class="monokai"><pre><span class="code-line"><span></span><span class="ch">#!/bin/bash</span></span>
+<span class="code-line">curl <span class="s1">'http://127.0.0.1:9200/_cat/indices?v'</span> <span class="p">|</span> sort -k 3</span>
 </pre></div>
     </section>
 

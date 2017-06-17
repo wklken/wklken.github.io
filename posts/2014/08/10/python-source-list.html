@@ -84,265 +84,265 @@
          <a href="https://github.com/wklken/Python-2.7.8/blob/master/Objects/listobject.c">Objects/listobject.c</a></p>
 <hr/>
 <h1 id="ding-yi">定义</h1>
-<div class="monokai"><pre><span></span>typedef struct {
-    PyObject_VAR_HEAD
-
-    PyObject **ob_item;
-
-    Py_ssize_t allocated;
-} PyListObject;
+<div class="monokai"><pre><span class="code-line"><span></span>typedef struct {</span>
+<span class="code-line">    PyObject_VAR_HEAD</span>
+<span class="code-line"></span>
+<span class="code-line">    PyObject **ob_item;</span>
+<span class="code-line"></span>
+<span class="code-line">    Py_ssize_t allocated;</span>
+<span class="code-line">} PyListObject;</span>
 </pre></div>
 <p>说明</p>
-<div class="monokai"><pre><span></span>1. PyObject_VAR_HEAD
-PyListObject是变长对象
-
-2. PyObject **ob_item;
-指向列表元素的指针数组, list[0] 即 ob_item[0]
-
-3. Py_ssize_t allocated;
-allocated列表分配的空间, ob_size为已使用的空间
-allocated 总的申请到的内存数量
-ob_size 实际使用内存数量
-
-等式:
-
-    0 &lt;= ob_size &lt;= allocated
-    len(list) == ob_size
-    ob_item == NULL implies ob_size == allocated == 0
+<div class="monokai"><pre><span class="code-line"><span></span>1. PyObject_VAR_HEAD</span>
+<span class="code-line">PyListObject是变长对象</span>
+<span class="code-line"></span>
+<span class="code-line">2. PyObject **ob_item;</span>
+<span class="code-line">指向列表元素的指针数组, list[0] 即 ob_item[0]</span>
+<span class="code-line"></span>
+<span class="code-line">3. Py_ssize_t allocated;</span>
+<span class="code-line">allocated列表分配的空间, ob_size为已使用的空间</span>
+<span class="code-line">allocated 总的申请到的内存数量</span>
+<span class="code-line">ob_size 实际使用内存数量</span>
+<span class="code-line"></span>
+<span class="code-line">等式:</span>
+<span class="code-line"></span>
+<span class="code-line">    0 &lt;= ob_size &lt;= allocated</span>
+<span class="code-line">    len(list) == ob_size</span>
+<span class="code-line">    ob_item == NULL implies ob_size == allocated == 0</span>
 </pre></div>
 <p>结构</p>
 <p><img alt="PyListObject" src="/imgs/python-source/PyListObject.png"/></p>
 <h1 id="gou-zao">构造</h1>
 <p>只有一个方法</p>
 <p>定义如下</p>
-<div class="monokai"><pre><span></span><span class="n">PyObject</span> <span class="o">*</span>
-<span class="nf">PyList_New</span><span class="p">(</span><span class="n">Py_ssize_t</span> <span class="n">size</span><span class="p">)</span>
-<span class="p">{</span>
-    <span class="n">PyListObject</span> <span class="o">*</span><span class="n">op</span><span class="p">;</span>
-    <span class="kt">size_t</span> <span class="n">nbytes</span><span class="p">;</span>
-<span class="cp">#ifdef SHOW_ALLOC_COUNT</span>
-    <span class="k">static</span> <span class="kt">int</span> <span class="n">initialized</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">initialized</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">Py_AtExit</span><span class="p">(</span><span class="n">show_alloc</span><span class="p">);</span>
-        <span class="n">initialized</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
-    <span class="p">}</span>
-<span class="cp">#endif</span>
-
-    <span class="c1">// 大小为负数, return</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">size</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">PyErr_BadInternalCall</span><span class="p">();</span>
-        <span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span>
-    <span class="p">}</span>
-
-    <span class="c1">// 如果大小超过, 报错</span>
-    <span class="cm">/* Check for overflow without an actual overflow,</span>
-<span class="cm">     *  which can cause compiler to optimise out */</span>
-    <span class="k">if</span> <span class="p">((</span><span class="kt">size_t</span><span class="p">)</span><span class="n">size</span> <span class="o">&gt;</span> <span class="n">PY_SIZE_MAX</span> <span class="o">/</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="p">))</span>
-        <span class="k">return</span> <span class="n">PyErr_NoMemory</span><span class="p">();</span>
-
-    <span class="c1">// 计算需要的字节数(PyObject指针数组)</span>
-    <span class="n">nbytes</span> <span class="o">=</span> <span class="n">size</span> <span class="o">*</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="p">);</span>
-
-    <span class="c1">// 如果缓冲池非空, 从缓冲池取</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">numfree</span><span class="p">)</span> <span class="p">{</span>
-        <span class="c1">// 取缓冲池数组最后一个对象</span>
-        <span class="n">numfree</span><span class="o">--</span><span class="p">;</span>
-        <span class="n">op</span> <span class="o">=</span> <span class="n">free_list</span><span class="p">[</span><span class="n">numfree</span><span class="p">];</span>
-
-        <span class="c1">// set refcnt=1</span>
-        <span class="n">_Py_NewReference</span><span class="p">((</span><span class="n">PyObject</span> <span class="o">*</span><span class="p">)</span><span class="n">op</span><span class="p">);</span>
-<span class="cp">#ifdef SHOW_ALLOC_COUNT</span>
-        <span class="n">count_reuse</span><span class="o">++</span><span class="p">;</span>
-<span class="cp">#endif</span>
-    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
-
-        <span class="c1">// 否则, GC_New分配内存空间</span>
-        <span class="n">op</span> <span class="o">=</span> <span class="n">PyObject_GC_New</span><span class="p">(</span><span class="n">PyListObject</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">PyList_Type</span><span class="p">);</span>
-
-        <span class="c1">// 分配失败</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">op</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span>
-            <span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span>
-<span class="cp">#ifdef SHOW_ALLOC_COUNT</span>
-        <span class="n">count_alloc</span><span class="o">++</span><span class="p">;</span>
-<span class="cp">#endif</span>
-    <span class="p">}</span>
-
-    <span class="c1">// 确定ob_item列表元素指针的值</span>
-    <span class="c1">// 若大小&lt;=0</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">size</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">)</span>
-        <span class="n">op</span><span class="o">-&gt;</span><span class="n">ob_item</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
-    <span class="k">else</span> <span class="p">{</span>
-        <span class="c1">// 分配内存</span>
-        <span class="n">op</span><span class="o">-&gt;</span><span class="n">ob_item</span> <span class="o">=</span> <span class="p">(</span><span class="n">PyObject</span> <span class="o">**</span><span class="p">)</span> <span class="n">PyMem_MALLOC</span><span class="p">(</span><span class="n">nbytes</span><span class="p">);</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">op</span><span class="o">-&gt;</span><span class="n">ob_item</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>
-            <span class="n">Py_DECREF</span><span class="p">(</span><span class="n">op</span><span class="p">);</span>
-            <span class="k">return</span> <span class="n">PyErr_NoMemory</span><span class="p">();</span>
-        <span class="p">}</span>
-
-        <span class="c1">// 初始化, 填充</span>
-        <span class="n">memset</span><span class="p">(</span><span class="n">op</span><span class="o">-&gt;</span><span class="n">ob_item</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">nbytes</span><span class="p">);</span>
-    <span class="p">}</span>
-
-    <span class="c1">// ob_size = size</span>
-    <span class="n">Py_SIZE</span><span class="p">(</span><span class="n">op</span><span class="p">)</span> <span class="o">=</span> <span class="n">size</span><span class="p">;</span>
-    <span class="c1">// allocated</span>
-    <span class="n">op</span><span class="o">-&gt;</span><span class="n">allocated</span> <span class="o">=</span> <span class="n">size</span><span class="p">;</span>
-
-    <span class="c1">// gc用</span>
-    <span class="n">_PyObject_GC_TRACK</span><span class="p">(</span><span class="n">op</span><span class="p">);</span>
-    <span class="k">return</span> <span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="p">)</span> <span class="n">op</span><span class="p">;</span>
-<span class="p">}</span>
+<div class="monokai"><pre><span class="code-line"><span></span><span class="n">PyObject</span> <span class="o">*</span></span>
+<span class="code-line"><span class="nf">PyList_New</span><span class="p">(</span><span class="n">Py_ssize_t</span> <span class="n">size</span><span class="p">)</span></span>
+<span class="code-line"><span class="p">{</span></span>
+<span class="code-line">    <span class="n">PyListObject</span> <span class="o">*</span><span class="n">op</span><span class="p">;</span></span>
+<span class="code-line">    <span class="kt">size_t</span> <span class="n">nbytes</span><span class="p">;</span></span>
+<span class="code-line"><span class="cp">#ifdef SHOW_ALLOC_COUNT</span></span>
+<span class="code-line">    <span class="k">static</span> <span class="kt">int</span> <span class="n">initialized</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span></span>
+<span class="code-line">    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">initialized</span><span class="p">)</span> <span class="p">{</span></span>
+<span class="code-line">        <span class="n">Py_AtExit</span><span class="p">(</span><span class="n">show_alloc</span><span class="p">);</span></span>
+<span class="code-line">        <span class="n">initialized</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span></span>
+<span class="code-line">    <span class="p">}</span></span>
+<span class="code-line"><span class="cp">#endif</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="c1">// 大小为负数, return</span></span>
+<span class="code-line">    <span class="k">if</span> <span class="p">(</span><span class="n">size</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span></span>
+<span class="code-line">        <span class="n">PyErr_BadInternalCall</span><span class="p">();</span></span>
+<span class="code-line">        <span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span></span>
+<span class="code-line">    <span class="p">}</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="c1">// 如果大小超过, 报错</span></span>
+<span class="code-line">    <span class="cm">/* Check for overflow without an actual overflow,</span></span>
+<span class="code-line"><span class="cm">     *  which can cause compiler to optimise out */</span></span>
+<span class="code-line">    <span class="k">if</span> <span class="p">((</span><span class="kt">size_t</span><span class="p">)</span><span class="n">size</span> <span class="o">&gt;</span> <span class="n">PY_SIZE_MAX</span> <span class="o">/</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="p">))</span></span>
+<span class="code-line">        <span class="k">return</span> <span class="n">PyErr_NoMemory</span><span class="p">();</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="c1">// 计算需要的字节数(PyObject指针数组)</span></span>
+<span class="code-line">    <span class="n">nbytes</span> <span class="o">=</span> <span class="n">size</span> <span class="o">*</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="p">);</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="c1">// 如果缓冲池非空, 从缓冲池取</span></span>
+<span class="code-line">    <span class="k">if</span> <span class="p">(</span><span class="n">numfree</span><span class="p">)</span> <span class="p">{</span></span>
+<span class="code-line">        <span class="c1">// 取缓冲池数组最后一个对象</span></span>
+<span class="code-line">        <span class="n">numfree</span><span class="o">--</span><span class="p">;</span></span>
+<span class="code-line">        <span class="n">op</span> <span class="o">=</span> <span class="n">free_list</span><span class="p">[</span><span class="n">numfree</span><span class="p">];</span></span>
+<span class="code-line"></span>
+<span class="code-line">        <span class="c1">// set refcnt=1</span></span>
+<span class="code-line">        <span class="n">_Py_NewReference</span><span class="p">((</span><span class="n">PyObject</span> <span class="o">*</span><span class="p">)</span><span class="n">op</span><span class="p">);</span></span>
+<span class="code-line"><span class="cp">#ifdef SHOW_ALLOC_COUNT</span></span>
+<span class="code-line">        <span class="n">count_reuse</span><span class="o">++</span><span class="p">;</span></span>
+<span class="code-line"><span class="cp">#endif</span></span>
+<span class="code-line">    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span></span>
+<span class="code-line"></span>
+<span class="code-line">        <span class="c1">// 否则, GC_New分配内存空间</span></span>
+<span class="code-line">        <span class="n">op</span> <span class="o">=</span> <span class="n">PyObject_GC_New</span><span class="p">(</span><span class="n">PyListObject</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">PyList_Type</span><span class="p">);</span></span>
+<span class="code-line"></span>
+<span class="code-line">        <span class="c1">// 分配失败</span></span>
+<span class="code-line">        <span class="k">if</span> <span class="p">(</span><span class="n">op</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span></span>
+<span class="code-line">            <span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span></span>
+<span class="code-line"><span class="cp">#ifdef SHOW_ALLOC_COUNT</span></span>
+<span class="code-line">        <span class="n">count_alloc</span><span class="o">++</span><span class="p">;</span></span>
+<span class="code-line"><span class="cp">#endif</span></span>
+<span class="code-line">    <span class="p">}</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="c1">// 确定ob_item列表元素指针的值</span></span>
+<span class="code-line">    <span class="c1">// 若大小&lt;=0</span></span>
+<span class="code-line">    <span class="k">if</span> <span class="p">(</span><span class="n">size</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">)</span></span>
+<span class="code-line">        <span class="n">op</span><span class="o">-&gt;</span><span class="n">ob_item</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span></span>
+<span class="code-line">    <span class="k">else</span> <span class="p">{</span></span>
+<span class="code-line">        <span class="c1">// 分配内存</span></span>
+<span class="code-line">        <span class="n">op</span><span class="o">-&gt;</span><span class="n">ob_item</span> <span class="o">=</span> <span class="p">(</span><span class="n">PyObject</span> <span class="o">**</span><span class="p">)</span> <span class="n">PyMem_MALLOC</span><span class="p">(</span><span class="n">nbytes</span><span class="p">);</span></span>
+<span class="code-line">        <span class="k">if</span> <span class="p">(</span><span class="n">op</span><span class="o">-&gt;</span><span class="n">ob_item</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span></span>
+<span class="code-line">            <span class="n">Py_DECREF</span><span class="p">(</span><span class="n">op</span><span class="p">);</span></span>
+<span class="code-line">            <span class="k">return</span> <span class="n">PyErr_NoMemory</span><span class="p">();</span></span>
+<span class="code-line">        <span class="p">}</span></span>
+<span class="code-line"></span>
+<span class="code-line">        <span class="c1">// 初始化, 填充</span></span>
+<span class="code-line">        <span class="n">memset</span><span class="p">(</span><span class="n">op</span><span class="o">-&gt;</span><span class="n">ob_item</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">nbytes</span><span class="p">);</span></span>
+<span class="code-line">    <span class="p">}</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="c1">// ob_size = size</span></span>
+<span class="code-line">    <span class="n">Py_SIZE</span><span class="p">(</span><span class="n">op</span><span class="p">)</span> <span class="o">=</span> <span class="n">size</span><span class="p">;</span></span>
+<span class="code-line">    <span class="c1">// allocated</span></span>
+<span class="code-line">    <span class="n">op</span><span class="o">-&gt;</span><span class="n">allocated</span> <span class="o">=</span> <span class="n">size</span><span class="p">;</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="c1">// gc用</span></span>
+<span class="code-line">    <span class="n">_PyObject_GC_TRACK</span><span class="p">(</span><span class="n">op</span><span class="p">);</span></span>
+<span class="code-line">    <span class="k">return</span> <span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="p">)</span> <span class="n">op</span><span class="p">;</span></span>
+<span class="code-line"><span class="p">}</span></span>
 </pre></div>
 <p>简化步骤</p>
-<div class="monokai"><pre><span></span>1. 判断列表缓冲池是否为空, 是的话从缓冲池取(复用)
-2. 否则, 从内存中分配空间
-3. 然后初始化数据
+<div class="monokai"><pre><span class="code-line"><span></span>1. 判断列表缓冲池是否为空, 是的话从缓冲池取(复用)</span>
+<span class="code-line">2. 否则, 从内存中分配空间</span>
+<span class="code-line">3. 然后初始化数据</span>
 </pre></div>
 <p>结论</p>
-<div class="monokai"><pre><span></span>Py_SIZE(op) = size;
-op-&gt;allocated = size;
-第一次生成list, 其allocated = ob_size
+<div class="monokai"><pre><span class="code-line"><span></span>Py_SIZE(op) = size;</span>
+<span class="code-line">op-&gt;allocated = size;</span>
+<span class="code-line">第一次生成list, 其allocated = ob_size</span>
 </pre></div>
 <h1 id="list_resize">list_resize</h1>
 <p>同时注意list_resize方法</p>
-<div class="monokai"><pre><span></span>extends方法, list_resize(self, m + n)
-pop方法,  list_resize(self, Py_SIZE(self) - 1)
-append方法, list_resize(self, n+1)
+<div class="monokai"><pre><span class="code-line"><span></span>extends方法, list_resize(self, m + n)</span>
+<span class="code-line">pop方法,  list_resize(self, Py_SIZE(self) - 1)</span>
+<span class="code-line">append方法, list_resize(self, n+1)</span>
 </pre></div>
 <p>其定义</p>
-<div class="monokai"><pre><span></span>list_resize(PyListObject *self, Py_ssize_t newsize)
-{
-  ...........
-
-  // 如果   allocated/2 &lt;= newsize &lt;= allocated
-  // 直接修改ob_size
-  if (allocated &gt;= newsize &amp;&amp; newsize &gt;= (allocated &gt;&gt; 1)) {
-      assert(self-&gt;ob_item != NULL || newsize == 0);
-      Py_SIZE(self) = newsize;
-      return 0;
-  }
-
-
-  //否则
-
-  new_allocated = (newsize &gt;&gt; 3) + (newsize &lt; 9 ? 3 : 6);
-  new_allocated += newsize;
-
-  .............
-
-  Py_SIZE(self) = newsize;
-  self-&gt;allocated = new_allocated;
-
-}
+<div class="monokai"><pre><span class="code-line"><span></span>list_resize(PyListObject *self, Py_ssize_t newsize)</span>
+<span class="code-line">{</span>
+<span class="code-line">  ...........</span>
+<span class="code-line"></span>
+<span class="code-line">  // 如果   allocated/2 &lt;= newsize &lt;= allocated</span>
+<span class="code-line">  // 直接修改ob_size</span>
+<span class="code-line">  if (allocated &gt;= newsize &amp;&amp; newsize &gt;= (allocated &gt;&gt; 1)) {</span>
+<span class="code-line">      assert(self-&gt;ob_item != NULL || newsize == 0);</span>
+<span class="code-line">      Py_SIZE(self) = newsize;</span>
+<span class="code-line">      return 0;</span>
+<span class="code-line">  }</span>
+<span class="code-line"></span>
+<span class="code-line"></span>
+<span class="code-line">  //否则</span>
+<span class="code-line"></span>
+<span class="code-line">  new_allocated = (newsize &gt;&gt; 3) + (newsize &lt; 9 ? 3 : 6);</span>
+<span class="code-line">  new_allocated += newsize;</span>
+<span class="code-line"></span>
+<span class="code-line">  .............</span>
+<span class="code-line"></span>
+<span class="code-line">  Py_SIZE(self) = newsize;</span>
+<span class="code-line">  self-&gt;allocated = new_allocated;</span>
+<span class="code-line"></span>
+<span class="code-line">}</span>
 </pre></div>
 <p>即</p>
-<div class="monokai"><pre><span></span>if allocated/2 &lt;= newsize &lt;= allocated
-
-    allocated 不变
-    ob_size = newsize
-
-else
-
-    allocated =  newsize +   ((newsize &gt;&gt; 3) + (newsize &lt; 9 ? 3 : 6))
-    ob_size = newsize
+<div class="monokai"><pre><span class="code-line"><span></span>if allocated/2 &lt;= newsize &lt;= allocated</span>
+<span class="code-line"></span>
+<span class="code-line">    allocated 不变</span>
+<span class="code-line">    ob_size = newsize</span>
+<span class="code-line"></span>
+<span class="code-line">else</span>
+<span class="code-line"></span>
+<span class="code-line">    allocated =  newsize +   ((newsize &gt;&gt; 3) + (newsize &lt; 9 ? 3 : 6))</span>
+<span class="code-line">    ob_size = newsize</span>
 </pre></div>
 <h1 id="hui-shou-he-pylistobjectdui-xiang-huan-chong-chi">回收和PyListObject对象缓冲池</h1>
 <p>看下缓冲池相关的定义</p>
-<div class="monokai"><pre><span></span><span class="cm">/* Empty list reuse scheme to save calls to malloc and free */</span>
-<span class="cp">#ifndef PyList_MAXFREELIST</span>
-<span class="cp">#define PyList_MAXFREELIST 80</span>
-<span class="cp">#endif</span>
-
-<span class="c1">// 80个</span>
-<span class="k">static</span> <span class="n">PyListObject</span> <span class="o">*</span><span class="n">free_list</span><span class="p">[</span><span class="n">PyList_MAXFREELIST</span><span class="p">];</span>
-
-<span class="k">static</span> <span class="kt">int</span> <span class="n">numfree</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<div class="monokai"><pre><span class="code-line"><span></span><span class="cm">/* Empty list reuse scheme to save calls to malloc and free */</span></span>
+<span class="code-line"><span class="cp">#ifndef PyList_MAXFREELIST</span></span>
+<span class="code-line"><span class="cp">#define PyList_MAXFREELIST 80</span></span>
+<span class="code-line"><span class="cp">#endif</span></span>
+<span class="code-line"></span>
+<span class="code-line"><span class="c1">// 80个</span></span>
+<span class="code-line"><span class="k">static</span> <span class="n">PyListObject</span> <span class="o">*</span><span class="n">free_list</span><span class="p">[</span><span class="n">PyList_MAXFREELIST</span><span class="p">];</span></span>
+<span class="code-line"></span>
+<span class="code-line"><span class="k">static</span> <span class="kt">int</span> <span class="n">numfree</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span></span>
 </pre></div>
 <p>我们先看下list_dealloc的定义</p>
-<div class="monokai"><pre><span></span>static void
-list_dealloc(PyListObject *op)
-{
-    Py_ssize_t i;
-    PyObject_GC_UnTrack(op);
-    Py_TRASHCAN_SAFE_BEGIN(op)
-
-    // 遍历ob_item, 释放所有类表内元素空间
-    if (op-&gt;ob_item != NULL) {
-        /* Do it backwards, for Christian Tismer.
-           There's a simple test case where somehow this reduces
-           thrashing when a *very* large list is created and
-           immediately deleted. */
-        i = Py_SIZE(op);
-        while (--i &gt;= 0) {
-            Py_XDECREF(op-&gt;ob_item[i]);
-        }
-        PyMem_FREE(op-&gt;ob_item);
-    }
-
-    // 如果free_list还没满, PyListObject加入到列表中
-    if (numfree &lt; PyList_MAXFREELIST &amp;&amp; PyList_CheckExact(op))
-        free_list[numfree++] = op;
-    else
-        // free_list已经满了, 则回收内存
-        Py_TYPE(op)-&gt;tp_free((PyObject *)op);
-
-    Py_TRASHCAN_SAFE_END(op)
-}
+<div class="monokai"><pre><span class="code-line"><span></span>static void</span>
+<span class="code-line">list_dealloc(PyListObject *op)</span>
+<span class="code-line">{</span>
+<span class="code-line">    Py_ssize_t i;</span>
+<span class="code-line">    PyObject_GC_UnTrack(op);</span>
+<span class="code-line">    Py_TRASHCAN_SAFE_BEGIN(op)</span>
+<span class="code-line"></span>
+<span class="code-line">    // 遍历ob_item, 释放所有类表内元素空间</span>
+<span class="code-line">    if (op-&gt;ob_item != NULL) {</span>
+<span class="code-line">        /* Do it backwards, for Christian Tismer.</span>
+<span class="code-line">           There's a simple test case where somehow this reduces</span>
+<span class="code-line">           thrashing when a *very* large list is created and</span>
+<span class="code-line">           immediately deleted. */</span>
+<span class="code-line">        i = Py_SIZE(op);</span>
+<span class="code-line">        while (--i &gt;= 0) {</span>
+<span class="code-line">            Py_XDECREF(op-&gt;ob_item[i]);</span>
+<span class="code-line">        }</span>
+<span class="code-line">        PyMem_FREE(op-&gt;ob_item);</span>
+<span class="code-line">    }</span>
+<span class="code-line"></span>
+<span class="code-line">    // 如果free_list还没满, PyListObject加入到列表中</span>
+<span class="code-line">    if (numfree &lt; PyList_MAXFREELIST &amp;&amp; PyList_CheckExact(op))</span>
+<span class="code-line">        free_list[numfree++] = op;</span>
+<span class="code-line">    else</span>
+<span class="code-line">        // free_list已经满了, 则回收内存</span>
+<span class="code-line">        Py_TYPE(op)-&gt;tp_free((PyObject *)op);</span>
+<span class="code-line"></span>
+<span class="code-line">    Py_TRASHCAN_SAFE_END(op)</span>
+<span class="code-line">}</span>
 </pre></div>
 <p>即</p>
-<div class="monokai"><pre><span></span>对一个列表对象PyListObject, 回收时, ob_item会被回收, 其每个元素指向的对象引用-1.
-但是PyListObject对象本身, 如果缓冲池未满, 会被放入缓冲池, 复用
+<div class="monokai"><pre><span class="code-line"><span></span>对一个列表对象PyListObject, 回收时, ob_item会被回收, 其每个元素指向的对象引用-1.</span>
+<span class="code-line">但是PyListObject对象本身, 如果缓冲池未满, 会被放入缓冲池, 复用</span>
 </pre></div>
 <p>缓冲池结构</p>
 <p><img alt="PyListObjectPool" src="/imgs/python-source/PyListObjectPool.png"/></p>
 <h1 id="listde-cao-zuo-guo-cheng">List的操作过程</h1>
 <h3 id="cha-ru">插入</h3>
-<div class="monokai"><pre><span></span>1. resize n+1
-2. 确定插入点
-3. 插入点后所有元素后移
-4. 执行插入
+<div class="monokai"><pre><span class="code-line"><span></span>1. resize n+1</span>
+<span class="code-line">2. 确定插入点</span>
+<span class="code-line">3. 插入点后所有元素后移</span>
+<span class="code-line">4. 执行插入</span>
 </pre></div>
 <p>示例</p>
-<div class="monokai"><pre><span></span>&gt;&gt;&gt; a = [1, 2, 3]
-&gt;&gt;&gt; a.insert(0, 9)
-&gt;&gt;&gt; a
-[9, 1, 2, 3]
+<div class="monokai"><pre><span class="code-line"><span></span>&gt;&gt;&gt; a = [1, 2, 3]</span>
+<span class="code-line">&gt;&gt;&gt; a.insert(0, 9)</span>
+<span class="code-line">&gt;&gt;&gt; a</span>
+<span class="code-line">[9, 1, 2, 3]</span>
 </pre></div>
 <h3 id="append">append</h3>
-<div class="monokai"><pre><span></span>1. resize n+1
-2. 放入最后一个位置(ob_size)
+<div class="monokai"><pre><span class="code-line"><span></span>1. resize n+1</span>
+<span class="code-line">2. 放入最后一个位置(ob_size)</span>
 </pre></div>
 <p>示例</p>
-<div class="monokai"><pre><span></span>&gt;&gt;&gt; a = [1, 2, 3]
-&gt;&gt;&gt; a.append(4)
-&gt;&gt;&gt; a
-[1, 2, 3, 4]
+<div class="monokai"><pre><span class="code-line"><span></span>&gt;&gt;&gt; a = [1, 2, 3]</span>
+<span class="code-line">&gt;&gt;&gt; a.append(4)</span>
+<span class="code-line">&gt;&gt;&gt; a</span>
+<span class="code-line">[1, 2, 3, 4]</span>
 </pre></div>
 <h3 id="extend">extend</h3>
-<div class="monokai"><pre><span></span>1. 计算两个list大小 m n
-2. resize m+n(此时本身被复制)
-3. 遍历长度为n的数组, 从ob_item+m的位置开始加入
+<div class="monokai"><pre><span class="code-line"><span></span>1. 计算两个list大小 m n</span>
+<span class="code-line">2. resize m+n(此时本身被复制)</span>
+<span class="code-line">3. 遍历长度为n的数组, 从ob_item+m的位置开始加入</span>
 </pre></div>
 <p>示例</p>
-<div class="monokai"><pre><span></span>&gt;&gt;&gt; m = [1, 2, 3]
-&gt;&gt;&gt; n = [4, 5]
-&gt;&gt;&gt; m.extend(n)
-&gt;&gt;&gt; m
-[1, 2, 3, 4, 5]
+<div class="monokai"><pre><span class="code-line"><span></span>&gt;&gt;&gt; m = [1, 2, 3]</span>
+<span class="code-line">&gt;&gt;&gt; n = [4, 5]</span>
+<span class="code-line">&gt;&gt;&gt; m.extend(n)</span>
+<span class="code-line">&gt;&gt;&gt; m</span>
+<span class="code-line">[1, 2, 3, 4, 5]</span>
 </pre></div>
 <h3 id="shan-chu">删除</h3>
-<div class="monokai"><pre><span></span>1. 找到要删除元素位置
-2. 删除之, 后面元素前移
+<div class="monokai"><pre><span class="code-line"><span></span>1. 找到要删除元素位置</span>
+<span class="code-line">2. 删除之, 后面元素前移</span>
 </pre></div>
 <p>示例</p>
-<div class="monokai"><pre><span></span>&gt;&gt;&gt; a = [1, 2, 3, 2]
-&gt;&gt;&gt; a.remove(2)
-&gt;&gt;&gt; a
-[1, 3, 2]
+<div class="monokai"><pre><span class="code-line"><span></span>&gt;&gt;&gt; a = [1, 2, 3, 2]</span>
+<span class="code-line">&gt;&gt;&gt; a.remove(2)</span>
+<span class="code-line">&gt;&gt;&gt; a</span>
+<span class="code-line">[1, 3, 2]</span>
 </pre></div>
 <hr/>
 <p>changelog</p>
-<div class="monokai"><pre><span></span>2014-08-10 first version
+<div class="monokai"><pre><span class="code-line"><span></span>2014-08-10 first version</span>
 </pre></div>
     </section>
 

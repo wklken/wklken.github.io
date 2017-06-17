@@ -83,24 +83,24 @@
 <p>SN上面看到的，顺手翻译下，第一次翻译，好多地方翻的不是很好 :)</p>
 <hr/>
 <p>问题:</p>
-<div class="monokai"><pre><span></span>Python中yield关键字的作用是什么？它做了什么？
+<div class="monokai"><pre><span class="code-line"><span></span>Python中yield关键字的作用是什么？它做了什么？</span>
 </pre></div>
 <p>例如，我想理解以下代码</p>
-<div class="monokai"><pre><span></span>def node._get_child_candidates(self, distance, min_dist, max_dist):
-    if self._leftchild and distance - max_dist &lt; self._median:
-        yield self._leftchild
-    if self._rightchild and distance + max_dist &gt;= self._median:
-        yield self._rightchild
+<div class="monokai"><pre><span class="code-line"><span></span>def node._get_child_candidates(self, distance, min_dist, max_dist):</span>
+<span class="code-line">    if self._leftchild and distance - max_dist &lt; self._median:</span>
+<span class="code-line">        yield self._leftchild</span>
+<span class="code-line">    if self._rightchild and distance + max_dist &gt;= self._median:</span>
+<span class="code-line">        yield self._rightchild</span>
 </pre></div>
 <p>下面是调用者</p>
-<div class="monokai"><pre><span></span>result, candidates = list(), [self]
-while candidates:
-    node = candidates.pop()
-    distance = node._get_dist(obj)
-    if distance &lt;= max_dist and distance &gt;= min_dist:
-        result.extend(node._values)
-    candidates.extend(node._get_child_candidates(distance, min_dist, max_dist))
-return result
+<div class="monokai"><pre><span class="code-line"><span></span>result, candidates = list(), [self]</span>
+<span class="code-line">while candidates:</span>
+<span class="code-line">    node = candidates.pop()</span>
+<span class="code-line">    distance = node._get_dist(obj)</span>
+<span class="code-line">    if distance &lt;= max_dist and distance &gt;= min_dist:</span>
+<span class="code-line">        result.extend(node._values)</span>
+<span class="code-line">    candidates.extend(node._get_child_candidates(distance, min_dist, max_dist))</span>
+<span class="code-line">return result</span>
 </pre></div>
 <p>在_get_child_candidates这个函数被调用时发生了什么？返回了一个列表？还是只返回了一个元素？然后又再次被调用？什么时候调用结束？</p>
 <p>这段代码的来源 Jochen Schulz (jrschulz), who made a great Python library for metric spaces. 完整源码链接: <a href="http://well-adjusted.de/~jrschulz/mspace/">here</a></p>
@@ -108,20 +108,20 @@ return result
 <p>要了解yield的作用，你必须先明白什么是生成器，在此之前，你需要了解什么是可迭代对象（可迭代序列）</p>
 <h2 id="die-dai">迭代</h2>
 <p>你可以创建一个列表，然后逐一遍历，这就是迭代</p>
-<div class="monokai"><pre><span></span>&gt;&gt;&gt; mylist = [1, 2, 3]
-&gt;&gt;&gt; for i in mylist:
-...    print(i)
-1
-2
-3
+<div class="monokai"><pre><span class="code-line"><span></span>&gt;&gt;&gt; mylist = [1, 2, 3]</span>
+<span class="code-line">&gt;&gt;&gt; for i in mylist:</span>
+<span class="code-line">...    print(i)</span>
+<span class="code-line">1</span>
+<span class="code-line">2</span>
+<span class="code-line">3</span>
 </pre></div>
 <p>mylist是可迭代的对象，当你使用列表解析时，你创建一个列表,即一个可迭代对象</p>
-<div class="monokai"><pre><span></span>&gt;&gt;&gt; mylist = [x*x for x in range(3)]
-&gt;&gt;&gt; for i in mylist:
-...    print(i)
-0
-1
-4
+<div class="monokai"><pre><span class="code-line"><span></span>&gt;&gt;&gt; mylist = [x*x for x in range(3)]</span>
+<span class="code-line">&gt;&gt;&gt; for i in mylist:</span>
+<span class="code-line">...    print(i)</span>
+<span class="code-line">0</span>
+<span class="code-line">1</span>
+<span class="code-line">4</span>
 </pre></div>
 <p>任何你可用 "for... in..." 处理的都是可迭代对象：列表，字符串，文件....
 这些迭代对象非常便捷，因为你可以尽可能多地获取你想要的东西</p>
@@ -130,30 +130,30 @@ return result
 <h2 id="sheng-cheng-qi">生成器</h2>
 <p>生成器是迭代器，但你只能遍历它一次(iterate over them once)
 因为生成器并没有将所有值放入内存中，而是实时地生成这些值</p>
-<div class="monokai"><pre><span></span>&gt;&gt;&gt; mygenerator = (x*x for x in range(3))
-&gt;&gt;&gt; for i in mygenerator:
-...    print(i)
-0
-1
-4
+<div class="monokai"><pre><span class="code-line"><span></span>&gt;&gt;&gt; mygenerator = (x*x for x in range(3))</span>
+<span class="code-line">&gt;&gt;&gt; for i in mygenerator:</span>
+<span class="code-line">...    print(i)</span>
+<span class="code-line">0</span>
+<span class="code-line">1</span>
+<span class="code-line">4</span>
 </pre></div>
 <p>这和使用列表解析地唯一区别在于使用()替代了原来的[]</p>
 <p>注意，你不能执行for i in mygenerator第二次，因为每个生成器只能被使用一次: 计算0，并不保留结果和状态，接着计算1，然后计算4，逐一生成</p>
 <h2 id="yield">yield</h2>
 <p>yield是一个关键词，类似return, 不同之处在于，yield返回的是一个生成器</p>
-<div class="monokai"><pre><span></span>&gt;&gt;&gt; def createGenerator():
-...    mylist = range(3)
-...    for i in mylist:
-...        yield i*i
-...
-&gt;&gt;&gt; mygenerator = createGenerator() # create a generator
-&gt;&gt;&gt; print(mygenerator) # mygenerator is an object!
-&lt;generator object createGenerator at 0xb7555c34&gt;
-&gt;&gt;&gt; for i in mygenerator:
-...     print(i)
-0
-1
-4
+<div class="monokai"><pre><span class="code-line"><span></span>&gt;&gt;&gt; def createGenerator():</span>
+<span class="code-line">...    mylist = range(3)</span>
+<span class="code-line">...    for i in mylist:</span>
+<span class="code-line">...        yield i*i</span>
+<span class="code-line">...</span>
+<span class="code-line">&gt;&gt;&gt; mygenerator = createGenerator() # create a generator</span>
+<span class="code-line">&gt;&gt;&gt; print(mygenerator) # mygenerator is an object!</span>
+<span class="code-line">&lt;generator object createGenerator at 0xb7555c34&gt;</span>
+<span class="code-line">&gt;&gt;&gt; for i in mygenerator:</span>
+<span class="code-line">...     print(i)</span>
+<span class="code-line">0</span>
+<span class="code-line">1</span>
+<span class="code-line">4</span>
 </pre></div>
 <p>这个例子并没有什么实际作用,仅说明当你知道你的函数将产生大量仅被读取一次的数据时,使用生成器将是十分有效的做法</p>
 <p>要掌握yield,你必须明白 - 当你调用这个函数，函数中你书写的代码并没有执行。这个函数仅仅返回一个生成器对象</p>
@@ -164,43 +164,43 @@ return result
 <p>当循环结束，或者不满足"if/else"条件，导致函数运行但不命中yield关键字，此时生成器被认为是空的</p>
 <h3 id="wen-ti-dai-ma-de-jie-shi">问题代码的解释</h3>
 <p>生成器:</p>
-<div class="monokai"><pre><span></span># 这你你创建了node的能返回生成器的函数
-def node._get_child_candidates(self, distance, min_dist, max_dist):
-
-# 这里的代码你每次使用生成器对象都会调用
-
-# 如果node节点存在左子节点,且距离没问题，返回该节点
-if self._leftchild and distance - max_dist &lt; self._median:
-                yield self._leftchild
-
-# 同理，返回右子节点
-if self._rightchild and distance + max_dist &gt;= self._median:
-                yield self._rightchild
-
-# 如果函数运行到这里，生成器空，该节点不存在左右节点
+<div class="monokai"><pre><span class="code-line"><span></span># 这你你创建了node的能返回生成器的函数</span>
+<span class="code-line">def node._get_child_candidates(self, distance, min_dist, max_dist):</span>
+<span class="code-line"></span>
+<span class="code-line"># 这里的代码你每次使用生成器对象都会调用</span>
+<span class="code-line"></span>
+<span class="code-line"># 如果node节点存在左子节点,且距离没问题，返回该节点</span>
+<span class="code-line">if self._leftchild and distance - max_dist &lt; self._median:</span>
+<span class="code-line">                yield self._leftchild</span>
+<span class="code-line"></span>
+<span class="code-line"># 同理，返回右子节点</span>
+<span class="code-line">if self._rightchild and distance + max_dist &gt;= self._median:</span>
+<span class="code-line">                yield self._rightchild</span>
+<span class="code-line"></span>
+<span class="code-line"># 如果函数运行到这里，生成器空，该节点不存在左右节点</span>
 </pre></div>
 <p>调用者:</p>
-<div class="monokai"><pre><span></span># 创建一个空列表，一个包含当前候选对象引用的列表
-result, candidates = list(), [self]
-
-# 当前候选非空，循环(开始时仅有一个元素)
-while candidates:
-
-    # 从候选列表取出最后一个元素作为当前节点
-    node = candidates.pop()
-
-    # 获取obj和当前节点距离
-    distance = node._get_dist(obj)
-
-    # 如果距离满足条件，将节点值加入结果列表
-    if distance &lt;= max_dist and distance &gt;= min_dist:
-        result.extend(node._values)
-
-    # 获取节点的子节点，加入到候选列表，回到循环开始, 这里使用了生成器
-    candidates.extend(node._get_child_candidates(distance, min_dist, max_dist))
-    # 注意这里extend会反复调用获取到所有生成器返回值
-
-return result
+<div class="monokai"><pre><span class="code-line"><span></span># 创建一个空列表，一个包含当前候选对象引用的列表</span>
+<span class="code-line">result, candidates = list(), [self]</span>
+<span class="code-line"></span>
+<span class="code-line"># 当前候选非空，循环(开始时仅有一个元素)</span>
+<span class="code-line">while candidates:</span>
+<span class="code-line"></span>
+<span class="code-line">    # 从候选列表取出最后一个元素作为当前节点</span>
+<span class="code-line">    node = candidates.pop()</span>
+<span class="code-line"></span>
+<span class="code-line">    # 获取obj和当前节点距离</span>
+<span class="code-line">    distance = node._get_dist(obj)</span>
+<span class="code-line"></span>
+<span class="code-line">    # 如果距离满足条件，将节点值加入结果列表</span>
+<span class="code-line">    if distance &lt;= max_dist and distance &gt;= min_dist:</span>
+<span class="code-line">        result.extend(node._values)</span>
+<span class="code-line"></span>
+<span class="code-line">    # 获取节点的子节点，加入到候选列表，回到循环开始, 这里使用了生成器</span>
+<span class="code-line">    candidates.extend(node._get_child_candidates(distance, min_dist, max_dist))</span>
+<span class="code-line">    # 注意这里extend会反复调用获取到所有生成器返回值</span>
+<span class="code-line"></span>
+<span class="code-line">return result</span>
 </pre></div>
 <p>这段代码包含几个灵活的部分:</p>
 <p>1.这个循环遍读取历候选列表,但过程中，候选列表不断扩展:-) </p>
@@ -208,11 +208,11 @@ return result
 <p>在这个例子中， candidates.extend(node._get_child_candidates(distance, min_dist, max_dist)) 读取了生成器产生的所有值, 同时while循环产生新的生成器对象加入到列表，因为每个对象作用在不同节点上，所以每个生成器都将生成不同的值</p>
 <p>2.列表方法extend() 接收一个生成器，生成器的所有值被添加到列表中</p>
 <p>通常，我们传一个列表作为参数:</p>
-<div class="monokai"><pre><span></span>&gt;&gt;&gt; a = [1, 2]
-&gt;&gt;&gt; b = [3, 4]
-&gt;&gt;&gt; a.extend(b)
-&gt;&gt;&gt; print(a)
-[1, 2, 3, 4]
+<div class="monokai"><pre><span class="code-line"><span></span>&gt;&gt;&gt; a = [1, 2]</span>
+<span class="code-line">&gt;&gt;&gt; b = [3, 4]</span>
+<span class="code-line">&gt;&gt;&gt; a.extend(b)</span>
+<span class="code-line">&gt;&gt;&gt; print(a)</span>
+<span class="code-line">[1, 2, 3, 4]</span>
 </pre></div>
 <p>但是，在代码中，这个函数接受到一个生成器</p>
 <p>这样的做法好处是:</p>
@@ -223,41 +223,41 @@ return result
 <p>这就是所谓的“鸭子类型”(duck typing), 这也是Python如此酷的原因之一, 但这是另一个问题了，对于这个问题......</p>
 <p>你可以在这里完成阅读，或者读一点点生成器的进阶用法:</p>
 <h4 id="kong-zhi-yi-ge-sheng-cheng-qi-de-xiao-hao">控制一个生成器的消耗</h4>
-<div class="monokai"><pre><span></span>&gt;&gt;&gt; class Bank(): # let's create a bank, building ATMs
-...    crisis = False
-...    def create_atm(self):
-...        while not self.crisis:
-...            yield "$100"
-&gt;&gt;&gt; hsbc = Bank() # when everything's ok the ATM gives you as much as you want
-&gt;&gt;&gt; corner_street_atm = hsbc.create_atm()
-&gt;&gt;&gt; print(corner_street_atm.next())
-$100
-&gt;&gt;&gt; print(corner_street_atm.next())
-$100
-&gt;&gt;&gt; print([corner_street_atm.next() for cash in range(5)])
-['$100', '$100', '$100', '$100', '$100']
-&gt;&gt;&gt; hsbc.crisis = True # crisis is coming, no more money!
-&gt;&gt;&gt; print(corner_street_atm.next())
-&lt;type 'exceptions.StopIteration'&gt;
-&gt;&gt;&gt; wall_street_atm = hsbc.create_atm() # it's even true for new ATMs
-&gt;&gt;&gt; print(wall_street_atm.next())
-&lt;type 'exceptions.StopIteration'&gt;
-&gt;&gt;&gt; hsbc.crisis = False # trouble is, even post-crisis the ATM remains empty
-&gt;&gt;&gt; print(corner_street_atm.next())
-&lt;type 'exceptions.StopIteration'&gt;
-&gt;&gt;&gt; brand_new_atm = hsbc.create_atm() # build a new one to get back in business
-&gt;&gt;&gt; for cash in brand_new_atm:
-...    print cash
-$100
-$100
-$100
-$100
-$100
-$100
-$100
-$100
-$100
-...
+<div class="monokai"><pre><span class="code-line"><span></span>&gt;&gt;&gt; class Bank(): # let's create a bank, building ATMs</span>
+<span class="code-line">...    crisis = False</span>
+<span class="code-line">...    def create_atm(self):</span>
+<span class="code-line">...        while not self.crisis:</span>
+<span class="code-line">...            yield "$100"</span>
+<span class="code-line">&gt;&gt;&gt; hsbc = Bank() # when everything's ok the ATM gives you as much as you want</span>
+<span class="code-line">&gt;&gt;&gt; corner_street_atm = hsbc.create_atm()</span>
+<span class="code-line">&gt;&gt;&gt; print(corner_street_atm.next())</span>
+<span class="code-line">$100</span>
+<span class="code-line">&gt;&gt;&gt; print(corner_street_atm.next())</span>
+<span class="code-line">$100</span>
+<span class="code-line">&gt;&gt;&gt; print([corner_street_atm.next() for cash in range(5)])</span>
+<span class="code-line">['$100', '$100', '$100', '$100', '$100']</span>
+<span class="code-line">&gt;&gt;&gt; hsbc.crisis = True # crisis is coming, no more money!</span>
+<span class="code-line">&gt;&gt;&gt; print(corner_street_atm.next())</span>
+<span class="code-line">&lt;type 'exceptions.StopIteration'&gt;</span>
+<span class="code-line">&gt;&gt;&gt; wall_street_atm = hsbc.create_atm() # it's even true for new ATMs</span>
+<span class="code-line">&gt;&gt;&gt; print(wall_street_atm.next())</span>
+<span class="code-line">&lt;type 'exceptions.StopIteration'&gt;</span>
+<span class="code-line">&gt;&gt;&gt; hsbc.crisis = False # trouble is, even post-crisis the ATM remains empty</span>
+<span class="code-line">&gt;&gt;&gt; print(corner_street_atm.next())</span>
+<span class="code-line">&lt;type 'exceptions.StopIteration'&gt;</span>
+<span class="code-line">&gt;&gt;&gt; brand_new_atm = hsbc.create_atm() # build a new one to get back in business</span>
+<span class="code-line">&gt;&gt;&gt; for cash in brand_new_atm:</span>
+<span class="code-line">...    print cash</span>
+<span class="code-line">$100</span>
+<span class="code-line">$100</span>
+<span class="code-line">$100</span>
+<span class="code-line">$100</span>
+<span class="code-line">$100</span>
+<span class="code-line">$100</span>
+<span class="code-line">$100</span>
+<span class="code-line">$100</span>
+<span class="code-line">$100</span>
+<span class="code-line">...</span>
 </pre></div>
 <p>这在很多场景都非常有用，例如控制资源的获取</p>
 <h2 id="itertools_2">Itertools</h2>
@@ -267,35 +267,35 @@ $100
 (Ever wish to duplicate a generator? Chain two generators? Group values in a nested list with a one liner? Map / Zip without creating another list?)</p>
 <p>只需要使用itertools模块</p>
 <p>一个例子，4匹马赛跑的可能抵达顺序</p>
-<div class="monokai"><pre><span></span>&gt;&gt;&gt; horses = [1, 2, 3, 4]
-&gt;&gt;&gt; races = itertools.permutations(horses)
-&gt;&gt;&gt; print(races)
-&lt;itertools.permutations object at 0xb754f1dc&gt;
-&gt;&gt;&gt; print(list(itertools.permutations(horses)))
-[(1, 2, 3, 4),
-(1, 2, 4, 3),
-(1, 3, 2, 4),
-(1, 3, 4, 2),
-(1, 4, 2, 3),
-(1, 4, 3, 2),
-(2, 1, 3, 4),
-(2, 1, 4, 3),
-(2, 3, 1, 4),
-(2, 3, 4, 1),
-(2, 4, 1, 3),
-(2, 4, 3, 1),
-(3, 1, 2, 4),
-(3, 1, 4, 2),
-(3, 2, 1, 4),
-(3, 2, 4, 1),
-(3, 4, 1, 2),
-(3, 4, 2, 1),
-(4, 1, 2, 3),
-(4, 1, 3, 2),
-(4, 2, 1, 3),
-(4, 2, 3, 1),
-(4, 3, 1, 2),
-(4, 3, 2, 1)]
+<div class="monokai"><pre><span class="code-line"><span></span>&gt;&gt;&gt; horses = [1, 2, 3, 4]</span>
+<span class="code-line">&gt;&gt;&gt; races = itertools.permutations(horses)</span>
+<span class="code-line">&gt;&gt;&gt; print(races)</span>
+<span class="code-line">&lt;itertools.permutations object at 0xb754f1dc&gt;</span>
+<span class="code-line">&gt;&gt;&gt; print(list(itertools.permutations(horses)))</span>
+<span class="code-line">[(1, 2, 3, 4),</span>
+<span class="code-line">(1, 2, 4, 3),</span>
+<span class="code-line">(1, 3, 2, 4),</span>
+<span class="code-line">(1, 3, 4, 2),</span>
+<span class="code-line">(1, 4, 2, 3),</span>
+<span class="code-line">(1, 4, 3, 2),</span>
+<span class="code-line">(2, 1, 3, 4),</span>
+<span class="code-line">(2, 1, 4, 3),</span>
+<span class="code-line">(2, 3, 1, 4),</span>
+<span class="code-line">(2, 3, 4, 1),</span>
+<span class="code-line">(2, 4, 1, 3),</span>
+<span class="code-line">(2, 4, 3, 1),</span>
+<span class="code-line">(3, 1, 2, 4),</span>
+<span class="code-line">(3, 1, 4, 2),</span>
+<span class="code-line">(3, 2, 1, 4),</span>
+<span class="code-line">(3, 2, 4, 1),</span>
+<span class="code-line">(3, 4, 1, 2),</span>
+<span class="code-line">(3, 4, 2, 1),</span>
+<span class="code-line">(4, 1, 2, 3),</span>
+<span class="code-line">(4, 1, 3, 2),</span>
+<span class="code-line">(4, 2, 1, 3),</span>
+<span class="code-line">(4, 2, 3, 1),</span>
+<span class="code-line">(4, 3, 1, 2),</span>
+<span class="code-line">(4, 3, 2, 1)]</span>
 </pre></div>
 <h2 id="liao-jie-die-dai-qi-de-nei-bu-ji-zhi">了解迭代器的内部机制</h2>
 <p>迭代过程包含可迭代对象(实现__iter__()方法) 和迭代器(实现__next__()方法)</p>

@@ -89,62 +89,62 @@
 <p>logstash1.3到2.x, 变化点还是很多的</p>
 <p>所以, 首先第一步要去阅读官方文档, 将所有change log过一遍, 对一些关键性的东西进行了解, 比如, 干掉了哪些语法(旧的功能需要如何实现), 哪些语法有变更, 新增了哪些特性等.</p>
 <p>然后, 将线上不同类型agent的配置文件拉下来, 先, 归类, 然后, 开始改-测-改-测-直到测试通过</p>
-<div class="monokai"><pre><span></span>bin/logstash agent -t -f test.conf
+<div class="monokai"><pre><span class="code-line"><span></span>bin/logstash agent -t -f test.conf</span>
 </pre></div>
 <p>直到, 语法验证通过</p>
 <p>现在要做的是, 验证数据正确性</p>
 <p>从线上拉取对应日志, 启动, 查看输出</p>
-<div class="monokai"><pre><span></span>output {
-    stdout{
-        debug =&gt; true
-    }
-}
+<div class="monokai"><pre><span class="code-line"><span></span>output {</span>
+<span class="code-line">    stdout{</span>
+<span class="code-line">        debug =&gt; true</span>
+<span class="code-line">    }</span>
+<span class="code-line">}</span>
 </pre></div>
 <p>这里需要验证的是, 1. 过滤, 该过滤的过滤了 2. 转换, 该转换的转换了 3.新增, 新增字段</p>
 <p>注意, 测试时, 使用逻辑分支覆盖到所有配置文件中的分支即可.</p>
 <p>然后, 可以挑一台机器, 停老的服务, 部署新的服务进行测试</p>
 <p>建议, 部署agent的时候, 如果读的是文件, 建议配置<code>sincedb_path</code> 这样假设下次升级, 就可以从老的服务最后读取的位置开始了</p>
-<div class="monokai"><pre><span></span>input {
-    file {
-        path =&gt; ["/data/logs/*.log"]
-        sincedb_path =&gt; "/data/LogNew/logstash/sincedb/celery.sincedb"
-    }
-}
+<div class="monokai"><pre><span class="code-line"><span></span>input {</span>
+<span class="code-line">    file {</span>
+<span class="code-line">        path =&gt; ["/data/logs/*.log"]</span>
+<span class="code-line">        sincedb_path =&gt; "/data/LogNew/logstash/sincedb/celery.sincedb"</span>
+<span class="code-line">    }</span>
+<span class="code-line">}</span>
 </pre></div>
 <h4 id="2-elasticsearchsheng-ji-de-ce-lue">2. elasticsearch升级的策略</h4>
 <p>elasticsearch从1.4到2.0, 部署上变化不大, 变化最大的是存储doc的schema变了......</p>
 <p>使用原来的语法查询, 发现查不到, 因为字段名以及嵌套层级完全不一样了, 这里, 要修改查询端, 兼容新老版本的格式</p>
-<div class="monokai"><pre><span></span>{'from': 0,
- 'query': {'filtered': {'filter': {'bool': {'must': [{'bool': {'should': [{'term': {'type': 'app'}},
-                                                                          {'term': {'@type': 'app'}}]}},
-                                                     {'bool': {'should': [{'term': {'log_level': u'error'}},
-                                                                          {'term': {'@fields.log_level': u'error'}}]}},
-                                                     {'range': {'@timestamp': {'gt': 'now-5h'}}},
-                                                     {'bool': {'should': [{'term': {'log_type': u'celery'}},
-                                                                          {'term': {'@fields.log_type': u'celery'}}]}}]}}}},
- 'size': 100,
- 'sort': [{'@timestamp': 'desc'}]}
+<div class="monokai"><pre><span class="code-line"><span></span>{'from': 0,</span>
+<span class="code-line"> 'query': {'filtered': {'filter': {'bool': {'must': [{'bool': {'should': [{'term': {'type': 'app'}},</span>
+<span class="code-line">                                                                          {'term': {'@type': 'app'}}]}},</span>
+<span class="code-line">                                                     {'bool': {'should': [{'term': {'log_level': u'error'}},</span>
+<span class="code-line">                                                                          {'term': {'@fields.log_level': u'error'}}]}},</span>
+<span class="code-line">                                                     {'range': {'@timestamp': {'gt': 'now-5h'}}},</span>
+<span class="code-line">                                                     {'bool': {'should': [{'term': {'log_type': u'celery'}},</span>
+<span class="code-line">                                                                          {'term': {'@fields.log_type': u'celery'}}]}}]}}}},</span>
+<span class="code-line"> 'size': 100,</span>
+<span class="code-line"> 'sort': [{'@timestamp': 'desc'}]}</span>
 </pre></div>
 <p>另一个是, 取到数据进行解析的时候, 发现解析逻辑跪了, 没办法, 返回的json也完全变了, 这里, 要修改解析逻辑, 兼容新老版本格式</p>
-<div class="monokai"><pre><span></span>for hit in log_hits:
-    try:
-        source = hit.get('_source')
-        if '@fields' in source:
-            log = source.get('@fields', {})
-        else:
-            log = source
+<div class="monokai"><pre><span class="code-line"><span></span>for hit in log_hits:</span>
+<span class="code-line">    try:</span>
+<span class="code-line">        source = hit.get('_source')</span>
+<span class="code-line">        if '@fields' in source:</span>
+<span class="code-line">            log = source.get('@fields', {})</span>
+<span class="code-line">        else:</span>
+<span class="code-line">            log = source</span>
 </pre></div>
 <p>为了让用户感觉不到集群升级, 首先要做的就是上面两个变更</p>
 <p>然后, 搭建新的集群, 最好找新的机器搭建(我在新的机器搭完才发现妈蛋硬盘才100G, 坑死, 无奈在老集群上搭新的集群, 硬盘1t)</p>
 <p>ready, 所有节点起好维护好, 然后, 改indexer, 将同一份日志灌到两个集群</p>
-<div class="monokai"><pre><span></span>output {
-    elasticsearch {
-        hosts =&gt; ["10.1.1.1:9100", "10.1.1.2:9100"]
-    }
-    elasticsearch {
-        hosts =&gt; ["10.1.1.1:9110", "10.1.1.2:9110"]
-    }
-}
+<div class="monokai"><pre><span class="code-line"><span></span>output {</span>
+<span class="code-line">    elasticsearch {</span>
+<span class="code-line">        hosts =&gt; ["10.1.1.1:9100", "10.1.1.2:9100"]</span>
+<span class="code-line">    }</span>
+<span class="code-line">    elasticsearch {</span>
+<span class="code-line">        hosts =&gt; ["10.1.1.1:9110", "10.1.1.2:9110"]</span>
+<span class="code-line">    }</span>
+<span class="code-line">}</span>
 </pre></div>
 <p>简单测试下, 没问题就放着甭管了, 等数据攒齐了....</p>
 <p>数据够了, 就, 停indexer, 停老集群, 停新集群, 改新集群端口, 起来....同时去掉indexer只输出到新的集群, 起来......测试, 切换完毕, 收工吧.</p>
@@ -153,76 +153,76 @@
 <p>要做的, 就是, logstash+不同类型配置文件+运维脚本, 达成一个包</p>
 <p>然后, 如果要部署一台机器, 扔上去一键执行安装, 测试, 启动即可</p>
 <p>例如, 运维脚本 <code>logstashd.sh</code></p>
-<div class="monokai"><pre><span></span><span class="ch">#!/bin/bash</span>
-
-<span class="nv">BASEDIR</span><span class="o">=</span><span class="k">$(</span>dirname <span class="nv">$0</span><span class="k">)</span>
-<span class="nb">cd</span> <span class="nv">$BASEDIR</span>
-<span class="nv">CURRENT_DIR</span><span class="o">=</span><span class="sb">`</span><span class="nb">pwd</span><span class="sb">`</span>
-
-<span class="k">function</span> help_msg<span class="o">()</span> <span class="o">{</span>
-    <span class="nb">echo</span> <span class="s2">"===================== usage ====================="</span>
-    <span class="nb">echo</span> <span class="s2">"./logstashd.sh  - enter command line"</span>
-    <span class="nb">echo</span> <span class="s2">"./logstashd.sh status - show all configured process"</span>
-    <span class="nb">echo</span> <span class="s2">"./logstashd.sh start </span><span class="si">${</span><span class="nv">name</span><span class="si">}</span><span class="s2"> - start program"</span>
-    <span class="nb">echo</span> <span class="s2">"./logstashd.sh stop </span><span class="si">${</span><span class="nv">name</span><span class="si">}</span><span class="s2"> - stop program"</span>
-    <span class="nb">echo</span> <span class="s2">"./logstashd.sh restart </span><span class="si">${</span><span class="nv">name</span><span class="si">}</span><span class="s2"> - restart program"</span>
-    <span class="nb">echo</span> <span class="s2">"./logstashd.sh reread &amp;&amp; ./logstashd.sh update - update config and just update the modified programs"</span>
-    <span class="nb">echo</span> <span class="s2">"./logstashd.sh reload - reload config files and restart all programs(stopeed not included)"</span>
-    <span class="nb">echo</span> <span class="s2">"================================================="</span>
-    <span class="nb">echo</span> <span class="s2">""</span>
-<span class="o">}</span>
-
-<span class="k">if</span> <span class="o">[</span> <span class="s2">"</span><span class="si">${</span><span class="nv">1</span><span class="si">}</span><span class="s2">"</span> <span class="o">=</span> <span class="s2">"-h"</span> -o <span class="s2">"</span><span class="si">${</span><span class="nv">1</span><span class="si">}</span><span class="s2">"</span> <span class="o">=</span> <span class="s2">"--help"</span> <span class="o">]</span>
-<span class="k">then</span>
-    help_msg
-    <span class="nb">exit</span> 0
-<span class="k">fi</span>
-
-<span class="nv">SUPERVISORCTL</span><span class="o">=</span><span class="s1">'/data/LogNew/python27/bin/supervisorctl'</span>
-
-<span class="nv">CONFIG_FILE_PATH</span><span class="o">=</span><span class="s2">"</span><span class="si">${</span><span class="nv">CURRENT_DIR</span><span class="si">}</span><span class="s2">/conf/supervisord.conf"</span>
-
-<span class="nv">$SUPERVISORCTL</span> -c <span class="nv">$CONFIG_FILE_PATH</span> <span class="nv">$@</span>
+<div class="monokai"><pre><span class="code-line"><span></span><span class="ch">#!/bin/bash</span></span>
+<span class="code-line"></span>
+<span class="code-line"><span class="nv">BASEDIR</span><span class="o">=</span><span class="k">$(</span>dirname <span class="nv">$0</span><span class="k">)</span></span>
+<span class="code-line"><span class="nb">cd</span> <span class="nv">$BASEDIR</span></span>
+<span class="code-line"><span class="nv">CURRENT_DIR</span><span class="o">=</span><span class="sb">`</span><span class="nb">pwd</span><span class="sb">`</span></span>
+<span class="code-line"></span>
+<span class="code-line"><span class="k">function</span> help_msg<span class="o">()</span> <span class="o">{</span></span>
+<span class="code-line">    <span class="nb">echo</span> <span class="s2">"===================== usage ====================="</span></span>
+<span class="code-line">    <span class="nb">echo</span> <span class="s2">"./logstashd.sh  - enter command line"</span></span>
+<span class="code-line">    <span class="nb">echo</span> <span class="s2">"./logstashd.sh status - show all configured process"</span></span>
+<span class="code-line">    <span class="nb">echo</span> <span class="s2">"./logstashd.sh start </span><span class="si">${</span><span class="nv">name</span><span class="si">}</span><span class="s2"> - start program"</span></span>
+<span class="code-line">    <span class="nb">echo</span> <span class="s2">"./logstashd.sh stop </span><span class="si">${</span><span class="nv">name</span><span class="si">}</span><span class="s2"> - stop program"</span></span>
+<span class="code-line">    <span class="nb">echo</span> <span class="s2">"./logstashd.sh restart </span><span class="si">${</span><span class="nv">name</span><span class="si">}</span><span class="s2"> - restart program"</span></span>
+<span class="code-line">    <span class="nb">echo</span> <span class="s2">"./logstashd.sh reread &amp;&amp; ./logstashd.sh update - update config and just update the modified programs"</span></span>
+<span class="code-line">    <span class="nb">echo</span> <span class="s2">"./logstashd.sh reload - reload config files and restart all programs(stopeed not included)"</span></span>
+<span class="code-line">    <span class="nb">echo</span> <span class="s2">"================================================="</span></span>
+<span class="code-line">    <span class="nb">echo</span> <span class="s2">""</span></span>
+<span class="code-line"><span class="o">}</span></span>
+<span class="code-line"></span>
+<span class="code-line"><span class="k">if</span> <span class="o">[</span> <span class="s2">"</span><span class="si">${</span><span class="nv">1</span><span class="si">}</span><span class="s2">"</span> <span class="o">=</span> <span class="s2">"-h"</span> -o <span class="s2">"</span><span class="si">${</span><span class="nv">1</span><span class="si">}</span><span class="s2">"</span> <span class="o">=</span> <span class="s2">"--help"</span> <span class="o">]</span></span>
+<span class="code-line"><span class="k">then</span></span>
+<span class="code-line">    help_msg</span>
+<span class="code-line">    <span class="nb">exit</span> 0</span>
+<span class="code-line"><span class="k">fi</span></span>
+<span class="code-line"></span>
+<span class="code-line"><span class="nv">SUPERVISORCTL</span><span class="o">=</span><span class="s1">'/data/LogNew/python27/bin/supervisorctl'</span></span>
+<span class="code-line"></span>
+<span class="code-line"><span class="nv">CONFIG_FILE_PATH</span><span class="o">=</span><span class="s2">"</span><span class="si">${</span><span class="nv">CURRENT_DIR</span><span class="si">}</span><span class="s2">/conf/supervisord.conf"</span></span>
+<span class="code-line"></span>
+<span class="code-line"><span class="nv">$SUPERVISORCTL</span> -c <span class="nv">$CONFIG_FILE_PATH</span> <span class="nv">$@</span></span>
 </pre></div>
 <p>使用</p>
-<div class="monokai"><pre><span></span>./logstashd.sh
-===================== usage =====================
-./logstashd.sh  - enter command line
-./logstashd.sh status - show all configured process
-./logstashd.sh start  - start program
-./logstashd.sh stop  - stop program
-./logstashd.sh restart  - restart program
-./logstashd.sh reread &amp;&amp; ./logstashd.sh update - update config and just update the modified programs
-./logstashd.sh reload - reload config files and restart all programs(stopeed not included)
-=================================================
-
-111_indexer                      RUNNING   pid 27058, uptime 1:25:10
-indexer                          RUNNING   pid 24731, uptime 1:31:29
-supervisor&gt; restart indexer
+<div class="monokai"><pre><span class="code-line"><span></span>./logstashd.sh</span>
+<span class="code-line">===================== usage =====================</span>
+<span class="code-line">./logstashd.sh  - enter command line</span>
+<span class="code-line">./logstashd.sh status - show all configured process</span>
+<span class="code-line">./logstashd.sh start  - start program</span>
+<span class="code-line">./logstashd.sh stop  - stop program</span>
+<span class="code-line">./logstashd.sh restart  - restart program</span>
+<span class="code-line">./logstashd.sh reread &amp;&amp; ./logstashd.sh update - update config and just update the modified programs</span>
+<span class="code-line">./logstashd.sh reload - reload config files and restart all programs(stopeed not included)</span>
+<span class="code-line">=================================================</span>
+<span class="code-line"></span>
+<span class="code-line">111_indexer                      RUNNING   pid 27058, uptime 1:25:10</span>
+<span class="code-line">indexer                          RUNNING   pid 24731, uptime 1:31:29</span>
+<span class="code-line">supervisor&gt; restart indexer</span>
 </pre></div>
 <p>这里, 我引入了<a href="http://www.stackless.com/binaries/">stackless python</a> (独立), 然后装pip/supervisord, 使用supervisord对logstash/es进程进行管理</p>
 <p>使用supervisord管理进程, 有个注意点</p>
 <p>默认supervisord相关的文件在</p>
-<div class="monokai"><pre><span></span>/tmp/supervisor*
+<div class="monokai"><pre><span class="code-line"><span></span>/tmp/supervisor*</span>
 </pre></div>
 <p>而线上, 存在tmp被删/清理了情况, 导致要进行进程启停操作才发现,妈蛋找不到</p>
 <p>处理方式 =&gt; 放到集成安装包的run目录下</p>
 <h4 id="zhu-yi-dian-logstashcun-zai-liang-ge-outputshi-bi-xu-yao-bao-zheng-er-zhe-de-ke-yong-xing">注意点: logstash存在两个output时, 必须要保证二者的可用性</h4>
 <p>logstash indexer, 分别转发数据到两个不同的output</p>
-<div class="monokai"><pre><span></span>output {
-    elasticsearch {
-        hosts =&gt; ["10.1.1.1:8080", "10.1.1.2:8080"]
-    }
-    redis {
-        host =&gt; "10.1.1.3"
-        port =&gt; 6379
-        password =&gt; "7oEsjqUNoTdgE4"
-        data_type =&gt; "list"
-        key =&gt; "log_queue"
-        db =&gt; 0
-        batch =&gt; true
-    }
-}
+<div class="monokai"><pre><span class="code-line"><span></span>output {</span>
+<span class="code-line">    elasticsearch {</span>
+<span class="code-line">        hosts =&gt; ["10.1.1.1:8080", "10.1.1.2:8080"]</span>
+<span class="code-line">    }</span>
+<span class="code-line">    redis {</span>
+<span class="code-line">        host =&gt; "10.1.1.3"</span>
+<span class="code-line">        port =&gt; 6379</span>
+<span class="code-line">        password =&gt; "7oEsjqUNoTdgE4"</span>
+<span class="code-line">        data_type =&gt; "list"</span>
+<span class="code-line">        key =&gt; "log_queue"</span>
+<span class="code-line">        db =&gt; 0</span>
+<span class="code-line">        batch =&gt; true</span>
+<span class="code-line">    }</span>
+<span class="code-line">}</span>
 </pre></div>
 <p>此时, 若是redis挂了, 则日志也不会刷到es中, 所以, 需要同时保证所有output的可用性</p>
 <p>对于redis, 可以进行进程监控, 发现挂了的话, 告警并同时重启(可以crontab一分钟检查一次)</p>
@@ -230,30 +230,30 @@ supervisor&gt; restart indexer
 <p>需求: 在实际使用中, 有时候需要反向根据查询结果, 获知日志的来源机器</p>
 <p>处理:</p>
 <p>1.先获取ip</p>
-<div class="monokai"><pre><span></span><span class="nt">GetLanIp</span> <span class="o">()</span> <span class="p">{</span>
-     <span class="err">##</span> <span class="n">get</span> <span class="n">associated</span> <span class="n">LAN</span> <span class="n">ip</span> <span class="n">address</span>
-     <span class="err">##</span> <span class="n">usage</span><span class="o">:</span> <span class="n">GetLanIp</span>
-     <span class="o">/</span><span class="n">sbin</span><span class="o">/</span><span class="n">ifconfig</span> <span class="o">|</span> <span class="n">awk</span> <span class="s1">'</span>
-<span class="s1">         /eth/{</span>
-<span class="s1">             getline;</span>
-<span class="s1">             if (/inet addr:(172|10|192)\./) {</span>
-<span class="s1">                 gsub(".*addr:|  *Bcast.*","");</span>
-<span class="s1">                 print $0;</span>
-<span class="s1">                 exit;</span>
-<span class="s1">             }</span>
-<span class="s1">         }'</span>
-     <span class="n">return</span> <span class="m">0</span>
-<span class="p">}</span>
+<div class="monokai"><pre><span class="code-line"><span></span><span class="nt">GetLanIp</span> <span class="o">()</span> <span class="p">{</span></span>
+<span class="code-line">     <span class="err">##</span> <span class="n">get</span> <span class="n">associated</span> <span class="n">LAN</span> <span class="n">ip</span> <span class="n">address</span></span>
+<span class="code-line">     <span class="err">##</span> <span class="n">usage</span><span class="o">:</span> <span class="n">GetLanIp</span></span>
+<span class="code-line">     <span class="o">/</span><span class="n">sbin</span><span class="o">/</span><span class="n">ifconfig</span> <span class="o">|</span> <span class="n">awk</span> <span class="s1">'</span></span>
+<span class="code-line"><span class="s1">         /eth/{</span></span>
+<span class="code-line"><span class="s1">             getline;</span></span>
+<span class="code-line"><span class="s1">             if (/inet addr:(172|10|192)\./) {</span></span>
+<span class="code-line"><span class="s1">                 gsub(".*addr:|  *Bcast.*","");</span></span>
+<span class="code-line"><span class="s1">                 print $0;</span></span>
+<span class="code-line"><span class="s1">                 exit;</span></span>
+<span class="code-line"><span class="s1">             }</span></span>
+<span class="code-line"><span class="s1">         }'</span></span>
+<span class="code-line">     <span class="n">return</span> <span class="m">0</span></span>
+<span class="code-line"><span class="p">}</span></span>
 </pre></div>
 <p>2.放入环境变量</p>
-<div class="monokai"><pre><span></span>ETH1_IP=10.1.1.1
+<div class="monokai"><pre><span class="code-line"><span></span>ETH1_IP=10.1.1.1</span>
 </pre></div>
 <p>3.修改logstash配置</p>
 <p>注意, 这里是logstash2.x的语法</p>
-<div class="monokai"><pre><span></span>    environment {
-        add_metadata_from_env =&gt; ["agent_ip", "ETH1_IP"]
-        add_field =&gt; {"agent_ip" =&gt;  "%{[@metadata][agent_ip]}" }
-    }
+<div class="monokai"><pre><span class="code-line"><span></span>    environment {</span>
+<span class="code-line">        add_metadata_from_env =&gt; ["agent_ip", "ETH1_IP"]</span>
+<span class="code-line">        add_field =&gt; {"agent_ip" =&gt;  "%{[@metadata][agent_ip]}" }</span>
+<span class="code-line">    }</span>
 </pre></div>
 <h4 id="wen-ti-elkde-utcwen-ti">问题: elk的utc问题</h4>
 <p>elasticsearch内部使用的是utc, 存储为long (milliseconds since the epoch)  e.g. timestamp=1420070400000</p>
@@ -275,21 +275,21 @@ supervisor&gt; restart indexer
 <p>当存在配置变更时, 需要重启es集群, 不可能全部重启的, 这样会导致服务不可用....</p>
 <p>所以, 要一个个重启</p>
 <p>先执行</p>
-<div class="monokai"><pre><span></span>curl -XPUT 'http://localhost:9200/_cluster/settings' -d '
-{
-    "transient" : {
-        "cluster.routing.allocation.enable" : "none"
-    }
-}'
+<div class="monokai"><pre><span class="code-line"><span></span>curl -XPUT 'http://localhost:9200/_cluster/settings' -d '</span>
+<span class="code-line">{</span>
+<span class="code-line">    "transient" : {</span>
+<span class="code-line">        "cluster.routing.allocation.enable" : "none"</span>
+<span class="code-line">    }</span>
+<span class="code-line">}'</span>
 </pre></div>
 <p>然后, shutdown, 改配置, start</p>
 <p>then : 一定要记得执行, 否则不会执行recovery.....会一直等着</p>
-<div class="monokai"><pre><span></span>curl -XPUT 'http://localhost:9200/_cluster/settings' -d '
-{
-    "transient" : {
-        "cluster.routing.allocation.enable" : "all"
-    }
-}'
+<div class="monokai"><pre><span class="code-line"><span></span>curl -XPUT 'http://localhost:9200/_cluster/settings' -d '</span>
+<span class="code-line">{</span>
+<span class="code-line">    "transient" : {</span>
+<span class="code-line">        "cluster.routing.allocation.enable" : "all"</span>
+<span class="code-line">    }</span>
+<span class="code-line">}'</span>
 </pre></div>
 <h4 id="logstashwen-ben-jie-xi-pei-zhi-grokyu-fa">logstash文本解析配置grok语法</h4>
 <p>一个线上的工具, https://grokdebug.herokuapp.com/</p>
@@ -301,26 +301,26 @@ supervisor&gt; restart indexer
 <p>而 <code>WORD</code>: 不支持连字符和下划线</p>
 <p>跪了, 需要自定义<code>LOGFILENAME [a-z\-A-Z0-9_\.]+</code>放到pattern中</p>
 <p>然后, 搜索的时候, 尼玛, 也搜不到....语法要做处理, 使用<code>raw</code>, es建索引的时候自动拆掉了导致搜索不到</p>
-<div class="monokai"><pre><span></span>{'term': {'app_name.raw': 'nms-t'}}
+<div class="monokai"><pre><span class="code-line"><span></span>{'term': {'app_name.raw': 'nms-t'}}</span>
 </pre></div>
 <h4 id="zuo-yi-xie-exclude">做一些exclude</h4>
 <p>有时候需要做一些exclude, 去除比必要采集和监控的日志(进入采集逻辑纯粹是浪费cpu和内存)</p>
 <p>例如, 目录树, 不要监控celery.log</p>
-<div class="monokai"><pre><span></span>logs
-├── a
-│   ├── a.log
-│   ├── b.log
-│   └── celery.log
-└── b
-    ├── c.log
-        └── d.log
+<div class="monokai"><pre><span class="code-line"><span></span>logs</span>
+<span class="code-line">├── a</span>
+<span class="code-line">│   ├── a.log</span>
+<span class="code-line">│   ├── b.log</span>
+<span class="code-line">│   └── celery.log</span>
+<span class="code-line">└── b</span>
+<span class="code-line">    ├── c.log</span>
+<span class="code-line">        └── d.log</span>
 </pre></div>
 <p>排除部分文件</p>
-<div class="monokai"><pre><span></span>file {
-    path =&gt; ["/data/logs/*/*.log"]
-    exclude =&gt; ["celery.log", ]
-    sincedb_path =&gt; "/data/LogNew/logstash/sincedb/django.sincedb"
-}
+<div class="monokai"><pre><span class="code-line"><span></span>file {</span>
+<span class="code-line">    path =&gt; ["/data/logs/*/*.log"]</span>
+<span class="code-line">    exclude =&gt; ["celery.log", ]</span>
+<span class="code-line">    sincedb_path =&gt; "/data/LogNew/logstash/sincedb/django.sincedb"</span>
+<span class="code-line">}</span>
 </pre></div>
 <p><a href="https://www.elastic.co/guide/en/logstash/current/plugins-inputs-file.html#plugins-inputs-file-exclude">文档</a></p>
 <h4 id="yi-xie-xiang-guan-yong-dao-de-ming-ling">一些相关用到的命令</h4>
@@ -328,34 +328,34 @@ supervisor&gt; restart indexer
 <li>查看plugin版本</li>
 </ul>
 <p>https://www.elastic.co/guide/en/logstash/current/working-with-plugins.html</p>
-<div class="monokai"><pre><span></span>bin/plugin list --verbose
+<div class="monokai"><pre><span class="code-line"><span></span>bin/plugin list --verbose</span>
 </pre></div>
 <ul>
 <li>create empty index</li>
 </ul>
-<div class="monokai"><pre><span></span>curl -XPUT 'http://localhost:9100/logstash-2015.12.15/'
+<div class="monokai"><pre><span class="code-line"><span></span>curl -XPUT 'http://localhost:9100/logstash-2015.12.15/'</span>
 </pre></div>
 <ul>
 <li>查看健康度</li>
 </ul>
-<div class="monokai"><pre><span></span>curl 'http://localhost:9100/_cluster/health?pretty=true'
+<div class="monokai"><pre><span class="code-line"><span></span>curl 'http://localhost:9100/_cluster/health?pretty=true'</span>
 </pre></div>
 <ul>
 <li>查看indices</li>
 </ul>
-<div class="monokai"><pre><span></span><span class="ch">#!/bin/bash</span>
-
-curl <span class="s1">'http://localhost:9100/_cat/indices?v'</span> <span class="p">|</span> sort -k 3
+<div class="monokai"><pre><span class="code-line"><span></span><span class="ch">#!/bin/bash</span></span>
+<span class="code-line"></span>
+<span class="code-line">curl <span class="s1">'http://localhost:9100/_cat/indices?v'</span> <span class="p">|</span> sort -k 3</span>
 </pre></div>
 <h4 id="shan-chu-30tian-qian-crontabjiao-ben">删除30天前crontab脚本</h4>
-<div class="monokai"><pre><span></span><span class="ch">#!/bin/bash</span>
-
-<span class="nv">now</span><span class="o">=</span><span class="sb">`</span>date +%Y%m%d<span class="sb">`</span>
-<span class="nb">echo</span> <span class="nv">$now</span>
-<span class="nv">days_30_before</span><span class="o">=</span><span class="sb">`</span>date -d <span class="s2">"</span><span class="nv">$now</span><span class="s2"> 31 days ago"</span> +%Y.%m.%d<span class="sb">`</span>
-<span class="nb">echo</span> <span class="nv">$days_30_before</span>
-<span class="nb">echo</span> <span class="s2">"http://10.1.1.1:9100/logstash-</span><span class="nv">$days_30_before</span><span class="s2">"</span>
-curl -XDELETE <span class="s2">"http://10.1.1.1:9100/logstash-</span><span class="nv">$days_30_before</span><span class="s2">"</span> &gt; /dev/null 2&gt;<span class="p">&amp;</span>1
+<div class="monokai"><pre><span class="code-line"><span></span><span class="ch">#!/bin/bash</span></span>
+<span class="code-line"></span>
+<span class="code-line"><span class="nv">now</span><span class="o">=</span><span class="sb">`</span>date +%Y%m%d<span class="sb">`</span></span>
+<span class="code-line"><span class="nb">echo</span> <span class="nv">$now</span></span>
+<span class="code-line"><span class="nv">days_30_before</span><span class="o">=</span><span class="sb">`</span>date -d <span class="s2">"</span><span class="nv">$now</span><span class="s2"> 31 days ago"</span> +%Y.%m.%d<span class="sb">`</span></span>
+<span class="code-line"><span class="nb">echo</span> <span class="nv">$days_30_before</span></span>
+<span class="code-line"><span class="nb">echo</span> <span class="s2">"http://10.1.1.1:9100/logstash-</span><span class="nv">$days_30_before</span><span class="s2">"</span></span>
+<span class="code-line">curl -XDELETE <span class="s2">"http://10.1.1.1:9100/logstash-</span><span class="nv">$days_30_before</span><span class="s2">"</span> &gt; /dev/null 2&gt;<span class="p">&amp;</span>1</span>
 </pre></div>
 <h4 id="shang-wei-chu-li">尚未处理</h4>
 <p>logstash2.1 muline codec, 配置多个数据来源, 存在串的情况, 生产中大数据量有, 小规模没有复现....</p>

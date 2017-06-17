@@ -86,351 +86,351 @@
 <p>在进行hadoop测试时，需要造大量数据，例如某个表存在56列，但实际程序逻辑只适用到某几列，我们造的数据 也只需要某几列</p>
 <p>构造几列数据，转化为对应数据表格式</p>
 <h3 id="yuan-dai-ma">源代码</h3>
-<div class="monokai"><pre><span></span><span class="ch">#!/usr/bin/env python</span>
-<span class="c1"># -*- coding: utf-8 -*-</span>
-<span class="c1">#dataformat.py</span>
-<span class="c1">#   wklken@yeah.net</span>
-<span class="c1">#this script change data from your source to the dest data format</span>
-<span class="c1">#2011-08-05 created version0.1</span>
-<span class="c1">#2011-10-29 add row-row mapping ,default row value .rebuild all functions. version0.2 </span>
-<span class="c1">#next:add data auto generate by re expression</span>
-<span class="c1">#2011-12-17 add new functions, add timestamp creator.  version0.3</span>
-<span class="c1">#2012-03-08 rebuild functions. version0.4</span>
-<span class="c1">#2012-06-22 add function to support multi output separators</span>
-<span class="c1">#2012-07-11 fix bug  line 44,add if</span>
-<span class="c1">#2012-09-03 rebuild functions,add help msg! version0.5</span>
-<span class="c1">#2012-11-08 last version edited by lingyue.wkl</span>
-<span class="c1">#           this py: https://github.com/wklken/pytools/blob/master/data_process/dataformat.py</span>
-
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">import</span> <span class="nn">getopt</span>
-<span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">import</span> <span class="nn">re</span>
-
-<span class="c1">#read file and get each line without \n</span>
-<span class="k">def</span> <span class="nf">read_file</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
-    <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">"r"</span><span class="p">)</span>
-    <span class="n">lines</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
-    <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-    <span class="k">return</span> <span class="p">[</span><span class="n">line</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span> <span class="p">]</span>
-
-<span class="c1">#处理一行，转为目标格式，返回目标行</span>
-<span class="k">def</span> <span class="nf">one_line_proc</span><span class="p">(</span><span class="n">parts</span><span class="p">,</span> <span class="n">total</span><span class="p">,</span> <span class="n">ft_map</span><span class="p">,</span> <span class="n">outsp</span><span class="p">,</span> <span class="n">empty_fill</span><span class="p">,</span> <span class="n">fill_with_sno</span><span class="p">):</span>
-    <span class="n">outline</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="c1">#step1.获取每一列的值</span>
-    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">total</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">ft_map</span><span class="p">:</span>
-            <span class="n">fill_index</span> <span class="o">=</span> <span class="n">ft_map</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-            <span class="c1">#加入使用默认值列  若是以d开头，后面是默认，否则取文件对应列 done</span>
-            <span class="k">if</span> <span class="n">fill_index</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"d"</span><span class="p">):</span>
-                <span class="c1">#列默认值暂不开启时间戳处理</span>
-                <span class="n">outline</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fill_index</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">outline</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">handler_specal_part</span><span class="p">(</span><span class="n">parts</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">fill_index</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]))</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="c1">#-s 选项生效，填充列号</span>
-            <span class="k">if</span> <span class="n">fill_with_sno</span><span class="p">:</span>
-                <span class="n">outline</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
-            <span class="c1">#否则，填充默认填充值</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">outline</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">empty_fill</span><span class="p">)</span>
-
-    <span class="c1">#step2.组装加入输出分隔符，支持多分隔符</span>
-    <span class="n">default_outsp</span> <span class="o">=</span> <span class="n">outsp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="s2">"</span><span class="se">\t</span><span class="s2">"</span><span class="p">)</span>
-    <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">outsize</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">outline</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">outsize</span><span class="p">):</span>
-        <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">outline</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
-        <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">outsize</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">outsp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">default_outsp</span><span class="p">))</span>
-    <span class="c1">#step3.拼成一行返回</span>
-    <span class="k">return</span> <span class="s1">''</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
-
-<span class="c1">#处理入口，读文件，循环处理每一行，写出</span>
-<span class="c1">#输入数据分隔符默认\t,输出数据默认分隔符\t</span>
-<span class="k">def</span> <span class="nf">process</span><span class="p">(</span><span class="n">inpath</span><span class="p">,</span> <span class="n">total</span><span class="p">,</span> <span class="n">to</span><span class="p">,</span> <span class="n">outpath</span><span class="p">,</span> <span class="n">insp</span><span class="p">,</span> <span class="n">outsp</span><span class="p">,</span> <span class="n">empty_fill</span><span class="p">,</span> <span class="n">fill_with_sno</span><span class="p">,</span> <span class="n">error_line_out</span><span class="p">):</span>
-    <span class="n">ft_map</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="c1">#有效输入字段数（去除默认值后的）</span>
-    <span class="n">in_count</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="n">used_row</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="c1">#step1-3相当于数据预处理，解析传入选项</span>
-
-    <span class="c1">#step1 处理映射列 不能和第二步合并</span>
-    <span class="k">for</span> <span class="n">to_row</span> <span class="ow">in</span> <span class="n">to</span><span class="p">:</span>
-        <span class="k">if</span> <span class="s2">r"\:"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">to_row</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">to_row</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">":"</span><span class="p">))</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-            <span class="n">used_row</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">to_row</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">":"</span><span class="p">)[</span><span class="mi">1</span><span class="p">]))</span>
-        <span class="k">if</span> <span class="s2">r"\="</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">to_row</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">to_row</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"="</span><span class="p">))</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-            <span class="k">pass</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">in_count</span> <span class="o">+=</span> <span class="mi">1</span>
-
-    <span class="c1">#step2 处理默认值列</span>
-    <span class="k">for</span> <span class="n">to_row</span> <span class="ow">in</span> <span class="n">to</span><span class="p">:</span>
-        <span class="c1">#处理默认值列</span>
-        <span class="k">if</span> <span class="s2">r"\="</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">to_row</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">to_row</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"="</span><span class="p">))</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-            <span class="n">ft_map</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="nb">int</span><span class="p">(</span><span class="n">to_row</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"="</span><span class="p">)[</span><span class="mi">0</span><span class="p">]):</span> <span class="s2">"d"</span><span class="o">+</span><span class="n">to_row</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"="</span><span class="p">)[</span><span class="mi">1</span><span class="p">]})</span>
-            <span class="k">continue</span>
-        <span class="c1">#处理列列映射</span>
-        <span class="k">elif</span> <span class="s2">r"\:"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">to_row</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">to_row</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">":"</span><span class="p">))</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-            <span class="n">ft_map</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="nb">int</span><span class="p">(</span><span class="n">to_row</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">":"</span><span class="p">)[</span><span class="mi">0</span><span class="p">]):</span> <span class="n">to_row</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">":"</span><span class="p">)[</span><span class="mi">1</span><span class="p">]})</span>
-            <span class="k">continue</span>
-        <span class="c1">#其他普通列</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">to_index</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">total</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
-                <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">used_row</span><span class="p">:</span>
-                    <span class="n">to_index</span> <span class="o">=</span> <span class="n">i</span>
-                    <span class="k">break</span>
-            <span class="n">ft_map</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="nb">int</span><span class="p">(</span><span class="n">to_row</span><span class="p">):</span> <span class="nb">str</span><span class="p">(</span><span class="n">to_index</span><span class="p">)})</span>
-            <span class="n">used_row</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">to_index</span><span class="p">)</span>
-
-    <span class="c1">#setp3 处理输出分隔符   outsp  0=\t,1=    0代表默认的，其他前面带列号的代表指定的</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">outsp</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">outsp</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">","</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="n">outsps</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r"\d=.+?"</span><span class="p">,</span> <span class="n">outsp</span><span class="p">)</span>
-        <span class="n">outsp</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">for</span> <span class="n">outsp_kv</span> <span class="ow">in</span>  <span class="n">outsps</span><span class="p">:</span>
-            <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="o">=</span> <span class="n">outsp_kv</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"="</span><span class="p">)</span>
-            <span class="n">outsp</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="nb">int</span><span class="p">(</span><span class="n">k</span><span class="p">):</span> <span class="n">v</span><span class="p">})</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">outsp</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="n">outsp</span><span class="p">}</span>
-
-    <span class="c1">#step4 开始处理每一行</span>
-    <span class="n">lines</span> <span class="o">=</span> <span class="n">read_file</span><span class="p">(</span><span class="n">inpath</span><span class="p">)</span>
-    <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">outpath</span><span class="p">,</span> <span class="s2">"w"</span><span class="p">)</span>
-    <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
-        <span class="c1">#多个输入分隔符情况，使用正则切分成列</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">insp</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"|"</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">parts</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">insp</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span>
-        <span class="c1">#否则使用正常字符串切分成列</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">parts</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">insp</span><span class="p">)</span>
-
-        <span class="c1">#正常的，切分后字段数大于等于配置的选项个数</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">in_count</span><span class="p">:</span>
-            <span class="n">outline</span> <span class="o">=</span> <span class="n">one_line_proc</span><span class="p">(</span><span class="n">parts</span><span class="p">,</span> <span class="n">total</span><span class="p">,</span> <span class="n">ft_map</span><span class="p">,</span> <span class="n">outsp</span><span class="p">,</span> <span class="n">empty_fill</span><span class="p">,</span> <span class="n">fill_with_sno</span><span class="p">)</span>
-            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">outline</span> <span class="o">+</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
-        <span class="c1">#不正常的，列数少于配置</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="c1">#若配置了-e 输出，否则列数不符的记录过滤</span>
-            <span class="k">if</span> <span class="n">error_line_out</span><span class="p">:</span>
-                <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span> <span class="o">+</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
-
-    <span class="c1">#step5 输出结果</span>
-    <span class="n">f</span><span class="o">.</span><span class="n">writelines</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
-    <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-
-<span class="c1">#特殊的处理入口，处理维度为每一行,目前只有时间处理</span>
-<span class="k">def</span> <span class="nf">handler_specal_part</span><span class="p">(</span><span class="n">part_str</span><span class="p">):</span>
-    <span class="c1">#timestamp 时间处理</span>
-    <span class="c1">#时间列，默认必须 TS数字=时间</span>
-    <span class="k">if</span> <span class="n">part_str</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"TS"</span><span class="p">)</span> <span class="ow">and</span> <span class="s2">"="</span> <span class="ow">in</span> <span class="n">part_str</span><span class="p">:</span>
-        <span class="n">ts_format</span> <span class="o">=</span> <span class="p">{</span><span class="mi">8</span><span class="p">:</span> <span class="s2">"%Y%m</span><span class="si">%d</span><span class="s2">"</span><span class="p">,</span>
-                     <span class="mi">10</span><span class="p">:</span> <span class="s2">"%Y-%m-</span><span class="si">%d</span><span class="s2">"</span><span class="p">,</span>
-                     <span class="mi">14</span><span class="p">:</span> <span class="s2">"%Y%m</span><span class="si">%d</span><span class="s2">%H%M%S"</span><span class="p">,</span>
-                     <span class="mi">19</span><span class="p">:</span> <span class="s2">"%Y-%m-</span><span class="si">%d</span><span class="s2"> %H:%M:%S"</span><span class="p">}</span>
-        <span class="n">to_l</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="c1">#step1 确认输出的格式 TS8 TS10 TS14 TS19</span>
-        <span class="k">if</span> <span class="n">part_str</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">"="</span><span class="p">:</span>
-            <span class="n">to_l</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">part_str</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="n">part_str</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">"="</span><span class="p">)])</span>
-
-        <span class="n">part_str</span> <span class="o">=</span> <span class="n">part_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"="</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-        <span class="n">interval</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="c1">#step2 存在时间+-的情况 确认加减区间</span>
-        <span class="k">if</span> <span class="s2">"+"</span> <span class="ow">in</span> <span class="n">part_str</span><span class="p">:</span>
-            <span class="n">inputdate</span> <span class="o">=</span> <span class="n">part_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"+"</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-            <span class="n">interval</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">part_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"+"</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
-        <span class="k">elif</span> <span class="s2">"-"</span> <span class="ow">in</span> <span class="n">part_str</span><span class="p">:</span>
-            <span class="n">parts</span> <span class="o">=</span> <span class="n">part_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"-"</span><span class="p">)</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span> <span class="c1">#20101020 - XX</span>
-                <span class="n">inputdate</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-                <span class="n">interval</span> <span class="o">=</span> <span class="o">-</span><span class="nb">int</span><span class="p">(</span><span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
-            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span> <span class="c1">#2010-10-20</span>
-                <span class="n">inputdate</span> <span class="o">=</span> <span class="n">part_str</span>
-            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span> <span class="c1">#2010-10-20 - XX</span>
-                <span class="n">inputdate</span> <span class="o">=</span> <span class="s2">"-"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parts</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
-                <span class="n">interval</span> <span class="o">=</span> <span class="o">-</span><span class="nb">int</span><span class="p">(</span><span class="n">parts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">inputdate</span> <span class="o">=</span> <span class="n">part_str</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">inputdate</span> <span class="o">=</span> <span class="n">part_str</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-        <span class="c1">#step3 将原始时间转为目标时间</span>
-        <span class="n">part_str</span> <span class="o">=</span> <span class="n">get_timestamp</span><span class="p">(</span><span class="n">inputdate</span><span class="p">,</span> <span class="n">ts_format</span><span class="p">,</span> <span class="n">interval</span><span class="p">)</span>
-
-        <span class="c1">#step4 如果定义了输出格式，转换成目标格式，返回</span>
-        <span class="k">if</span> <span class="n">to_l</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">part_str</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="n">ts_format</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">to_l</span><span class="p">),</span> <span class="n">time</span><span class="o">.</span><span class="n">localtime</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">part_str</span><span class="p">)))</span>
-    <span class="k">return</span> <span class="n">part_str</span>
-
-<span class="c1">#将时间由秒转化为目标格式</span>
-<span class="k">def</span> <span class="nf">get_timestamp</span><span class="p">(</span><span class="n">inputdate</span><span class="p">,</span> <span class="n">ts_format</span><span class="p">,</span> <span class="n">interval</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
-    <span class="k">if</span> <span class="s2">"now()"</span> <span class="ow">in</span> <span class="n">inputdate</span><span class="p">:</span>
-        <span class="n">inputdate</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">"%Y%m</span><span class="si">%d</span><span class="s2">%H%M%S"</span><span class="p">)</span> 
-    <span class="n">inputdate</span> <span class="o">=</span> <span class="n">inputdate</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">inputdate</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">size</span> <span class="ow">in</span> <span class="n">ts_format</span><span class="p">:</span>
-            <span class="n">ts</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">inputdate</span><span class="p">,</span> <span class="n">ts_format</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">size</span><span class="p">))</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">print</span> <span class="s2">"the input date and time expression error,only allow 'YYYYmmdd[HHMMSS]' or 'YYYY-MM-DD HH:MM:SS'  "</span>
-            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-    <span class="k">except</span><span class="p">:</span>
-        <span class="k">print</span> <span class="s2">"the input date and time expression error,only allow 'YYYYmmdd[HHMMSS]' or 'YYYY-MM-DD HH:MM:SS'  "</span>
-        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">mktime</span><span class="p">(</span><span class="n">ts</span><span class="p">))</span> <span class="o">+</span> <span class="n">interval</span><span class="p">)</span>
-
-<span class="c1">#打印帮助信息</span>
-<span class="k">def</span> <span class="nf">help_msg</span><span class="p">():</span>
-    <span class="k">print</span><span class="p">(</span><span class="s2">"功能：原数据文件转为目标数据格式"</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s2">"选项:"</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\t</span><span class="s2"> -i inputfilepath  [必输，input, 原文件路径]"</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\t</span><span class="s2"> -t n              [必输，total, n为数字，目标数据总的域个数]"</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\t</span><span class="s2"> -a '1,3,4'        [必输，array, 域编号字符串，逗号分隔。指定域用原数据字段填充，未指定用'0'填充]"</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\t</span><span class="s2">                          -a '3,5=abc,6:2'  第5列默认值abc填充,第6列使用输入的第1列填充，第3列使用输入第1列填充"</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\t</span><span class="s2"> -o outputfilepath [可选，output, 默认为 inputfilepath.dist ]"</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\t</span><span class="s2"> -F 'FS'           [可选，field Sep，原文件域分隔符，默认为</span><span class="se">\\</span><span class="s2">t,支持多分隔符，eg.'</span><span class="se">\t</span><span class="s2">||\|' ]"</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\t</span><span class="s2"> -P 'OFS'          [可选，out FS，输出文件的域分隔符，默认为</span><span class="se">\\</span><span class="s2">t,可指定多个，多个需指定序号=分隔符,逗号分隔,默认分隔符序号0 ]"</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\t</span><span class="s2"> -f 'fill_str'     [可选，fill，未选列的填充值，默认为空 ]"</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\t</span><span class="s2"> -s                [可选，serial number,当配置时，-f无效，使用列号填充未指派的列]"</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\t</span><span class="s2"> -e                [可选，error, 源文件列切分不一致行/空行/注释等，会被直接输出，正确行按原逻辑处理]"</span><span class="p">)</span>
-    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-
-<span class="c1">#判断某个参数必须被定义</span>
-<span class="k">def</span> <span class="nf">must_be_defined</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="nb">map</span><span class="p">,</span> <span class="n">error_info</span><span class="p">):</span>
-    <span class="k">if</span> <span class="n">param</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">map</span><span class="p">:</span>
-       <span class="k">print</span> <span class="n">error_info</span>
-       <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-
-<span class="c1">#程序入口，读入参数，执行</span>
-<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
-    <span class="c1">#init default value</span>
-    <span class="n">insp</span> <span class="o">=</span> <span class="s2">"</span><span class="se">\t</span><span class="s2">"</span>
-    <span class="n">outsp</span> <span class="o">=</span> <span class="s2">"</span><span class="se">\t</span><span class="s2">"</span>
-    <span class="n">empty_fill</span> <span class="o">=</span> <span class="s1">''</span>
-    <span class="n">fill_with_sno</span> <span class="o">=</span> <span class="bp">False</span>
-    <span class="n">error_line_out</span> <span class="o">=</span> <span class="bp">False</span>
-    <span class="c1">#handle options</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">opts</span><span class="p">,</span><span class="n">args</span> <span class="o">=</span> <span class="n">getopt</span><span class="o">.</span><span class="n">getopt</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span><span class="s2">"F:P:t:a:i:o:f:hse"</span><span class="p">)</span>
-
-        <span class="k">for</span> <span class="n">op</span><span class="p">,</span><span class="n">value</span> <span class="ow">in</span> <span class="n">opts</span><span class="p">:</span>
-          <span class="k">if</span> <span class="n">op</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"-h"</span><span class="p">,</span> <span class="s2">"-H"</span><span class="p">,</span> <span class="s2">"--help"</span><span class="p">):</span>
-            <span class="n">help_msg</span><span class="p">()</span>
-          <span class="k">if</span> <span class="n">op</span> <span class="o">==</span> <span class="s2">"-i"</span><span class="p">:</span>
-            <span class="n">inpath</span> <span class="o">=</span> <span class="n">value</span>
-          <span class="k">elif</span> <span class="n">op</span> <span class="o">==</span> <span class="s2">"-o"</span><span class="p">:</span>
-            <span class="n">outpath</span> <span class="o">=</span> <span class="n">value</span>
-          <span class="k">elif</span> <span class="n">op</span> <span class="o">==</span> <span class="s2">"-t"</span><span class="p">:</span>
-            <span class="n">total</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-          <span class="k">elif</span> <span class="n">op</span> <span class="o">==</span> <span class="s2">"-a"</span><span class="p">:</span>
-            <span class="n">to</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">","</span><span class="p">)</span>
-          <span class="k">elif</span> <span class="n">op</span> <span class="o">==</span> <span class="s2">"-F"</span><span class="p">:</span>
-            <span class="n">insp</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">"string_escape"</span><span class="p">)</span>
-          <span class="k">elif</span> <span class="n">op</span> <span class="o">==</span> <span class="s2">"-P"</span><span class="p">:</span>
-            <span class="n">outsp</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">"string_escape"</span><span class="p">)</span>
-          <span class="k">elif</span> <span class="n">op</span> <span class="o">==</span> <span class="s2">"-f"</span><span class="p">:</span>
-            <span class="n">empty_fill</span> <span class="o">=</span> <span class="n">value</span>
-          <span class="k">elif</span> <span class="n">op</span> <span class="o">==</span> <span class="s2">"-s"</span><span class="p">:</span>
-            <span class="n">fill_with_sno</span> <span class="o">=</span> <span class="bp">True</span>
-          <span class="k">elif</span> <span class="n">op</span> <span class="o">==</span> <span class="s2">"-e"</span><span class="p">:</span>
-            <span class="n">error_line_out</span> <span class="o">=</span> <span class="bp">True</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">opts</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
-          <span class="k">print</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="s2">" : the amount of params must great equal than 3"</span><span class="p">)</span>
-          <span class="k">print</span><span class="p">(</span><span class="s2">"Command : ./dataformat.py -h"</span><span class="p">)</span>
-          <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-
-    <span class="k">except</span> <span class="n">getopt</span><span class="o">.</span><span class="n">GetoptError</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="s2">" : params are not defined well!"</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="s2">"Command : ./dataformat.py -h"</span><span class="p">)</span>
-        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-
-    <span class="n">params_map</span> <span class="o">=</span> <span class="nb">dir</span><span class="p">()</span>
-
-    <span class="n">must_be_defined</span><span class="p">(</span><span class="s1">'inpath'</span><span class="p">,</span> <span class="n">params_map</span><span class="p">,</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="s2">" : -i param is needed,input file path must define!"</span><span class="p">)</span>
-    <span class="n">must_be_defined</span><span class="p">(</span><span class="s1">'total'</span><span class="p">,</span> <span class="n">params_map</span><span class="p">,</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="s2">" : -t param is needed,the fields of result file must define!"</span><span class="p">)</span>
-    <span class="n">must_be_defined</span><span class="p">(</span><span class="s1">'to'</span><span class="p">,</span> <span class="n">params_map</span><span class="p">,</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="s2">" : -a param is needed,must assign the field to put !"</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">inpath</span><span class="p">):</span>
-        <span class="k">print</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="s2">" file : </span><span class="si">%s</span><span class="s2"> is not exists"</span><span class="o">%</span><span class="n">inpath</span><span class="p">)</span>
-        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="s1">'outpath'</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">():</span>
-        <span class="n">outpath</span> <span class="o">=</span> <span class="n">inpath</span><span class="o">+</span><span class="s2">".dist"</span>
-
-    <span class="n">process</span><span class="p">(</span><span class="n">inpath</span><span class="p">,</span> <span class="n">total</span><span class="p">,</span> <span class="n">to</span><span class="p">,</span> <span class="n">outpath</span><span class="p">,</span> <span class="n">insp</span><span class="p">,</span> <span class="n">outsp</span><span class="p">,</span> <span class="n">empty_fill</span><span class="p">,</span> <span class="n">fill_with_sno</span><span class="p">,</span> <span class="n">error_line_out</span><span class="p">)</span>
-
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span><span class="s2">"__main__"</span><span class="p">:</span>
-    <span class="n">main</span><span class="p">()</span>
+<div class="monokai"><pre><span class="code-line"><span></span><span class="ch">#!/usr/bin/env python</span></span>
+<span class="code-line"><span class="c1"># -*- coding: utf-8 -*-</span></span>
+<span class="code-line"><span class="c1">#dataformat.py</span></span>
+<span class="code-line"><span class="c1">#   wklken@yeah.net</span></span>
+<span class="code-line"><span class="c1">#this script change data from your source to the dest data format</span></span>
+<span class="code-line"><span class="c1">#2011-08-05 created version0.1</span></span>
+<span class="code-line"><span class="c1">#2011-10-29 add row-row mapping ,default row value .rebuild all functions. version0.2 </span></span>
+<span class="code-line"><span class="c1">#next:add data auto generate by re expression</span></span>
+<span class="code-line"><span class="c1">#2011-12-17 add new functions, add timestamp creator.  version0.3</span></span>
+<span class="code-line"><span class="c1">#2012-03-08 rebuild functions. version0.4</span></span>
+<span class="code-line"><span class="c1">#2012-06-22 add function to support multi output separators</span></span>
+<span class="code-line"><span class="c1">#2012-07-11 fix bug  line 44,add if</span></span>
+<span class="code-line"><span class="c1">#2012-09-03 rebuild functions,add help msg! version0.5</span></span>
+<span class="code-line"><span class="c1">#2012-11-08 last version edited by lingyue.wkl</span></span>
+<span class="code-line"><span class="c1">#           this py: https://github.com/wklken/pytools/blob/master/data_process/dataformat.py</span></span>
+<span class="code-line"></span>
+<span class="code-line"><span class="kn">import</span> <span class="nn">os</span></span>
+<span class="code-line"><span class="kn">import</span> <span class="nn">sys</span></span>
+<span class="code-line"><span class="kn">import</span> <span class="nn">getopt</span></span>
+<span class="code-line"><span class="kn">import</span> <span class="nn">time</span></span>
+<span class="code-line"><span class="kn">import</span> <span class="nn">re</span></span>
+<span class="code-line"></span>
+<span class="code-line"><span class="c1">#read file and get each line without \n</span></span>
+<span class="code-line"><span class="k">def</span> <span class="nf">read_file</span><span class="p">(</span><span class="n">path</span><span class="p">):</span></span>
+<span class="code-line">    <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">"r"</span><span class="p">)</span></span>
+<span class="code-line">    <span class="n">lines</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span></span>
+<span class="code-line">    <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></span>
+<span class="code-line">    <span class="k">return</span> <span class="p">[</span><span class="n">line</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span> <span class="p">]</span></span>
+<span class="code-line"></span>
+<span class="code-line"><span class="c1">#处理一行，转为目标格式，返回目标行</span></span>
+<span class="code-line"><span class="k">def</span> <span class="nf">one_line_proc</span><span class="p">(</span><span class="n">parts</span><span class="p">,</span> <span class="n">total</span><span class="p">,</span> <span class="n">ft_map</span><span class="p">,</span> <span class="n">outsp</span><span class="p">,</span> <span class="n">empty_fill</span><span class="p">,</span> <span class="n">fill_with_sno</span><span class="p">):</span></span>
+<span class="code-line">    <span class="n">outline</span> <span class="o">=</span> <span class="p">[]</span></span>
+<span class="code-line">    <span class="c1">#step1.获取每一列的值</span></span>
+<span class="code-line">    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">total</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span></span>
+<span class="code-line">        <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">ft_map</span><span class="p">:</span></span>
+<span class="code-line">            <span class="n">fill_index</span> <span class="o">=</span> <span class="n">ft_map</span><span class="p">[</span><span class="n">i</span><span class="p">]</span></span>
+<span class="code-line">            <span class="c1">#加入使用默认值列  若是以d开头，后面是默认，否则取文件对应列 done</span></span>
+<span class="code-line">            <span class="k">if</span> <span class="n">fill_index</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"d"</span><span class="p">):</span></span>
+<span class="code-line">                <span class="c1">#列默认值暂不开启时间戳处理</span></span>
+<span class="code-line">                <span class="n">outline</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fill_index</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span></span>
+<span class="code-line">            <span class="k">else</span><span class="p">:</span></span>
+<span class="code-line">                <span class="n">outline</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">handler_specal_part</span><span class="p">(</span><span class="n">parts</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">fill_index</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]))</span></span>
+<span class="code-line">        <span class="k">else</span><span class="p">:</span></span>
+<span class="code-line">            <span class="c1">#-s 选项生效，填充列号</span></span>
+<span class="code-line">            <span class="k">if</span> <span class="n">fill_with_sno</span><span class="p">:</span></span>
+<span class="code-line">                <span class="n">outline</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">))</span></span>
+<span class="code-line">            <span class="c1">#否则，填充默认填充值</span></span>
+<span class="code-line">            <span class="k">else</span><span class="p">:</span></span>
+<span class="code-line">                <span class="n">outline</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">empty_fill</span><span class="p">)</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="c1">#step2.组装加入输出分隔符，支持多分隔符</span></span>
+<span class="code-line">    <span class="n">default_outsp</span> <span class="o">=</span> <span class="n">outsp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="s2">"</span><span class="se">\t</span><span class="s2">"</span><span class="p">)</span></span>
+<span class="code-line">    <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span></span>
+<span class="code-line">    <span class="n">outsize</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">outline</span><span class="p">)</span></span>
+<span class="code-line">    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">outsize</span><span class="p">):</span></span>
+<span class="code-line">        <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">outline</span><span class="p">[</span><span class="n">i</span><span class="p">])</span></span>
+<span class="code-line">        <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">outsize</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span></span>
+<span class="code-line">            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">outsp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">default_outsp</span><span class="p">))</span></span>
+<span class="code-line">    <span class="c1">#step3.拼成一行返回</span></span>
+<span class="code-line">    <span class="k">return</span> <span class="s1">''</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">result</span><span class="p">)</span></span>
+<span class="code-line"></span>
+<span class="code-line"><span class="c1">#处理入口，读文件，循环处理每一行，写出</span></span>
+<span class="code-line"><span class="c1">#输入数据分隔符默认\t,输出数据默认分隔符\t</span></span>
+<span class="code-line"><span class="k">def</span> <span class="nf">process</span><span class="p">(</span><span class="n">inpath</span><span class="p">,</span> <span class="n">total</span><span class="p">,</span> <span class="n">to</span><span class="p">,</span> <span class="n">outpath</span><span class="p">,</span> <span class="n">insp</span><span class="p">,</span> <span class="n">outsp</span><span class="p">,</span> <span class="n">empty_fill</span><span class="p">,</span> <span class="n">fill_with_sno</span><span class="p">,</span> <span class="n">error_line_out</span><span class="p">):</span></span>
+<span class="code-line">    <span class="n">ft_map</span> <span class="o">=</span> <span class="p">{}</span></span>
+<span class="code-line">    <span class="c1">#有效输入字段数（去除默认值后的）</span></span>
+<span class="code-line">    <span class="n">in_count</span> <span class="o">=</span> <span class="mi">0</span></span>
+<span class="code-line">    <span class="n">used_row</span> <span class="o">=</span> <span class="p">[]</span></span>
+<span class="code-line">    <span class="c1">#step1-3相当于数据预处理，解析传入选项</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="c1">#step1 处理映射列 不能和第二步合并</span></span>
+<span class="code-line">    <span class="k">for</span> <span class="n">to_row</span> <span class="ow">in</span> <span class="n">to</span><span class="p">:</span></span>
+<span class="code-line">        <span class="k">if</span> <span class="s2">r"\:"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">to_row</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">to_row</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">":"</span><span class="p">))</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span></span>
+<span class="code-line">            <span class="n">used_row</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">to_row</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">":"</span><span class="p">)[</span><span class="mi">1</span><span class="p">]))</span></span>
+<span class="code-line">        <span class="k">if</span> <span class="s2">r"\="</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">to_row</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">to_row</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"="</span><span class="p">))</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span></span>
+<span class="code-line">            <span class="k">pass</span></span>
+<span class="code-line">        <span class="k">else</span><span class="p">:</span></span>
+<span class="code-line">            <span class="n">in_count</span> <span class="o">+=</span> <span class="mi">1</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="c1">#step2 处理默认值列</span></span>
+<span class="code-line">    <span class="k">for</span> <span class="n">to_row</span> <span class="ow">in</span> <span class="n">to</span><span class="p">:</span></span>
+<span class="code-line">        <span class="c1">#处理默认值列</span></span>
+<span class="code-line">        <span class="k">if</span> <span class="s2">r"\="</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">to_row</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">to_row</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"="</span><span class="p">))</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span></span>
+<span class="code-line">            <span class="n">ft_map</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="nb">int</span><span class="p">(</span><span class="n">to_row</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"="</span><span class="p">)[</span><span class="mi">0</span><span class="p">]):</span> <span class="s2">"d"</span><span class="o">+</span><span class="n">to_row</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"="</span><span class="p">)[</span><span class="mi">1</span><span class="p">]})</span></span>
+<span class="code-line">            <span class="k">continue</span></span>
+<span class="code-line">        <span class="c1">#处理列列映射</span></span>
+<span class="code-line">        <span class="k">elif</span> <span class="s2">r"\:"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">to_row</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">to_row</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">":"</span><span class="p">))</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span></span>
+<span class="code-line">            <span class="n">ft_map</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="nb">int</span><span class="p">(</span><span class="n">to_row</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">":"</span><span class="p">)[</span><span class="mi">0</span><span class="p">]):</span> <span class="n">to_row</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">":"</span><span class="p">)[</span><span class="mi">1</span><span class="p">]})</span></span>
+<span class="code-line">            <span class="k">continue</span></span>
+<span class="code-line">        <span class="c1">#其他普通列</span></span>
+<span class="code-line">        <span class="k">else</span><span class="p">:</span></span>
+<span class="code-line">            <span class="n">to_index</span> <span class="o">=</span> <span class="mi">0</span></span>
+<span class="code-line">            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">total</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span></span>
+<span class="code-line">                <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">used_row</span><span class="p">:</span></span>
+<span class="code-line">                    <span class="n">to_index</span> <span class="o">=</span> <span class="n">i</span></span>
+<span class="code-line">                    <span class="k">break</span></span>
+<span class="code-line">            <span class="n">ft_map</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="nb">int</span><span class="p">(</span><span class="n">to_row</span><span class="p">):</span> <span class="nb">str</span><span class="p">(</span><span class="n">to_index</span><span class="p">)})</span></span>
+<span class="code-line">            <span class="n">used_row</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">to_index</span><span class="p">)</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="c1">#setp3 处理输出分隔符   outsp  0=\t,1=    0代表默认的，其他前面带列号的代表指定的</span></span>
+<span class="code-line">    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">outsp</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">outsp</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">","</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span></span>
+<span class="code-line">        <span class="n">outsps</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r"\d=.+?"</span><span class="p">,</span> <span class="n">outsp</span><span class="p">)</span></span>
+<span class="code-line">        <span class="n">outsp</span> <span class="o">=</span> <span class="p">{}</span></span>
+<span class="code-line">        <span class="k">for</span> <span class="n">outsp_kv</span> <span class="ow">in</span>  <span class="n">outsps</span><span class="p">:</span></span>
+<span class="code-line">            <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="o">=</span> <span class="n">outsp_kv</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"="</span><span class="p">)</span></span>
+<span class="code-line">            <span class="n">outsp</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="nb">int</span><span class="p">(</span><span class="n">k</span><span class="p">):</span> <span class="n">v</span><span class="p">})</span></span>
+<span class="code-line">    <span class="k">else</span><span class="p">:</span></span>
+<span class="code-line">        <span class="n">outsp</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="n">outsp</span><span class="p">}</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="c1">#step4 开始处理每一行</span></span>
+<span class="code-line">    <span class="n">lines</span> <span class="o">=</span> <span class="n">read_file</span><span class="p">(</span><span class="n">inpath</span><span class="p">)</span></span>
+<span class="code-line">    <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">outpath</span><span class="p">,</span> <span class="s2">"w"</span><span class="p">)</span></span>
+<span class="code-line">    <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span></span>
+<span class="code-line">    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span></span>
+<span class="code-line">        <span class="c1">#多个输入分隔符情况，使用正则切分成列</span></span>
+<span class="code-line">        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">insp</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"|"</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span></span>
+<span class="code-line">            <span class="n">parts</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">insp</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span></span>
+<span class="code-line">        <span class="c1">#否则使用正常字符串切分成列</span></span>
+<span class="code-line">        <span class="k">else</span><span class="p">:</span></span>
+<span class="code-line">            <span class="n">parts</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">insp</span><span class="p">)</span></span>
+<span class="code-line"></span>
+<span class="code-line">        <span class="c1">#正常的，切分后字段数大于等于配置的选项个数</span></span>
+<span class="code-line">        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">in_count</span><span class="p">:</span></span>
+<span class="code-line">            <span class="n">outline</span> <span class="o">=</span> <span class="n">one_line_proc</span><span class="p">(</span><span class="n">parts</span><span class="p">,</span> <span class="n">total</span><span class="p">,</span> <span class="n">ft_map</span><span class="p">,</span> <span class="n">outsp</span><span class="p">,</span> <span class="n">empty_fill</span><span class="p">,</span> <span class="n">fill_with_sno</span><span class="p">)</span></span>
+<span class="code-line">            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">outline</span> <span class="o">+</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span></span>
+<span class="code-line">        <span class="c1">#不正常的，列数少于配置</span></span>
+<span class="code-line">        <span class="k">else</span><span class="p">:</span></span>
+<span class="code-line">            <span class="c1">#若配置了-e 输出，否则列数不符的记录过滤</span></span>
+<span class="code-line">            <span class="k">if</span> <span class="n">error_line_out</span><span class="p">:</span></span>
+<span class="code-line">                <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span> <span class="o">+</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="c1">#step5 输出结果</span></span>
+<span class="code-line">    <span class="n">f</span><span class="o">.</span><span class="n">writelines</span><span class="p">(</span><span class="n">result</span><span class="p">)</span></span>
+<span class="code-line">    <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></span>
+<span class="code-line"></span>
+<span class="code-line"><span class="c1">#特殊的处理入口，处理维度为每一行,目前只有时间处理</span></span>
+<span class="code-line"><span class="k">def</span> <span class="nf">handler_specal_part</span><span class="p">(</span><span class="n">part_str</span><span class="p">):</span></span>
+<span class="code-line">    <span class="c1">#timestamp 时间处理</span></span>
+<span class="code-line">    <span class="c1">#时间列，默认必须 TS数字=时间</span></span>
+<span class="code-line">    <span class="k">if</span> <span class="n">part_str</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"TS"</span><span class="p">)</span> <span class="ow">and</span> <span class="s2">"="</span> <span class="ow">in</span> <span class="n">part_str</span><span class="p">:</span></span>
+<span class="code-line">        <span class="n">ts_format</span> <span class="o">=</span> <span class="p">{</span><span class="mi">8</span><span class="p">:</span> <span class="s2">"%Y%m</span><span class="si">%d</span><span class="s2">"</span><span class="p">,</span></span>
+<span class="code-line">                     <span class="mi">10</span><span class="p">:</span> <span class="s2">"%Y-%m-</span><span class="si">%d</span><span class="s2">"</span><span class="p">,</span></span>
+<span class="code-line">                     <span class="mi">14</span><span class="p">:</span> <span class="s2">"%Y%m</span><span class="si">%d</span><span class="s2">%H%M%S"</span><span class="p">,</span></span>
+<span class="code-line">                     <span class="mi">19</span><span class="p">:</span> <span class="s2">"%Y-%m-</span><span class="si">%d</span><span class="s2"> %H:%M:%S"</span><span class="p">}</span></span>
+<span class="code-line">        <span class="n">to_l</span> <span class="o">=</span> <span class="mi">0</span></span>
+<span class="code-line">        <span class="c1">#step1 确认输出的格式 TS8 TS10 TS14 TS19</span></span>
+<span class="code-line">        <span class="k">if</span> <span class="n">part_str</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">"="</span><span class="p">:</span></span>
+<span class="code-line">            <span class="n">to_l</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">part_str</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="n">part_str</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">"="</span><span class="p">)])</span></span>
+<span class="code-line"></span>
+<span class="code-line">        <span class="n">part_str</span> <span class="o">=</span> <span class="n">part_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"="</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span></span>
+<span class="code-line">        <span class="n">interval</span> <span class="o">=</span> <span class="mi">0</span></span>
+<span class="code-line">        <span class="c1">#step2 存在时间+-的情况 确认加减区间</span></span>
+<span class="code-line">        <span class="k">if</span> <span class="s2">"+"</span> <span class="ow">in</span> <span class="n">part_str</span><span class="p">:</span></span>
+<span class="code-line">            <span class="n">inputdate</span> <span class="o">=</span> <span class="n">part_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"+"</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span></span>
+<span class="code-line">            <span class="n">interval</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">part_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"+"</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span></span>
+<span class="code-line">        <span class="k">elif</span> <span class="s2">"-"</span> <span class="ow">in</span> <span class="n">part_str</span><span class="p">:</span></span>
+<span class="code-line">            <span class="n">parts</span> <span class="o">=</span> <span class="n">part_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"-"</span><span class="p">)</span></span>
+<span class="code-line">            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span> <span class="c1">#20101020 - XX</span></span>
+<span class="code-line">                <span class="n">inputdate</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span></span>
+<span class="code-line">                <span class="n">interval</span> <span class="o">=</span> <span class="o">-</span><span class="nb">int</span><span class="p">(</span><span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span></span>
+<span class="code-line">            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span> <span class="c1">#2010-10-20</span></span>
+<span class="code-line">                <span class="n">inputdate</span> <span class="o">=</span> <span class="n">part_str</span></span>
+<span class="code-line">            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span> <span class="c1">#2010-10-20 - XX</span></span>
+<span class="code-line">                <span class="n">inputdate</span> <span class="o">=</span> <span class="s2">"-"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parts</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span></span>
+<span class="code-line">                <span class="n">interval</span> <span class="o">=</span> <span class="o">-</span><span class="nb">int</span><span class="p">(</span><span class="n">parts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span></span>
+<span class="code-line">            <span class="k">else</span><span class="p">:</span></span>
+<span class="code-line">                <span class="n">inputdate</span> <span class="o">=</span> <span class="n">part_str</span></span>
+<span class="code-line">        <span class="k">else</span><span class="p">:</span></span>
+<span class="code-line">            <span class="n">inputdate</span> <span class="o">=</span> <span class="n">part_str</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span></span>
+<span class="code-line">        <span class="c1">#step3 将原始时间转为目标时间</span></span>
+<span class="code-line">        <span class="n">part_str</span> <span class="o">=</span> <span class="n">get_timestamp</span><span class="p">(</span><span class="n">inputdate</span><span class="p">,</span> <span class="n">ts_format</span><span class="p">,</span> <span class="n">interval</span><span class="p">)</span></span>
+<span class="code-line"></span>
+<span class="code-line">        <span class="c1">#step4 如果定义了输出格式，转换成目标格式，返回</span></span>
+<span class="code-line">        <span class="k">if</span> <span class="n">to_l</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span></span>
+<span class="code-line">            <span class="n">part_str</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="n">ts_format</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">to_l</span><span class="p">),</span> <span class="n">time</span><span class="o">.</span><span class="n">localtime</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">part_str</span><span class="p">)))</span></span>
+<span class="code-line">    <span class="k">return</span> <span class="n">part_str</span></span>
+<span class="code-line"></span>
+<span class="code-line"><span class="c1">#将时间由秒转化为目标格式</span></span>
+<span class="code-line"><span class="k">def</span> <span class="nf">get_timestamp</span><span class="p">(</span><span class="n">inputdate</span><span class="p">,</span> <span class="n">ts_format</span><span class="p">,</span> <span class="n">interval</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span></span>
+<span class="code-line">    <span class="k">if</span> <span class="s2">"now()"</span> <span class="ow">in</span> <span class="n">inputdate</span><span class="p">:</span></span>
+<span class="code-line">        <span class="n">inputdate</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">"%Y%m</span><span class="si">%d</span><span class="s2">%H%M%S"</span><span class="p">)</span> </span>
+<span class="code-line">    <span class="n">inputdate</span> <span class="o">=</span> <span class="n">inputdate</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span></span>
+<span class="code-line">    <span class="k">try</span><span class="p">:</span></span>
+<span class="code-line">        <span class="n">size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">inputdate</span><span class="p">)</span></span>
+<span class="code-line">        <span class="k">if</span> <span class="n">size</span> <span class="ow">in</span> <span class="n">ts_format</span><span class="p">:</span></span>
+<span class="code-line">            <span class="n">ts</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">inputdate</span><span class="p">,</span> <span class="n">ts_format</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">size</span><span class="p">))</span></span>
+<span class="code-line">        <span class="k">else</span><span class="p">:</span></span>
+<span class="code-line">            <span class="k">print</span> <span class="s2">"the input date and time expression error,only allow 'YYYYmmdd[HHMMSS]' or 'YYYY-MM-DD HH:MM:SS'  "</span></span>
+<span class="code-line">            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></span>
+<span class="code-line">    <span class="k">except</span><span class="p">:</span></span>
+<span class="code-line">        <span class="k">print</span> <span class="s2">"the input date and time expression error,only allow 'YYYYmmdd[HHMMSS]' or 'YYYY-MM-DD HH:MM:SS'  "</span></span>
+<span class="code-line">        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></span>
+<span class="code-line">    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">mktime</span><span class="p">(</span><span class="n">ts</span><span class="p">))</span> <span class="o">+</span> <span class="n">interval</span><span class="p">)</span></span>
+<span class="code-line"></span>
+<span class="code-line"><span class="c1">#打印帮助信息</span></span>
+<span class="code-line"><span class="k">def</span> <span class="nf">help_msg</span><span class="p">():</span></span>
+<span class="code-line">    <span class="k">print</span><span class="p">(</span><span class="s2">"功能：原数据文件转为目标数据格式"</span><span class="p">)</span></span>
+<span class="code-line">    <span class="k">print</span><span class="p">(</span><span class="s2">"选项:"</span><span class="p">)</span></span>
+<span class="code-line">    <span class="k">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\t</span><span class="s2"> -i inputfilepath  [必输，input, 原文件路径]"</span><span class="p">)</span></span>
+<span class="code-line">    <span class="k">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\t</span><span class="s2"> -t n              [必输，total, n为数字，目标数据总的域个数]"</span><span class="p">)</span></span>
+<span class="code-line">    <span class="k">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\t</span><span class="s2"> -a '1,3,4'        [必输，array, 域编号字符串，逗号分隔。指定域用原数据字段填充，未指定用'0'填充]"</span><span class="p">)</span></span>
+<span class="code-line">    <span class="k">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\t</span><span class="s2">                          -a '3,5=abc,6:2'  第5列默认值abc填充,第6列使用输入的第1列填充，第3列使用输入第1列填充"</span><span class="p">)</span></span>
+<span class="code-line">    <span class="k">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\t</span><span class="s2"> -o outputfilepath [可选，output, 默认为 inputfilepath.dist ]"</span><span class="p">)</span></span>
+<span class="code-line">    <span class="k">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\t</span><span class="s2"> -F 'FS'           [可选，field Sep，原文件域分隔符，默认为</span><span class="se">\\</span><span class="s2">t,支持多分隔符，eg.'</span><span class="se">\t</span><span class="s2">||\|' ]"</span><span class="p">)</span></span>
+<span class="code-line">    <span class="k">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\t</span><span class="s2"> -P 'OFS'          [可选，out FS，输出文件的域分隔符，默认为</span><span class="se">\\</span><span class="s2">t,可指定多个，多个需指定序号=分隔符,逗号分隔,默认分隔符序号0 ]"</span><span class="p">)</span></span>
+<span class="code-line">    <span class="k">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\t</span><span class="s2"> -f 'fill_str'     [可选，fill，未选列的填充值，默认为空 ]"</span><span class="p">)</span></span>
+<span class="code-line">    <span class="k">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\t</span><span class="s2"> -s                [可选，serial number,当配置时，-f无效，使用列号填充未指派的列]"</span><span class="p">)</span></span>
+<span class="code-line">    <span class="k">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\t</span><span class="s2"> -e                [可选，error, 源文件列切分不一致行/空行/注释等，会被直接输出，正确行按原逻辑处理]"</span><span class="p">)</span></span>
+<span class="code-line">    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></span>
+<span class="code-line"></span>
+<span class="code-line"><span class="c1">#判断某个参数必须被定义</span></span>
+<span class="code-line"><span class="k">def</span> <span class="nf">must_be_defined</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="nb">map</span><span class="p">,</span> <span class="n">error_info</span><span class="p">):</span></span>
+<span class="code-line">    <span class="k">if</span> <span class="n">param</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">map</span><span class="p">:</span></span>
+<span class="code-line">       <span class="k">print</span> <span class="n">error_info</span></span>
+<span class="code-line">       <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span></span>
+<span class="code-line"></span>
+<span class="code-line"><span class="c1">#程序入口，读入参数，执行</span></span>
+<span class="code-line"><span class="k">def</span> <span class="nf">main</span><span class="p">():</span></span>
+<span class="code-line">    <span class="c1">#init default value</span></span>
+<span class="code-line">    <span class="n">insp</span> <span class="o">=</span> <span class="s2">"</span><span class="se">\t</span><span class="s2">"</span></span>
+<span class="code-line">    <span class="n">outsp</span> <span class="o">=</span> <span class="s2">"</span><span class="se">\t</span><span class="s2">"</span></span>
+<span class="code-line">    <span class="n">empty_fill</span> <span class="o">=</span> <span class="s1">''</span></span>
+<span class="code-line">    <span class="n">fill_with_sno</span> <span class="o">=</span> <span class="bp">False</span></span>
+<span class="code-line">    <span class="n">error_line_out</span> <span class="o">=</span> <span class="bp">False</span></span>
+<span class="code-line">    <span class="c1">#handle options</span></span>
+<span class="code-line">    <span class="k">try</span><span class="p">:</span></span>
+<span class="code-line">        <span class="n">opts</span><span class="p">,</span><span class="n">args</span> <span class="o">=</span> <span class="n">getopt</span><span class="o">.</span><span class="n">getopt</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span><span class="s2">"F:P:t:a:i:o:f:hse"</span><span class="p">)</span></span>
+<span class="code-line"></span>
+<span class="code-line">        <span class="k">for</span> <span class="n">op</span><span class="p">,</span><span class="n">value</span> <span class="ow">in</span> <span class="n">opts</span><span class="p">:</span></span>
+<span class="code-line">          <span class="k">if</span> <span class="n">op</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"-h"</span><span class="p">,</span> <span class="s2">"-H"</span><span class="p">,</span> <span class="s2">"--help"</span><span class="p">):</span></span>
+<span class="code-line">            <span class="n">help_msg</span><span class="p">()</span></span>
+<span class="code-line">          <span class="k">if</span> <span class="n">op</span> <span class="o">==</span> <span class="s2">"-i"</span><span class="p">:</span></span>
+<span class="code-line">            <span class="n">inpath</span> <span class="o">=</span> <span class="n">value</span></span>
+<span class="code-line">          <span class="k">elif</span> <span class="n">op</span> <span class="o">==</span> <span class="s2">"-o"</span><span class="p">:</span></span>
+<span class="code-line">            <span class="n">outpath</span> <span class="o">=</span> <span class="n">value</span></span>
+<span class="code-line">          <span class="k">elif</span> <span class="n">op</span> <span class="o">==</span> <span class="s2">"-t"</span><span class="p">:</span></span>
+<span class="code-line">            <span class="n">total</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></span>
+<span class="code-line">          <span class="k">elif</span> <span class="n">op</span> <span class="o">==</span> <span class="s2">"-a"</span><span class="p">:</span></span>
+<span class="code-line">            <span class="n">to</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">","</span><span class="p">)</span></span>
+<span class="code-line">          <span class="k">elif</span> <span class="n">op</span> <span class="o">==</span> <span class="s2">"-F"</span><span class="p">:</span></span>
+<span class="code-line">            <span class="n">insp</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">"string_escape"</span><span class="p">)</span></span>
+<span class="code-line">          <span class="k">elif</span> <span class="n">op</span> <span class="o">==</span> <span class="s2">"-P"</span><span class="p">:</span></span>
+<span class="code-line">            <span class="n">outsp</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">"string_escape"</span><span class="p">)</span></span>
+<span class="code-line">          <span class="k">elif</span> <span class="n">op</span> <span class="o">==</span> <span class="s2">"-f"</span><span class="p">:</span></span>
+<span class="code-line">            <span class="n">empty_fill</span> <span class="o">=</span> <span class="n">value</span></span>
+<span class="code-line">          <span class="k">elif</span> <span class="n">op</span> <span class="o">==</span> <span class="s2">"-s"</span><span class="p">:</span></span>
+<span class="code-line">            <span class="n">fill_with_sno</span> <span class="o">=</span> <span class="bp">True</span></span>
+<span class="code-line">          <span class="k">elif</span> <span class="n">op</span> <span class="o">==</span> <span class="s2">"-e"</span><span class="p">:</span></span>
+<span class="code-line">            <span class="n">error_line_out</span> <span class="o">=</span> <span class="bp">True</span></span>
+<span class="code-line">        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">opts</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span></span>
+<span class="code-line">          <span class="k">print</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="s2">" : the amount of params must great equal than 3"</span><span class="p">)</span></span>
+<span class="code-line">          <span class="k">print</span><span class="p">(</span><span class="s2">"Command : ./dataformat.py -h"</span><span class="p">)</span></span>
+<span class="code-line">          <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="k">except</span> <span class="n">getopt</span><span class="o">.</span><span class="n">GetoptError</span><span class="p">:</span></span>
+<span class="code-line">        <span class="k">print</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="s2">" : params are not defined well!"</span><span class="p">)</span></span>
+<span class="code-line">        <span class="k">print</span><span class="p">(</span><span class="s2">"Command : ./dataformat.py -h"</span><span class="p">)</span></span>
+<span class="code-line">        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="n">params_map</span> <span class="o">=</span> <span class="nb">dir</span><span class="p">()</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="n">must_be_defined</span><span class="p">(</span><span class="s1">'inpath'</span><span class="p">,</span> <span class="n">params_map</span><span class="p">,</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="s2">" : -i param is needed,input file path must define!"</span><span class="p">)</span></span>
+<span class="code-line">    <span class="n">must_be_defined</span><span class="p">(</span><span class="s1">'total'</span><span class="p">,</span> <span class="n">params_map</span><span class="p">,</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="s2">" : -t param is needed,the fields of result file must define!"</span><span class="p">)</span></span>
+<span class="code-line">    <span class="n">must_be_defined</span><span class="p">(</span><span class="s1">'to'</span><span class="p">,</span> <span class="n">params_map</span><span class="p">,</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="s2">" : -a param is needed,must assign the field to put !"</span><span class="p">)</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">inpath</span><span class="p">):</span></span>
+<span class="code-line">        <span class="k">print</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="s2">" file : </span><span class="si">%s</span><span class="s2"> is not exists"</span><span class="o">%</span><span class="n">inpath</span><span class="p">)</span></span>
+<span class="code-line">        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="k">if</span> <span class="s1">'outpath'</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">():</span></span>
+<span class="code-line">        <span class="n">outpath</span> <span class="o">=</span> <span class="n">inpath</span><span class="o">+</span><span class="s2">".dist"</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="n">process</span><span class="p">(</span><span class="n">inpath</span><span class="p">,</span> <span class="n">total</span><span class="p">,</span> <span class="n">to</span><span class="p">,</span> <span class="n">outpath</span><span class="p">,</span> <span class="n">insp</span><span class="p">,</span> <span class="n">outsp</span><span class="p">,</span> <span class="n">empty_fill</span><span class="p">,</span> <span class="n">fill_with_sno</span><span class="p">,</span> <span class="n">error_line_out</span><span class="p">)</span></span>
+<span class="code-line"></span>
+<span class="code-line"><span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span><span class="s2">"__main__"</span><span class="p">:</span></span>
+<span class="code-line">    <span class="n">main</span><span class="p">()</span></span>
 </pre></div>
 <h3 id="shi-yong-shuo-ming">使用说明</h3>
 <p>功能：可指定输入分隔，输出分隔，无配置字段填充，某列默认值,可按顺序填充，也可乱序映射填充</p>
 <p>输入：输入文件路径</p>
 <p>选项：</p>
-<div class="monokai"><pre><span></span>-i “path”
-必设
-输入文件路径
-
--t n
-必设
-目标数据表总列数
-
--a “r1,r2”
-必设
-将要填充的列号列表，可配置默认值，可配置映射
-
--o “path”
-可选
-输出文件路径，默认为 输入文件路径.dist
-
--F “IFS”
-可选
-输入文件中字段域分隔符，默认\t
-
--P ”OFS”
-可选
-输出文件中字段域分隔符，默认\t
-
--f “”
-可选
-指定未配置列的填充内容，默认为空
-
--h
-单独
-查看帮助信息
+<div class="monokai"><pre><span class="code-line"><span></span>-i “path”</span>
+<span class="code-line">必设</span>
+<span class="code-line">输入文件路径</span>
+<span class="code-line"></span>
+<span class="code-line">-t n</span>
+<span class="code-line">必设</span>
+<span class="code-line">目标数据表总列数</span>
+<span class="code-line"></span>
+<span class="code-line">-a “r1,r2”</span>
+<span class="code-line">必设</span>
+<span class="code-line">将要填充的列号列表，可配置默认值，可配置映射</span>
+<span class="code-line"></span>
+<span class="code-line">-o “path”</span>
+<span class="code-line">可选</span>
+<span class="code-line">输出文件路径，默认为 输入文件路径.dist</span>
+<span class="code-line"></span>
+<span class="code-line">-F “IFS”</span>
+<span class="code-line">可选</span>
+<span class="code-line">输入文件中字段域分隔符，默认\t</span>
+<span class="code-line"></span>
+<span class="code-line">-P ”OFS”</span>
+<span class="code-line">可选</span>
+<span class="code-line">输出文件中字段域分隔符，默认\t</span>
+<span class="code-line"></span>
+<span class="code-line">-f “”</span>
+<span class="code-line">可选</span>
+<span class="code-line">指定未配置列的填充内容，默认为空</span>
+<span class="code-line"></span>
+<span class="code-line">-h</span>
+<span class="code-line">单独</span>
+<span class="code-line">查看帮助信息</span>
 </pre></div>
 <p>列填充的配置示例：</p>
 <p>普通用法【最常用】</p>
 <p>命令：</p>
-<div class="monokai"><pre><span></span>./dataformat.py –i in_file –t 65 -a “22,39,63” –F “^I” –P “^A” –f “0”
+<div class="monokai"><pre><span class="code-line"><span></span>./dataformat.py –i in_file –t 65 -a “22,39,63” –F “^I” –P “^A” –f “0”</span>
 </pre></div>
 <p>说明：</p>
-<div class="monokai"><pre><span></span><span class="n">in_file</span><span class="err">中字段是以\</span><span class="n">t</span><span class="err">分隔的</span><span class="p">[</span><span class="err">可不配</span><span class="o">-</span><span class="n">F</span><span class="p">,</span><span class="err">使用默认</span><span class="p">]</span><span class="err">。</span>
-<span class="err">将</span><span class="n">in_file</span><span class="err">的第</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="err">列分别填充到</span><span class="n">in_file</span><span class="p">.</span><span class="n">dist</span><span class="p">[</span><span class="n">use</span> <span class="k">default</span><span class="p">]</span><span class="err">的第</span><span class="mi">22</span><span class="p">,</span><span class="mi">39</span><span class="p">,</span><span class="mi">63</span><span class="err">列</span>
-<span class="n">in_file</span><span class="p">.</span><span class="n">dist</span><span class="err">共</span><span class="mi">65</span><span class="err">列，以</span><span class="o">^</span><span class="n">A</span><span class="err">分隔，未配置列以</span><span class="mi">0</span><span class="err">填充</span>
-<span class="o">-</span><span class="n">a</span><span class="err">中顺序与源文件列序有关，若</span><span class="o">-</span><span class="n">a</span> <span class="err">“</span><span class="mi">39</span><span class="p">,</span><span class="mi">22</span><span class="p">,</span><span class="mi">63</span><span class="err">”</span> <span class="err">则是将第</span><span class="mi">1</span><span class="err">列填充到第</span><span class="mi">39</span><span class="err">列，第二列填充到</span><span class="mi">22</span><span class="err">列，第</span><span class="mi">3</span><span class="err">列填充到</span><span class="mi">63</span><span class="err">列</span>
+<div class="monokai"><pre><span class="code-line"><span></span><span class="n">in_file</span><span class="err">中字段是以\</span><span class="n">t</span><span class="err">分隔的</span><span class="p">[</span><span class="err">可不配</span><span class="o">-</span><span class="n">F</span><span class="p">,</span><span class="err">使用默认</span><span class="p">]</span><span class="err">。</span></span>
+<span class="code-line"><span class="err">将</span><span class="n">in_file</span><span class="err">的第</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="err">列分别填充到</span><span class="n">in_file</span><span class="p">.</span><span class="n">dist</span><span class="p">[</span><span class="n">use</span> <span class="k">default</span><span class="p">]</span><span class="err">的第</span><span class="mi">22</span><span class="p">,</span><span class="mi">39</span><span class="p">,</span><span class="mi">63</span><span class="err">列</span></span>
+<span class="code-line"><span class="n">in_file</span><span class="p">.</span><span class="n">dist</span><span class="err">共</span><span class="mi">65</span><span class="err">列，以</span><span class="o">^</span><span class="n">A</span><span class="err">分隔，未配置列以</span><span class="mi">0</span><span class="err">填充</span></span>
+<span class="code-line"><span class="o">-</span><span class="n">a</span><span class="err">中顺序与源文件列序有关，若</span><span class="o">-</span><span class="n">a</span> <span class="err">“</span><span class="mi">39</span><span class="p">,</span><span class="mi">22</span><span class="p">,</span><span class="mi">63</span><span class="err">”</span> <span class="err">则是将第</span><span class="mi">1</span><span class="err">列填充到第</span><span class="mi">39</span><span class="err">列，第二列填充到</span><span class="mi">22</span><span class="err">列，第</span><span class="mi">3</span><span class="err">列填充到</span><span class="mi">63</span><span class="err">列</span></span>
 </pre></div>
 <p>列默认值用法:【需要对某些列填充相同的值，但不想在源文件中维护】</p>
 <p>命令:</p>
-<div class="monokai"><pre><span></span>./dataformat.py -i in_file –t 30 –a “3=tag_1,9,7,12=0.0” –o out_file
+<div class="monokai"><pre><span class="code-line"><span></span>./dataformat.py -i in_file –t 30 –a “3=tag_1,9,7,12=0.0” –o out_file</span>
 </pre></div>
 <p>说明:</p>
-<div class="monokai"><pre><span></span>in_file以\t分隔，输出out_file以\t分隔
-将in_file的第1列,第2列填充到out_file的第9列，第7列
-out_file共30列，第3列均用字符串”tag_1”填充，第12列用0.0填充，其他未配置列为空
-注意：默认值 的取值，若是使用到等号和冒号，需转义，加 \= \:
+<div class="monokai"><pre><span class="code-line"><span></span>in_file以\t分隔，输出out_file以\t分隔</span>
+<span class="code-line">将in_file的第1列,第2列填充到out_file的第9列，第7列</span>
+<span class="code-line">out_file共30列，第3列均用字符串”tag_1”填充，第12列用0.0填充，其他未配置列为空</span>
+<span class="code-line">注意：默认值 的取值，若是使用到等号和冒号，需转义，加 \= \:</span>
 </pre></div>
 <p>列列乱序映射：</p>
 <p>命令:</p>
-<div class="monokai"><pre><span></span>./dataformat.py –i in_file –t 56 –a “3:2,9,5:3,1=abc,11”
+<div class="monokai"><pre><span class="code-line"><span></span>./dataformat.py –i in_file –t 56 –a “3:2,9,5:3,1=abc,11”</span>
 </pre></div>
 <p>说明:</p>
-<div class="monokai"><pre><span></span>分隔，输入，输出，同上…..
-冒号前面为输出文件列号，后面为输入文件列号
-目标文件第3列用输入文件第2列填充，目标文件第5列用输入文件第3列填充
-目标文件第一列均填充“abc”
-目标文件第9列用输入文件第1列填充，第11列用输入文件第4列填充【未配置映射，使用从头开始还没有被用过的列】
-脚本会对简单的字段数量等映射逻辑进行检测，复杂最好全配上，使用默认太抽象
+<div class="monokai"><pre><span class="code-line"><span></span>分隔，输入，输出，同上…..</span>
+<span class="code-line">冒号前面为输出文件列号，后面为输入文件列号</span>
+<span class="code-line">目标文件第3列用输入文件第2列填充，目标文件第5列用输入文件第3列填充</span>
+<span class="code-line">目标文件第一列均填充“abc”</span>
+<span class="code-line">目标文件第9列用输入文件第1列填充，第11列用输入文件第4列填充【未配置映射，使用从头开始还没有被用过的列】</span>
+<span class="code-line">脚本会对简单的字段数量等映射逻辑进行检测，复杂最好全配上，使用默认太抽象</span>
 </pre></div>
 <p>代码托管位置  <a href="https://github.com/wklken/pytools/blob/master/data_process/dataformat.py">链接</a></p>
     </section>

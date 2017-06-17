@@ -82,89 +82,89 @@
 <p>有点绕, 一定要思维清晰的时候再看哦:)</p>
 <hr/>
 <p>一个例子</p>
-<div class="monokai"><pre><span></span>&gt;&gt;&gt; a = 1
-&gt;&gt;&gt; a
-1
-
-&gt;&gt;&gt; type(a)
-&lt;type 'int'&gt;
-
-#等价的两个
-&gt;&gt;&gt; type(type(a))
-&lt;type 'type'&gt;
-&gt;&gt;&gt; type(int)
-&lt;type 'type'&gt;
-
-#还是等价的两个
-&gt;&gt;&gt; type(type(type(a)))
-&lt;type 'type'&gt;
-&gt;&gt;&gt; type(type(int))
-&lt;type 'type'&gt;
+<div class="monokai"><pre><span class="code-line"><span></span>&gt;&gt;&gt; a = 1</span>
+<span class="code-line">&gt;&gt;&gt; a</span>
+<span class="code-line">1</span>
+<span class="code-line"></span>
+<span class="code-line">&gt;&gt;&gt; type(a)</span>
+<span class="code-line">&lt;type 'int'&gt;</span>
+<span class="code-line"></span>
+<span class="code-line">#等价的两个</span>
+<span class="code-line">&gt;&gt;&gt; type(type(a))</span>
+<span class="code-line">&lt;type 'type'&gt;</span>
+<span class="code-line">&gt;&gt;&gt; type(int)</span>
+<span class="code-line">&lt;type 'type'&gt;</span>
+<span class="code-line"></span>
+<span class="code-line">#还是等价的两个</span>
+<span class="code-line">&gt;&gt;&gt; type(type(type(a)))</span>
+<span class="code-line">&lt;type 'type'&gt;</span>
+<span class="code-line">&gt;&gt;&gt; type(type(int))</span>
+<span class="code-line">&lt;type 'type'&gt;</span>
 </pre></div>
 <p>我们反向推导一个<code>int</code>对象是怎么生成的.</p>
 <hr/>
 <h3 id="1-shou-xian-ding-yi-yi-chong-lei-xing-jiao-pytypeobject">1. 首先, 定义一种类型叫PyTypeObject</h3>
 <p>代码位置 <a href="https://github.com/wklken/Python-2.7.8/blob/master/Include/object.h">Include/object.h</a></p>
 <p>定义</p>
-<div class="monokai"><pre><span></span> typedef struct _typeobject {
-
-  /* MARK: base, 注意, 是个变长对象*/
-  PyObject_VAR_HEAD
-  const char *tp_name; /* For printing, in format "&lt;module&gt;.&lt;name&gt;" */ //类型名
-  Py_ssize_t tp_basicsize, tp_itemsize; /* For allocation */ // 创建该类型对象时分配的内存空间大小
-
-
-  // 一堆方法定义, 函数和指针
-  /* Methods to implement standard operations */
-  printfunc tp_print;
-  hashfunc tp_hash;
-
-  /* Method suites for standard classes */
-  PyNumberMethods *tp_as_number;   // 数值对象操作
-  PySequenceMethods *tp_as_sequence; // 序列对象操作
-  PyMappingMethods *tp_as_mapping; // 字典对象操作
-
-  // 一堆属性定义
-  ....
-
-} PyTypeObject;
+<div class="monokai"><pre><span class="code-line"><span></span> typedef struct _typeobject {</span>
+<span class="code-line"></span>
+<span class="code-line">  /* MARK: base, 注意, 是个变长对象*/</span>
+<span class="code-line">  PyObject_VAR_HEAD</span>
+<span class="code-line">  const char *tp_name; /* For printing, in format "&lt;module&gt;.&lt;name&gt;" */ //类型名</span>
+<span class="code-line">  Py_ssize_t tp_basicsize, tp_itemsize; /* For allocation */ // 创建该类型对象时分配的内存空间大小</span>
+<span class="code-line"></span>
+<span class="code-line"></span>
+<span class="code-line">  // 一堆方法定义, 函数和指针</span>
+<span class="code-line">  /* Methods to implement standard operations */</span>
+<span class="code-line">  printfunc tp_print;</span>
+<span class="code-line">  hashfunc tp_hash;</span>
+<span class="code-line"></span>
+<span class="code-line">  /* Method suites for standard classes */</span>
+<span class="code-line">  PyNumberMethods *tp_as_number;   // 数值对象操作</span>
+<span class="code-line">  PySequenceMethods *tp_as_sequence; // 序列对象操作</span>
+<span class="code-line">  PyMappingMethods *tp_as_mapping; // 字典对象操作</span>
+<span class="code-line"></span>
+<span class="code-line">  // 一堆属性定义</span>
+<span class="code-line">  ....</span>
+<span class="code-line"></span>
+<span class="code-line">} PyTypeObject;</span>
 </pre></div>
 <p>说明</p>
-<div class="monokai"><pre><span></span>1. PyObject_VAR_HEAD
-变长对象
-
-2. const char *tp_name
-tp_name, 类型名字符串数组
+<div class="monokai"><pre><span class="code-line"><span></span>1. PyObject_VAR_HEAD</span>
+<span class="code-line">变长对象</span>
+<span class="code-line"></span>
+<span class="code-line">2. const char *tp_name</span>
+<span class="code-line">tp_name, 类型名字符串数组</span>
 </pre></div>
 <p>所有Type都是PyTypeObject的"实例": PyType_Type/PyInt_Type</p>
 <hr/>
 <h3 id="2-ran-hou-yong-pytypeobjectchu-shi-hua-de-dao-yi-ge-dui-xiang-pytype_type">2. 然后, 用PyTypeObject初始化得到一个对象PyType_Type</h3>
 <p>代码位置 <a href="https://github.com/wklken/Python-2.7.8/blob/master/Objects/typeobject.c">Objects/typeobject.c</a></p>
 <p>定义</p>
-<div class="monokai"><pre><span></span>PyTypeObject PyType_Type = {
-  PyVarObject_HEAD_INIT(&amp;PyType_Type, 0)
-  "type",                                     /* tp_name */
-  sizeof(PyHeapTypeObject),                   /* tp_basicsize */
-  sizeof(PyMemberDef),                        /* tp_itemsize */
-  (destructor)type_dealloc,                   /* tp_dealloc */
-
-  // type对象的方法和属性初始化值
-  .....
-
-};
+<div class="monokai"><pre><span class="code-line"><span></span>PyTypeObject PyType_Type = {</span>
+<span class="code-line">  PyVarObject_HEAD_INIT(&amp;PyType_Type, 0)</span>
+<span class="code-line">  "type",                                     /* tp_name */</span>
+<span class="code-line">  sizeof(PyHeapTypeObject),                   /* tp_basicsize */</span>
+<span class="code-line">  sizeof(PyMemberDef),                        /* tp_itemsize */</span>
+<span class="code-line">  (destructor)type_dealloc,                   /* tp_dealloc */</span>
+<span class="code-line"></span>
+<span class="code-line">  // type对象的方法和属性初始化值</span>
+<span class="code-line">  .....</span>
+<span class="code-line"></span>
+<span class="code-line">};</span>
 </pre></div>
 <p>说明</p>
-<div class="monokai"><pre><span></span>1. tp_name
-类型名, 这里是"type"
-
-2. PyVarObject_HEAD_INIT(&amp;PyType_Type, 0)
-PyVarObject_HEAD_INIT, 这个方法在 Include/object.h中,
-等价于
-        ob_refcnt = 1
-        *ob_type = &amp;PyType_Type
-        ob_size = 0
-
-即, PyType_Type的类型是其本身!
+<div class="monokai"><pre><span class="code-line"><span></span>1. tp_name</span>
+<span class="code-line">类型名, 这里是"type"</span>
+<span class="code-line"></span>
+<span class="code-line">2. PyVarObject_HEAD_INIT(&amp;PyType_Type, 0)</span>
+<span class="code-line">PyVarObject_HEAD_INIT, 这个方法在 Include/object.h中,</span>
+<span class="code-line">等价于</span>
+<span class="code-line">        ob_refcnt = 1</span>
+<span class="code-line">        *ob_type = &amp;PyType_Type</span>
+<span class="code-line">        ob_size = 0</span>
+<span class="code-line"></span>
+<span class="code-line">即, PyType_Type的类型是其本身!</span>
 </pre></div>
 <p>结构</p>
 <p>第一张图, 箭头表示<code>实例化</code>(google doc用不是很熟找不到对应类型的箭头)
@@ -172,112 +172,112 @@ PyVarObject_HEAD_INIT, 这个方法在 Include/object.h中,
 <p>第二张图, 箭头表示<code>指向</code>
 <img alt="PyType_Type2" src="/imgs/python-source/PyType_Type2.png"/></p>
 <p>使用</p>
-<div class="monokai"><pre><span></span># 1. int 的 类型 是`type`
-&gt;&gt;&gt; type(int)
-&lt;type 'type'&gt;
-
-# 2. type 的类型 还是`type`, 对应上面说明第二点
-&gt;&gt;&gt; type(type(int))
-&lt;type 'type'&gt;
+<div class="monokai"><pre><span class="code-line"><span></span># 1. int 的 类型 是`type`</span>
+<span class="code-line">&gt;&gt;&gt; type(int)</span>
+<span class="code-line">&lt;type 'type'&gt;</span>
+<span class="code-line"></span>
+<span class="code-line"># 2. type 的类型 还是`type`, 对应上面说明第二点</span>
+<span class="code-line">&gt;&gt;&gt; type(type(int))</span>
+<span class="code-line">&lt;type 'type'&gt;</span>
 </pre></div>
 <p>注意: 无论任何时候, ob_type指向的是 PyTypeObject的实例: PyType_Type/PyInt_Type...</p>
 <hr/>
 <h3 id="3-zai-ran-hou-ding-yi-ju-ti-de-lei-xing-zhe-li-yi-pyint_typewei-li-zi">3. 再然后, 定义具体的类型, 这里以PyInt_Type为例子</h3>
 <p>代码位置 <a href="https://github.com/wklken/Python-2.7.8/blob/master/Objects/intobject.c">Objects/intobject.c</a></p>
 <p>定义</p>
-<div class="monokai"><pre><span></span>PyTypeObject PyInt_Type = {
-  PyVarObject_HEAD_INIT(&amp;PyType_Type, 0)
-  "int",
-  sizeof(PyIntObject),
-  0,
-
-  // int类型的相关方法和属性值
-  ....
-
-  (hashfunc)int_hash,                         /* tp_hash */
-
-};
+<div class="monokai"><pre><span class="code-line"><span></span>PyTypeObject PyInt_Type = {</span>
+<span class="code-line">  PyVarObject_HEAD_INIT(&amp;PyType_Type, 0)</span>
+<span class="code-line">  "int",</span>
+<span class="code-line">  sizeof(PyIntObject),</span>
+<span class="code-line">  0,</span>
+<span class="code-line"></span>
+<span class="code-line">  // int类型的相关方法和属性值</span>
+<span class="code-line">  ....</span>
+<span class="code-line"></span>
+<span class="code-line">  (hashfunc)int_hash,                         /* tp_hash */</span>
+<span class="code-line"></span>
+<span class="code-line">};</span>
 </pre></div>
 <p>说明</p>
-<div class="monokai"><pre><span></span>1. "int"
-PyInt_Type的类型名是int
-
-2.PyVarObject_HEAD_INIT(&amp;PyType_Type, 0)
-PyInt_Type的
-
-    *ob_type = &amp;PyType_Type
+<div class="monokai"><pre><span class="code-line"><span></span>1. "int"</span>
+<span class="code-line">PyInt_Type的类型名是int</span>
+<span class="code-line"></span>
+<span class="code-line">2.PyVarObject_HEAD_INIT(&amp;PyType_Type, 0)</span>
+<span class="code-line">PyInt_Type的</span>
+<span class="code-line"></span>
+<span class="code-line">    *ob_type = &amp;PyType_Type</span>
 </pre></div>
 <p>结构</p>
 <p><img alt="PyType_Type2" src="/imgs/python-source/PyType_Type3.png"/></p>
 <p>使用</p>
-<div class="monokai"><pre><span></span>&gt;&gt;&gt; type(1)
-&lt;type 'int'&gt;
-
-&gt;&gt;&gt; type(type(1))
-&lt;type 'type'&gt;
+<div class="monokai"><pre><span class="code-line"><span></span>&gt;&gt;&gt; type(1)</span>
+<span class="code-line">&lt;type 'int'&gt;</span>
+<span class="code-line"></span>
+<span class="code-line">&gt;&gt;&gt; type(type(1))</span>
+<span class="code-line">&lt;type 'type'&gt;</span>
 </pre></div>
 <hr/>
 <h3 id="4-zui-hou-sheng-cheng-yi-ge-zheng-shu-dui-xiang-int">4. 最后, 生成一个整数对象int</h3>
 <p>代码位置 <a href="https://github.com/wklken/Python-2.7.8/blob/master/Include/intobject.h">Include/intobject.h</a></p>
 <p>定义</p>
-<div class="monokai"><pre><span></span>typedef struct {
-    PyObject_HEAD
-    long ob_ival;
-} PyIntObject;
+<div class="monokai"><pre><span class="code-line"><span></span>typedef struct {</span>
+<span class="code-line">    PyObject_HEAD</span>
+<span class="code-line">    long ob_ival;</span>
+<span class="code-line">} PyIntObject;</span>
 </pre></div>
 <p>结构</p>
 <p><img alt="PyType_Type2" src="/imgs/python-source/PyType_Type4.png"/></p>
-<div class="monokai"><pre><span></span>1. PyIntObject为整数类型
-
-2. 声明一个整数后得到整数对象
-
-3. 对象ob_type指向PyInt_type对象
+<div class="monokai"><pre><span class="code-line"><span></span>1. PyIntObject为整数类型</span>
+<span class="code-line"></span>
+<span class="code-line">2. 声明一个整数后得到整数对象</span>
+<span class="code-line"></span>
+<span class="code-line">3. 对象ob_type指向PyInt_type对象</span>
 </pre></div>
 <hr/>
 <h3 id="dao-zhe-li-zong-jie-xia">到这里, 总结下</h3>
-<div class="monokai"><pre><span></span> 1. 一切都是对象
-
- 2. PyType_Type / PyInt_Type / PyString_Type ....等
- 这些是`类型对象`, 可以认为是同级, 都是PyTypeObject这种`类型`的实例!
-
- 3. 虽然是同级,
- 但是其他PyXXX_Type, 其类型指向 PyType_Type
- PyType_Type 的类型指向自己, 它是所有类型的`类型`
-
- 4. PyTypeObject 是一个变长对象
-
- 5. 每个object, 例如PyIntObject都属于一种`类型`
- object初始化时进行关联
+<div class="monokai"><pre><span class="code-line"><span></span> 1. 一切都是对象</span>
+<span class="code-line"></span>
+<span class="code-line"> 2. PyType_Type / PyInt_Type / PyString_Type ....等</span>
+<span class="code-line"> 这些是`类型对象`, 可以认为是同级, 都是PyTypeObject这种`类型`的实例!</span>
+<span class="code-line"></span>
+<span class="code-line"> 3. 虽然是同级,</span>
+<span class="code-line"> 但是其他PyXXX_Type, 其类型指向 PyType_Type</span>
+<span class="code-line"> PyType_Type 的类型指向自己, 它是所有类型的`类型`</span>
+<span class="code-line"></span>
+<span class="code-line"> 4. PyTypeObject 是一个变长对象</span>
+<span class="code-line"></span>
+<span class="code-line"> 5. 每个object, 例如PyIntObject都属于一种`类型`</span>
+<span class="code-line"> object初始化时进行关联</span>
 </pre></div>
 <hr/>
 <h3 id="duo-tai-shi-ru-he-shi-xian-de">多态是如何实现的?</h3>
 <p>对象的多态, 例如hash</p>
-<div class="monokai"><pre><span></span>&gt;&gt;&gt; hash(1)
-1
-&gt;&gt;&gt; hash("abc")
-1453079729188098211
+<div class="monokai"><pre><span class="code-line"><span></span>&gt;&gt;&gt; hash(1)</span>
+<span class="code-line">1</span>
+<span class="code-line">&gt;&gt;&gt; hash("abc")</span>
+<span class="code-line">1453079729188098211</span>
 </pre></div>
 <p>从上面数据结构可以看到, 方法及属性, 在不同Type实例化时就确定了</p>
-<div class="monokai"><pre><span></span>PyTypeObject PyInt_Type = {
-    ...
-    (hashfunc)int_hash,                         /* tp_hash */
-    ...
-}
-
-
-PyTypeObject PyString_Type = {
-    ...
-    (hashfunc)string_hash,                      /* tp_hash */
-    ...
-}
+<div class="monokai"><pre><span class="code-line"><span></span>PyTypeObject PyInt_Type = {</span>
+<span class="code-line">    ...</span>
+<span class="code-line">    (hashfunc)int_hash,                         /* tp_hash */</span>
+<span class="code-line">    ...</span>
+<span class="code-line">}</span>
+<span class="code-line"></span>
+<span class="code-line"></span>
+<span class="code-line">PyTypeObject PyString_Type = {</span>
+<span class="code-line">    ...</span>
+<span class="code-line">    (hashfunc)string_hash,                      /* tp_hash */</span>
+<span class="code-line">    ...</span>
+<span class="code-line">}</span>
 </pre></div>
 <p>Python内部传递的是泛型指针<code>PyObject *</code>, 函数调用时, 找到其类型<code>* ob_type</code>, 然后调用</p>
-<div class="monokai"><pre><span></span>object -&gt; ob_type -&gt; tp_hash
+<div class="monokai"><pre><span class="code-line"><span></span>object -&gt; ob_type -&gt; tp_hash</span>
 </pre></div>
 <p>即: 大量函数指针决定了该类型的具体行为</p>
 <hr/>
 <p>changelog</p>
-<div class="monokai"><pre><span></span>2014-08-05 first version
+<div class="monokai"><pre><span class="code-line"><span></span>2014-08-05 first version</span>
 </pre></div>
     </section>
 

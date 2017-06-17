@@ -85,115 +85,115 @@
 <p>Python支持ini文件的读取</p>
 <h3 id="iniwen-jian">ini文件</h3>
 <p>db_config.ini</p>
-<div class="monokai"><pre><span></span><span class="k">[baseconf]</span>
-<span class="na">host</span><span class="o">=</span><span class="s">127.0.0.1</span>
-<span class="na">port</span><span class="o">=</span><span class="s">3306</span>
-<span class="na">user</span><span class="o">=</span><span class="s">root</span>
-<span class="na">password</span><span class="o">=</span><span class="s">root</span>
-<span class="na">db_name</span><span class="o">=</span><span class="s">evaluting_sys</span>
-<span class="k">[concurrent]</span>
-<span class="na">processor</span><span class="o">=</span><span class="s">20</span>
+<div class="monokai"><pre><span class="code-line"><span></span><span class="k">[baseconf]</span></span>
+<span class="code-line"><span class="na">host</span><span class="o">=</span><span class="s">127.0.0.1</span></span>
+<span class="code-line"><span class="na">port</span><span class="o">=</span><span class="s">3306</span></span>
+<span class="code-line"><span class="na">user</span><span class="o">=</span><span class="s">root</span></span>
+<span class="code-line"><span class="na">password</span><span class="o">=</span><span class="s">root</span></span>
+<span class="code-line"><span class="na">db_name</span><span class="o">=</span><span class="s">evaluting_sys</span></span>
+<span class="code-line"><span class="k">[concurrent]</span></span>
+<span class="code-line"><span class="na">processor</span><span class="o">=</span><span class="s">20</span></span>
 </pre></div>
 <h3 id="shi-li-dai-ma">示例代码</h3>
-<div class="monokai"><pre><span></span><span class="ch">#!/usr/bin/python</span>
-<span class="c1"># -*- coding:utf-8 -*-</span>
-<span class="c1">#author: lingyue.wkl</span>
-<span class="c1">#desc: use to db ops</span>
-<span class="c1">#---------------------</span>
-<span class="c1">#2012-02-18 created</span>
-<span class="c1">#---------------------</span>
-
-<span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span><span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">ConfigParser</span>
-<span class="k">def</span> <span class="nf">test</span><span class="p">(</span><span class="n">config_file_path</span><span class="p">):</span>
-    <span class="n">cf</span> <span class="o">=</span> <span class="n">ConfigParser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">()</span>
-    <span class="n">cf</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">config_file_path</span><span class="p">)</span>
-
-    <span class="n">s</span> <span class="o">=</span> <span class="n">cf</span><span class="o">.</span><span class="n">sections</span><span class="p">()</span>
-    <span class="k">print</span> <span class="s1">'section:'</span><span class="p">,</span> <span class="n">s</span>
-
-    <span class="n">o</span> <span class="o">=</span> <span class="n">cf</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="s2">"baseconf"</span><span class="p">)</span>
-    <span class="k">print</span> <span class="s1">'options:'</span><span class="p">,</span> <span class="n">o</span>
-
-    <span class="n">v</span> <span class="o">=</span> <span class="n">cf</span><span class="o">.</span><span class="n">items</span><span class="p">(</span><span class="s2">"baseconf"</span><span class="p">)</span>
-    <span class="k">print</span> <span class="s1">'db:'</span><span class="p">,</span> <span class="n">v</span>
-
-    <span class="n">db_host</span> <span class="o">=</span> <span class="n">cf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"baseconf"</span><span class="p">,</span> <span class="s2">"host"</span><span class="p">)</span>
-    <span class="n">db_port</span> <span class="o">=</span> <span class="n">cf</span><span class="o">.</span><span class="n">getint</span><span class="p">(</span><span class="s2">"baseconf"</span><span class="p">,</span> <span class="s2">"port"</span><span class="p">)</span>
-    <span class="n">db_user</span> <span class="o">=</span> <span class="n">cf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"baseconf"</span><span class="p">,</span> <span class="s2">"user"</span><span class="p">)</span>
-    <span class="n">db_pwd</span> <span class="o">=</span> <span class="n">cf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"baseconf"</span><span class="p">,</span> <span class="s2">"password"</span><span class="p">)</span>
-
-    <span class="k">print</span> <span class="n">db_host</span><span class="p">,</span> <span class="n">db_port</span><span class="p">,</span> <span class="n">db_user</span><span class="p">,</span> <span class="n">db_pwd</span>
-
-    <span class="n">cf</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">"baseconf"</span><span class="p">,</span> <span class="s2">"db_pass"</span><span class="p">,</span> <span class="s2">"123456"</span><span class="p">)</span>
-    <span class="n">cf</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="s2">"config_file_path"</span><span class="p">,</span> <span class="s2">"w"</span><span class="p">))</span>
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s2">"__main__"</span><span class="p">:</span>
-    <span class="n">test</span><span class="p">(</span><span class="s2">"../conf/db_config.ini"</span><span class="p">)</span>
+<div class="monokai"><pre><span class="code-line"><span></span><span class="ch">#!/usr/bin/python</span></span>
+<span class="code-line"><span class="c1"># -*- coding:utf-8 -*-</span></span>
+<span class="code-line"><span class="c1">#author: lingyue.wkl</span></span>
+<span class="code-line"><span class="c1">#desc: use to db ops</span></span>
+<span class="code-line"><span class="c1">#---------------------</span></span>
+<span class="code-line"><span class="c1">#2012-02-18 created</span></span>
+<span class="code-line"><span class="c1">#---------------------</span></span>
+<span class="code-line"></span>
+<span class="code-line"><span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span><span class="nn">os</span></span>
+<span class="code-line"><span class="kn">import</span> <span class="nn">ConfigParser</span></span>
+<span class="code-line"><span class="k">def</span> <span class="nf">test</span><span class="p">(</span><span class="n">config_file_path</span><span class="p">):</span></span>
+<span class="code-line">    <span class="n">cf</span> <span class="o">=</span> <span class="n">ConfigParser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">()</span></span>
+<span class="code-line">    <span class="n">cf</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">config_file_path</span><span class="p">)</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="n">s</span> <span class="o">=</span> <span class="n">cf</span><span class="o">.</span><span class="n">sections</span><span class="p">()</span></span>
+<span class="code-line">    <span class="k">print</span> <span class="s1">'section:'</span><span class="p">,</span> <span class="n">s</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="n">o</span> <span class="o">=</span> <span class="n">cf</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="s2">"baseconf"</span><span class="p">)</span></span>
+<span class="code-line">    <span class="k">print</span> <span class="s1">'options:'</span><span class="p">,</span> <span class="n">o</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="n">v</span> <span class="o">=</span> <span class="n">cf</span><span class="o">.</span><span class="n">items</span><span class="p">(</span><span class="s2">"baseconf"</span><span class="p">)</span></span>
+<span class="code-line">    <span class="k">print</span> <span class="s1">'db:'</span><span class="p">,</span> <span class="n">v</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="n">db_host</span> <span class="o">=</span> <span class="n">cf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"baseconf"</span><span class="p">,</span> <span class="s2">"host"</span><span class="p">)</span></span>
+<span class="code-line">    <span class="n">db_port</span> <span class="o">=</span> <span class="n">cf</span><span class="o">.</span><span class="n">getint</span><span class="p">(</span><span class="s2">"baseconf"</span><span class="p">,</span> <span class="s2">"port"</span><span class="p">)</span></span>
+<span class="code-line">    <span class="n">db_user</span> <span class="o">=</span> <span class="n">cf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"baseconf"</span><span class="p">,</span> <span class="s2">"user"</span><span class="p">)</span></span>
+<span class="code-line">    <span class="n">db_pwd</span> <span class="o">=</span> <span class="n">cf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"baseconf"</span><span class="p">,</span> <span class="s2">"password"</span><span class="p">)</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="k">print</span> <span class="n">db_host</span><span class="p">,</span> <span class="n">db_port</span><span class="p">,</span> <span class="n">db_user</span><span class="p">,</span> <span class="n">db_pwd</span></span>
+<span class="code-line"></span>
+<span class="code-line">    <span class="n">cf</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">"baseconf"</span><span class="p">,</span> <span class="s2">"db_pass"</span><span class="p">,</span> <span class="s2">"123456"</span><span class="p">)</span></span>
+<span class="code-line">    <span class="n">cf</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="s2">"config_file_path"</span><span class="p">,</span> <span class="s2">"w"</span><span class="p">))</span></span>
+<span class="code-line"><span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s2">"__main__"</span><span class="p">:</span></span>
+<span class="code-line">    <span class="n">test</span><span class="p">(</span><span class="s2">"../conf/db_config.ini"</span><span class="p">)</span></span>
 </pre></div>
 <h3 id="tong-yong-mo-kuai-init_oppy">通用模块init_op.py</h3>
 <p>支持命令行+import两种</p>
-<div class="monokai"><pre><span></span><span class="ch">#!/usr/bin/python</span>
-<span class="c1"># -*- coding:utf-8 -*-</span>
-<span class="c1">#author: lingyue.wkl</span>
-<span class="c1">#desc: use to read ini</span>
-<span class="c1">#---------------------</span>
-<span class="c1">#2012-02-18 created</span>
-<span class="c1">#2012-09-02 changed for class support</span>
-<span class="c1">#---------------------</span>
-<span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span><span class="nn">os</span><span class="o">,</span><span class="nn">time</span>
-<span class="kn">import</span> <span class="nn">ConfigParser</span>
-
-<span class="k">class</span> <span class="nc">Config</span><span class="p">:</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="n">path</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">cf</span> <span class="o">=</span> <span class="n">ConfigParser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">cf</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
-        <span class="n">result</span> <span class="o">=</span> <span class="s2">""</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
-        <span class="k">except</span><span class="p">:</span>
-            <span class="n">result</span> <span class="o">=</span> <span class="s2">""</span>
-        <span class="k">return</span> <span class="n">result</span>
-    <span class="k">def</span> <span class="nf">set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filed</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">cf</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
-            <span class="n">cf</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span><span class="s1">'w'</span><span class="p">))</span>
-        <span class="k">except</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">False</span>
-        <span class="k">return</span> <span class="bp">True</span>
-
-<span class="k">def</span> <span class="nf">read_config</span><span class="p">(</span><span class="n">config_file_path</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span> 
-    <span class="n">cf</span> <span class="o">=</span> <span class="n">ConfigParser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">()</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">cf</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">config_file_path</span><span class="p">)</span>
-        <span class="n">result</span> <span class="o">=</span> <span class="n">cf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
-    <span class="k">except</span><span class="p">:</span>
-        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">result</span>
-
-<span class="k">def</span> <span class="nf">write_config</span><span class="p">(</span><span class="n">config_file_path</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-    <span class="n">cf</span> <span class="o">=</span> <span class="n">ConfigParser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">()</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">cf</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">config_file_path</span><span class="p">)</span>
-        <span class="n">cf</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
-        <span class="n">cf</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">config_file_path</span><span class="p">,</span><span class="s1">'w'</span><span class="p">))</span>
-    <span class="k">except</span><span class="p">:</span>
-        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-    <span class="k">return</span> <span class="bp">True</span>
-
-<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s2">"__main__"</span><span class="p">:</span>
-   <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">:</span>
-      <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-
-   <span class="n">config_file_path</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> 
-   <span class="n">field</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
-   <span class="n">key</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
-   <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
-      <span class="k">print</span> <span class="n">read_config</span><span class="p">(</span><span class="n">config_file_path</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
-   <span class="k">else</span><span class="p">:</span>
-      <span class="n">value</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
-      <span class="n">write_config</span><span class="p">(</span><span class="n">config_file_path</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+<div class="monokai"><pre><span class="code-line"><span></span><span class="ch">#!/usr/bin/python</span></span>
+<span class="code-line"><span class="c1"># -*- coding:utf-8 -*-</span></span>
+<span class="code-line"><span class="c1">#author: lingyue.wkl</span></span>
+<span class="code-line"><span class="c1">#desc: use to read ini</span></span>
+<span class="code-line"><span class="c1">#---------------------</span></span>
+<span class="code-line"><span class="c1">#2012-02-18 created</span></span>
+<span class="code-line"><span class="c1">#2012-09-02 changed for class support</span></span>
+<span class="code-line"><span class="c1">#---------------------</span></span>
+<span class="code-line"><span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span><span class="nn">os</span><span class="o">,</span><span class="nn">time</span></span>
+<span class="code-line"><span class="kn">import</span> <span class="nn">ConfigParser</span></span>
+<span class="code-line"></span>
+<span class="code-line"><span class="k">class</span> <span class="nc">Config</span><span class="p">:</span></span>
+<span class="code-line">    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span></span>
+<span class="code-line">        <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="n">path</span></span>
+<span class="code-line">        <span class="bp">self</span><span class="o">.</span><span class="n">cf</span> <span class="o">=</span> <span class="n">ConfigParser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">()</span></span>
+<span class="code-line">        <span class="bp">self</span><span class="o">.</span><span class="n">cf</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span></span>
+<span class="code-line">    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span></span>
+<span class="code-line">        <span class="n">result</span> <span class="o">=</span> <span class="s2">""</span></span>
+<span class="code-line">        <span class="k">try</span><span class="p">:</span></span>
+<span class="code-line">            <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span></span>
+<span class="code-line">        <span class="k">except</span><span class="p">:</span></span>
+<span class="code-line">            <span class="n">result</span> <span class="o">=</span> <span class="s2">""</span></span>
+<span class="code-line">        <span class="k">return</span> <span class="n">result</span></span>
+<span class="code-line">    <span class="k">def</span> <span class="nf">set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filed</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span></span>
+<span class="code-line">        <span class="k">try</span><span class="p">:</span></span>
+<span class="code-line">            <span class="bp">self</span><span class="o">.</span><span class="n">cf</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span></span>
+<span class="code-line">            <span class="n">cf</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span><span class="s1">'w'</span><span class="p">))</span></span>
+<span class="code-line">        <span class="k">except</span><span class="p">:</span></span>
+<span class="code-line">            <span class="k">return</span> <span class="bp">False</span></span>
+<span class="code-line">        <span class="k">return</span> <span class="bp">True</span></span>
+<span class="code-line"></span>
+<span class="code-line"><span class="k">def</span> <span class="nf">read_config</span><span class="p">(</span><span class="n">config_file_path</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span> </span>
+<span class="code-line">    <span class="n">cf</span> <span class="o">=</span> <span class="n">ConfigParser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">()</span></span>
+<span class="code-line">    <span class="k">try</span><span class="p">:</span></span>
+<span class="code-line">        <span class="n">cf</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">config_file_path</span><span class="p">)</span></span>
+<span class="code-line">        <span class="n">result</span> <span class="o">=</span> <span class="n">cf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span></span>
+<span class="code-line">    <span class="k">except</span><span class="p">:</span></span>
+<span class="code-line">        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span></span>
+<span class="code-line">    <span class="k">return</span> <span class="n">result</span></span>
+<span class="code-line"></span>
+<span class="code-line"><span class="k">def</span> <span class="nf">write_config</span><span class="p">(</span><span class="n">config_file_path</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span></span>
+<span class="code-line">    <span class="n">cf</span> <span class="o">=</span> <span class="n">ConfigParser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">()</span></span>
+<span class="code-line">    <span class="k">try</span><span class="p">:</span></span>
+<span class="code-line">        <span class="n">cf</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">config_file_path</span><span class="p">)</span></span>
+<span class="code-line">        <span class="n">cf</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span></span>
+<span class="code-line">        <span class="n">cf</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">config_file_path</span><span class="p">,</span><span class="s1">'w'</span><span class="p">))</span></span>
+<span class="code-line">    <span class="k">except</span><span class="p">:</span></span>
+<span class="code-line">        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span></span>
+<span class="code-line">    <span class="k">return</span> <span class="bp">True</span></span>
+<span class="code-line"></span>
+<span class="code-line"><span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s2">"__main__"</span><span class="p">:</span></span>
+<span class="code-line">   <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">:</span></span>
+<span class="code-line">      <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span></span>
+<span class="code-line"></span>
+<span class="code-line">   <span class="n">config_file_path</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> </span>
+<span class="code-line">   <span class="n">field</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span></span>
+<span class="code-line">   <span class="n">key</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span></span>
+<span class="code-line">   <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span></span>
+<span class="code-line">      <span class="k">print</span> <span class="n">read_config</span><span class="p">(</span><span class="n">config_file_path</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span></span>
+<span class="code-line">   <span class="k">else</span><span class="p">:</span></span>
+<span class="code-line">      <span class="n">value</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span></span>
+<span class="code-line">      <span class="n">write_config</span><span class="p">(</span><span class="n">config_file_path</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span></span>
 </pre></div>
     </section>
 
