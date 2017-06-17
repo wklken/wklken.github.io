@@ -15,7 +15,9 @@
 &lt;p&gt;开始吧&lt;/p&gt;
 &lt;h2 id="1-zhao-dao-ri-zhi-de-wei-zhi"&gt;1. 找到日志的位置&lt;/h2&gt;
 &lt;p&gt;先确认是否开启了, 然后找到日志文件的位置&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&amp;gt; show variables like '%slow%';
+&lt;p&gt;```&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;show variables like '%slow%';
 +---------------------+-------------------------------------+
 | Variable_name       | Value                               |
 +---------------------+-------------------------------------+
@@ -24,24 +26,25 @@
 | slow_query_log      | ON                                  |
 | slow_query_log_file | /data/mysqllog/20000/slow-query.log |
 +---------------------+-------------------------------------+
-&lt;/pre&gt;&lt;/div&gt;
+```&lt;/p&gt;
+&lt;/blockquote&gt;
 &lt;h2 id="2-man-cha-xun-ri-zhi"&gt;2. 慢查询日志&lt;/h2&gt;
 &lt;p&gt;格式基本是如下, 当然, 格式如果有差异, 需要根据具体格式进行小的修改&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;# Time: 160524  5:12:29
-# User@Host: user_a[xxxx] @  [10.166.140 …&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Tue, 24 May 2016 00:00:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2016-05-24:/posts/2016/05/24/elk-mysql-slolog.html</guid><category>system</category></item><item><title>ELK维护的一些点(二)</title><link>http://www.wklken.me/posts/2016/05/07/elk-about-2.html</link><description>&lt;p&gt;很杂, 涉及到最近处理的一些点&lt;/p&gt;
+&lt;p&gt;```&lt;/p&gt;
+&lt;h1 id="time-160524-51229_1"&gt;Time: 160524  5:12:29&lt;/h1&gt;
+&lt;h1 id="userhost-user_axxxx-10166140109"&gt;User@Host: user_a[xxxx] @  [10.166.140 …&lt;/h1&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Tue, 24 May 2016 00:00:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2016-05-24:/posts/2016/05/24/elk-mysql-slolog.html</guid><category>system</category></item><item><title>ELK维护的一些点(二)</title><link>http://www.wklken.me/posts/2016/05/07/elk-about-2.html</link><description>&lt;p&gt;很杂, 涉及到最近处理的一些点&lt;/p&gt;
 &lt;hr/&gt;
 &lt;h3 id="gen-ju-stringzhuan-fu-dian-shu-de-mou-ge-zi-duan-pai-xu"&gt;根据string转浮点数的某个字段排序&lt;/h3&gt;
 &lt;p&gt;一个字段, &lt;code&gt;resp_time&lt;/code&gt;, mapping中是string, 有需求是, 按照响应时间降序排序, 此时需要构造qsl(在search中使用), 使用该字段转换为浮点数, 降序排列&lt;/p&gt;
 &lt;p&gt;第一步, 修改es配置, 增加groovy支持&lt;/p&gt;
 &lt;p&gt;elasticsearch.yml中加入&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;script.engine.groovy.inline.search: on
-&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;&lt;code&gt;script.engine.groovy.inline.search: on&lt;/code&gt;&lt;/p&gt;
 &lt;p&gt;然后, 执行 &lt;a href="http://www.wklken.me/posts/2016/02/16/elk-about-upgrade.html#rolling-restart"&gt;rolling restart&lt;/a&gt;, 逐一重启集群每个节点&lt;/p&gt;
 &lt;p&gt;第二步, 构造qsl,  &lt;code&gt;sort&lt;/code&gt;中,  增加&lt;code&gt;_script&lt;/code&gt; 使用groovy脚本, 将对应字段从string转成数字, 再进行排序&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;'sort': [{'_script': {'lang': 'groovy',
+&lt;p&gt;&lt;code&gt;'sort': [{'_script': {'lang': 'groovy',
                        'order': 'desc',
                        'script': 'Float.parseFloat(doc["resp_time"].value)',
-                       'type' …&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sat, 07 May 2016 00:00:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2016-05-07:/posts/2016/05/07/elk-about-2.html</guid><category>system</category></item><item><title>ELK 维护的一些点</title><link>http://www.wklken.me/posts/2016/02/16/elk-about-upgrade.html</link><description>&lt;p&gt;去年入职新公司之后, 负责维护平台的elk&lt;/p&gt;
+                       'type' …&lt;/code&gt;&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sat, 07 May 2016 00:00:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2016-05-07:/posts/2016/05/07/elk-about-2.html</guid><category>system</category></item><item><title>ELK 维护的一些点</title><link>http://www.wklken.me/posts/2016/02/16/elk-about-upgrade.html</link><description>&lt;p&gt;去年入职新公司之后, 负责维护平台的elk&lt;/p&gt;
 &lt;p&gt;这套东西是2013年搭建的, 年久失修, 所以做了个方案, 开始了批量升级&lt;/p&gt;
 &lt;p&gt;将logstash从1.3升级到2.1, 将elasticsearch从1.4.1升级到2.0&lt;/p&gt;
 &lt;p&gt;期间踩了很多坑, 搞了一个多月, 总算搞完&lt;/p&gt;
@@ -78,7 +81,7 @@
 &lt;ul&gt;
 &lt;li&gt;以往的统计方式:&lt;/li&gt;
 &lt;/ul&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;分析统计需求 -&amp;gt; 修改项目记录日志内容和格式 …&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sun, 16 Nov 2014 20:58:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2014-11-16:/posts/2014/11/16/unit-statistics-system.html</guid><category>system</category></item><item><title>简单搜索系统组成总结</title><link>http://www.wklken.me/posts/2014/06/09/search-system.html</link><description>&lt;p&gt;最近在进行离职前交接工作了, 对之前做的一些东西也大概进行了下简单总结.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;分析统计需求 -&amp;gt; 修改项目记录日志内容和格式 …&lt;/code&gt;&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sun, 16 Nov 2014 20:58:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2014-11-16:/posts/2014/11/16/unit-statistics-system.html</guid><category>system</category></item><item><title>简单搜索系统组成总结</title><link>http://www.wklken.me/posts/2014/06/09/search-system.html</link><description>&lt;p&gt;最近在进行离职前交接工作了, 对之前做的一些东西也大概进行了下简单总结.&lt;/p&gt;
 &lt;p&gt;今天整理了下, 搜索系统组成简要描述, 一些思想, 不涉及太多具体实现.&lt;/p&gt;
 &lt;p&gt;这套系统从开始设计到最终完成, 前前后后花了3个月的样子(计算所有时间投入), 也算是做得感觉比较完善的一套系统.&lt;/p&gt;
 &lt;p&gt;上线接近一年, 支持快玩游戏搜索业务(快玩盒子/快玩网站/移动端等), 系统每天百万级的搜索(峰值在250w左右, 应用层两台机器负载均衡, 单机核心层, 单机引擎), 很遗憾, 由于业务所限, 一直没有看到这套系统能支持的量上限, 即使在峰值, 核心层qps大概也才50左右, 预计搜索量到千万级应该没什么压力, 当然, 优化的余地还很多.&lt;/p&gt;
@@ -96,4 +99,4 @@
 &lt;li&gt;用户点击, 进行搜索, 前端调用搜索接口&lt;/li&gt;
 &lt;li&gt;
 &lt;p&gt;应用层&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;3 …&lt;/pre&gt;&lt;/div&gt;&lt;/li&gt;&lt;/ol&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Mon, 09 Jun 2014 00:00:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2014-06-09:/posts/2014/06/09/search-system.html</guid><category>system</category></item></channel></rss>
+&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;3 …&lt;/pre&gt;&lt;/div&gt;&lt;/li&gt;&lt;/ol&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Mon, 09 Jun 2014 00:00:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2014-06-09:/posts/2014/06/09/search-system.html</guid><category>system</category></item></channel></rss>

@@ -84,23 +84,23 @@
 <blockquote>
 <p>你的程序中, 有个函数与其所驻之外的另一个类进行更多交流: 调用后者, 或者被后者调用. 在该函数最常引用的类中建立一个有着类似行为的新函数. 将就函数变成一个单纯的委托函数, 或是将就函数完全移除</p>
 </blockquote>
-<div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">A</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">count</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">b</span> <span class="o">=</span> <span class="n">B</span><span class="p">()</span>
-        <span class="c1"># a lot operations with b</span>
-        <span class="k">return</span> <span class="n">b</span><span class="o">.</span><span class="n">compute</span><span class="p">()</span>
-<span class="k">class</span> <span class="nc">B</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">pass</span>
-</pre></div>
+<p><code>python
+class A(object):
+    def count(self):
+        b = B()
+        # a lot operations with b
+        return b.compute()
+class B(object):
+    def compute(self): pass</code></p>
 <p>to</p>
-<div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">A</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">pass</span>
-<span class="k">class</span> <span class="nc">B</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">count</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1"># a lot operations with b</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">pass</span>
-</pre></div>
+<p><code>python
+class A(object):
+    pass
+class B(object):
+    def count(self):
+        # a lot operations with b
+        return self.compute()
+    def compute(self): pass</code></p>
 <h4 id="72-move-field-ban-yi-zi-duan">7.2 Move Field 搬移字段</h4>
 <blockquote>
 <p>某个字段被其所驻类之外的另一个类更多地用到. 在目标类新建一个字段, 修改原字段的所有用户, 令他们改用新字段</p>
@@ -109,73 +109,72 @@
 <blockquote>
 <p>某个类做了应该由两个类做的事情. 建立以一个新的类, 将相关字段和函数从旧类版移到新的类</p>
 </blockquote>
-<div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Persion</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">age</span><span class="p">,</span> <span class="n">office_area_code</span><span class="p">,</span> <span class="n">office_number</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">age</span> <span class="o">=</span> <span class="n">age</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">office_area_code</span> <span class="o">=</span> <span class="n">office_area_code</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">office_number</span> <span class="o">=</span> <span class="n">office_number</span>
-    <span class="k">def</span> <span class="nf">get_phone_number</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s2">"</span><span class="si">%s</span><span class="s2">-</span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">office_area_code</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">office_number</span><span class="p">)</span>
-</pre></div>
+<p><code>python
+class Persion(object):
+    def __init__(self, name, age, office_area_code, office_number):
+        self.name = name
+        self.age = age
+        self.office_area_code = office_area_code
+        self.office_number = office_number
+    def get_phone_number(self):
+        return "%s-%s" % (self.office_area_code, self.office_number)</code></p>
 <p>to</p>
-<div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Person</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">age</span><span class="p">,</span> <span class="n">office_area_code</span><span class="p">,</span> <span class="n">office_number</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">age</span> <span class="o">=</span> <span class="n">age</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">phone_number</span> <span class="o">=</span> <span class="n">PhoneNumber</span><span class="p">(</span><span class="n">office_area_code</span><span class="p">,</span> <span class="n">office_number</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">get_phone_number</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">phone_number</span><span class="o">.</span><span class="n">get_number</span><span class="p">()</span>
-
-<span class="k">class</span> <span class="nc">PhoneNumber</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">get_number</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s2">"</span><span class="si">%s</span><span class="s2">-</span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">area_code</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">number</span><span class="p">)</span>
+<p>```python
+class Person(object):
+    def <strong>init</strong>(self, name, age, office_area_code, office_number):
+        self.name = name
+        self.age = age
+        self.phone_number = PhoneNumber(office_area_code, office_number)</p>
+<div class="monokai"><pre><span></span>def get_phone_number(self):
+    return self.phone_number.get_number()
 </pre></div>
+<p>class PhoneNumber(object):
+    def get_number(self):
+        return "%s-%s" % (self.area_code, self.number)
+```</p>
 <h4 id="74-inline-class-jiang-lei-nei-ju-hua">7.4 Inline Class 将类内聚化</h4>
 <blockquote>
 <p>某个类没有做太多事情. 将这个类的所有特性移动到另一个类中, 然后移除原类</p>
 </blockquote>
-<div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">A</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">value</span>
-    <span class="k">def</span> <span class="nf">fmt</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s2">"[</span><span class="si">%s</span><span class="s2">]"</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span>
-<span class="k">class</span> <span class="nc">B</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">format</span><span class="p">(</span><span class="nb">object</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
-        <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
-            <span class="n">a</span> <span class="o">=</span> <span class="n">A</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-            <span class="k">print</span> <span class="n">a</span><span class="o">.</span><span class="n">fmt</span><span class="p">()</span>
-</pre></div>
+<p><code>python
+class A(object):
+    def __init__(self, value):
+        self.value = value
+    def fmt(self):
+        return "[%s]" % self.value
+class B(object):
+    def format(object, values):
+        for value in values:
+            a = A(value)
+            print a.fmt()</code></p>
 <p>to</p>
-<div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">B</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">format</span><span class="p">(</span><span class="nb">object</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
-        <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
-            <span class="k">print</span> <span class="s2">"[</span><span class="si">%s</span><span class="s2">]"</span> <span class="o">%</span> <span class="n">value</span>
-</pre></div>
+<p><code>python
+class B(object):
+    def format(object, values):
+        for value in values:
+            print "[%s]" % value</code></p>
 <h4 id="75-hide-delegate-yin-cang-wei-tuo-guan-xi">7.5 Hide Delegate 隐藏"委托关系"</h4>
 <blockquote>
 <p>客户通过一个委托来调用另一个对象. 在服务类上建立客户所需要的所有函数, 用以隐藏委托关系</p>
 </blockquote>
-<div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Employee</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">get_department</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">Department</span><span class="p">()</span>
-
-<span class="n">john</span> <span class="o">=</span> <span class="n">Employee</span><span class="p">()</span>
-
-<span class="n">manager</span> <span class="o">=</span> <span class="n">john</span><span class="o">.</span><span class="n">get_department</span><span class="p">()</span><span class="o">.</span><span class="n">get_manager</span><span class="p">()</span>
-</pre></div>
+<p>```python
+class Employee(object):
+    def get_department(self):
+        return Department()</p>
+<p>john = Employee()</p>
+<p>manager = john.get_department().get_manager()
+```</p>
 <p>to</p>
-<div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Employee</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">get_department</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">Department</span><span class="p">()</span>
-
-    <span class="k">def</span> <span class="nf">get_manager</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">Department</span><span class="p">()</span><span class="o">.</span><span class="n">get_manager</span><span class="p">()</span>
-
-<span class="n">john</span> <span class="o">=</span> <span class="n">Employee</span><span class="p">()</span>
-<span class="n">manager</span> <span class="o">=</span> <span class="n">john</span><span class="o">.</span><span class="n">get_manager</span><span class="p">()</span>
+<p>```python
+class Employee(object):
+    def get_department(self):
+        return Department()</p>
+<div class="monokai"><pre><span></span>def get_manager(self):
+    return Department().get_manager()
 </pre></div>
+<p>john = Employee()
+manager = john.get_manager()
+```</p>
 <h4 id="76-remove-middle-man-yi-chu-zhong-jian-ren">7.6 Remove Middle Man 移除中间人</h4>
 <blockquote>
 <p>某个类做了过多的简单委托动作. 让客户直接调用受托类</p>
@@ -185,27 +184,27 @@
 <blockquote>
 <p>你需要为提供服务的类增加一个函数, 但你无法修改这个类. 在客户类中建立一个函数, 并以第一参数形式传入一个服务类实例</p>
 </blockquote>
-<div class="highlight"><pre><span></span><span class="n">new_start</span> <span class="o">=</span> <span class="n">Date</span><span class="p">(</span><span class="n">previous_end</span><span class="o">.</span><span class="n">get_year</span><span class="p">(),</span> <span class="n">previous_end</span><span class="o">.</span><span class="n">get_month</span><span class="p">(),</span> <span class="n">previous_end</span><span class="o">.</span><span class="n">get_date</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-</pre></div>
+<p><code>python
+new_start = Date(previous_end.get_year(), previous_end.get_month(), previous_end.get_date() + 1)</code></p>
 <p>to</p>
-<div class="highlight"><pre><span></span><span class="n">new_start</span> <span class="o">=</span> <span class="n">next_day</span><span class="p">(</span><span class="n">previous_end</span><span class="p">)</span>
-
-<span class="k">def</span> <span class="nf">next_day</span><span class="p">(</span><span class="n">previous_end</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">Date</span><span class="p">(</span><span class="n">previous_end</span><span class="o">.</span><span class="n">get_year</span><span class="p">(),</span> <span class="n">previous_end</span><span class="o">.</span><span class="n">get_month</span><span class="p">(),</span> <span class="n">previous_end</span><span class="o">.</span><span class="n">get_date</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-</pre></div>
+<p>```python
+new_start = next_day(previous_end)</p>
+<p>def next_day(previous_end):
+    return Date(previous_end.get_year(), previous_end.get_month(), previous_end.get_date() + 1)
+```</p>
 <h4 id="78-introduce-local-extension-yin-ru-ben-di-kuo-zhan">7.8 Introduce Local Extension 引入本地扩展</h4>
 <blockquote>
 <p>你需要为服务类提供一些额外函数, 但你无法修改这个类. 建立一个新类, 使它包含这些额外函数. 让这个扩展品成为原类的子类或者包装类</p>
 </blockquote>
-<div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">A</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-     <span class="k">pass</span>
-</pre></div>
+<p><code>python
+class A(object):
+     pass</code></p>
 <p>to</p>
-<div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">A</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">pass</span>
-<span class="k">class</span> <span class="nc">B</span><span class="p">(</span><span class="n">A</span><span class="p">):</span>
-    <span class="c1"># add extra methods</span>
-</pre></div>
+<p><code>python
+class A(object):
+    pass
+class B(A):
+    # add extra methods</code></p>
     </section>
 
     <section id="copyright">

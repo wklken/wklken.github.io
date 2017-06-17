@@ -75,7 +75,7 @@
     </section>
 
         <section id="toc">
-            <div id="toc"><ul><li><a class="toc-href" href="#" title="Logstash+ElasticSearch处理mysql慢查询日志">Logstash+ElasticSearch处理mysql慢查询日志</a><ul><li><a class="toc-href" href="#1-zhao-dao-ri-zhi-de-wei-zhi" title="1. 找到日志的位置">1. 找到日志的位置</a></li><li><a class="toc-href" href="#2-man-cha-xun-ri-zhi" title="2. 慢查询日志">2. 慢查询日志</a></li><li><a class="toc-href" href="#3-shi-yong-logstash-cai-ji" title="3. 使用 logstash 采集">3. 使用 logstash 采集</a></li><li><a class="toc-href" href="#4-xie-cha-xun" title="4. 写查询">4. 写查询</a></li><li><a class="toc-href" href="#5-xuan-ran-ye-mian" title="5. 渲染页面">5. 渲染页面</a></li></ul></li></ul></div>
+            <div id="toc"><ul><li><a class="toc-href" href="#" title="Logstash+ElasticSearch处理mysql慢查询日志">Logstash+ElasticSearch处理mysql慢查询日志</a><ul><li><a class="toc-href" href="#1-zhao-dao-ri-zhi-de-wei-zhi" title="1. 找到日志的位置">1. 找到日志的位置</a></li><li><a class="toc-href" href="#2-man-cha-xun-ri-zhi" title="2. 慢查询日志">2. 慢查询日志</a></li><li><a class="toc-href" href="#time-160524-51229_1" title="Time: 160524  5:12:29">Time: 160524  5:12:29</a></li><li><a class="toc-href" href="#userhost-user_axxxx-10166140109" title="User@Host: user_a[xxxx] @  [10.166.140.109]">User@Host: user_a[xxxx] @  [10.166.140.109]</a></li><li><a class="toc-href" href="#query_time-1711086-lock_time-0000040-rows_sent-385489-rows_examined-385489" title="Query_time: 1.711086  Lock_time: 0.000040 Rows_sent: 385489  Rows_examined: 385489">Query_time: 1.711086  Lock_time: 0.000040 Rows_sent: 385489  Rows_examined: 385489</a><ul><li><a class="toc-href" href="#3-shi-yong-logstash-cai-ji" title="3. 使用 logstash 采集">3. 使用 logstash 采集</a></li><li><a class="toc-href" href="#4-xie-cha-xun" title="4. 写查询">4. 写查询</a></li><li><a class="toc-href" href="#5-xuan-ran-ye-mian" title="5. 渲染页面">5. 渲染页面</a></li></ul></li></ul></li></ul></div>
         </section>
     <section id="content">
         <p>遇到一个需求, 需要查询某些业务的慢查询日志. 结果DBA平台那边提供的慢查询日志不能解决实际的业务场景(上报的字段补全), 无奈, 自己挽起袖子上</p>
@@ -83,7 +83,9 @@
 <p>开始吧</p>
 <h2 id="1-zhao-dao-ri-zhi-de-wei-zhi">1. 找到日志的位置</h2>
 <p>先确认是否开启了, 然后找到日志文件的位置</p>
-<div class="highlight"><pre><span></span>&gt; show variables like '%slow%';
+<p>```</p>
+<blockquote>
+<p>show variables like '%slow%';
 +---------------------+-------------------------------------+
 | Variable_name       | Value                               |
 +---------------------+-------------------------------------+
@@ -92,22 +94,24 @@
 | slow_query_log      | ON                                  |
 | slow_query_log_file | /data/mysqllog/20000/slow-query.log |
 +---------------------+-------------------------------------+
-</pre></div>
+```</p>
+</blockquote>
 <h2 id="2-man-cha-xun-ri-zhi">2. 慢查询日志</h2>
 <p>格式基本是如下, 当然, 格式如果有差异, 需要根据具体格式进行小的修改</p>
-<div class="highlight"><pre><span></span># Time: 160524  5:12:29
-# User@Host: user_a[xxxx] @  [10.166.140.109]
-# Query_time: 1.711086  Lock_time: 0.000040 Rows_sent: 385489  Rows_examined: 385489
-use dbname;
+<p>```</p>
+<h1 id="time-160524-51229_1">Time: 160524  5:12:29</h1>
+<h1 id="userhost-user_axxxx-10166140109">User@Host: user_a[xxxx] @  [10.166.140.109]</h1>
+<h1 id="query_time-1711086-lock_time-0000040-rows_sent-385489-rows_examined-385489">Query_time: 1.711086  Lock_time: 0.000040 Rows_sent: 385489  Rows_examined: 385489</h1>
+<p>use dbname;
 SET timestamp=1464037949;
 SELECT 1 from dbname;
-</pre></div>
+```</p>
 <h2 id="3-shi-yong-logstash-cai-ji">3. 使用 logstash 采集</h2>
 <p>采集, 无非是用<code>multiline</code>进行多行解析</p>
 <p>但是, 需要处理的几个问题</p>
 <p>第一个是, 去除掉没用的信息</p>
 <p>第二个, 慢查询sql, 是会反复出现的, 所以, 执行次数成了一个很重要的指标. 我们要做的, 就是<code>降噪</code>(将参数去掉, 涉及带引号的内容+数字), 将参数类信息过滤掉, 留下核心的sql, 然后计算出一个hash, 这样就可以在查询, 根据这个字段进行聚合. 这里用到了 <a href="https://www.elastic.co/guide/en/logstash/current/plugins-filters-mutate.html#plugins-filters-mutate-add_field">mutate</a> 以及 <a href="https://www.elastic.co/guide/en/logstash/current/plugins-filters-checksum.html">checksum</a></p>
-<div class="highlight"><pre><span></span>  # calculate unique hash
+<p><code># calculate unique hash
   mutate {
     add_field =&gt; {"sql_for_hash" =&gt; "%{sql}"}
   }
@@ -120,107 +124,101 @@ SELECT 1 from dbname;
   checksum {
     algorithm =&gt; "md5"
     keys =&gt; ["sql_for_hash"]
-  }
-</pre></div>
+  }</code></p>
 <p>最后算出来的md5, 放入了<code>logstash_checksum</code></p>
 <p>第三个, 某些sql会非常大, 例如某些不规范的sql可能到几百M或是上G....会直接导致采集进程OOM, 所以, 处理时, 设定超过100k丢弃掉</p>
 <p>第四个, 默认多行处理, 一条sql可能停留在采集端没有上报, 需要等到下一条sql进来, 这样是有问题的, 如果一直没有后续, 最后一条将不会进入引擎. 所以, 在配置中设定了超过5s自动上报</p>
 <p>完整的logstash配置文件(具体使用可能需要根据自身日志格式做些小调整)
 注意, 里面的pattern <code>ALLWORD [\s\S]*</code></p>
-<div class="highlight"><pre><span></span><span class="nt">input</span> <span class="p">{</span>
-  <span class="n">file</span> <span class="err">{</span>
-    <span class="n">path</span> <span class="o">=&gt;</span> <span class="cp">[</span><span class="s2">"/data/mysqllog/20000/slow-query.log"</span><span class="cp">]</span>
-    <span class="n">sincedb_path</span> <span class="o">=&gt;</span> <span class="s2">"/data/LogNew/logstash/sincedb/mysql.sincedb"</span>
-    <span class="n">type</span> <span class="o">=&gt;</span> <span class="s2">"mysql-slow-log"</span>
-    <span class="n">add_field</span> <span class="o">=&gt;</span> <span class="cp">[</span><span class="s2">"env"</span><span class="p">,</span> <span class="s2">"PRODUCT"</span><span class="cp">]</span>
-    <span class="n">codec</span> <span class="o">=&gt;</span> <span class="n">multiline</span> <span class="err">{</span>
-      <span class="n">pattern</span> <span class="o">=&gt;</span> <span class="s2">"^# User@Host:"</span>
-      <span class="n">negate</span> <span class="o">=&gt;</span> <span class="n">true</span>
-      <span class="n">what</span> <span class="o">=&gt;</span> <span class="n">previous</span>
-      <span class="n">max_bytes</span> <span class="o">=&gt;</span> <span class="s2">"100kib"</span>
-      <span class="n">auto_flush_interval</span> <span class="o">=&gt;</span> <span class="m">5</span>
-    <span class="p">}</span>
-  <span class="err">}</span>
-<span class="err">}</span>
-<span class="nt">filter</span> <span class="p">{</span>
-  <span class="n">if</span> <span class="p">(</span><span class="s2">"multiline_codec_max_bytes_reached"</span> <span class="n">in</span> <span class="cp">[</span><span class="nb">tags</span><span class="cp">]</span><span class="p">)</span> <span class="err">{</span>
-      <span class="n">drop</span> <span class="err">{</span><span class="p">}</span>
-  <span class="err">}</span>
-  <span class="nt">grok</span> <span class="p">{</span>
-    <span class="err">#</span> <span class="n">User</span><span class="o">@</span><span class="n">Host</span><span class="o">:</span> <span class="n">logstash</span><span class="cp">[</span><span class="nx">logstash</span><span class="cp">]</span> <span class="o">@</span> <span class="n">localhost</span> <span class="cp">[</span><span class="mf">127.0.0.1</span><span class="cp">]</span>
-    <span class="err">#</span> <span class="n">User</span><span class="o">@</span><span class="n">Host</span><span class="o">:</span> <span class="n">logstash</span><span class="cp">[</span><span class="nx">logstash</span><span class="cp">]</span> <span class="o">@</span>  <span class="cp">[</span><span class="mf">127.0.0.1</span><span class="cp">]</span>
-    <span class="n">match</span> <span class="o">=&gt;</span> <span class="cp">[</span> <span class="s2">"message"</span><span class="p">,</span> <span class="s2">"^# User@Host: %{ALLWORD:user}\[%{ALLWAORD}\] @ %{ALLWORD:dbhost}? \[%{IP:ip}\]"</span> <span class="cp">]</span>
-  <span class="p">}</span>
-  <span class="nt">grok</span> <span class="p">{</span>
-    <span class="err">#</span> <span class="n">Query_time</span><span class="o">:</span> <span class="m">102</span><span class="o">.</span><span class="m">413328</span>  <span class="n">Lock_time</span><span class="o">:</span> <span class="m">0</span><span class="o">.</span><span class="m">000167</span> <span class="n">Rows_sent</span><span class="o">:</span> <span class="m">0</span>  <span class="n">Rows_examined</span><span class="o">:</span> <span class="m">1970</span>
-    <span class="n">match</span> <span class="o">=&gt;</span> <span class="cp">[</span> <span class="s2">"message"</span><span class="p">,</span> <span class="s2">"^# Query_time: %{NUMBER:duration:float}%{SPACE}Lock_time: %{NUMBER:lock_wait:float}%{SPACE}Rows_sent: %{NUMBER:results:int}%{SPACE}Rows_examined:%{SPACE}%{NUMBER:scanned:int}%{ALLWORD:sql}"</span><span class="cp">]</span>
-  <span class="p">}</span>
-
-  <span class="err">#</span> <span class="nt">Capture</span> <span class="nt">the</span> <span class="nt">time</span> <span class="nt">the</span> <span class="nt">query</span> <span class="nt">happened</span>
-  <span class="nt">grok</span> <span class="p">{</span>
-    <span class="n">match</span> <span class="o">=&gt;</span> <span class="cp">[</span> <span class="s2">"message"</span><span class="p">,</span> <span class="s2">"^SET timestamp=%{NUMBER:timestamp};"</span> <span class="cp">]</span>
-  <span class="p">}</span>
-  <span class="err">#</span> <span class="nt">if</span> <span class="nt">codec</span> <span class="nt">multiline</span> <span class="nt">parse</span> <span class="nt">failure</span>
-  <span class="nt">if</span> <span class="o">(</span><span class="s2">"_grokparsefailure"</span> <span class="nt">in</span> <span class="cp">[</span><span class="nb">tags</span><span class="cp">]</span><span class="o">)</span> <span class="p">{</span>
-      <span class="n">drop</span> <span class="err">{</span><span class="p">}</span>
-  <span class="err">}</span>
-  <span class="nt">date</span> <span class="p">{</span>
-    <span class="n">match</span> <span class="o">=&gt;</span> <span class="cp">[</span> <span class="s2">"timestamp"</span><span class="p">,</span> <span class="s2">"UNIX"</span> <span class="cp">]</span>
-  <span class="p">}</span>
-
-  <span class="nt">mutate</span> <span class="p">{</span>
-    <span class="n">gsub</span> <span class="o">=&gt;</span> <span class="cp">[</span>
-        <span class="s2">"sql"</span><span class="p">,</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">SET timestamp=\d+?;</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span> <span class="s2">""</span><span class="p">,</span>
-        <span class="s2">"sql"</span><span class="p">,</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">use [a-zA-Z0-9\-\_]+?;"</span><span class="p">,</span> <span class="s2">""</span><span class="p">,</span>
-        <span class="s2">"sql"</span><span class="p">,</span> <span class="s2">"</span><span class="se">\n</span><span class="s2"># Time: \d+\s+\d+:\d+:\d+"</span><span class="p">,</span> <span class="s2">""</span><span class="p">,</span>
-        <span class="s2">"sql"</span><span class="p">,</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">/usr/local/mysql/bin/mysqld.+$"</span><span class="p">,</span> <span class="s2">""</span><span class="p">,</span>
-        <span class="s2">"sql"</span><span class="p">,</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">Tcp port:.+$"</span><span class="p">,</span> <span class="s2">""</span><span class="p">,</span>
-        <span class="s2">"sql"</span><span class="p">,</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">Time .+$"</span><span class="p">,</span> <span class="s2">""</span>
-    <span class="cp">]</span>
-  <span class="p">}</span>
-
-
-
-  <span class="err">#</span> <span class="nt">calculate</span> <span class="nt">unique</span> <span class="nt">hash</span>
-  <span class="nt">mutate</span> <span class="p">{</span>
-    <span class="n">add_field</span> <span class="o">=&gt;</span> <span class="err">{</span><span class="s2">"sql_for_hash"</span> <span class="o">=&gt;</span> <span class="s2">"%{sql}"</span><span class="p">}</span>
-  <span class="err">}</span>
-  <span class="nt">mutate</span> <span class="p">{</span>
-    <span class="n">gsub</span> <span class="o">=&gt;</span> <span class="cp">[</span>
-        <span class="s2">"sql_for_hash"</span><span class="p">,</span> <span class="s2">"'.+?'"</span><span class="p">,</span> <span class="s2">""</span><span class="p">,</span>
-        <span class="s2">"sql_for_hash"</span><span class="p">,</span> <span class="s2">"-?\d*\.{0,1}\d+"</span><span class="p">,</span> <span class="s2">""</span>
-    <span class="cp">]</span>
-  <span class="p">}</span>
-  <span class="nt">checksum</span> <span class="p">{</span>
-    <span class="n">algorithm</span> <span class="o">=&gt;</span> <span class="s2">"md5"</span>
-    <span class="n">keys</span> <span class="o">=&gt;</span> <span class="cp">[</span><span class="s2">"sql_for_hash"</span><span class="cp">]</span>
-  <span class="p">}</span>
-
-  <span class="err">#</span> <span class="nt">Drop</span> <span class="nt">the</span> <span class="nt">captured</span> <span class="nt">timestamp</span> <span class="nt">field</span> <span class="nt">since</span> <span class="nt">it</span> <span class="nt">has</span> <span class="nt">been</span> <span class="nt">moved</span> <span class="nt">to</span> <span class="nt">the</span> <span class="nt">time</span> <span class="nt">of</span> <span class="nt">the</span> <span class="nt">event</span>
-  <span class="nt">mutate</span> <span class="p">{</span>
-    <span class="err">#</span> <span class="n">TODO</span><span class="o">:</span> <span class="n">remove</span> <span class="n">the</span> <span class="n">message</span> <span class="n">field</span>
-    <span class="n">remove_field</span> <span class="o">=&gt;</span> <span class="cp">[</span><span class="s2">"timestamp"</span><span class="p">,</span> <span class="s2">"message"</span><span class="p">,</span> <span class="s2">"sql_for_hash"</span><span class="cp">]</span>
-  <span class="p">}</span>
-<span class="err">}</span>
-<span class="nt">output</span> <span class="p">{</span>
-    <span class="m">#stdout</span><span class="err">{</span>
-    <span class="err">#</span>    <span class="n">codec</span> <span class="o">=&gt;</span> <span class="n">rubydebug</span>
-    <span class="err">#</span><span class="p">}</span>
-    <span class="nn">#if</span> <span class="o">(</span><span class="s2">"_grokparsefailure"</span> <span class="nt">not</span> <span class="nt">in</span> <span class="cp">[</span><span class="nb">tags</span><span class="cp">]</span><span class="o">)</span> <span class="p">{</span>
-    <span class="err">#</span>    <span class="n">stdout</span><span class="err">{</span>
-    <span class="err">#</span>        <span class="n">codec</span> <span class="o">=&gt;</span> <span class="n">rubydebug</span>
-    <span class="err">#</span>    <span class="p">}</span>
-    <span class="err">#}</span>
-    <span class="nt">if</span> <span class="o">(</span><span class="s2">"_grokparsefailure"</span> <span class="nt">not</span> <span class="nt">in</span> <span class="cp">[</span><span class="nb">tags</span><span class="cp">]</span><span class="o">)</span> <span class="p">{</span>
-        <span class="n">elasticsearch</span> <span class="err">{</span>
-          <span class="n">hosts</span> <span class="o">=&gt;</span> <span class="cp">[</span><span class="s2">"192.168.1.1:9200"</span><span class="cp">]</span>
-          <span class="n">index</span> <span class="o">=&gt;</span> <span class="s2">"logstash-slowlog"</span>
-        <span class="p">}</span>
-    <span class="err">}</span>
-<span class="err">}</span>
-</pre></div>
+<p>```
+input {
+  file {
+    path =&gt; ["/data/mysqllog/20000/slow-query.log"]
+    sincedb_path =&gt; "/data/LogNew/logstash/sincedb/mysql.sincedb"
+    type =&gt; "mysql-slow-log"
+    add_field =&gt; ["env", "PRODUCT"]
+    codec =&gt; multiline {
+      pattern =&gt; "^# User@Host:"
+      negate =&gt; true
+      what =&gt; previous
+      max_bytes =&gt; "100kib"
+      auto_flush_interval =&gt; 5
+    }
+  }
+}
+filter {
+  if ("multiline_codec_max_bytes_reached" in [tags]) {
+      drop {}
+  }
+  grok {
+    # User@Host: logstash[logstash] @ localhost [127.0.0.1]
+    # User@Host: logstash[logstash] @  [127.0.0.1]
+    match =&gt; [ "message", "^# User@Host: %{ALLWORD:user}[%{ALLWAORD}] @ %{ALLWORD:dbhost}? [%{IP:ip}]" ]
+  }
+  grok {
+    # Query_time: 102.413328  Lock_time: 0.000167 Rows_sent: 0  Rows_examined: 1970
+    match =&gt; [ "message", "^# Query_time: %{NUMBER:duration:float}%{SPACE}Lock_time: %{NUMBER:lock_wait:float}%{SPACE}Rows_sent: %{NUMBER:results:int}%{SPACE}Rows_examined:%{SPACE}%{NUMBER:scanned:int}%{ALLWORD:sql}"]
+  }</p>
+<p># Capture the time the query happened
+  grok {
+    match =&gt; [ "message", "^SET timestamp=%{NUMBER:timestamp};" ]
+  }
+  # if codec multiline parse failure
+  if ("_grokparsefailure" in [tags]) {
+      drop {}
+  }
+  date {
+    match =&gt; [ "timestamp", "UNIX" ]
+  }</p>
+<p>mutate {
+    gsub =&gt; [
+        "sql", "\nSET timestamp=\d+?;\n", "",
+        "sql", "\nuse [a-zA-Z0-9-_]+?;", "",
+        "sql", "\n# Time: \d+\s+\d+:\d+:\d+", "",
+        "sql", "\n/usr/local/mysql/bin/mysqld.+$", "",
+        "sql", "\nTcp port:.+$", "",
+        "sql", "\nTime .+$", ""
+    ]
+  }</p>
+<p># calculate unique hash
+  mutate {
+    add_field =&gt; {"sql_for_hash" =&gt; "%{sql}"}
+  }
+  mutate {
+    gsub =&gt; [
+        "sql_for_hash", "'.+?'", "",
+        "sql_for_hash", "-?\d*.{0,1}\d+", ""
+    ]
+  }
+  checksum {
+    algorithm =&gt; "md5"
+    keys =&gt; ["sql_for_hash"]
+  }</p>
+<p># Drop the captured timestamp field since it has been moved to the time of the event
+  mutate {
+    # TODO: remove the message field
+    remove_field =&gt; ["timestamp", "message", "sql_for_hash"]
+  }
+}
+output {
+    #stdout{
+    #    codec =&gt; rubydebug
+    #}
+    #if ("_grokparsefailure" not in [tags]) {
+    #    stdout{
+    #        codec =&gt; rubydebug
+    #    }
+    #}
+    if ("_grokparsefailure" not in [tags]) {
+        elasticsearch {
+          hosts =&gt; ["192.168.1.1:9200"]
+          index =&gt; "logstash-slowlog"
+        }
+    }
+}
+```</p>
 <p>采集进去的内容</p>
-<div class="highlight"><pre><span></span>{
+<p><code>{
            "@timestamp" =&gt; "2016-05-23T21:12:59.000Z",
              "@version" =&gt; "1",
                  "tags" =&gt; [
@@ -238,13 +236,12 @@ SELECT 1 from dbname;
               "scanned" =&gt; 749414,
                   "sql" =&gt; "SELECT /*!40001 SQL_NO_CACHE */ * FROM `xxxxx`;",
     "logstash_checksum" =&gt; "3e3ccb89ee792de882a57e2bef6c5371"
-}
-</pre></div>
+}</code></p>
 <h2 id="4-xie-cha-xun">4. 写查询</h2>
 <p>查询, 我们需要按<code>logstash_checksum</code>进行聚合, 然后按照次数由多到少降序展示, 同时, 每个<code>logstash_checksum</code>需要有一条具体的sql进行展示</p>
 <p>通过 es 的 <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-metrics-top-hits-aggregation.html">Top hits Aggregation</a> 可以完美地解决这个查询需求</p>
 <p>查询的query</p>
-<div class="highlight"><pre><span></span>body = {
+<p><code>body = {
     "from": 0,
     "size": 0,
     "query": {
@@ -291,19 +288,25 @@ SELECT 1 from dbname;
             }
         }
     }
-}
-</pre></div>
+}</code></p>
 <p>跟这个写法相关的几个参考链接: <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-bucket-terms-aggregation.html#search-aggregations-bucket-terms-aggregation">Terms Aggregation</a> /  <a href="http://stackoverflow.com/questions/25986538/elasticsearch-filter-document-group-by-field">Elasticsearch filter document group by field</a></p>
 <h2 id="5-xuan-ran-ye-mian">5. 渲染页面</h2>
 <p>python的后台, 使用<code>sqlparse</code>包, 将sql进行格式化(换行/缩进/大小写), 再往前端传. <a href="https://pypi.python.org/pypi/sqlparse">sqlparse</a></p>
-<div class="highlight"><pre><span></span>&gt;&gt;&gt; sql = 'select * from foo where id in (select id from bar);'
-&gt;&gt;&gt; print sqlparse.format(sql, reindent=True, keyword_case='upper')
+<p>```</p>
+<blockquote>
+<blockquote>
+<blockquote>
+<p>sql = 'select * from foo where id in (select id from bar);'
+print sqlparse.format(sql, reindent=True, keyword_case='upper')
 SELECT *
 FROM foo
 WHERE id IN
   (SELECT id
    FROM bar);
-</pre></div>
+```</p>
+</blockquote>
+</blockquote>
+</blockquote>
 <p>然后在页面上, 使用js进行语法高亮  <a href="https://github.com/google/code-prettify">code-prettify</a></p>
     </section>
 
