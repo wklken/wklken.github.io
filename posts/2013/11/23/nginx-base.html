@@ -101,339 +101,339 @@
 <p>Nginx Rewrite研究笔记 <a href="http://blog.cafeneko.info/2010/10/nginx_rewrite_note/">入口</a></p>
 <h2 id="an-zhuang_1">安装</h2>
 <h3 id="ubuntuxia">ubuntu下</h3>
-<div class="monokai"><pre><span class="code-line"><span></span>sudo apt-get install nginx</span>
-<span class="code-line"></span>
-<span class="code-line">启动</span>
-<span class="code-line">sudo /etc/init.d/nginx start       #通过init.d下的启动文件启动。</span>
-<span class="code-line">sudo service nginx start#通过ubuntu的服务管理器启动</span>
-<span class="code-line"></span>
-<span class="code-line">配置文件位置</span>
-<span class="code-line">/etc/nginx/nginx.conf</span>
+<div class="monokai"><pre><span></span>sudo apt-get install nginx
+
+启动
+sudo /etc/init.d/nginx start       #通过init.d下的启动文件启动。
+sudo service nginx start#通过ubuntu的服务管理器启动
+
+配置文件位置
+/etc/nginx/nginx.conf
 </pre></div>
 <h3 id="bian-yi-an-zhuang">编译安装</h3>
 <p>1.先决条件</p>
-<div class="monokai"><pre><span class="code-line"><span></span>1.gcc</span>
-<span class="code-line">apt-get install gcc</span>
-<span class="code-line">2.pcre(Perl Compatible Regular Expression)</span>
-<span class="code-line">apt-get install libpcre3 libpcre3-dev</span>
-<span class="code-line">3.zlib</span>
-<span class="code-line">apt-get install zliblg zliblg-dev</span>
-<span class="code-line">4.openssl</span>
-<span class="code-line">apt-get install openssl opensll-dev</span>
-<span class="code-line"></span>
-<span class="code-line">#如果非apt，可以使用下载包手动编译安装的方式处理</span>
+<div class="monokai"><pre><span></span>1.gcc
+apt-get install gcc
+2.pcre(Perl Compatible Regular Expression)
+apt-get install libpcre3 libpcre3-dev
+3.zlib
+apt-get install zliblg zliblg-dev
+4.openssl
+apt-get install openssl opensll-dev
+
+#如果非apt，可以使用下载包手动编译安装的方式处理
 </pre></div>
 <p>2.下载包</p>
-<div class="monokai"><pre><span class="code-line"><span></span>www.nginx.net 下载稳定版</span>
-<span class="code-line">wget http://nginx.org/download/nginx-1.4.4.tar.gz</span>
+<div class="monokai"><pre><span></span>www.nginx.net 下载稳定版
+wget http://nginx.org/download/nginx-1.4.4.tar.gz
 </pre></div>
 <p>3.解压安装</p>
-<div class="monokai"><pre><span class="code-line"><span></span>tar -xzvf nginx-1.4.4.tar.gz</span>
-<span class="code-line">#默认，安装目录/usr/local/nginx</span>
-<span class="code-line">./configure</span>
-<span class="code-line">make</span>
-<span class="code-line">make install</span>
-<span class="code-line"></span>
-<span class="code-line">#配置</span>
-<span class="code-line">./configure --conf-path=/etc/nginx/nginx.conf</span>
-<span class="code-line"></span>
-<span class="code-line">可以配置一些其他选项</span>
-<span class="code-line"></span>
-<span class="code-line">安装后查看下目录下的Configuration summary</span>
+<div class="monokai"><pre><span></span>tar -xzvf nginx-1.4.4.tar.gz
+#默认，安装目录/usr/local/nginx
+./configure
+make
+make install
+
+#配置
+./configure --conf-path=/etc/nginx/nginx.conf
+
+可以配置一些其他选项
+
+安装后查看下目录下的Configuration summary
 </pre></div>
 <p>4.init脚本</p>
-<div class="monokai"><pre><span class="code-line"><span></span>需要给nginx建立一个init脚本</span>
-<span class="code-line">从网上捞一个，放入/etc/init.d/nginx</span>
+<div class="monokai"><pre><span></span>需要给nginx建立一个init脚本
+从网上捞一个，放入/etc/init.d/nginx
 </pre></div>
 <p>推荐编译配置</p>
-<div class="monokai"><pre><span class="code-line"><span></span>1.使用不同prefix，方便指定不同版本,也便于升级</span>
-<span class="code-line">./configure --prefix=/usr/local/nginx-1.4.4</span>
+<div class="monokai"><pre><span></span>1.使用不同prefix，方便指定不同版本,也便于升级
+./configure --prefix=/usr/local/nginx-1.4.4
 </pre></div>
 <h2 id="ji-ben-cao-zuo_1">基本操作</h2>
-<div class="monokai"><pre><span class="code-line"><span></span>查看帮助</span>
-<span class="code-line">/usr/local/nginx/sbin/nginx -h</span>
-<span class="code-line"></span>
-<span class="code-line">立即停止进程(TERM信号)</span>
-<span class="code-line">/usr/local/nginx/sbin/nginx -s stop</span>
-<span class="code-line"></span>
-<span class="code-line">温和停止进程(QUIT信号)</span>
-<span class="code-line">/usr/local/nginx/sbin/nginx -s quit</span>
-<span class="code-line"></span>
-<span class="code-line">重加载</span>
-<span class="code-line">/etc/init.d/nginx reload #有init脚本情况下</span>
-<span class="code-line">/usr/local/nginx/sbin/nginx -s reload #原生</span>
-<span class="code-line"></span>
-<span class="code-line">检测配置文件是否正确</span>
-<span class="code-line">/usr/local/nginx/sbin/nginx -t #生产路径下的</span>
-<span class="code-line">/usr/local/nginx/sbin/nginx -t -c /home/ken/tmp/test.conf #可以测试某个临时文件</span>
+<div class="monokai"><pre><span></span>查看帮助
+/usr/local/nginx/sbin/nginx -h
+
+立即停止进程(TERM信号)
+/usr/local/nginx/sbin/nginx -s stop
+
+温和停止进程(QUIT信号)
+/usr/local/nginx/sbin/nginx -s quit
+
+重加载
+/etc/init.d/nginx reload #有init脚本情况下
+/usr/local/nginx/sbin/nginx -s reload #原生
+
+检测配置文件是否正确
+/usr/local/nginx/sbin/nginx -t #生产路径下的
+/usr/local/nginx/sbin/nginx -t -c /home/ken/tmp/test.conf #可以测试某个临时文件
 </pre></div>
 <h2 id="httpji-ben-pei-zhi">HTTP基本配置</h2>
 <h3 id="pei-zhi-shuo-ming">配置说明</h3>
-<div class="monokai"><pre><span class="code-line"><span></span>注释，#</span>
-<span class="code-line">每条指令总是以分好结束(;)</span>
-<span class="code-line">配置继承：在一个区块中嵌套其他区段，那么被嵌套的区段会继承其父区段的设置</span>
-<span class="code-line">字符串，可以没有引号，但是如果存在特殊字符（空格，分号，花括号）需要用引号引起</span>
-<span class="code-line">单位：大小(k/K m/M) 时间值(ms/s/m/h/d/w/M/y 默认s)</span>
-<span class="code-line">模块提供各种变量值，可以进行读取和赋值（每个模块提供变量列表需要自己去查）</span>
+<div class="monokai"><pre><span></span>注释，#
+每条指令总是以分好结束(;)
+配置继承：在一个区块中嵌套其他区段，那么被嵌套的区段会继承其父区段的设置
+字符串，可以没有引号，但是如果存在特殊字符（空格，分号，花括号）需要用引号引起
+单位：大小(k/K m/M) 时间值(ms/s/m/h/d/w/M/y 默认s)
+模块提供各种变量值，可以进行读取和赋值（每个模块提供变量列表需要自己去查）
 </pre></div>
 <h3 id="pei-zhi-wen-jian-mu-lu-jie-gou">配置文件目录结构</h3>
-<div class="monokai"><pre><span class="code-line"><span></span>/usr/local/nginx/conf/</span>
-<span class="code-line"></span>
-<span class="code-line">- mime.types 一个文件扩展列表，它们与MIME类型关联</span>
-<span class="code-line">- fastcgi.conf 与FastCGI相关的配置文件</span>
-<span class="code-line">- proxy.conf 与Proxy相关的配置文件</span>
-<span class="code-line">- nginx.conf 应用程序的基本配置文件</span>
-<span class="code-line">- sites/</span>
-<span class="code-line">    |- a.conf #允许给每个单独网站建立一个配置文件</span>
-<span class="code-line">    |- b.conf</span>
-<span class="code-line">    |- dir/</span>
-<span class="code-line">        |- c.conf</span>
-<span class="code-line"></span>
-<span class="code-line">需要在nginx.conf中使用包含命令</span>
-<span class="code-line">include sites/*.conf;</span>
-<span class="code-line">include sites/*/*.conf;</span>
+<div class="monokai"><pre><span></span>/usr/local/nginx/conf/
+
+- mime.types 一个文件扩展列表，它们与MIME类型关联
+- fastcgi.conf 与FastCGI相关的配置文件
+- proxy.conf 与Proxy相关的配置文件
+- nginx.conf 应用程序的基本配置文件
+- sites/
+    |- a.conf #允许给每个单独网站建立一个配置文件
+    |- b.conf
+    |- dir/
+        |- c.conf
+
+需要在nginx.conf中使用包含命令
+include sites/*.conf;
+include sites/*/*.conf;
 </pre></div>
 <h3 id="pei-zhi-wen-jian-jie-gou">配置文件结构</h3>
-<div class="monokai"><pre><span class="code-line"><span></span>http { #嵌入配置文件的根部， 一个http里可以配置多个server</span>
-<span class="code-line"></span>
-<span class="code-line">    server { #声明一个站点</span>
-<span class="code-line">        server_name www.website.com; #监听的主机名</span>
-<span class="code-line">        listen 80; #监听套接字所使用的ip地址和端口号</span>
-<span class="code-line"></span>
-<span class="code-line">        error_page 404 /not_found.html;</span>
-<span class="code-line">        error_page 500 501 502 503 504 /server_error.html;</span>
-<span class="code-line"></span>
-<span class="code-line">        index index.html;</span>
-<span class="code-line"></span>
-<span class="code-line">        root /var/www/website/com/html; #定义文档的根目录</span>
-<span class="code-line"></span>
-<span class="code-line">        #location, 通过制定的模式与客户端请求的URI相匹配</span>
-<span class="code-line">        location / { #网站的特定位置</span>
-<span class="code-line">        }</span>
-<span class="code-line">        location /admin/ { #网站的特定位置 #</span>
-<span class="code-line">            alias /var/www/locked/; #只能放在 location区段中，为指定路径提供别名</span>
-<span class="code-line">        }</span>
-<span class="code-line"></span>
-<span class="code-line">        #操作符,匹配时跟定义顺序无关</span>
-<span class="code-line">        location = /abcd { #精确匹配，不能用正则</span>
-<span class="code-line">        }</span>
-<span class="code-line">        location /abc/ { #url必须以指定模式开始，不能用正则</span>
-<span class="code-line">        }</span>
-<span class="code-line">        location ^~ /abcd$ { #吴标致行为，URI定位必须以指定模式开始，如果匹配，停止搜索其他模式</span>
-<span class="code-line">        }</span>
-<span class="code-line">        location ~ ^/abcd$ { #正则匹配，区分大小写</span>
-<span class="code-line">        }</span>
-<span class="code-line">        location ~* ^/abcd$ { #正则匹配，不区分大小写</span>
-<span class="code-line">        }</span>
-<span class="code-line">        location @test  { #定义location区段名，客户端不能访问，内部产生的请求可以,例如try_files或error_page</span>
-<span class="code-line">        }</span>
-<span class="code-line">    }</span>
-<span class="code-line">}</span>
+<div class="monokai"><pre><span></span>http { #嵌入配置文件的根部， 一个http里可以配置多个server
+
+    server { #声明一个站点
+        server_name www.website.com; #监听的主机名
+        listen 80; #监听套接字所使用的ip地址和端口号
+
+        error_page 404 /not_found.html;
+        error_page 500 501 502 503 504 /server_error.html;
+
+        index index.html;
+
+        root /var/www/website/com/html; #定义文档的根目录
+
+        #location, 通过制定的模式与客户端请求的URI相匹配
+        location / { #网站的特定位置
+        }
+        location /admin/ { #网站的特定位置 #
+            alias /var/www/locked/; #只能放在 location区段中，为指定路径提供别名
+        }
+
+        #操作符,匹配时跟定义顺序无关
+        location = /abcd { #精确匹配，不能用正则
+        }
+        location /abc/ { #url必须以指定模式开始，不能用正则
+        }
+        location ^~ /abcd$ { #吴标致行为，URI定位必须以指定模式开始，如果匹配，停止搜索其他模式
+        }
+        location ~ ^/abcd$ { #正则匹配，区分大小写
+        }
+        location ~* ^/abcd$ { #正则匹配，不区分大小写
+        }
+        location @test  { #定义location区段名，客户端不能访问，内部产生的请求可以,例如try_files或error_page
+        }
+    }
+}
 </pre></div>
 <h2 id="mo-kuai_1">模块</h2>
 <h3 id="mo-kuai-hua">模块化</h3>
 <p>nginx真正的魅力在于它的模块，整个应用程序建立在一个模块化系统之上，在编译时，可以对每一个模块进行启用或者禁用</p>
 <h3 id="indexmo-kuai">index模块</h3>
 <p>定义往回走哪index页</p>
-<div class="monokai"><pre><span class="code-line"><span></span>index index.php index.html /data/website/index.html;</span>
-<span class="code-line">#可以指定多个，但是ngxin提供第一个找到的文件</span>
+<div class="monokai"><pre><span></span>index index.php index.html /data/website/index.html;
+#可以指定多个，但是ngxin提供第一个找到的文件
 </pre></div>
 <h3 id="logmo-kuai">Log模块</h3>
-<div class="monokai"><pre><span class="code-line"><span></span>access_log /file/path;</span>
-<span class="code-line">error_log /file/path error;  #level: debug/info/notice/warn/error/crit</span>
+<div class="monokai"><pre><span></span>access_log /file/path;
+error_log /file/path error;  #level: debug/info/notice/warn/error/crit
 </pre></div>
 <p>日志格式</p>
-<div class="monokai"><pre><span class="code-line"><span></span><span class="x">log_format main '</span><span class="p">$</span><span class="nv">remote_addr</span><span class="x"> - </span><span class="p">$</span><span class="nv">remote_user</span><span class="x"> [</span><span class="p">$</span><span class="nv">time_local</span><span class="x">] "</span><span class="p">$</span><span class="nv">request</span><span class="x">" '</span></span>
-<span class="code-line"><span class="x">'</span><span class="p">$</span><span class="nv">status</span><span class="x"> </span><span class="p">$</span><span class="nv">body_bytes_sent</span><span class="x"> "</span><span class="p">$</span><span class="nv">http_referer</span><span class="x">" '</span></span>
-<span class="code-line"><span class="x">'"</span><span class="p">$</span><span class="nv">http_user_agent</span><span class="x">" </span><span class="p">$</span><span class="nv">http_x_forwarded_for</span><span class="x">';</span></span>
-<span class="code-line"></span>
-<span class="code-line"><span class="x">access_log /var/log/test.log main;</span></span>
+<div class="monokai"><pre><span></span><span class="x">log_format main '</span><span class="p">$</span><span class="nv">remote_addr</span><span class="x"> - </span><span class="p">$</span><span class="nv">remote_user</span><span class="x"> [</span><span class="p">$</span><span class="nv">time_local</span><span class="x">] "</span><span class="p">$</span><span class="nv">request</span><span class="x">" '</span>
+<span class="x">'</span><span class="p">$</span><span class="nv">status</span><span class="x"> </span><span class="p">$</span><span class="nv">body_bytes_sent</span><span class="x"> "</span><span class="p">$</span><span class="nv">http_referer</span><span class="x">" '</span>
+<span class="x">'"</span><span class="p">$</span><span class="nv">http_user_agent</span><span class="x">" </span><span class="p">$</span><span class="nv">http_x_forwarded_for</span><span class="x">';</span>
+
+<span class="x">access_log /var/log/test.log main;</span>
 </pre></div>
 <h3 id="real-ipmo-kuai">Real IP模块</h3>
 <p>默认编译nginx不包含这个模块</p>
 <p>当通过nginx将用户请求进行转发时，接收请求的应用要拿到用户的真实IP(经转发拿到的是服务器的IP)</p>
-<div class="monokai"><pre><span class="code-line"><span></span>real_ip_header X-Forwarded-For;</span>
+<div class="monokai"><pre><span></span>real_ip_header X-Forwarded-For;
 </pre></div>
 <h3 id="accessmo-kuai">Access模块</h3>
 <p>可以禁用ip段</p>
 <p>语法</p>
-<div class="monokai"><pre><span class="code-line"><span></span>#如果规则之间有冲突，会以最前面匹配的规则为准</span>
-<span class="code-line">deny IP;</span>
-<span class="code-line">deny subnet;</span>
-<span class="code-line">allow IP;</span>
-<span class="code-line">allow subnet;</span>
-<span class="code-line"># block all ips</span>
-<span class="code-line">deny    all;</span>
-<span class="code-line"># allow all ips</span>
-<span class="code-line">allow    all;</span>
+<div class="monokai"><pre><span></span>#如果规则之间有冲突，会以最前面匹配的规则为准
+deny IP;
+deny subnet;
+allow IP;
+allow subnet;
+# block all ips
+deny    all;
+# allow all ips
+allow    all;
 </pre></div>
 <p>配置一个blockips.conf,然后在nginx.conf中include</p>
 <p>e.g</p>
-<div class="monokai"><pre><span class="code-line"><span></span>location {</span>
-<span class="code-line">    allow 127.0.0.1; #允许本地ip 注意顺序，allow要放在前面</span>
-<span class="code-line">    deny all; #禁止其他ip</span>
-<span class="code-line">}</span>
+<div class="monokai"><pre><span></span>location {
+    allow 127.0.0.1; #允许本地ip 注意顺序，allow要放在前面
+    deny all; #禁止其他ip
+}
 </pre></div>
 <h3 id="rewritemo-kuai">Rewrite模块</h3>
 <p>作用：执行URL重定向,允许你去掉带有恶意的URL，包含多个参数（修改）</p>
 <p>利用正则的匹配，分组和引用，达到目的</p>
 <p>break/return/set等</p>
-<div class="monokai"><pre><span class="code-line"><span></span><span class="x">if (-f </span><span class="p">$</span><span class="nv">uri</span><span class="x">) </span><span class="err">{</span><span class="x"></span></span>
-<span class="code-line"><span class="x">    break</span></span>
-<span class="code-line"><span class="x">}</span></span>
-<span class="code-line"><span class="x">if (</span><span class="p">$</span><span class="nv">uri</span><span class="x"> ~ ^/admin/)</span><span class="err">{</span><span class="x"></span></span>
-<span class="code-line"><span class="x">    return 403;</span></span>
-<span class="code-line"><span class="x">}</span></span>
-<span class="code-line"><span class="x">if (</span><span class="p">$</span><span class="nv">uri</span><span class="x"> ~ ^/search/(.*)</span><span class="p">$</span><span class="x">) </span><span class="err">{</span><span class="x"></span></span>
-<span class="code-line"><span class="x">    set </span><span class="p">$</span><span class="nv">query</span><span class="x"> </span><span class="p">$</span><span class="x">1;</span></span>
-<span class="code-line"><span class="x">    rewrite ^ /search.php?q=</span><span class="p">$</span><span class="nv">query</span><span class="x">?;</span></span>
-<span class="code-line"><span class="x">}</span></span>
+<div class="monokai"><pre><span></span><span class="x">if (-f </span><span class="p">$</span><span class="nv">uri</span><span class="x">) </span><span class="err">{</span><span class="x"></span>
+<span class="x">    break</span>
+<span class="x">}</span>
+<span class="x">if (</span><span class="p">$</span><span class="nv">uri</span><span class="x"> ~ ^/admin/)</span><span class="err">{</span><span class="x"></span>
+<span class="x">    return 403;</span>
+<span class="x">}</span>
+<span class="x">if (</span><span class="p">$</span><span class="nv">uri</span><span class="x"> ~ ^/search/(.*)</span><span class="p">$</span><span class="x">) </span><span class="err">{</span><span class="x"></span>
+<span class="x">    set </span><span class="p">$</span><span class="nv">query</span><span class="x"> </span><span class="p">$</span><span class="x">1;</span>
+<span class="x">    rewrite ^ /search.php?q=</span><span class="p">$</span><span class="nv">query</span><span class="x">?;</span>
+<span class="x">}</span>
 </pre></div>
 <p>例子</p>
-<div class="monokai"><pre><span class="code-line"><span></span><span class="n">A</span><span class="o">:</span><span class="n">http</span><span class="o">://</span><span class="n">website</span><span class="o">.</span><span class="na">com</span><span class="sr">/search/s</span><span class="n">ome</span><span class="o">-</span><span class="n">search</span><span class="o">-</span><span class="n">keywords</span></span>
-<span class="code-line"><span class="n">B</span><span class="o">:</span><span class="n">http</span><span class="o">://</span><span class="n">website</span><span class="o">.</span><span class="na">com</span><span class="o">/</span><span class="n">search</span><span class="o">.</span><span class="na">php</span><span class="o">?</span><span class="n">q</span><span class="o">=</span><span class="n">some</span><span class="o">-</span><span class="n">search</span><span class="o">-</span><span class="n">keywords</span></span>
-<span class="code-line"><span class="n">rewrite</span> <span class="o">^/</span><span class="n">search</span><span class="sr">/(.*)$ /s</span><span class="n">earch</span><span class="o">.</span><span class="na">php</span><span class="o">?</span><span class="n">q</span><span class="o">=</span><span class="n">$1</span><span class="o">?;</span></span>
-<span class="code-line"></span>
-<span class="code-line"><span class="n">A</span><span class="o">:</span><span class="n">http</span><span class="o">://</span><span class="n">website</span><span class="o">.</span><span class="na">com</span><span class="sr">/user/31/</span><span class="n">James</span></span>
-<span class="code-line"><span class="n">B</span><span class="o">:</span><span class="n">http</span><span class="o">://</span><span class="n">website</span><span class="o">.</span><span class="na">com</span><span class="o">/</span><span class="n">user</span><span class="o">.</span><span class="na">php</span><span class="o">?</span><span class="n">id</span><span class="o">=</span><span class="mi">31</span><span class="o">&amp;</span><span class="n">name</span><span class="o">=</span><span class="n">James</span></span>
-<span class="code-line"><span class="n">rewrite</span> <span class="o">^/</span><span class="n">user</span><span class="sr">/([0-9]+)/(.+)$ /</span><span class="n">user</span><span class="o">.</span><span class="na">php</span><span class="o">?</span><span class="n">id</span><span class="o">=</span><span class="n">$1</span><span class="o">&amp;</span><span class="n">name</span><span class="o">=</span><span class="n">$2</span><span class="o">?;</span></span>
-<span class="code-line"></span>
-<span class="code-line"><span class="n">A</span><span class="o">:</span><span class="n">http</span><span class="o">://</span><span class="n">website</span><span class="o">.</span><span class="na">com</span><span class="sr">/index.php/param1/param2/</span><span class="n">param3</span></span>
-<span class="code-line"><span class="n">B</span><span class="o">:</span><span class="n">http</span><span class="o">://</span><span class="n">website</span><span class="o">.</span><span class="na">com</span><span class="sr">/index.php/</span><span class="o">?</span><span class="n">p1</span><span class="o">=</span><span class="n">param1</span><span class="o">&amp;</span><span class="n">p2</span><span class="o">=</span><span class="n">param2</span><span class="o">&amp;</span><span class="n">p3</span><span class="o">=</span><span class="n">param3</span></span>
-<span class="code-line"><span class="n">rewrite</span> <span class="o">^/</span><span class="n">index</span><span class="o">.</span><span class="na">php</span><span class="sr">/(.*)/(.*)/(.*)$ /i</span><span class="n">ndex</span><span class="o">.</span><span class="na">php</span><span class="o">?</span><span class="n">p1</span><span class="o">=</span><span class="n">$1</span><span class="o">&amp;</span><span class="n">p2</span><span class="o">=</span><span class="n">$2</span><span class="o">&amp;</span><span class="n">p3</span><span class="o">=</span><span class="n">$3</span><span class="o">?;</span></span>
+<div class="monokai"><pre><span></span><span class="n">A</span><span class="o">:</span><span class="n">http</span><span class="o">://</span><span class="n">website</span><span class="o">.</span><span class="na">com</span><span class="sr">/search/s</span><span class="n">ome</span><span class="o">-</span><span class="n">search</span><span class="o">-</span><span class="n">keywords</span>
+<span class="n">B</span><span class="o">:</span><span class="n">http</span><span class="o">://</span><span class="n">website</span><span class="o">.</span><span class="na">com</span><span class="o">/</span><span class="n">search</span><span class="o">.</span><span class="na">php</span><span class="o">?</span><span class="n">q</span><span class="o">=</span><span class="n">some</span><span class="o">-</span><span class="n">search</span><span class="o">-</span><span class="n">keywords</span>
+<span class="n">rewrite</span> <span class="o">^/</span><span class="n">search</span><span class="sr">/(.*)$ /s</span><span class="n">earch</span><span class="o">.</span><span class="na">php</span><span class="o">?</span><span class="n">q</span><span class="o">=</span><span class="n">$1</span><span class="o">?;</span>
+
+<span class="n">A</span><span class="o">:</span><span class="n">http</span><span class="o">://</span><span class="n">website</span><span class="o">.</span><span class="na">com</span><span class="sr">/user/31/</span><span class="n">James</span>
+<span class="n">B</span><span class="o">:</span><span class="n">http</span><span class="o">://</span><span class="n">website</span><span class="o">.</span><span class="na">com</span><span class="o">/</span><span class="n">user</span><span class="o">.</span><span class="na">php</span><span class="o">?</span><span class="n">id</span><span class="o">=</span><span class="mi">31</span><span class="o">&amp;</span><span class="n">name</span><span class="o">=</span><span class="n">James</span>
+<span class="n">rewrite</span> <span class="o">^/</span><span class="n">user</span><span class="sr">/([0-9]+)/(.+)$ /</span><span class="n">user</span><span class="o">.</span><span class="na">php</span><span class="o">?</span><span class="n">id</span><span class="o">=</span><span class="n">$1</span><span class="o">&amp;</span><span class="n">name</span><span class="o">=</span><span class="n">$2</span><span class="o">?;</span>
+
+<span class="n">A</span><span class="o">:</span><span class="n">http</span><span class="o">://</span><span class="n">website</span><span class="o">.</span><span class="na">com</span><span class="sr">/index.php/param1/param2/</span><span class="n">param3</span>
+<span class="n">B</span><span class="o">:</span><span class="n">http</span><span class="o">://</span><span class="n">website</span><span class="o">.</span><span class="na">com</span><span class="sr">/index.php/</span><span class="o">?</span><span class="n">p1</span><span class="o">=</span><span class="n">param1</span><span class="o">&amp;</span><span class="n">p2</span><span class="o">=</span><span class="n">param2</span><span class="o">&amp;</span><span class="n">p3</span><span class="o">=</span><span class="n">param3</span>
+<span class="n">rewrite</span> <span class="o">^/</span><span class="n">index</span><span class="o">.</span><span class="na">php</span><span class="sr">/(.*)/(.*)/(.*)$ /i</span><span class="n">ndex</span><span class="o">.</span><span class="na">php</span><span class="o">?</span><span class="n">p1</span><span class="o">=</span><span class="n">$1</span><span class="o">&amp;</span><span class="n">p2</span><span class="o">=</span><span class="n">$2</span><span class="o">&amp;</span><span class="n">p3</span><span class="o">=</span><span class="n">$3</span><span class="o">?;</span>
 </pre></div>
 <p>rewrite语法</p>
-<div class="monokai"><pre><span class="code-line"><span></span>rewrite A B option;</span>
-<span class="code-line">options:</span>
-<span class="code-line">        last :表示完成rewrite</span>
-<span class="code-line">        break:本规则匹配完成后，终止匹配，不再匹配后面的规则</span>
-<span class="code-line">        redirect:返回302临时重定向，地址栏会显示跳转后的地址</span>
-<span class="code-line">        permanent:返回301永久重定向，地址栏会显示跳转后的地址</span>
+<div class="monokai"><pre><span></span>rewrite A B option;
+options:
+        last :表示完成rewrite
+        break:本规则匹配完成后，终止匹配，不再匹配后面的规则
+        redirect:返回302临时重定向，地址栏会显示跳转后的地址
+        permanent:返回301永久重定向，地址栏会显示跳转后的地址
 </pre></div>
 <h3 id="proxymo-kuai">Proxy模块</h3>
 <p>默认模块，允许你讲客户端的HTTP请求转到后端服务器</p>
-<div class="monokai"><pre><span class="code-line"><span></span><span class="nt">location</span> <span class="o">/</span> <span class="p">{</span></span>
-<span class="code-line">    <span class="n">proxy_pass_header</span> <span class="n">Server</span><span class="p">;</span>  <span class="err">#该指令强制一些被忽略的头传递到客户端</span></span>
-<span class="code-line">    <span class="n">proxy_redirect</span> <span class="n">off</span><span class="p">;</span> <span class="err">#允许改写出现在</span><span class="n">HTTP</span><span class="err">头却被后端服务器触发重定向的</span><span class="n">URL</span><span class="o">,</span><span class="err">对相应本身不做任何处理</span></span>
-<span class="code-line">    <span class="n">proxy_set_header</span> <span class="n">Host</span> <span class="err">$</span><span class="n">http_host</span><span class="p">;</span> <span class="err">#允许你重新定义代理</span><span class="n">header</span><span class="err">值再转到后端服务器</span><span class="o">.</span><span class="err">目标服务器可以看到客户端的原始主机名</span></span>
-<span class="code-line">    <span class="n">proxy_set_header</span> <span class="n">X</span><span class="o">-</span><span class="n">Real</span><span class="o">-</span><span class="n">IP</span> <span class="err">$</span><span class="n">remote_addr</span><span class="p">;</span> <span class="err">#目标服务器可以看到客户端的真实</span><span class="n">ip</span><span class="err">，而不是转发服务器的</span><span class="n">ip</span></span>
-<span class="code-line">    <span class="n">proxy_set_header</span> <span class="n">X</span><span class="o">-</span><span class="n">Scheme</span> <span class="err">$</span><span class="n">scheme</span><span class="p">;</span></span>
-<span class="code-line">    <span class="n">proxy_pass</span> <span class="n">http</span><span class="o">://</span><span class="n">localhost</span><span class="o">:</span><span class="m">8080</span><span class="p">;</span></span>
-<span class="code-line"><span class="p">}</span></span>
+<div class="monokai"><pre><span></span><span class="nt">location</span> <span class="o">/</span> <span class="p">{</span>
+    <span class="n">proxy_pass_header</span> <span class="n">Server</span><span class="p">;</span>  <span class="err">#该指令强制一些被忽略的头传递到客户端</span>
+    <span class="n">proxy_redirect</span> <span class="n">off</span><span class="p">;</span> <span class="err">#允许改写出现在</span><span class="n">HTTP</span><span class="err">头却被后端服务器触发重定向的</span><span class="n">URL</span><span class="o">,</span><span class="err">对相应本身不做任何处理</span>
+    <span class="n">proxy_set_header</span> <span class="n">Host</span> <span class="err">$</span><span class="n">http_host</span><span class="p">;</span> <span class="err">#允许你重新定义代理</span><span class="n">header</span><span class="err">值再转到后端服务器</span><span class="o">.</span><span class="err">目标服务器可以看到客户端的原始主机名</span>
+    <span class="n">proxy_set_header</span> <span class="n">X</span><span class="o">-</span><span class="n">Real</span><span class="o">-</span><span class="n">IP</span> <span class="err">$</span><span class="n">remote_addr</span><span class="p">;</span> <span class="err">#目标服务器可以看到客户端的真实</span><span class="n">ip</span><span class="err">，而不是转发服务器的</span><span class="n">ip</span>
+    <span class="n">proxy_set_header</span> <span class="n">X</span><span class="o">-</span><span class="n">Scheme</span> <span class="err">$</span><span class="n">scheme</span><span class="p">;</span>
+    <span class="n">proxy_pass</span> <span class="n">http</span><span class="o">://</span><span class="n">localhost</span><span class="o">:</span><span class="m">8080</span><span class="p">;</span>
+<span class="p">}</span>
 </pre></div>
 <h3 id="upstreammo-kuai">upstream模块</h3>
-<div class="monokai"><pre><span class="code-line"><span></span><span class="nt">upstream</span> <span class="nt">up_name</span> <span class="p">{</span></span>
-<span class="code-line">    <span class="n">server</span> <span class="m">192</span><span class="o">.</span><span class="m">168</span><span class="o">.</span><span class="m">0</span><span class="o">.</span><span class="m">1</span><span class="o">:</span><span class="m">9000</span> <span class="n">weight</span><span class="o">=</span><span class="m">5</span><span class="p">;</span> <span class="err">#权重</span></span>
-<span class="code-line">    <span class="n">server</span> <span class="m">192</span><span class="o">.</span><span class="m">168</span><span class="o">.</span><span class="m">0</span><span class="o">.</span><span class="m">2</span><span class="o">:</span><span class="m">9000</span> <span class="n">weight</span><span class="o">=</span><span class="m">5</span> <span class="n">max_fails</span><span class="o">=</span><span class="m">5</span> <span class="n">fail_timeout</span><span class="o">=</span><span class="m">60s</span><span class="p">;</span> <span class="err">#在</span><span class="m">60s</span><span class="err">内，其错误通信超过</span><span class="m">5</span><span class="err">次</span><span class="o">,</span><span class="err">认为该服务失效</span></span>
-<span class="code-line">    <span class="n">server</span> <span class="m">192</span><span class="o">.</span><span class="m">168</span><span class="o">.</span><span class="m">0</span><span class="o">.</span><span class="m">3</span><span class="o">:</span><span class="m">9000</span> <span class="n">down</span><span class="p">;</span> <span class="err">#服务标记为离线，不再使用</span></span>
-<span class="code-line">    <span class="n">server</span> <span class="m">192</span><span class="o">.</span><span class="m">168</span><span class="o">.</span><span class="m">0</span><span class="o">.</span><span class="m">4</span><span class="o">:</span><span class="m">9000</span> <span class="n">backup</span><span class="p">;</span> <span class="err">#备份服务器，其他全部宕机了才启用</span></span>
-<span class="code-line"><span class="p">}</span></span>
+<div class="monokai"><pre><span></span><span class="nt">upstream</span> <span class="nt">up_name</span> <span class="p">{</span>
+    <span class="n">server</span> <span class="m">192</span><span class="o">.</span><span class="m">168</span><span class="o">.</span><span class="m">0</span><span class="o">.</span><span class="m">1</span><span class="o">:</span><span class="m">9000</span> <span class="n">weight</span><span class="o">=</span><span class="m">5</span><span class="p">;</span> <span class="err">#权重</span>
+    <span class="n">server</span> <span class="m">192</span><span class="o">.</span><span class="m">168</span><span class="o">.</span><span class="m">0</span><span class="o">.</span><span class="m">2</span><span class="o">:</span><span class="m">9000</span> <span class="n">weight</span><span class="o">=</span><span class="m">5</span> <span class="n">max_fails</span><span class="o">=</span><span class="m">5</span> <span class="n">fail_timeout</span><span class="o">=</span><span class="m">60s</span><span class="p">;</span> <span class="err">#在</span><span class="m">60s</span><span class="err">内，其错误通信超过</span><span class="m">5</span><span class="err">次</span><span class="o">,</span><span class="err">认为该服务失效</span>
+    <span class="n">server</span> <span class="m">192</span><span class="o">.</span><span class="m">168</span><span class="o">.</span><span class="m">0</span><span class="o">.</span><span class="m">3</span><span class="o">:</span><span class="m">9000</span> <span class="n">down</span><span class="p">;</span> <span class="err">#服务标记为离线，不再使用</span>
+    <span class="n">server</span> <span class="m">192</span><span class="o">.</span><span class="m">168</span><span class="o">.</span><span class="m">0</span><span class="o">.</span><span class="m">4</span><span class="o">:</span><span class="m">9000</span> <span class="n">backup</span><span class="p">;</span> <span class="err">#备份服务器，其他全部宕机了才启用</span>
+<span class="p">}</span>
 </pre></div>
 <h2 id="qi-ta_1">其他</h2>
 <h3 id="pei-zhi-jing-tai-hua-mu-lu">配置静态化目录</h3>
-<div class="monokai"><pre><span class="code-line"><span></span>    location /static/</span>
-<span class="code-line">    {</span>
-<span class="code-line">        root /var/www/app/;</span>
-<span class="code-line">        autoindex off;</span>
-<span class="code-line">    }</span>
+<div class="monokai"><pre><span></span>    location /static/
+    {
+        root /var/www/app/;
+        autoindex off;
+    }
 </pre></div>
 <h3 id="fu-zai-jun-heng">负载均衡</h3>
-<div class="monokai"><pre><span class="code-line"><span></span><span class="nt">http</span> <span class="p">{</span></span>
-<span class="code-line">    <span class="n">include</span> <span class="n">mime</span><span class="o">.</span><span class="n">types</span><span class="p">;</span></span>
-<span class="code-line">    <span class="n">default_type</span> <span class="n">application</span><span class="o">/</span><span class="n">octet</span><span class="o">-</span><span class="n">stream</span><span class="p">;</span></span>
-<span class="code-line"></span>
-<span class="code-line">    <span class="n">keepalive_timeout</span> <span class="m">120</span><span class="p">;</span></span>
-<span class="code-line"></span>
-<span class="code-line">    <span class="n">tcp_nodelay</span> <span class="n">on</span><span class="p">;</span></span>
-<span class="code-line"></span>
-<span class="code-line">    <span class="n">upstream</span> <span class="n">up_localhost</span> <span class="err">{</span></span>
-<span class="code-line">        <span class="n">server</span> <span class="m">127</span><span class="o">.</span><span class="m">0</span><span class="o">.</span><span class="m">0</span><span class="o">.</span><span class="m">1</span><span class="o">:</span><span class="m">8000</span> <span class="n">weight</span><span class="o">=</span><span class="m">5</span><span class="p">;</span></span>
-<span class="code-line">        <span class="n">server</span> <span class="m">127</span><span class="o">.</span><span class="m">0</span><span class="o">.</span><span class="m">0</span><span class="o">.</span><span class="m">1</span><span class="o">:</span><span class="m">8001</span> <span class="n">weight</span><span class="o">=</span><span class="m">10</span><span class="p">;</span></span>
-<span class="code-line">    <span class="p">}</span></span>
-<span class="code-line"></span>
-<span class="code-line">    <span class="nt">server</span> <span class="p">{</span></span>
-<span class="code-line">        <span class="n">listen</span> <span class="m">80</span><span class="p">;</span></span>
-<span class="code-line"></span>
-<span class="code-line">        <span class="n">server_name</span> <span class="n">localhost</span><span class="p">;</span></span>
-<span class="code-line"></span>
-<span class="code-line">        <span class="n">location</span> <span class="o">/</span><span class="err">{</span></span>
-<span class="code-line">            <span class="n">proxy_pass</span> <span class="n">http</span><span class="o">://</span><span class="n">up_localhost</span><span class="p">;</span></span>
-<span class="code-line">            <span class="n">proxy_set_header</span> <span class="n">Host</span> <span class="err">$</span><span class="n">host</span><span class="p">;</span></span>
-<span class="code-line">            <span class="n">proxy_set_header</span> <span class="n">X</span><span class="o">-</span><span class="n">Real_IP</span> <span class="err">$</span><span class="n">remote_addr</span><span class="p">;</span></span>
-<span class="code-line">            <span class="n">proxy_set_header</span> <span class="n">X</span><span class="o">-</span><span class="n">Forwarded</span><span class="o">-</span><span class="n">For</span> <span class="err">$</span><span class="n">proxy_add_x_forwarded_for</span><span class="p">;</span></span>
-<span class="code-line">        <span class="p">}</span></span>
-<span class="code-line">    <span class="err">}</span></span>
-<span class="code-line"></span>
-<span class="code-line"><span class="err">}</span></span>
+<div class="monokai"><pre><span></span><span class="nt">http</span> <span class="p">{</span>
+    <span class="n">include</span> <span class="n">mime</span><span class="o">.</span><span class="n">types</span><span class="p">;</span>
+    <span class="n">default_type</span> <span class="n">application</span><span class="o">/</span><span class="n">octet</span><span class="o">-</span><span class="n">stream</span><span class="p">;</span>
+
+    <span class="n">keepalive_timeout</span> <span class="m">120</span><span class="p">;</span>
+
+    <span class="n">tcp_nodelay</span> <span class="n">on</span><span class="p">;</span>
+
+    <span class="n">upstream</span> <span class="n">up_localhost</span> <span class="err">{</span>
+        <span class="n">server</span> <span class="m">127</span><span class="o">.</span><span class="m">0</span><span class="o">.</span><span class="m">0</span><span class="o">.</span><span class="m">1</span><span class="o">:</span><span class="m">8000</span> <span class="n">weight</span><span class="o">=</span><span class="m">5</span><span class="p">;</span>
+        <span class="n">server</span> <span class="m">127</span><span class="o">.</span><span class="m">0</span><span class="o">.</span><span class="m">0</span><span class="o">.</span><span class="m">1</span><span class="o">:</span><span class="m">8001</span> <span class="n">weight</span><span class="o">=</span><span class="m">10</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="nt">server</span> <span class="p">{</span>
+        <span class="n">listen</span> <span class="m">80</span><span class="p">;</span>
+
+        <span class="n">server_name</span> <span class="n">localhost</span><span class="p">;</span>
+
+        <span class="n">location</span> <span class="o">/</span><span class="err">{</span>
+            <span class="n">proxy_pass</span> <span class="n">http</span><span class="o">://</span><span class="n">up_localhost</span><span class="p">;</span>
+            <span class="n">proxy_set_header</span> <span class="n">Host</span> <span class="err">$</span><span class="n">host</span><span class="p">;</span>
+            <span class="n">proxy_set_header</span> <span class="n">X</span><span class="o">-</span><span class="n">Real_IP</span> <span class="err">$</span><span class="n">remote_addr</span><span class="p">;</span>
+            <span class="n">proxy_set_header</span> <span class="n">X</span><span class="o">-</span><span class="n">Forwarded</span><span class="o">-</span><span class="n">For</span> <span class="err">$</span><span class="n">proxy_add_x_forwarded_for</span><span class="p">;</span>
+        <span class="p">}</span>
+    <span class="err">}</span>
+
+<span class="err">}</span>
 </pre></div>
 <h3 id="kong-zhi-ye-mian-huan-cun">控制页面缓存</h3>
-<div class="monokai"><pre><span class="code-line"><span></span><span class="nt">location</span> <span class="o">~</span> <span class="err">\</span><span class="o">.(</span><span class="nt">htm</span><span class="o">|</span><span class="nt">html</span><span class="o">|</span><span class="nt">gif</span><span class="o">|</span><span class="nt">jpg</span><span class="o">|</span><span class="nt">jpeg</span><span class="o">|</span><span class="nt">png</span><span class="o">|</span><span class="nt">bmp</span><span class="o">|</span><span class="nt">ico</span><span class="o">|</span><span class="nt">css</span><span class="o">|</span><span class="nt">js</span><span class="o">|</span><span class="nt">txt</span><span class="o">)$</span> <span class="p">{</span></span>
-<span class="code-line">    <span class="n">root</span> <span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">webapp</span><span class="p">;</span></span>
-<span class="code-line">    <span class="n">expires</span> <span class="m">24</span><span class="n">h</span><span class="p">;</span></span>
-<span class="code-line"><span class="p">}</span></span>
-<span class="code-line"></span>
-<span class="code-line"><span class="nt">expires</span> <span class="nt">1</span> <span class="nt">January</span><span class="o">,</span> <span class="nt">1970</span><span class="o">,</span> <span class="nt">00</span><span class="nd">:00:01</span> <span class="nt">GMT</span><span class="o">;</span></span>
-<span class="code-line"><span class="nt">expires</span> <span class="nt">60s</span><span class="o">;</span></span>
-<span class="code-line"><span class="nt">expires</span> <span class="nt">30m</span><span class="o">;</span></span>
-<span class="code-line"><span class="nt">expires</span> <span class="nt">24h</span><span class="o">;</span></span>
-<span class="code-line"><span class="nt">expires</span> <span class="nt">1d</span><span class="o">;</span></span>
-<span class="code-line"><span class="nt">expires</span> <span class="nt">max</span><span class="o">;</span></span>
-<span class="code-line"><span class="nt">expires</span> <span class="nt">off</span><span class="o">;</span></span>
+<div class="monokai"><pre><span></span><span class="nt">location</span> <span class="o">~</span> <span class="err">\</span><span class="o">.(</span><span class="nt">htm</span><span class="o">|</span><span class="nt">html</span><span class="o">|</span><span class="nt">gif</span><span class="o">|</span><span class="nt">jpg</span><span class="o">|</span><span class="nt">jpeg</span><span class="o">|</span><span class="nt">png</span><span class="o">|</span><span class="nt">bmp</span><span class="o">|</span><span class="nt">ico</span><span class="o">|</span><span class="nt">css</span><span class="o">|</span><span class="nt">js</span><span class="o">|</span><span class="nt">txt</span><span class="o">)$</span> <span class="p">{</span>
+    <span class="n">root</span> <span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">webapp</span><span class="p">;</span>
+    <span class="n">expires</span> <span class="m">24</span><span class="n">h</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="nt">expires</span> <span class="nt">1</span> <span class="nt">January</span><span class="o">,</span> <span class="nt">1970</span><span class="o">,</span> <span class="nt">00</span><span class="nd">:00:01</span> <span class="nt">GMT</span><span class="o">;</span>
+<span class="nt">expires</span> <span class="nt">60s</span><span class="o">;</span>
+<span class="nt">expires</span> <span class="nt">30m</span><span class="o">;</span>
+<span class="nt">expires</span> <span class="nt">24h</span><span class="o">;</span>
+<span class="nt">expires</span> <span class="nt">1d</span><span class="o">;</span>
+<span class="nt">expires</span> <span class="nt">max</span><span class="o">;</span>
+<span class="nt">expires</span> <span class="nt">off</span><span class="o">;</span>
 </pre></div>
 <h3 id="nginxde-nei-zhi-bian-liang">nginx的内置变量</h3>
-<div class="monokai"><pre><span class="code-line"><span></span><span class="o">$</span><span class="nt">arg_PARAMETER</span> <span class="err">这个变量包含在查询字符串时</span><span class="nt">GET</span><span class="err">请求</span><span class="nt">PARAMETER</span><span class="err">的值。</span></span>
-<span class="code-line"><span class="o">$</span><span class="nt">args</span> <span class="err">这个变量等于请求行中的参数。</span></span>
-<span class="code-line"><span class="o">$</span><span class="nt">binary_remote_addr</span> <span class="err">二进制码形式的客户端地址。</span></span>
-<span class="code-line"><span class="o">$</span><span class="nt">body_bytes_sent</span></span>
-<span class="code-line"><span class="o">$</span><span class="nt">content_length</span> <span class="err">请求头中的</span><span class="nt">Content-length</span><span class="err">字段。</span></span>
-<span class="code-line"><span class="o">$</span><span class="nt">content_type</span> <span class="err">请求头中的</span><span class="nt">Content-Type</span><span class="err">字段。</span></span>
-<span class="code-line"><span class="o">$</span><span class="nt">cookie_COOKIE</span> <span class="nt">cookie</span> <span class="nt">COOKIE</span><span class="err">的值。</span></span>
-<span class="code-line"><span class="o">$</span><span class="nt">document_root</span> <span class="err">当前请求在</span><span class="nt">root</span><span class="err">指令中指定的值。</span></span>
-<span class="code-line"><span class="o">$</span><span class="nt">document_uri</span> <span class="err">与</span><span class="o">$</span><span class="nt">uri</span><span class="err">相同。</span></span>
-<span class="code-line"><span class="o">$</span><span class="nt">host</span> <span class="err">请求中的主机头字段，如果请求中的主机头不可用，则为服务器处理请求的服务器名称。</span></span>
-<span class="code-line"><span class="o">$</span><span class="nt">is_args</span> <span class="err">如果</span><span class="o">$</span><span class="nt">args</span><span class="err">设置，值为</span><span class="s2">"?"</span><span class="err">，否则为</span><span class="s2">""</span><span class="err">。</span></span>
-<span class="code-line"><span class="o">$</span><span class="nt">limit_rate</span> <span class="err">这个变量可以限制连接速率。</span></span>
-<span class="code-line"><span class="o">$</span><span class="nt">nginx_version</span> <span class="err">当前运行的</span><span class="nt">nginx</span><span class="err">版本号。</span></span>
-<span class="code-line"><span class="o">$</span><span class="nt">query_string</span> <span class="err">与</span><span class="o">$</span><span class="nt">args</span><span class="err">相同。</span></span>
-<span class="code-line"><span class="o">$</span><span class="nt">remote_addr</span> <span class="err">客户端的</span><span class="nt">IP</span><span class="err">地址。</span></span>
-<span class="code-line"><span class="o">$</span><span class="nt">remote_port</span> <span class="err">客户端的端口。</span></span>
-<span class="code-line"><span class="o">$</span><span class="nt">remote_user</span> <span class="err">已经经过</span><span class="nt">Auth</span> <span class="nt">Basic</span> <span class="nt">Module</span><span class="err">验证的用户名。</span></span>
-<span class="code-line"><span class="o">$</span><span class="nt">request_filename</span> <span class="err">当前连接请求的文件路径，由</span><span class="nt">root</span><span class="err">或</span><span class="nt">alias</span><span class="err">指令与</span><span class="nt">URI</span><span class="err">请求生成。</span></span>
-<span class="code-line"><span class="o">$</span><span class="nt">request_body</span> <span class="err">这个变量（</span><span class="nt">0</span><span class="nc">.7.58</span><span class="o">+</span><span class="err">）包含请求的主要信息。在使用</span><span class="nt">proxy_pass</span><span class="err">或</span><span class="nt">fastcgi_pass</span><span class="err">指令的</span><span class="nt">location</span><span class="err">中比较有意义。</span></span>
-<span class="code-line"><span class="o">$</span><span class="nt">request_body_file</span> <span class="err">客户端请求主体信息的临时文件名。</span></span>
-<span class="code-line"><span class="o">$</span><span class="nt">request_completion</span> <span class="err">请求完成</span></span>
-<span class="code-line"><span class="o">$</span><span class="nt">request_method</span> <span class="err">这个变量是客户端请求的动作，通常为</span><span class="nt">GET</span><span class="err">或</span><span class="nt">POST</span><span class="err">。包括</span><span class="nt">0</span><span class="nc">.8.20</span><span class="err">及之前的版本中，这个变量总为</span><span class="nt">main</span> <span class="nt">request</span><span class="err">中的动作，如果当前请求是一个子请求，并不使用这个当前请求的动作。</span></span>
-<span class="code-line"><span class="o">$</span><span class="nt">request_uri</span> <span class="err">这个变量等于包含一些客户端请求参数的原始</span><span class="nt">URI</span><span class="err">，它无法修改，请查看</span><span class="o">$</span><span class="nt">uri</span><span class="err">更改或重写</span><span class="nt">URI</span><span class="err">。</span></span>
-<span class="code-line"><span class="o">$</span><span class="nt">schemeHTTP</span> <span class="err">方法（如</span><span class="nt">http</span><span class="err">，</span><span class="nt">https</span><span class="err">）。按需使用，例：</span></span>
-<span class="code-line"><span class="nt">rewrite</span> <span class="o">^(.+)$</span> <span class="o">$</span><span class="nt">scheme</span><span class="o">://</span><span class="nt">example</span><span class="nc">.com</span><span class="o">$</span><span class="nt">1</span> <span class="nt">redirect</span><span class="o">;</span></span>
-<span class="code-line"><span class="o">$</span><span class="nt">server_addr</span> <span class="err">服务器地址，在完成一次系统调用后可以确定这个值，如果要绕开系统调用，则必须在</span><span class="nt">listen</span><span class="err">中指定地址并且使用</span><span class="nt">bind</span><span class="err">参数。</span></span>
-<span class="code-line"><span class="o">$</span><span class="nt">server_name</span> <span class="err">服务器名称。</span></span>
-<span class="code-line"><span class="o">$</span><span class="nt">server_port</span> <span class="err">请求到达服务器的端口号。</span></span>
-<span class="code-line"><span class="o">$</span><span class="nt">server_protocol</span> <span class="err">请求使用的协议，通常是</span><span class="nt">HTTP</span><span class="o">/</span><span class="nt">1</span><span class="nc">.0</span><span class="err">或</span><span class="nt">HTTP</span><span class="o">/</span><span class="nt">1</span><span class="nc">.1</span><span class="err">。</span></span>
-<span class="code-line"><span class="o">$</span><span class="nt">uri</span> <span class="err">请求中的当前</span><span class="nt">URI</span><span class="o">(</span><span class="err">不带请求参数，参数位于</span><span class="o">$</span><span class="nt">args</span><span class="o">)</span><span class="err">，可以不同于浏览器传递的</span><span class="o">$</span><span class="nt">request_uri</span><span class="err">的值，它可以通过内部重定向，或者使用</span><span class="nt">index</span><span class="err">指令进行修改。</span></span>
+<div class="monokai"><pre><span></span><span class="o">$</span><span class="nt">arg_PARAMETER</span> <span class="err">这个变量包含在查询字符串时</span><span class="nt">GET</span><span class="err">请求</span><span class="nt">PARAMETER</span><span class="err">的值。</span>
+<span class="o">$</span><span class="nt">args</span> <span class="err">这个变量等于请求行中的参数。</span>
+<span class="o">$</span><span class="nt">binary_remote_addr</span> <span class="err">二进制码形式的客户端地址。</span>
+<span class="o">$</span><span class="nt">body_bytes_sent</span>
+<span class="o">$</span><span class="nt">content_length</span> <span class="err">请求头中的</span><span class="nt">Content-length</span><span class="err">字段。</span>
+<span class="o">$</span><span class="nt">content_type</span> <span class="err">请求头中的</span><span class="nt">Content-Type</span><span class="err">字段。</span>
+<span class="o">$</span><span class="nt">cookie_COOKIE</span> <span class="nt">cookie</span> <span class="nt">COOKIE</span><span class="err">的值。</span>
+<span class="o">$</span><span class="nt">document_root</span> <span class="err">当前请求在</span><span class="nt">root</span><span class="err">指令中指定的值。</span>
+<span class="o">$</span><span class="nt">document_uri</span> <span class="err">与</span><span class="o">$</span><span class="nt">uri</span><span class="err">相同。</span>
+<span class="o">$</span><span class="nt">host</span> <span class="err">请求中的主机头字段，如果请求中的主机头不可用，则为服务器处理请求的服务器名称。</span>
+<span class="o">$</span><span class="nt">is_args</span> <span class="err">如果</span><span class="o">$</span><span class="nt">args</span><span class="err">设置，值为</span><span class="s2">"?"</span><span class="err">，否则为</span><span class="s2">""</span><span class="err">。</span>
+<span class="o">$</span><span class="nt">limit_rate</span> <span class="err">这个变量可以限制连接速率。</span>
+<span class="o">$</span><span class="nt">nginx_version</span> <span class="err">当前运行的</span><span class="nt">nginx</span><span class="err">版本号。</span>
+<span class="o">$</span><span class="nt">query_string</span> <span class="err">与</span><span class="o">$</span><span class="nt">args</span><span class="err">相同。</span>
+<span class="o">$</span><span class="nt">remote_addr</span> <span class="err">客户端的</span><span class="nt">IP</span><span class="err">地址。</span>
+<span class="o">$</span><span class="nt">remote_port</span> <span class="err">客户端的端口。</span>
+<span class="o">$</span><span class="nt">remote_user</span> <span class="err">已经经过</span><span class="nt">Auth</span> <span class="nt">Basic</span> <span class="nt">Module</span><span class="err">验证的用户名。</span>
+<span class="o">$</span><span class="nt">request_filename</span> <span class="err">当前连接请求的文件路径，由</span><span class="nt">root</span><span class="err">或</span><span class="nt">alias</span><span class="err">指令与</span><span class="nt">URI</span><span class="err">请求生成。</span>
+<span class="o">$</span><span class="nt">request_body</span> <span class="err">这个变量（</span><span class="nt">0</span><span class="nc">.7.58</span><span class="o">+</span><span class="err">）包含请求的主要信息。在使用</span><span class="nt">proxy_pass</span><span class="err">或</span><span class="nt">fastcgi_pass</span><span class="err">指令的</span><span class="nt">location</span><span class="err">中比较有意义。</span>
+<span class="o">$</span><span class="nt">request_body_file</span> <span class="err">客户端请求主体信息的临时文件名。</span>
+<span class="o">$</span><span class="nt">request_completion</span> <span class="err">请求完成</span>
+<span class="o">$</span><span class="nt">request_method</span> <span class="err">这个变量是客户端请求的动作，通常为</span><span class="nt">GET</span><span class="err">或</span><span class="nt">POST</span><span class="err">。包括</span><span class="nt">0</span><span class="nc">.8.20</span><span class="err">及之前的版本中，这个变量总为</span><span class="nt">main</span> <span class="nt">request</span><span class="err">中的动作，如果当前请求是一个子请求，并不使用这个当前请求的动作。</span>
+<span class="o">$</span><span class="nt">request_uri</span> <span class="err">这个变量等于包含一些客户端请求参数的原始</span><span class="nt">URI</span><span class="err">，它无法修改，请查看</span><span class="o">$</span><span class="nt">uri</span><span class="err">更改或重写</span><span class="nt">URI</span><span class="err">。</span>
+<span class="o">$</span><span class="nt">schemeHTTP</span> <span class="err">方法（如</span><span class="nt">http</span><span class="err">，</span><span class="nt">https</span><span class="err">）。按需使用，例：</span>
+<span class="nt">rewrite</span> <span class="o">^(.+)$</span> <span class="o">$</span><span class="nt">scheme</span><span class="o">://</span><span class="nt">example</span><span class="nc">.com</span><span class="o">$</span><span class="nt">1</span> <span class="nt">redirect</span><span class="o">;</span>
+<span class="o">$</span><span class="nt">server_addr</span> <span class="err">服务器地址，在完成一次系统调用后可以确定这个值，如果要绕开系统调用，则必须在</span><span class="nt">listen</span><span class="err">中指定地址并且使用</span><span class="nt">bind</span><span class="err">参数。</span>
+<span class="o">$</span><span class="nt">server_name</span> <span class="err">服务器名称。</span>
+<span class="o">$</span><span class="nt">server_port</span> <span class="err">请求到达服务器的端口号。</span>
+<span class="o">$</span><span class="nt">server_protocol</span> <span class="err">请求使用的协议，通常是</span><span class="nt">HTTP</span><span class="o">/</span><span class="nt">1</span><span class="nc">.0</span><span class="err">或</span><span class="nt">HTTP</span><span class="o">/</span><span class="nt">1</span><span class="nc">.1</span><span class="err">。</span>
+<span class="o">$</span><span class="nt">uri</span> <span class="err">请求中的当前</span><span class="nt">URI</span><span class="o">(</span><span class="err">不带请求参数，参数位于</span><span class="o">$</span><span class="nt">args</span><span class="o">)</span><span class="err">，可以不同于浏览器传递的</span><span class="o">$</span><span class="nt">request_uri</span><span class="err">的值，它可以通过内部重定向，或者使用</span><span class="nt">index</span><span class="err">指令进行修改。</span>
 </pre></div>
 <h3 id="pei-zhi-shtmlfang-wen">配置shtml访问</h3>
 <p><a href="http://nginx.org/en/docs/http/ngx_http_ssi_module.html">文档</a></p>
-<div class="monokai"><pre><span class="code-line"><span></span>location  ~ ^/static {</span>
-<span class="code-line">    ....</span>
-<span class="code-line">    ssi on;</span>
-<span class="code-line">    ssi_client_errors on;</span>
-<span class="code-line">    ssi_types text/shtml;</span>
-<span class="code-line">}</span>
+<div class="monokai"><pre><span></span>location  ~ ^/static {
+    ....
+    ssi on;
+    ssi_client_errors on;
+    ssi_types text/shtml;
+}
 </pre></div>
 <h3 id="auth-basicpei-zhi">auth basic配置</h3>
 <p>首先, 安装<code>htpasswd</code>, 生成密码</p>
-<div class="monokai"><pre><span class="code-line"><span></span>htpasswd -c paas_admin username</span>
-<span class="code-line">password: password</span>
+<div class="monokai"><pre><span></span>htpasswd -c paas_admin username
+password: password
 </pre></div>
 <p>生成文件后, 拷贝到nginx目录下</p>
 <p>配置</p>
-<div class="monokai"><pre><span class="code-line"><span></span>location / {</span>
-<span class="code-line">    auth_basic "Restricted";</span>
-<span class="code-line">    auth_basic_user_file /usr/local/nginx/conf/kibana.htpasswd;</span>
-<span class="code-line">    root  /data/BKLogTool/kibana;</span>
-<span class="code-line">    index  index.html  index.htm;</span>
-<span class="code-line">}</span>
+<div class="monokai"><pre><span></span>location / {
+    auth_basic "Restricted";
+    auth_basic_user_file /usr/local/nginx/conf/kibana.htpasswd;
+    root  /data/BKLogTool/kibana;
+    index  index.html  index.htm;
+}
 </pre></div>
 <p>reload nginx</p>
     </section>

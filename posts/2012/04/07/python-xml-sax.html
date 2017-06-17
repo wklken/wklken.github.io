@@ -83,142 +83,142 @@
 <h3 id="xu-qiu">需求</h3>
 <p>读取xml数据文件，文件较大，需要实时处理插入到数据库</p>
 <h3 id="xmlwen-dang">xml文档</h3>
-<div class="monokai"><pre><span class="code-line"><span></span><span class="nt">&lt;PERSONS&gt;</span></span>
-<span class="code-line"><span class="nt">&lt;person&gt;</span></span>
-<span class="code-line">    <span class="nt">&lt;id&gt;</span>100000<span class="nt">&lt;/id&gt;</span></span>
-<span class="code-line">    <span class="nt">&lt;sex&gt;</span>男<span class="nt">&lt;/sex&gt;</span></span>
-<span class="code-line">    <span class="nt">&lt;address&gt;</span>北京，海淀区<span class="nt">&lt;/address&gt;</span></span>
-<span class="code-line">    <span class="nt">&lt;fansNum&gt;</span>437<span class="nt">&lt;/fansNum&gt;</span></span>
-<span class="code-line">    <span class="nt">&lt;summary&gt;</span>1989<span class="nt">&lt;/summary&gt;</span></span>
-<span class="code-line">    <span class="nt">&lt;wbNum&gt;</span>333<span class="nt">&lt;/wbNum&gt;</span></span>
-<span class="code-line">    <span class="nt">&lt;gzNum&gt;</span>242<span class="nt">&lt;/gzNum&gt;</span></span>
-<span class="code-line">    <span class="nt">&lt;blog&gt;</span>null<span class="nt">&lt;/blog&gt;</span></span>
-<span class="code-line">    <span class="nt">&lt;edu&gt;</span>大学<span class="nt">&lt;/edu&gt;</span></span>
-<span class="code-line">    <span class="nt">&lt;work&gt;&lt;/work&gt;</span></span>
-<span class="code-line">    <span class="nt">&lt;renZh&gt;</span>1<span class="nt">&lt;/renZh&gt;</span></span>
-<span class="code-line">    <span class="nt">&lt;brithday&gt;</span>2月14日<span class="nt">&lt;/brithday&gt;</span></span>
-<span class="code-line"><span class="nt">&lt;/person&gt;</span></span>
-<span class="code-line"><span class="nt">&lt;/PERSONS&gt;</span></span>
+<div class="monokai"><pre><span></span><span class="nt">&lt;PERSONS&gt;</span>
+<span class="nt">&lt;person&gt;</span>
+    <span class="nt">&lt;id&gt;</span>100000<span class="nt">&lt;/id&gt;</span>
+    <span class="nt">&lt;sex&gt;</span>男<span class="nt">&lt;/sex&gt;</span>
+    <span class="nt">&lt;address&gt;</span>北京，海淀区<span class="nt">&lt;/address&gt;</span>
+    <span class="nt">&lt;fansNum&gt;</span>437<span class="nt">&lt;/fansNum&gt;</span>
+    <span class="nt">&lt;summary&gt;</span>1989<span class="nt">&lt;/summary&gt;</span>
+    <span class="nt">&lt;wbNum&gt;</span>333<span class="nt">&lt;/wbNum&gt;</span>
+    <span class="nt">&lt;gzNum&gt;</span>242<span class="nt">&lt;/gzNum&gt;</span>
+    <span class="nt">&lt;blog&gt;</span>null<span class="nt">&lt;/blog&gt;</span>
+    <span class="nt">&lt;edu&gt;</span>大学<span class="nt">&lt;/edu&gt;</span>
+    <span class="nt">&lt;work&gt;&lt;/work&gt;</span>
+    <span class="nt">&lt;renZh&gt;</span>1<span class="nt">&lt;/renZh&gt;</span>
+    <span class="nt">&lt;brithday&gt;</span>2月14日<span class="nt">&lt;/brithday&gt;</span>
+<span class="nt">&lt;/person&gt;</span>
+<span class="nt">&lt;/PERSONS&gt;</span>
 </pre></div>
 <h3 id="chu-li">处理</h3>
 <p>sax处理时并不会像dom一样可以以类似节点的维度进行读取,它只有 开始标签  内容  结束标签 之分</p>
 <p>处理思想是：通过一个handler，对开始标签，内容，结束标签各有一个处理函数</p>
 <h3 id="dai-ma-ji-zhu-jie">代码及注解</h3>
 <h1 id="person-chu-li-lei_1">person 处理类</h1>
-<div class="monokai"><pre><span class="code-line"><span></span><span class="kn">from</span> <span class="nn">xml.sax</span> <span class="kn">import</span> <span class="n">handler</span><span class="p">,</span><span class="n">parseString</span></span>
-<span class="code-line"><span class="k">class</span> <span class="nc">PersonHandler</span><span class="p">(</span><span class="n">handler</span><span class="o">.</span><span class="n">ContentHandler</span><span class="p">):</span></span>
-<span class="code-line">  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db_ops</span><span class="p">):</span></span>
-<span class="code-line">    <span class="c1">#db op obj</span></span>
-<span class="code-line">    <span class="bp">self</span><span class="o">.</span><span class="n">db_ops</span> <span class="o">=</span> <span class="n">db_ops</span></span>
-<span class="code-line">    <span class="c1">#存储一个person的map</span></span>
-<span class="code-line">    <span class="bp">self</span><span class="o">.</span><span class="n">person</span> <span class="o">=</span> <span class="p">{}</span></span>
-<span class="code-line">    <span class="c1">#当前的tag</span></span>
-<span class="code-line">    <span class="bp">self</span><span class="o">.</span><span class="n">current_tag</span> <span class="o">=</span> <span class="s2">""</span></span>
-<span class="code-line">    <span class="c1">#是否是tag之间的内容 ，目的拿到tag间内容，不受空白的干扰</span></span>
-<span class="code-line">    <span class="bp">self</span><span class="o">.</span><span class="n">in_quote</span> <span class="o">=</span> <span class="mi">0</span></span>
-<span class="code-line">  <span class="c1">#开始，清空map</span></span>
-<span class="code-line">  <span class="k">def</span> <span class="nf">startElement</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span></span>
-<span class="code-line">    <span class="c1">#以person，清空map</span></span>
-<span class="code-line">    <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">"person"</span><span class="p">:</span></span>
-<span class="code-line">      <span class="bp">self</span><span class="o">.</span><span class="n">person</span> <span class="o">=</span> <span class="p">{}</span></span>
-<span class="code-line">    <span class="c1">#记录 状态</span></span>
-<span class="code-line">    <span class="bp">self</span><span class="o">.</span><span class="n">current_tag</span> <span class="o">=</span> <span class="n">name</span></span>
-<span class="code-line">    <span class="bp">self</span><span class="o">.</span><span class="n">in_quote</span> <span class="o">=</span> <span class="mi">1</span></span>
-<span class="code-line">  <span class="c1">#结束，插入数据库</span></span>
-<span class="code-line">  <span class="k">def</span> <span class="nf">endElement</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span></span>
-<span class="code-line">    <span class="c1">#以person结尾  代表读取一个person的信息结束</span></span>
-<span class="code-line">    <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">"person"</span><span class="p">:</span></span>
-<span class="code-line">      <span class="c1">#do something</span></span>
-<span class="code-line">      <span class="n">in_fields</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span> <span class="p">(</span><span class="s1">'"'</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">person</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="s2">""</span><span class="p">)</span> <span class="o">+</span> <span class="s1">'"'</span><span class="p">)</span>  <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">fields</span> <span class="p">])</span></span>
-<span class="code-line">      <span class="k">print</span> <span class="n">in_sql</span> <span class="o">%</span> <span class="n">in_fields</span></span>
-<span class="code-line">      <span class="n">db_ops</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span> <span class="n">in_sql</span><span class="o">%</span><span class="p">(</span><span class="n">in_fields</span><span class="p">))</span></span>
-<span class="code-line">    <span class="c1">#处理</span></span>
-<span class="code-line">    <span class="bp">self</span><span class="o">.</span><span class="n">in_quote</span> <span class="o">=</span> <span class="mi">0</span></span>
-<span class="code-line">  <span class="k">def</span> <span class="nf">characters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">content</span><span class="p">):</span></span>
-<span class="code-line">    <span class="c1">#若是在tag之间的内容，更新到map中</span></span>
-<span class="code-line">    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">in_quote</span><span class="p">:</span></span>
-<span class="code-line">      <span class="bp">self</span><span class="o">.</span><span class="n">person</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="bp">self</span><span class="o">.</span><span class="n">current_tag</span><span class="p">:</span> <span class="n">content</span><span class="p">})</span></span>
+<div class="monokai"><pre><span></span><span class="kn">from</span> <span class="nn">xml.sax</span> <span class="kn">import</span> <span class="n">handler</span><span class="p">,</span><span class="n">parseString</span>
+<span class="k">class</span> <span class="nc">PersonHandler</span><span class="p">(</span><span class="n">handler</span><span class="o">.</span><span class="n">ContentHandler</span><span class="p">):</span>
+  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db_ops</span><span class="p">):</span>
+    <span class="c1">#db op obj</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">db_ops</span> <span class="o">=</span> <span class="n">db_ops</span>
+    <span class="c1">#存储一个person的map</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">person</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="c1">#当前的tag</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">current_tag</span> <span class="o">=</span> <span class="s2">""</span>
+    <span class="c1">#是否是tag之间的内容 ，目的拿到tag间内容，不受空白的干扰</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">in_quote</span> <span class="o">=</span> <span class="mi">0</span>
+  <span class="c1">#开始，清空map</span>
+  <span class="k">def</span> <span class="nf">startElement</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
+    <span class="c1">#以person，清空map</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">"person"</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">person</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="c1">#记录 状态</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">current_tag</span> <span class="o">=</span> <span class="n">name</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">in_quote</span> <span class="o">=</span> <span class="mi">1</span>
+  <span class="c1">#结束，插入数据库</span>
+  <span class="k">def</span> <span class="nf">endElement</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+    <span class="c1">#以person结尾  代表读取一个person的信息结束</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">"person"</span><span class="p">:</span>
+      <span class="c1">#do something</span>
+      <span class="n">in_fields</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span> <span class="p">(</span><span class="s1">'"'</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">person</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="s2">""</span><span class="p">)</span> <span class="o">+</span> <span class="s1">'"'</span><span class="p">)</span>  <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">fields</span> <span class="p">])</span>
+      <span class="k">print</span> <span class="n">in_sql</span> <span class="o">%</span> <span class="n">in_fields</span>
+      <span class="n">db_ops</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span> <span class="n">in_sql</span><span class="o">%</span><span class="p">(</span><span class="n">in_fields</span><span class="p">))</span>
+    <span class="c1">#处理</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">in_quote</span> <span class="o">=</span> <span class="mi">0</span>
+  <span class="k">def</span> <span class="nf">characters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">content</span><span class="p">):</span>
+    <span class="c1">#若是在tag之间的内容，更新到map中</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">in_quote</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">person</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="bp">self</span><span class="o">.</span><span class="n">current_tag</span><span class="p">:</span> <span class="n">content</span><span class="p">})</span>
 </pre></div>
 <h3 id="jia-shang-ru-ku-de-wan-zheng-dai-ma">加上入库的完整代码</h3>
-<div class="monokai"><pre><span class="code-line"><span></span><span class="ch">#!/usr/bin/python</span></span>
-<span class="code-line"><span class="c1"># -*- coding:utf-8 -*-</span></span>
-<span class="code-line"><span class="c1">#parse_person.py</span></span>
-<span class="code-line"><span class="c1">#version : 0.1</span></span>
-<span class="code-line"><span class="c1">#author : wukunliang@163.com</span></span>
-<span class="code-line"><span class="c1">#desc : parse person.xml and out sql</span></span>
-<span class="code-line"></span>
-<span class="code-line"></span>
-<span class="code-line"><span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span><span class="nn">os</span></span>
-<span class="code-line"><span class="kn">import</span> <span class="nn">MySQLdb</span></span>
-<span class="code-line"></span>
-<span class="code-line"><span class="nb">reload</span><span class="p">(</span><span class="n">sys</span><span class="p">)</span></span>
-<span class="code-line"><span class="n">sys</span><span class="o">.</span><span class="n">setdefaultencoding</span><span class="p">(</span><span class="s1">'utf-8'</span><span class="p">)</span></span>
-<span class="code-line"></span>
-<span class="code-line"><span class="n">in_sql</span> <span class="o">=</span> <span class="s2">"insert into person(id,sex,address,fansNum,summary,wbNum,gzNum,blog,edu,work,renZh,brithday) values(</span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">,</span></span>
-<span class="code-line">          <span class="o">%</span><span class="n">s</span><span class="p">,</span> <span class="o">%</span><span class="n">s</span><span class="p">,</span> <span class="o">%</span><span class="n">s</span><span class="p">,</span> <span class="o">%</span><span class="n">s</span><span class="p">,</span> <span class="o">%</span><span class="n">s</span><span class="p">,</span> <span class="o">%</span><span class="n">s</span><span class="p">)</span><span class="s2">"</span></span>
-<span class="code-line"></span>
-<span class="code-line"><span class="n">fields</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"id"</span><span class="p">,</span><span class="s2">"sex"</span><span class="p">,</span><span class="s2">"address"</span><span class="p">,</span><span class="s2">"fansNum"</span><span class="p">,</span><span class="s2">"summary"</span><span class="p">,</span><span class="s2">"wbNum"</span><span class="p">,</span><span class="s2">"gzNum"</span><span class="p">,</span><span class="s2">"blog"</span><span class="p">,</span><span class="s2">"edu"</span><span class="p">,</span><span class="s2">"work"</span><span class="p">,</span><span class="s2">"renZh"</span><span class="p">,</span><span class="s2">"brithday"</span><span class="p">)</span></span>
-<span class="code-line"></span>
-<span class="code-line"><span class="c1">#数据库方法</span></span>
-<span class="code-line"><span class="k">class</span> <span class="nc">Db_Connect</span><span class="p">:</span></span>
-<span class="code-line">    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db_host</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="n">pwd</span><span class="p">,</span> <span class="n">db_name</span><span class="p">,</span> <span class="n">charset</span><span class="o">=</span><span class="s2">"utf8"</span><span class="p">,</span>  <span class="n">use_unicode</span> <span class="o">=</span> <span class="bp">True</span><span class="p">):</span></span>
-<span class="code-line">        <span class="k">print</span> <span class="s2">"init begin"</span></span>
-<span class="code-line">        <span class="k">print</span> <span class="n">db_host</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="n">pwd</span><span class="p">,</span> <span class="n">db_name</span><span class="p">,</span> <span class="n">charset</span> <span class="p">,</span> <span class="n">use_unicode</span></span>
-<span class="code-line">        <span class="bp">self</span><span class="o">.</span><span class="n">conn</span> <span class="o">=</span> <span class="n">MySQLdb</span><span class="o">.</span><span class="n">Connection</span><span class="p">(</span><span class="n">db_host</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="n">pwd</span><span class="p">,</span> <span class="n">db_name</span><span class="p">,</span> <span class="n">charset</span><span class="o">=</span><span class="n">charset</span> <span class="p">,</span> <span class="n">use_unicode</span><span class="o">=</span><span class="n">use_unicode</span><span class="p">)</span></span>
-<span class="code-line">        <span class="k">print</span> <span class="s2">"init end"</span></span>
-<span class="code-line"></span>
-<span class="code-line">    <span class="k">def</span> <span class="nf">insert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sql</span><span class="p">):</span></span>
-<span class="code-line">        <span class="k">try</span><span class="p">:</span></span>
-<span class="code-line">            <span class="n">n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql</span><span class="p">)</span></span>
-<span class="code-line">            <span class="k">return</span> <span class="n">n</span></span>
-<span class="code-line">        <span class="k">except</span> <span class="n">MySQLdb</span><span class="o">.</span><span class="n">Warning</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span></span>
-<span class="code-line">            <span class="k">print</span> <span class="s2">"Error: execute sql '"</span><span class="p">,</span><span class="n">sql</span><span class="p">,</span><span class="s2">"' failed"</span></span>
-<span class="code-line"></span>
-<span class="code-line">    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></span>
-<span class="code-line">        <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></span>
-<span class="code-line"></span>
-<span class="code-line"><span class="c1">#person 处理类</span></span>
-<span class="code-line"><span class="kn">from</span> <span class="nn">xml.sax</span> <span class="kn">import</span> <span class="n">handler</span><span class="p">,</span><span class="n">parseString</span></span>
-<span class="code-line"><span class="k">class</span> <span class="nc">PersonHandler</span><span class="p">(</span><span class="n">handler</span><span class="o">.</span><span class="n">ContentHandler</span><span class="p">):</span></span>
-<span class="code-line">    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db_ops</span><span class="p">):</span></span>
-<span class="code-line">        <span class="c1">#db op obj</span></span>
-<span class="code-line">        <span class="bp">self</span><span class="o">.</span><span class="n">db_ops</span> <span class="o">=</span> <span class="n">db_ops</span></span>
-<span class="code-line">        <span class="c1">#存储一个person的map</span></span>
-<span class="code-line">        <span class="bp">self</span><span class="o">.</span><span class="n">person</span> <span class="o">=</span> <span class="p">{}</span></span>
-<span class="code-line">        <span class="c1">#当前的tag</span></span>
-<span class="code-line">        <span class="bp">self</span><span class="o">.</span><span class="n">current_tag</span> <span class="o">=</span> <span class="s2">""</span></span>
-<span class="code-line">        <span class="c1">#是否是tag之间的内容</span></span>
-<span class="code-line">        <span class="bp">self</span><span class="o">.</span><span class="n">in_quote</span> <span class="o">=</span> <span class="mi">0</span></span>
-<span class="code-line">    <span class="c1">#开始，清空map</span></span>
-<span class="code-line">    <span class="k">def</span> <span class="nf">startElement</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span></span>
-<span class="code-line">        <span class="c1">#以person，清空map</span></span>
-<span class="code-line">        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">"person"</span><span class="p">:</span></span>
-<span class="code-line">          <span class="bp">self</span><span class="o">.</span><span class="n">person</span> <span class="o">=</span> <span class="p">{}</span></span>
-<span class="code-line">        <span class="c1">#记录 状态</span></span>
-<span class="code-line">        <span class="bp">self</span><span class="o">.</span><span class="n">current_tag</span> <span class="o">=</span> <span class="n">name</span></span>
-<span class="code-line">        <span class="bp">self</span><span class="o">.</span><span class="n">in_quote</span> <span class="o">=</span> <span class="mi">1</span></span>
-<span class="code-line">    <span class="c1">#结束，插入数据库</span></span>
-<span class="code-line">    <span class="k">def</span> <span class="nf">endElement</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span></span>
-<span class="code-line">        <span class="c1">#以person结尾  代表读取一个person的信息结束</span></span>
-<span class="code-line">        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">"person"</span><span class="p">:</span></span>
-<span class="code-line">            <span class="c1">#do something</span></span>
-<span class="code-line">            <span class="n">in_fields</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span> <span class="p">(</span><span class="s1">'"'</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">person</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="s2">""</span><span class="p">)</span> <span class="o">+</span> <span class="s1">'"'</span><span class="p">)</span>  <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">fields</span> <span class="p">])</span></span>
-<span class="code-line">            <span class="k">print</span> <span class="n">in_sql</span> <span class="o">%</span> <span class="n">in_fields</span></span>
-<span class="code-line">            <span class="n">db_ops</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span> <span class="n">in_sql</span><span class="o">%</span><span class="p">(</span><span class="n">in_fields</span><span class="p">))</span></span>
-<span class="code-line">        <span class="c1">#处理</span></span>
-<span class="code-line">        <span class="bp">self</span><span class="o">.</span><span class="n">in_quote</span> <span class="o">=</span> <span class="mi">0</span></span>
-<span class="code-line">    <span class="k">def</span> <span class="nf">characters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">content</span><span class="p">):</span></span>
-<span class="code-line">        <span class="c1">#若是在tag之间的内容，更新到map中</span></span>
-<span class="code-line">        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">in_quote</span><span class="p">:</span></span>
-<span class="code-line">            <span class="bp">self</span><span class="o">.</span><span class="n">person</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="bp">self</span><span class="o">.</span><span class="n">current_tag</span><span class="p">:</span> <span class="n">content</span><span class="p">})</span></span>
-<span class="code-line"></span>
-<span class="code-line"><span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s2">"__main__"</span><span class="p">:</span></span>
-<span class="code-line">    <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s2">"./person.xml"</span><span class="p">)</span></span>
-<span class="code-line">    <span class="c1">#如果源文件gbk  转码      若是utf-8，去掉decode.encode</span></span>
-<span class="code-line">    <span class="n">db_ops</span> <span class="o">=</span> <span class="n">Db_Connect</span><span class="p">(</span><span class="s2">"127.0.0.1"</span><span class="p">,</span> <span class="s2">"root"</span><span class="p">,</span> <span class="s2">"root"</span><span class="p">,</span> <span class="s2">"test"</span><span class="p">)</span></span>
-<span class="code-line">    <span class="n">parseString</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">"gbk"</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">"utf-8"</span><span class="p">),</span> <span class="n">PersonHandler</span><span class="p">(</span><span class="n">db_ops</span><span class="p">))</span></span>
-<span class="code-line">    <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></span>
-<span class="code-line">    <span class="n">db_ops</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></span>
+<div class="monokai"><pre><span></span><span class="ch">#!/usr/bin/python</span>
+<span class="c1"># -*- coding:utf-8 -*-</span>
+<span class="c1">#parse_person.py</span>
+<span class="c1">#version : 0.1</span>
+<span class="c1">#author : wukunliang@163.com</span>
+<span class="c1">#desc : parse person.xml and out sql</span>
+
+
+<span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span><span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">MySQLdb</span>
+
+<span class="nb">reload</span><span class="p">(</span><span class="n">sys</span><span class="p">)</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">setdefaultencoding</span><span class="p">(</span><span class="s1">'utf-8'</span><span class="p">)</span>
+
+<span class="n">in_sql</span> <span class="o">=</span> <span class="s2">"insert into person(id,sex,address,fansNum,summary,wbNum,gzNum,blog,edu,work,renZh,brithday) values(</span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">,</span>
+          <span class="o">%</span><span class="n">s</span><span class="p">,</span> <span class="o">%</span><span class="n">s</span><span class="p">,</span> <span class="o">%</span><span class="n">s</span><span class="p">,</span> <span class="o">%</span><span class="n">s</span><span class="p">,</span> <span class="o">%</span><span class="n">s</span><span class="p">,</span> <span class="o">%</span><span class="n">s</span><span class="p">)</span><span class="s2">"</span>
+
+<span class="n">fields</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"id"</span><span class="p">,</span><span class="s2">"sex"</span><span class="p">,</span><span class="s2">"address"</span><span class="p">,</span><span class="s2">"fansNum"</span><span class="p">,</span><span class="s2">"summary"</span><span class="p">,</span><span class="s2">"wbNum"</span><span class="p">,</span><span class="s2">"gzNum"</span><span class="p">,</span><span class="s2">"blog"</span><span class="p">,</span><span class="s2">"edu"</span><span class="p">,</span><span class="s2">"work"</span><span class="p">,</span><span class="s2">"renZh"</span><span class="p">,</span><span class="s2">"brithday"</span><span class="p">)</span>
+
+<span class="c1">#数据库方法</span>
+<span class="k">class</span> <span class="nc">Db_Connect</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db_host</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="n">pwd</span><span class="p">,</span> <span class="n">db_name</span><span class="p">,</span> <span class="n">charset</span><span class="o">=</span><span class="s2">"utf8"</span><span class="p">,</span>  <span class="n">use_unicode</span> <span class="o">=</span> <span class="bp">True</span><span class="p">):</span>
+        <span class="k">print</span> <span class="s2">"init begin"</span>
+        <span class="k">print</span> <span class="n">db_host</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="n">pwd</span><span class="p">,</span> <span class="n">db_name</span><span class="p">,</span> <span class="n">charset</span> <span class="p">,</span> <span class="n">use_unicode</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conn</span> <span class="o">=</span> <span class="n">MySQLdb</span><span class="o">.</span><span class="n">Connection</span><span class="p">(</span><span class="n">db_host</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="n">pwd</span><span class="p">,</span> <span class="n">db_name</span><span class="p">,</span> <span class="n">charset</span><span class="o">=</span><span class="n">charset</span> <span class="p">,</span> <span class="n">use_unicode</span><span class="o">=</span><span class="n">use_unicode</span><span class="p">)</span>
+        <span class="k">print</span> <span class="s2">"init end"</span>
+
+    <span class="k">def</span> <span class="nf">insert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sql</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">n</span>
+        <span class="k">except</span> <span class="n">MySQLdb</span><span class="o">.</span><span class="n">Warning</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s2">"Error: execute sql '"</span><span class="p">,</span><span class="n">sql</span><span class="p">,</span><span class="s2">"' failed"</span>
+
+    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+<span class="c1">#person 处理类</span>
+<span class="kn">from</span> <span class="nn">xml.sax</span> <span class="kn">import</span> <span class="n">handler</span><span class="p">,</span><span class="n">parseString</span>
+<span class="k">class</span> <span class="nc">PersonHandler</span><span class="p">(</span><span class="n">handler</span><span class="o">.</span><span class="n">ContentHandler</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db_ops</span><span class="p">):</span>
+        <span class="c1">#db op obj</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">db_ops</span> <span class="o">=</span> <span class="n">db_ops</span>
+        <span class="c1">#存储一个person的map</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">person</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="c1">#当前的tag</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_tag</span> <span class="o">=</span> <span class="s2">""</span>
+        <span class="c1">#是否是tag之间的内容</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">in_quote</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="c1">#开始，清空map</span>
+    <span class="k">def</span> <span class="nf">startElement</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
+        <span class="c1">#以person，清空map</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">"person"</span><span class="p">:</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">person</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="c1">#记录 状态</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_tag</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">in_quote</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="c1">#结束，插入数据库</span>
+    <span class="k">def</span> <span class="nf">endElement</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="c1">#以person结尾  代表读取一个person的信息结束</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">"person"</span><span class="p">:</span>
+            <span class="c1">#do something</span>
+            <span class="n">in_fields</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span> <span class="p">(</span><span class="s1">'"'</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">person</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="s2">""</span><span class="p">)</span> <span class="o">+</span> <span class="s1">'"'</span><span class="p">)</span>  <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">fields</span> <span class="p">])</span>
+            <span class="k">print</span> <span class="n">in_sql</span> <span class="o">%</span> <span class="n">in_fields</span>
+            <span class="n">db_ops</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span> <span class="n">in_sql</span><span class="o">%</span><span class="p">(</span><span class="n">in_fields</span><span class="p">))</span>
+        <span class="c1">#处理</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">in_quote</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">def</span> <span class="nf">characters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">content</span><span class="p">):</span>
+        <span class="c1">#若是在tag之间的内容，更新到map中</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">in_quote</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">person</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="bp">self</span><span class="o">.</span><span class="n">current_tag</span><span class="p">:</span> <span class="n">content</span><span class="p">})</span>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s2">"__main__"</span><span class="p">:</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s2">"./person.xml"</span><span class="p">)</span>
+    <span class="c1">#如果源文件gbk  转码      若是utf-8，去掉decode.encode</span>
+    <span class="n">db_ops</span> <span class="o">=</span> <span class="n">Db_Connect</span><span class="p">(</span><span class="s2">"127.0.0.1"</span><span class="p">,</span> <span class="s2">"root"</span><span class="p">,</span> <span class="s2">"root"</span><span class="p">,</span> <span class="s2">"test"</span><span class="p">)</span>
+    <span class="n">parseString</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">"gbk"</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">"utf-8"</span><span class="p">),</span> <span class="n">PersonHandler</span><span class="p">(</span><span class="n">db_ops</span><span class="p">))</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="n">db_ops</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </pre></div>
 <p>平时拿python来分析数据，工具脚本还有hadoop streamming，但是用的面和深度实在欠缺
 只能说道行还浅，需要多多实践</p>

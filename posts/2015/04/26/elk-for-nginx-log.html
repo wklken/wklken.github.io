@@ -88,79 +88,79 @@
 <p>下面主要介绍对nginx日志进行处理的过程, 不是针对<code>elk</code>的介绍, 所有涉及ip的地方都改成<code>127.0.0.1</code>了, 根据自己环境进行修改</p>
 <h3 id="1-nginxri-zhi-logstash-shipper-redis">1. nginx日志 -&gt; logstash shipper -&gt; redis</h3>
 <p>在<code>centos</code>使用<code>yum</code>安装<code>nginx</code>后, 默认<code>/etc/nginx/nginx.conf</code>中的日志格式定义为:</p>
-<div class="monokai"><pre><span class="code-line"><span></span><span class="k">log_format</span>  <span class="s">main</span>  <span class="s">'</span><span class="nv">$remote_addr</span> <span class="s">-</span> <span class="nv">$remote_user</span> <span class="s">[</span><span class="nv">$time_local]</span> <span class="s">"</span><span class="nv">$request"</span> <span class="s">'</span></span>
-<span class="code-line">                  <span class="s">'</span><span class="nv">$status</span> <span class="nv">$body_bytes_sent</span> <span class="s">"</span><span class="nv">$http_referer"</span> <span class="s">'</span></span>
-<span class="code-line">                  <span class="s">'"</span><span class="nv">$http_user_agent"</span> <span class="s">"</span><span class="nv">$http_x_forwarded_for"'</span><span class="p">;</span></span>
+<div class="monokai"><pre><span></span><span class="k">log_format</span>  <span class="s">main</span>  <span class="s">'</span><span class="nv">$remote_addr</span> <span class="s">-</span> <span class="nv">$remote_user</span> <span class="s">[</span><span class="nv">$time_local]</span> <span class="s">"</span><span class="nv">$request"</span> <span class="s">'</span>
+                  <span class="s">'</span><span class="nv">$status</span> <span class="nv">$body_bytes_sent</span> <span class="s">"</span><span class="nv">$http_referer"</span> <span class="s">'</span>
+                  <span class="s">'"</span><span class="nv">$http_user_agent"</span> <span class="s">"</span><span class="nv">$http_x_forwarded_for"'</span><span class="p">;</span>
 </pre></div>
 <p>然后在具体<code>server</code>配置中使用</p>
-<div class="monokai"><pre><span class="code-line"><span></span>access_log /data/logs/nginx/{PROJECT_NAME}_access.log main;</span>
+<div class="monokai"><pre><span></span>access_log /data/logs/nginx/{PROJECT_NAME}_access.log main;
 </pre></div>
 <p>此时, 我们需要做的是, 将<code>access log</code>通过<code>logstash shipper</code>读取, 转<code>json</code>, 发送到<code>redis</code>, 由后续的<code>logstash indexer</code>进行处理</p>
 <p>步骤</p>
 <p>1.在日志所在机器部署<code>logstash</code></p>
 <p>2.在<code>logstash</code>安装目录下的<code>patterns</code>中加入一个文件<code>nginx</code></p>
 <p>内容(与上面的<code>log_format</code>相对应)</p>
-<div class="monokai"><pre><span class="code-line"><span></span>NGUSERNAME [a-zA-Z\.\@\-\+_%]+</span>
-<span class="code-line">NGUSER %{NGUSERNAME}</span>
-<span class="code-line">NGINXACCESS %{IPORHOST:clientip} - %{NOTSPACE:remote_user} \[%{HTTPDATE:timestamp}\] \"(?:%{WORD:verb} %{NOTSPACE:request}(?: HTTP/%{NUMBER:httpversion})?|%{DATA:rawrequest})\" %{NUMBER:response} (?:%{NUMBER:bytes}|-) %{QS:referrer} %{QS:agent} %{NOTSPACE:http_x_forwarded_for}</span>
+<div class="monokai"><pre><span></span>NGUSERNAME [a-zA-Z\.\@\-\+_%]+
+NGUSER %{NGUSERNAME}
+NGINXACCESS %{IPORHOST:clientip} - %{NOTSPACE:remote_user} \[%{HTTPDATE:timestamp}\] \"(?:%{WORD:verb} %{NOTSPACE:request}(?: HTTP/%{NUMBER:httpversion})?|%{DATA:rawrequest})\" %{NUMBER:response} (?:%{NUMBER:bytes}|-) %{QS:referrer} %{QS:agent} %{NOTSPACE:http_x_forwarded_for}
 </pre></div>
 <p>3.增加一个<code>logstash</code>配置文件: <code>logstash-project-access-log.conf</code></p>
 <p>注意, input的file, filter的grok, output的redis-key</p>
-<div class="monokai"><pre><span class="code-line"><span></span>    input {</span>
-<span class="code-line">    file {</span>
-<span class="code-line">        path =&gt; [ "/data/logs/nginx/xxxx_access.log" ]</span>
-<span class="code-line">        start_position =&gt; "beginning"</span>
-<span class="code-line">    }</span>
-<span class="code-line">    }</span>
-<span class="code-line"></span>
-<span class="code-line">    filter {</span>
-<span class="code-line">    mutate { replace =&gt; { "type" =&gt; "nginx_access" } }</span>
-<span class="code-line">    grok {</span>
-<span class="code-line">        match =&gt; { "message" =&gt; "%{NGINXACCESS}" }</span>
-<span class="code-line">    }</span>
-<span class="code-line">    date {</span>
-<span class="code-line">        match =&gt; [ "timestamp" , "dd/MMM/YYYY:HH:mm:ss Z" ]</span>
-<span class="code-line">    }</span>
-<span class="code-line">    geoip {</span>
-<span class="code-line">        source =&gt; "clientip"</span>
-<span class="code-line">    }</span>
-<span class="code-line">    }</span>
-<span class="code-line"></span>
-<span class="code-line"></span>
-<span class="code-line">    output {</span>
-<span class="code-line">    redis { host =&gt; "127.0.0.1" data_type =&gt; "list" key =&gt; "logstash:xxxx:access_log" }</span>
-<span class="code-line">    }</span>
+<div class="monokai"><pre><span></span>    input {
+    file {
+        path =&gt; [ "/data/logs/nginx/xxxx_access.log" ]
+        start_position =&gt; "beginning"
+    }
+    }
+
+    filter {
+    mutate { replace =&gt; { "type" =&gt; "nginx_access" } }
+    grok {
+        match =&gt; { "message" =&gt; "%{NGINXACCESS}" }
+    }
+    date {
+        match =&gt; [ "timestamp" , "dd/MMM/YYYY:HH:mm:ss Z" ]
+    }
+    geoip {
+        source =&gt; "clientip"
+    }
+    }
+
+
+    output {
+    redis { host =&gt; "127.0.0.1" data_type =&gt; "list" key =&gt; "logstash:xxxx:access_log" }
+    }
 </pre></div>
 <p>4.使用<code>supervisor</code>启动<code>shipper</code>.</p>
-<div class="monokai"><pre><span class="code-line"><span></span>    [program:logstash_xxxx_shipper]</span>
-<span class="code-line">    command=/var/shell/logstash/bin/logstash -f /var/shell/logstash/configs/nginx-xxxx-shipper.conf</span>
-<span class="code-line">    numprocs=1</span>
-<span class="code-line">    autostart=true</span>
-<span class="code-line">    autorestart=true</span>
-<span class="code-line">    log_stdout=true</span>
-<span class="code-line">    log_stderr=true</span>
-<span class="code-line">    logfile=/data/logs/logstash/logstash_xxxx_access.log</span>
+<div class="monokai"><pre><span></span>    [program:logstash_xxxx_shipper]
+    command=/var/shell/logstash/bin/logstash -f /var/shell/logstash/configs/nginx-xxxx-shipper.conf
+    numprocs=1
+    autostart=true
+    autorestart=true
+    log_stdout=true
+    log_stderr=true
+    logfile=/data/logs/logstash/logstash_xxxx_access.log
 </pre></div>
 <h3 id="2-redis-logstash-indexer-elasticsearch">2. redis -&gt; logstash indexer -&gt; elasticsearch</h3>
 <p>注意, input的redis为上一步redis配置, key要对应, output的elasticsearch配置, <code>index</code>指定了最终es中存储对应的index, 加日期, 方便对日志进行定期删除</p>
-<div class="monokai"><pre><span class="code-line"><span></span>input {</span>
-<span class="code-line">redis {</span>
-<span class="code-line">    host =&gt; "127.0.0.1"</span>
-<span class="code-line">    port =&gt; "6379"</span>
-<span class="code-line">    key =&gt; "logstash:xxxx:access_log"</span>
-<span class="code-line">    data_type =&gt; "list"</span>
-<span class="code-line">    codec  =&gt; "json"</span>
-<span class="code-line">    type =&gt; "logstash-arthas-access"</span>
-<span class="code-line">    tags =&gt; ["arthas"]</span>
-<span class="code-line">}</span>
-<span class="code-line">}</span>
-<span class="code-line"></span>
-<span class="code-line">output {</span>
-<span class="code-line">elasticsearch {</span>
-<span class="code-line">    host =&gt; "127.0.0.1"</span>
-<span class="code-line">    index =&gt; "logstash-arthas-access-%{+YYYY.MM.dd}"</span>
-<span class="code-line">}</span>
-<span class="code-line">}</span>
+<div class="monokai"><pre><span></span>input {
+redis {
+    host =&gt; "127.0.0.1"
+    port =&gt; "6379"
+    key =&gt; "logstash:xxxx:access_log"
+    data_type =&gt; "list"
+    codec  =&gt; "json"
+    type =&gt; "logstash-arthas-access"
+    tags =&gt; ["arthas"]
+}
+}
+
+output {
+elasticsearch {
+    host =&gt; "127.0.0.1"
+    index =&gt; "logstash-arthas-access-%{+YYYY.MM.dd}"
+}
+}
 </pre></div>
 <h3 id="3-elasticsearch-kibana">3. elasticsearch -&gt; kibana</h3>
 <p>剩下的其实没什么了, 启动<code>kibana</code>后, 配置好指向的<code>es</code>, 就可以在<code>kibana</code>中查看到实时的日志数据</p>
@@ -188,17 +188,17 @@
 <p>所以, 我们在处理<code>nginx</code>日志时, 需要根据具体<code>logformat</code>定义对应的<code>grok</code>表达式</p>
 <p>除了上面例子中用的那套,  另一份</p>
 <p>logformat</p>
-<div class="monokai"><pre><span class="code-line"><span></span><span class="x">  log_format logstash '</span><span class="p">$</span><span class="nv">http_host</span><span class="x"> '</span></span>
-<span class="code-line"><span class="x">                      '</span><span class="p">$</span><span class="nv">remote_addr</span><span class="x"> [</span><span class="p">$</span><span class="nv">time_local</span><span class="x">] '</span></span>
-<span class="code-line"><span class="x">                      '"</span><span class="p">$</span><span class="nv">request</span><span class="x">" </span><span class="p">$</span><span class="nv">status</span><span class="x"> </span><span class="p">$</span><span class="nv">body_bytes_sent</span><span class="x"> '</span></span>
-<span class="code-line"><span class="x">                      '"</span><span class="p">$</span><span class="nv">http_referer</span><span class="x">" "</span><span class="p">$</span><span class="nv">http_user_agent</span><span class="x">" '</span></span>
-<span class="code-line"><span class="x">                      '</span><span class="p">$</span><span class="nv">request_time</span><span class="x"> '</span></span>
-<span class="code-line"><span class="x">                      '</span><span class="p">$</span><span class="nv">upstream_response_time</span><span class="x">';</span></span>
+<div class="monokai"><pre><span></span><span class="x">  log_format logstash '</span><span class="p">$</span><span class="nv">http_host</span><span class="x"> '</span>
+<span class="x">                      '</span><span class="p">$</span><span class="nv">remote_addr</span><span class="x"> [</span><span class="p">$</span><span class="nv">time_local</span><span class="x">] '</span>
+<span class="x">                      '"</span><span class="p">$</span><span class="nv">request</span><span class="x">" </span><span class="p">$</span><span class="nv">status</span><span class="x"> </span><span class="p">$</span><span class="nv">body_bytes_sent</span><span class="x"> '</span>
+<span class="x">                      '"</span><span class="p">$</span><span class="nv">http_referer</span><span class="x">" "</span><span class="p">$</span><span class="nv">http_user_agent</span><span class="x">" '</span>
+<span class="x">                      '</span><span class="p">$</span><span class="nv">request_time</span><span class="x"> '</span>
+<span class="x">                      '</span><span class="p">$</span><span class="nv">upstream_response_time</span><span class="x">';</span>
 </pre></div>
 <p>patterns/nginx</p>
-<div class="monokai"><pre><span class="code-line"><span></span>NGUSERNAME [a-zA-Z\.\@\-\+_%]+</span>
-<span class="code-line">NGUSER %{NGUSERNAME}</span>
-<span class="code-line">NGINXACCESS %{IPORHOST:http_host} %{IPORHOST:clientip} \[%{HTTPDATE:timestamp}\] \"(?:%{WORD:verb} %{NOTSPACE:request}(?: HTTP/%{NUMBER:httpversion})?|%{DATA:rawrequest})\" %{NUMBER:response} (?:%{NUMBER:bytes}|-) %{QS:referrer} %{QS:agent} %{NUMBER:request_time:float} %{NUMBER:upstream_time:float}</span>
+<div class="monokai"><pre><span></span>NGUSERNAME [a-zA-Z\.\@\-\+_%]+
+NGUSER %{NGUSERNAME}
+NGINXACCESS %{IPORHOST:http_host} %{IPORHOST:clientip} \[%{HTTPDATE:timestamp}\] \"(?:%{WORD:verb} %{NOTSPACE:request}(?: HTTP/%{NUMBER:httpversion})?|%{DATA:rawrequest})\" %{NUMBER:response} (?:%{NUMBER:bytes}|-) %{QS:referrer} %{QS:agent} %{NUMBER:request_time:float} %{NUMBER:upstream_time:float}
 </pre></div>
 <p>如果想自行定义, 可以使用 <a href="https://grokdebug.herokuapp.com/">grokdebug</a>, 将要解析的日志和配置的正则放入, 可以查看最终得到的结构化数据</p>
 <h2 id="2-elasticsearchcha-jian">2. elasticsearch插件</h2>
@@ -206,29 +206,29 @@
 <h2 id="3-supervisor">3. supervisor</h2>
 <p>建议使用<code>supervisor</code>对<code>elk</code>进行管理,(ps. 不要用yum自带的, 版本太旧好多坑, 浪费1小时......使用pip install安装最新版本即可)</p>
 <p>配置示例<code>elk.conf</code></p>
-<div class="monokai"><pre><span class="code-line"><span></span><span class="k">[program:elasticsearch]</span></span>
-<span class="code-line"><span class="na">command</span><span class="o">=</span><span class="s">/var/shell/elk/elasticsearch/bin/elasticsearch</span></span>
-<span class="code-line"><span class="na">numprocs</span><span class="o">=</span><span class="s">1</span></span>
-<span class="code-line"><span class="na">autostart</span><span class="o">=</span><span class="s">true</span></span>
-<span class="code-line"><span class="na">autorestart</span><span class="o">=</span><span class="s">true</span></span>
-<span class="code-line"></span>
-<span class="code-line"><span class="k">[program:kibana]</span></span>
-<span class="code-line"><span class="na">command</span><span class="o">=</span><span class="s">/var/shell/elk/kibana/bin/kibana</span></span>
-<span class="code-line"><span class="na">numprocs</span><span class="o">=</span><span class="s">1</span></span>
-<span class="code-line"><span class="na">autostart</span><span class="o">=</span><span class="s">true</span></span>
-<span class="code-line"><span class="na">autorestart</span><span class="o">=</span><span class="s">true</span></span>
-<span class="code-line"></span>
-<span class="code-line"><span class="k">[program:logstash_arthas]</span></span>
-<span class="code-line"><span class="na">command</span><span class="o">=</span><span class="s">/var/shell/elk/logstash/bin/logstash -f /var/shell/elk/logstash/config/xxxx_access.conf</span></span>
-<span class="code-line"><span class="na">numprocs</span><span class="o">=</span><span class="s">1</span></span>
-<span class="code-line"><span class="na">autostart</span><span class="o">=</span><span class="s">true</span></span>
-<span class="code-line"><span class="na">autorestart</span><span class="o">=</span><span class="s">true</span></span>
-<span class="code-line"><span class="na">log_stdout</span><span class="o">=</span><span class="s">true</span></span>
-<span class="code-line"><span class="na">log_stderr</span><span class="o">=</span><span class="s">true</span></span>
-<span class="code-line"><span class="na">logfile</span><span class="o">=</span><span class="s">/data/logs/elk/logstash/logstash_arthas_access.log</span></span>
+<div class="monokai"><pre><span></span><span class="k">[program:elasticsearch]</span>
+<span class="na">command</span><span class="o">=</span><span class="s">/var/shell/elk/elasticsearch/bin/elasticsearch</span>
+<span class="na">numprocs</span><span class="o">=</span><span class="s">1</span>
+<span class="na">autostart</span><span class="o">=</span><span class="s">true</span>
+<span class="na">autorestart</span><span class="o">=</span><span class="s">true</span>
+
+<span class="k">[program:kibana]</span>
+<span class="na">command</span><span class="o">=</span><span class="s">/var/shell/elk/kibana/bin/kibana</span>
+<span class="na">numprocs</span><span class="o">=</span><span class="s">1</span>
+<span class="na">autostart</span><span class="o">=</span><span class="s">true</span>
+<span class="na">autorestart</span><span class="o">=</span><span class="s">true</span>
+
+<span class="k">[program:logstash_arthas]</span>
+<span class="na">command</span><span class="o">=</span><span class="s">/var/shell/elk/logstash/bin/logstash -f /var/shell/elk/logstash/config/xxxx_access.conf</span>
+<span class="na">numprocs</span><span class="o">=</span><span class="s">1</span>
+<span class="na">autostart</span><span class="o">=</span><span class="s">true</span>
+<span class="na">autorestart</span><span class="o">=</span><span class="s">true</span>
+<span class="na">log_stdout</span><span class="o">=</span><span class="s">true</span>
+<span class="na">log_stderr</span><span class="o">=</span><span class="s">true</span>
+<span class="na">logfile</span><span class="o">=</span><span class="s">/data/logs/elk/logstash/logstash_arthas_access.log</span>
 </pre></div>
 <h2 id="4-logstashkeng">4. logstash坑</h2>
-<div class="monokai"><pre><span class="code-line"><span></span>start_position =&gt; "beginning"</span>
+<div class="monokai"><pre><span></span>start_position =&gt; "beginning"
 </pre></div>
 <p>logstash, 会记录一份文件读到的位置, 在$HOME/.sincedb_xxxxx 如果要让logstash重新读取文件, 删除之即可, 重启<code>shipper</code>.</p>
 <p>但是你可能发现es中重复记录了, 这是因为, 在<code>output</code>中, 没有定义存储到es时使用的<code>document_id</code>, es全部当成新纪录存入, 导致数据重复</p>

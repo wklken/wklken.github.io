@@ -97,13 +97,13 @@
 <ul>
 <li>以往的统计方式:</li>
 </ul>
-<div class="monokai"><pre><span class="code-line"><span></span>分析统计需求 -&gt; 修改项目记录日志内容和格式(到磁盘) -&gt; 自行将日志汇总到一台机器(rsync) -&gt; crontab脚本分析日志(要删或备份历史数据) -&gt; 新建db表, 存储统计结果 -&gt; 写管理后台, 查询统计结果(最繁琐) -&gt; 处理分页/图表等</span>
+<div class="monokai"><pre><span></span>分析统计需求 -&gt; 修改项目记录日志内容和格式(到磁盘) -&gt; 自行将日志汇总到一台机器(rsync) -&gt; crontab脚本分析日志(要删或备份历史数据) -&gt; 新建db表, 存储统计结果 -&gt; 写管理后台, 查询统计结果(最繁琐) -&gt; 处理分页/图表等
 </pre></div>
 <p>虽然每次耗时或许并不会太长(0.5-2d, 视需求大小), 但对于不同项目和需求变更, 这些工作都是纯体力毫无技术含量的枯燥工作, 可以说是无意义的资源浪费.</p>
 <ul>
 <li>新的方式</li>
 </ul>
-<div class="monokai"><pre><span class="code-line"><span></span>分析统计需求 -&gt; 确认日志内容和格式  -&gt; 统计后台配置输入/处理/输出逻辑 -&gt; 查看结果</span>
+<div class="monokai"><pre><span></span>分析统计需求 -&gt; 确认日志内容和格式  -&gt; 统计后台配置输入/处理/输出逻辑 -&gt; 查看结果
 </pre></div>
 <p>说白了就是, 处理统计需求变成了 <code>写sql</code> + <code>配置</code></p>
 <hr/>
@@ -111,62 +111,62 @@
 <ul>
 <li>大体思路如下(从后往前):</li>
 </ul>
-<div class="monokai"><pre><span class="code-line"><span></span>1. 将日志进行汇总</span>
-<span class="code-line">2. 日志格式一致化</span>
-<span class="code-line">3. 将日志导入到一个容器中</span>
-<span class="code-line">4. 便捷地通过容器进行计算(计数)</span>
-<span class="code-line">5. 统计结果进行统一存储</span>
-<span class="code-line">6. 提供统一的查询接口</span>
-<span class="code-line">7. 提供前端框架组件, 可以通过配置调用统一查询接口, 并对数据进行分页及图表化</span>
-<span class="code-line">8. 提供配置入口, 可以配置日志入口, 处理逻辑, 展现逻辑. 即完全地配置化</span>
+<div class="monokai"><pre><span></span>1. 将日志进行汇总
+2. 日志格式一致化
+3. 将日志导入到一个容器中
+4. 便捷地通过容器进行计算(计数)
+5. 统计结果进行统一存储
+6. 提供统一的查询接口
+7. 提供前端框架组件, 可以通过配置调用统一查询接口, 并对数据进行分页及图表化
+8. 提供配置入口, 可以配置日志入口, 处理逻辑, 展现逻辑. 即完全地配置化
 </pre></div>
 <ul>
 <li>需要统一的地方:</li>
 </ul>
-<div class="monokai"><pre><span class="code-line"><span></span>日志格式</span>
-<span class="code-line">容器存储</span>
-<span class="code-line">报告存储</span>
-<span class="code-line">查询接口</span>
-<span class="code-line">前端组件</span>
+<div class="monokai"><pre><span></span>日志格式
+容器存储
+报告存储
+查询接口
+前端组件
 </pre></div>
 <ul>
 <li>系统成型后</li>
 </ul>
-<div class="monokai"><pre><span class="code-line"><span></span>增加/修改统计需求: 只需要在后台配置数据来源(日志), 处理逻辑(一段 sql), 展示逻辑(一段前端 json配置), 就可以实现图标</span>
+<div class="monokai"><pre><span></span>增加/修改统计需求: 只需要在后台配置数据来源(日志), 处理逻辑(一段 sql), 展示逻辑(一段前端 json配置), 就可以实现图标
 </pre></div>
 <hr/>
 <h3 id="san-ju-ti">三. 具体</h3>
 <h3 id="0-ji-ben-jia-gou">0. 基本架构</h3>
-<div class="monokai"><pre><span class="code-line"><span></span>             ----------------------------------------------</span>
-<span class="code-line">            |      日志(UniteStats or ApplicationLogs)     |</span>
-<span class="code-line">             ----------------------------------------------</span>
-<span class="code-line">                              ||</span>
-<span class="code-line">                 ---------------------------</span>
-<span class="code-line">                |        load处理程序        |</span>
-<span class="code-line">                 ---------------------------</span>
-<span class="code-line">                              ||</span>
-<span class="code-line">                ___________________________</span>
-<span class="code-line">               |存储容器--计算容器           |</span>
-<span class="code-line">               |                          |</span>
-<span class="code-line">               |  Container(Postgresql)   |   //json - sql - 聚集函数</span>
-<span class="code-line">               |                          |</span>
-<span class="code-line">               |___________________________</span>
-<span class="code-line">                             ||</span>
-<span class="code-line">            --------------------------------------</span>
-<span class="code-line">           |        [自定义统计脚本-查询逻辑及报告表]  |</span>
-<span class="code-line">            --------------------------------------</span>
-<span class="code-line">                             ||</span>
-<span class="code-line">            ---------------------------------------</span>
-<span class="code-line">           |            统计报告                    |</span>
-<span class="code-line">            ---------------------------------------</span>
-<span class="code-line">                            ||</span>
-<span class="code-line">            ---------------------------------------</span>
-<span class="code-line">           |            统一查询接口                |</span>
-<span class="code-line">            ---------------------------------------</span>
-<span class="code-line">                            ||</span>
-<span class="code-line">             ------------------------------------</span>
-<span class="code-line">            |      [自定义前端-使用统一库-配置生成]   |</span>
-<span class="code-line">             ------------------------------------</span>
+<div class="monokai"><pre><span></span>             ----------------------------------------------
+            |      日志(UniteStats or ApplicationLogs)     |
+             ----------------------------------------------
+                              ||
+                 ---------------------------
+                |        load处理程序        |
+                 ---------------------------
+                              ||
+                ___________________________
+               |存储容器--计算容器           |
+               |                          |
+               |  Container(Postgresql)   |   //json - sql - 聚集函数
+               |                          |
+               |___________________________
+                             ||
+            --------------------------------------
+           |        [自定义统计脚本-查询逻辑及报告表]  |
+            --------------------------------------
+                             ||
+            ---------------------------------------
+           |            统计报告                    |
+            ---------------------------------------
+                            ||
+            ---------------------------------------
+           |            统一查询接口                |
+            ---------------------------------------
+                            ||
+             ------------------------------------
+            |      [自定义前端-使用统一库-配置生成]   |
+             ------------------------------------
 </pre></div>
 <h3 id="1-ri-zhi-ge-shi">1. 日志格式</h3>
 <p>日志, 即文本.</p>
@@ -180,22 +180,22 @@
 <p>目的: 将日志汇总到同一台机器上, 便于统一处理</p>
 <p>命名规则: <code>$THE_LOG_PATH/{projectName}/{projectName}_{moduleName}_{ip}_{yyMMdd}.log</code> (示例)</p>
 <p>日志汇总的方案有很多:</p>
-<div class="monokai"><pre><span class="code-line"><span></span>scp</span>
-<span class="code-line">rsync</span>
-<span class="code-line">nfs</span>
-<span class="code-line">logstash</span>
+<div class="monokai"><pre><span></span>scp
+rsync
+nfs
+logstash
 </pre></div>
 <p>最终的处理方案: 数据量小, 同一个机房, 使用NFS将日志汇总到目录, 不同机房, 使用rsync进行汇总. 如果数据量大, 可以考虑使用logstash, 直接将日志经过节点处理实时写到一台机器上(就不要分别记录到各自磁盘了).</p>
 <p>扩展: 使用多台机器, 只要保证最终导入同一个库即可.(同一个项目, 同一天存在一张表, 不同机器的日志导入之)</p>
 <p>到这里, 我们将所有json格式的日志汇集到了一起</p>
 <h3 id="3-dao-ru-rong-qi-chu-li">3. 导入容器处理</h3>
 <p>目前每个项目的日志格式是,</p>
-<div class="monokai"><pre><span class="code-line"><span></span>{projectName}/{projectName}_{moduleName}_{ip}_{yyMMdd}.log</span>
+<div class="monokai"><pre><span></span>{projectName}/{projectName}_{moduleName}_{ip}_{yyMMdd}.log
 </pre></div>
 <p>我们会将同一个项目, 可能来自不同机器的日志导入同一张表</p>
-<div class="monokai"><pre><span class="code-line"><span></span>{projectName}/{projectName}_{moduleName}_*_{yyMMdd}.log</span>
-<span class="code-line">=&gt;</span>
-<span class="code-line">table: projectName_moduleName_yyMMdd</span>
+<div class="monokai"><pre><span></span>{projectName}/{projectName}_{moduleName}_*_{yyMMdd}.log
+=&gt;
+table: projectName_moduleName_yyMMdd
 </pre></div>
 <p>处理方式: 批量入库, 并且清理保留日期外的表</p>
 <p>建议使用批量导入的方式, 速度杠杠的. Postgresql请使用copy命令</p>
@@ -206,42 +206,42 @@
 <p><code>MySql</code> 对 <code>json</code> 的支持, 相对于 postgresql 而言逊色太多了, 对<code>json</code>格式存在限制(多层复杂嵌套的情况)</p>
 <p><code>Mongodb</code> 虽然对<code>json</code>支持不错, 但是对于数据量较大的情况支持并不好, 并且查询以及运维都会带来一定困难, 对于使用者有一定学习成本</p>
 <p>PostGresql作为容器的好处:</p>
-<div class="monokai"><pre><span class="code-line"><span></span>1. 支持的数据量</span>
-<span class="code-line">2. 查询简单，支持json, 所有sql查询，group by/order by/嵌套子查询，聚集等</span>
-<span class="code-line">3. 各种聚集、统计函数均可用，搞定基本统计查询无障碍（再复杂的都可以）</span>
-<span class="code-line">4. 运维简单</span>
-<span class="code-line">5. 对于开发而言几乎没有学习成本, 会sql再学习下postgresql的json查询</span>
+<div class="monokai"><pre><span></span>1. 支持的数据量
+2. 查询简单，支持json, 所有sql查询，group by/order by/嵌套子查询，聚集等
+3. 各种聚集、统计函数均可用，搞定基本统计查询无障碍（再复杂的都可以）
+4. 运维简单
+5. 对于开发而言几乎没有学习成本, 会sql再学习下postgresql的json查询
 </pre></div>
 <p>示例:
 假设搜索日志:</p>
-<div class="monokai"><pre><span class="code-line"><span></span>{‘ip’: ‘127.0.0.1’,</span>
-<span class="code-line"> ‘keyword’: ‘test’,</span>
-<span class="code-line"> ‘result_count’: ‘1’,</span>
-<span class="code-line">}</span>
+<div class="monokai"><pre><span></span>{‘ip’: ‘127.0.0.1’,
+ ‘keyword’: ‘test’,
+ ‘result_count’: ‘1’,
+}
 </pre></div>
 <p>统计 pv</p>
-<div class="monokai"><pre><span class="code-line"><span></span>select count(data-&gt;'ip') from search_20141101;</span>
+<div class="monokai"><pre><span></span>select count(data-&gt;'ip') from search_20141101;
 </pre></div>
 <p>统计 uv</p>
-<div class="monokai"><pre><span class="code-line"><span></span>select count(DISTINCT data-&gt;&gt;'ip') from search_20141101;</span>
+<div class="monokai"><pre><span></span>select count(DISTINCT data-&gt;&gt;'ip') from search_20141101;
 </pre></div>
 <p>无结果数</p>
-<div class="monokai"><pre><span class="code-line"><span></span>select count(*) from search_20141101 where data-&gt;&gt;'result_count' = '0';</span>
+<div class="monokai"><pre><span></span>select count(*) from search_20141101 where data-&gt;&gt;'result_count' = '0';
 </pre></div>
 <p>搜索热词排行榜</p>
-<div class="monokai"><pre><span class="code-line"><span></span>select data-&gt;&gt;’keyword’, count(*)</span>
-<span class="code-line">from search_20141101</span>
-<span class="code-line">where data-&gt;&gt;'result_count' != '0'</span>
-<span class="code-line">group by data-&gt;&gt;’keyword’</span>
-<span class="code-line">order by count(*) desc</span>
-<span class="code-line">limit 100;</span>
+<div class="monokai"><pre><span></span>select data-&gt;&gt;’keyword’, count(*)
+from search_20141101
+where data-&gt;&gt;'result_count' != '0'
+group by data-&gt;&gt;’keyword’
+order by count(*) desc
+limit 100;
 </pre></div>
 <h3 id="5-pi-chu-li">5. 批处理</h3>
 <p>这里要做的事情, 需要有一个管理后台, 让开发可以配置上传自己的处理脚本, 设定脚本执行时间, 执行参数(处理日期/报告表名), 甚至是执行依赖.</p>
 <p>这里需要形成一个约定</p>
-<div class="monokai"><pre><span class="code-line"><span></span>报告表名: projectName_statsModuleName</span>
-<span class="code-line">报告表一些字段名(因为统一查询接口需要用到): 日期 date,</span>
-<span class="code-line">其他约定字段</span>
+<div class="monokai"><pre><span></span>报告表名: projectName_statsModuleName
+报告表一些字段名(因为统一查询接口需要用到): 日期 date,
+其他约定字段
 </pre></div>
 <p>每天, 系统会扫描并调度任务, 执行, 处理得到统计结果, 存入报告表.</p>
 <p>到这里, 我们每天的统计结果都存入到了报告表中</p>
@@ -257,40 +257,40 @@
 <li>生成查询表单: 模块化组件, 通过json配置, 自动生成统计查询的表单, 支持各类维度</li>
 </ul>
 <p>配置示例:</p>
-<div class="monokai"><pre><span class="code-line"><span></span>// 产生条件html</span>
-<span class="code-line">    var condition_configs = {</span>
-<span class="code-line">        title: "频道访问统计摘要",</span>
-<span class="code-line">        conditions: [</span>
-<span class="code-line">                {</span>
-<span class="code-line">                    type: "date_begin_to_end", //开始结束日期选择框</span>
-<span class="code-line">                },</span>
-<span class="code-line">                {</span>
-<span class="code-line">                    type: "select",   //下拉框</span>
-<span class="code-line">                    label: "频道",</span>
-<span class="code-line">                    id: "channel",</span>
-<span class="code-line">                    options: [</span>
-<span class="code-line">                        {</span>
-<span class="code-line">                            text: "所有",</span>
-<span class="code-line">                            value: "",</span>
-<span class="code-line">                        },</span>
-<span class="code-line">                        {</span>
-<span class="code-line">                            text: "快速访问",</span>
-<span class="code-line">                            value: "quickaccess",</span>
-<span class="code-line">                        },</span>
-<span class="code-line"></span>
-<span class="code-line">                    ]</span>
-<span class="code-line">                },</span>
-<span class="code-line">                {</span>
-<span class="code-line">                    type: "version", //文档框</span>
-<span class="code-line">                },</span>
-<span class="code-line">        ]</span>
-<span class="code-line">    };</span>
+<div class="monokai"><pre><span></span>// 产生条件html
+    var condition_configs = {
+        title: "频道访问统计摘要",
+        conditions: [
+                {
+                    type: "date_begin_to_end", //开始结束日期选择框
+                },
+                {
+                    type: "select",   //下拉框
+                    label: "频道",
+                    id: "channel",
+                    options: [
+                        {
+                            text: "所有",
+                            value: "",
+                        },
+                        {
+                            text: "快速访问",
+                            value: "quickaccess",
+                        },
+
+                    ]
+                },
+                {
+                    type: "version", //文档框
+                },
+        ]
+    };
 </pre></div>
 <p>就会自动生成表单</p>
-<div class="monokai"><pre><span class="code-line"><span></span><span class="n">begin_date</span><span class="o">:</span></span>
-<span class="code-line"><span class="n">end_date</span><span class="o">:</span></span>
-<span class="code-line"><span class="n">channel</span><span class="o">:</span></span>
-<span class="code-line"><span class="n">version</span><span class="o">:</span></span>
+<div class="monokai"><pre><span></span><span class="n">begin_date</span><span class="o">:</span>
+<span class="n">end_date</span><span class="o">:</span>
+<span class="n">channel</span><span class="o">:</span>
+<span class="n">version</span><span class="o">:</span>
 </pre></div>
 <ul>
 <li>
@@ -301,41 +301,41 @@
 </li>
 </ul>
 <p>一个配置示例:</p>
-<div class="monokai"><pre><span class="code-line"><span></span><span class="x">一般文本</span></span>
-<span class="code-line"><span class="err">{</span><span class="x"></span></span>
-<span class="code-line"><span class="x">    'column': 'date',</span></span>
-<span class="code-line"><span class="x">    'name': '日期',</span></span>
-<span class="code-line"><span class="x">    'type': 'text',</span></span>
-<span class="code-line"><span class="x">},</span></span>
-<span class="code-line"></span>
-<span class="code-line"><span class="x">百分比 </span><span class="p">$</span><span class="x">后面跟的是sql查询结果列名</span></span>
-<span class="code-line"><span class="err">{</span><span class="x"></span></span>
-<span class="code-line"><span class="x">    'column': 'uninstall_ratio',</span></span>
-<span class="code-line"><span class="x">    'name': '卸载率',</span></span>
-<span class="code-line"><span class="x">    'type': 'ratio',</span></span>
-<span class="code-line"><span class="x">    'value': '</span><span class="p">$</span><span class="nv">uninstall_pv</span><span class="x">/</span><span class="p">$</span><span class="nv">install_pv</span><span class="x">'</span></span>
-<span class="code-line"><span class="x">},</span></span>
-<span class="code-line"></span>
-<span class="code-line"><span class="x">公式计算</span></span>
-<span class="code-line"><span class="err">{</span><span class="x"></span></span>
-<span class="code-line"><span class="x">    'column': 'the_qvod_link_pv',</span></span>
-<span class="code-line"><span class="x">    'name': '导入链接数',</span></span>
-<span class="code-line"><span class="x">    'type': 'calculate',</span></span>
-<span class="code-line"><span class="x">    'value': '</span><span class="p">$</span><span class="nv">qvod_link_pv</span><span class="x"> + </span><span class="p">$</span><span class="nv">qvod_start_pv</span><span class="x">'</span></span>
-<span class="code-line"><span class="x">},</span></span>
-<span class="code-line"></span>
-<span class="code-line"><span class="x">列值翻译</span></span>
-<span class="code-line"><span class="err">{</span><span class="x"></span></span>
-<span class="code-line"><span class="x">    'column': 'channel',</span></span>
-<span class="code-line"><span class="x">    'name': '渠道',</span></span>
-<span class="code-line"><span class="x">    'type': 'text',</span></span>
-<span class="code-line"><span class="x">    'translation': </span><span class="err">{</span><span class="x"></span></span>
-<span class="code-line"><span class="x">        "all": "all",</span></span>
-<span class="code-line"><span class="x">        "player": "播放器",</span></span>
-<span class="code-line"><span class="x">        "zx": "资讯",</span></span>
-<span class="code-line"><span class="x">        "other": "其他导入",</span></span>
-<span class="code-line"><span class="x">    }</span></span>
-<span class="code-line"><span class="x">},</span></span>
+<div class="monokai"><pre><span></span><span class="x">一般文本</span>
+<span class="err">{</span><span class="x"></span>
+<span class="x">    'column': 'date',</span>
+<span class="x">    'name': '日期',</span>
+<span class="x">    'type': 'text',</span>
+<span class="x">},</span>
+
+<span class="x">百分比 </span><span class="p">$</span><span class="x">后面跟的是sql查询结果列名</span>
+<span class="err">{</span><span class="x"></span>
+<span class="x">    'column': 'uninstall_ratio',</span>
+<span class="x">    'name': '卸载率',</span>
+<span class="x">    'type': 'ratio',</span>
+<span class="x">    'value': '</span><span class="p">$</span><span class="nv">uninstall_pv</span><span class="x">/</span><span class="p">$</span><span class="nv">install_pv</span><span class="x">'</span>
+<span class="x">},</span>
+
+<span class="x">公式计算</span>
+<span class="err">{</span><span class="x"></span>
+<span class="x">    'column': 'the_qvod_link_pv',</span>
+<span class="x">    'name': '导入链接数',</span>
+<span class="x">    'type': 'calculate',</span>
+<span class="x">    'value': '</span><span class="p">$</span><span class="nv">qvod_link_pv</span><span class="x"> + </span><span class="p">$</span><span class="nv">qvod_start_pv</span><span class="x">'</span>
+<span class="x">},</span>
+
+<span class="x">列值翻译</span>
+<span class="err">{</span><span class="x"></span>
+<span class="x">    'column': 'channel',</span>
+<span class="x">    'name': '渠道',</span>
+<span class="x">    'type': 'text',</span>
+<span class="x">    'translation': </span><span class="err">{</span><span class="x"></span>
+<span class="x">        "all": "all",</span>
+<span class="x">        "player": "播放器",</span>
+<span class="x">        "zx": "资讯",</span>
+<span class="x">        "other": "其他导入",</span>
+<span class="x">    }</span>
+<span class="x">},</span>
 </pre></div>
 <h3 id="9-tu-biao">9. 图表</h3>
 <p>使用百度 <a href="http://echarts.baidu.com/">echats</a></p>

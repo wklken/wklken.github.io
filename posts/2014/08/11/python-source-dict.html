@@ -84,30 +84,30 @@
          <a href="https://github.com/wklken/Python-2.7.8/blob/master/Objects/dictobject.c">Objects/dictobject.c</a></p>
 <hr/>
 <h1 id="pydictobjectde-cun-chu-ce-lue">PyDictObject的存储策略</h1>
-<div class="monokai"><pre><span class="code-line"><span></span>1. 使用散列表进行存储</span>
-<span class="code-line"></span>
-<span class="code-line">2. 使用开放定址法处理冲突</span>
-<span class="code-line"></span>
-<span class="code-line">    2.1 插入, 发生冲突, 通过二次探测算法, 寻找下一个位置, 直到找到可用位置, 放入(形成一条冲突探测链)</span>
-<span class="code-line"></span>
-<span class="code-line">    2.2 查找, 需要遍历冲突探测链</span>
-<span class="code-line"></span>
-<span class="code-line">    2.3 删除, 如果对象在探测链上, 不能直接删除, 否则会破坏整个结构(所以不是真的删)</span>
+<div class="monokai"><pre><span></span>1. 使用散列表进行存储
+
+2. 使用开放定址法处理冲突
+
+    2.1 插入, 发生冲突, 通过二次探测算法, 寻找下一个位置, 直到找到可用位置, 放入(形成一条冲突探测链)
+
+    2.2 查找, 需要遍历冲突探测链
+
+    2.3 删除, 如果对象在探测链上, 不能直接删除, 否则会破坏整个结构(所以不是真的删)
 </pre></div>
 <p>关于 hash表的 <a href="http://zh.wikipedia.org/wiki/%E5%93%88%E5%B8%8C%E8%A1%A8">wiki</a></p>
 <hr/>
 <h1 id="ji-ben-jian-zhi-pydictentry">基本键值PyDictEntry</h1>
-<div class="monokai"><pre><span class="code-line"><span></span>typedef struct {</span>
-<span class="code-line">    Py_ssize_t me_hash;</span>
-<span class="code-line">    PyObject *me_key;</span>
-<span class="code-line">    PyObject *me_value;</span>
-<span class="code-line">} PyDictEntry;</span>
+<div class="monokai"><pre><span></span>typedef struct {
+    Py_ssize_t me_hash;
+    PyObject *me_key;
+    PyObject *me_value;
+} PyDictEntry;
 </pre></div>
 <p>说明</p>
-<div class="monokai"><pre><span class="code-line"><span></span>1. PyDictEntry 用于存储键值对信息</span>
-<span class="code-line"></span>
-<span class="code-line">2. Py_ssize_t me_hash</span>
-<span class="code-line">存储了me_key计算得到的hash值, 不重复计算</span>
+<div class="monokai"><pre><span></span>1. PyDictEntry 用于存储键值对信息
+
+2. Py_ssize_t me_hash
+存储了me_key计算得到的hash值, 不重复计算
 </pre></div>
 <p>结构</p>
 <p><img alt="PyDictEntry" src="/imgs/python-source/PyDictEntry.png"/></p>
@@ -116,201 +116,201 @@
 <hr/>
 <h1 id="pydictobjectding-yi">PyDictObject定义</h1>
 <p>定义</p>
-<div class="monokai"><pre><span class="code-line"><span></span>typedef struct _dictobject PyDictObject;</span>
-<span class="code-line">struct _dictobject {</span>
-<span class="code-line">    PyObject_HEAD</span>
-<span class="code-line"></span>
-<span class="code-line">    Py_ssize_t ma_fill;</span>
-<span class="code-line">    Py_ssize_t ma_used;</span>
-<span class="code-line">    Py_ssize_t ma_mask;</span>
-<span class="code-line"></span>
-<span class="code-line">    PyDictEntry *ma_table;</span>
-<span class="code-line">    PyDictEntry *(*ma_lookup)(PyDictObject *mp, PyObject *key, long hash);</span>
-<span class="code-line">    PyDictEntry ma_smalltable[PyDict_MINSIZE];</span>
-<span class="code-line">};</span>
+<div class="monokai"><pre><span></span>typedef struct _dictobject PyDictObject;
+struct _dictobject {
+    PyObject_HEAD
+
+    Py_ssize_t ma_fill;
+    Py_ssize_t ma_used;
+    Py_ssize_t ma_mask;
+
+    PyDictEntry *ma_table;
+    PyDictEntry *(*ma_lookup)(PyDictObject *mp, PyObject *key, long hash);
+    PyDictEntry ma_smalltable[PyDict_MINSIZE];
+};
 </pre></div>
 <p>说明</p>
-<div class="monokai"><pre><span class="code-line"><span></span>1. PyObject_HEAD</span>
-<span class="code-line">反而声明为定长对象, 因为ob_size在这里用不上, 使用ma_fill和ma_used计数</span>
-<span class="code-line"></span>
-<span class="code-line">2. Py_ssize_t ma_fill;</span>
-<span class="code-line">   Py_ssize_t ma_used;</span>
-<span class="code-line"></span>
-<span class="code-line">    ma_fill = # Active + # Dummy</span>
-<span class="code-line">    ma_used = # Active</span>
-<span class="code-line"></span>
-<span class="code-line">3. Py_ssize_t ma_mask;</span>
-<span class="code-line">散列表entry容量 = ma_mask + 1, 初始值ma_mask = PyDict_MINSIZE - 1 = 7</span>
-<span class="code-line"></span>
-<span class="code-line">    ma_mask + 1 = # Unused + # Active + # Dummy</span>
-<span class="code-line"></span>
-<span class="code-line">4. PyDictEntry *ma_table;</span>
-<span class="code-line">指向散列表内存, 如果是小的dict(entry数量&lt;=8). 指向ma_smalltable数组</span>
-<span class="code-line"></span>
-<span class="code-line">5. ma_lookup</span>
-<span class="code-line">搜索函数</span>
-<span class="code-line"></span>
-<span class="code-line">6. PyDictEntry ma_smalltable[PyDict_MINSIZE];</span>
-<span class="code-line">小dict, 大小8, 小于8个键值对的字典会直接存放在这里, 超出后再从内存分配空间</span>
+<div class="monokai"><pre><span></span>1. PyObject_HEAD
+反而声明为定长对象, 因为ob_size在这里用不上, 使用ma_fill和ma_used计数
+
+2. Py_ssize_t ma_fill;
+   Py_ssize_t ma_used;
+
+    ma_fill = # Active + # Dummy
+    ma_used = # Active
+
+3. Py_ssize_t ma_mask;
+散列表entry容量 = ma_mask + 1, 初始值ma_mask = PyDict_MINSIZE - 1 = 7
+
+    ma_mask + 1 = # Unused + # Active + # Dummy
+
+4. PyDictEntry *ma_table;
+指向散列表内存, 如果是小的dict(entry数量&lt;=8). 指向ma_smalltable数组
+
+5. ma_lookup
+搜索函数
+
+6. PyDictEntry ma_smalltable[PyDict_MINSIZE];
+小dict, 大小8, 小于8个键值对的字典会直接存放在这里, 超出后再从内存分配空间
 </pre></div>
 <p>结构</p>
 <p><img alt="PyDictObject" src="/imgs/python-source/PyDictObject.png"/></p>
 <p>结论</p>
-<div class="monokai"><pre><span class="code-line"><span></span>1. PyDictObject在生命周期内, 需要维护ma_fill/ma_used/ma_mask 三个计数值</span>
-<span class="code-line"></span>
-<span class="code-line">2. 初始化创建是ma_smalltable, 超过大小后, 会使用外部分配的空间</span>
+<div class="monokai"><pre><span></span>1. PyDictObject在生命周期内, 需要维护ma_fill/ma_used/ma_mask 三个计数值
+
+2. 初始化创建是ma_smalltable, 超过大小后, 会使用外部分配的空间
 </pre></div>
 <h1 id="gou-zao-guo-cheng">构造过程</h1>
 <p>定义</p>
-<div class="monokai"><pre><span class="code-line"><span></span><span class="n">PyObject</span> *</span>
-<span class="code-line"><span class="n">PyDict_New</span>(<span class="nb">void</span>)</span>
-<span class="code-line">{</span>
-<span class="code-line">    <span class="n">register</span> <span class="n">PyDictObject</span> *<span class="n">mp</span>;</span>
-<span class="code-line"></span>
-<span class="code-line">    // <span class="n">初始化dummy</span></span>
-<span class="code-line">    <span class="k">if</span> (<span class="n">dummy</span> == <span class="n">NULL</span>) {</span>
-<span class="code-line">        <span class="n">dummy</span> = <span class="n">PyString_FromString</span>(<span class="s">"&lt;dummy key&gt;"</span>);</span>
-<span class="code-line">        <span class="k">if</span> (<span class="n">dummy</span> == <span class="n">NULL</span>)</span>
-<span class="code-line">            <span class="k">return</span> <span class="n">NULL</span>;</span>
-<span class="code-line"></span>
-<span class="code-line">    // <span class="n">暂时忽略</span></span>
-<span class="code-line"><span class="c c-Singleline">#ifdef SHOW_CONVERSION_COUNTS</span></span>
-<span class="code-line">        <span class="n">Py_AtExit</span>(<span class="n">show_counts</span>);</span>
-<span class="code-line"><span class="c c-Singleline">#endif</span></span>
-<span class="code-line"><span class="c c-Singleline">#ifdef SHOW_ALLOC_COUNT</span></span>
-<span class="code-line">        <span class="n">Py_AtExit</span>(<span class="n">show_alloc</span>);</span>
-<span class="code-line"><span class="c c-Singleline">#endif</span></span>
-<span class="code-line"><span class="c c-Singleline">#ifdef SHOW_TRACK_COUNT</span></span>
-<span class="code-line">        <span class="n">Py_AtExit</span>(<span class="n">show_track</span>);</span>
-<span class="code-line"><span class="c c-Singleline">#endif</span></span>
-<span class="code-line">    }</span>
-<span class="code-line"></span>
-<span class="code-line">    // <span class="n">如果PyDictObject缓冲池可用</span></span>
-<span class="code-line">    <span class="k">if</span> (<span class="n">numfree</span>) {</span>
-<span class="code-line">        // <span class="n">取缓冲池最后一个可用对象</span></span>
-<span class="code-line">        <span class="n">mp</span> = <span class="n">free_list</span>[--<span class="n">numfree</span>];</span>
-<span class="code-line"></span>
-<span class="code-line">        <span class="n">assert</span> (<span class="n">mp</span> != <span class="n">NULL</span>);</span>
-<span class="code-line">        <span class="n">assert</span> (<span class="n">Py_TYPE</span>(<span class="n">mp</span>) == <span class="nv">&amp;PyDict_Type</span>);</span>
-<span class="code-line">        <span class="n">_Py_NewReference</span>((<span class="n">PyObject</span> *)<span class="n">mp</span>);</span>
-<span class="code-line"></span>
-<span class="code-line">        // <span class="n">初始化</span></span>
-<span class="code-line">        <span class="k">if</span> (<span class="n">mp-</span>&gt;<span class="n">ma_fill</span>) {</span>
-<span class="code-line">            // <span class="mi">1</span>. <span class="n">清空</span> <span class="n">ma_smalltable</span></span>
-<span class="code-line">            // <span class="mi">2</span>. <span class="n">ma_used</span> = <span class="n">ma_fill</span> = <span class="mi">0</span></span>
-<span class="code-line">            // <span class="mi">3</span>. <span class="n">ma_table</span> -&gt; <span class="n">ma_smalltable</span></span>
-<span class="code-line">            // <span class="mi">4</span>. <span class="n">ma_mask</span> = <span class="n">PyDict_MINSIZE</span> - <span class="mi">1</span> = <span class="mi">7</span></span>
-<span class="code-line">            <span class="n">EMPTY_TO_MINSIZE</span>(<span class="n">mp</span>);</span>
-<span class="code-line">        } <span class="k">else</span> {</span>
-<span class="code-line">            // <span class="mi">1</span>. <span class="n">ma_table</span> -&gt; <span class="n">ma_smalltable</span></span>
-<span class="code-line">            // <span class="mi">2</span>. <span class="n">ma_mask</span> = <span class="n">PyDict_MINSIZE</span> - <span class="mi">1</span> = <span class="mi">7</span></span>
-<span class="code-line">            <span class="n">INIT_NONZERO_DICT_SLOTS</span>(<span class="n">mp</span>);</span>
-<span class="code-line">        }</span>
-<span class="code-line"></span>
-<span class="code-line">        <span class="n">assert</span> (<span class="n">mp-</span>&gt;<span class="n">ma_used</span> == <span class="mi">0</span>);</span>
-<span class="code-line">        <span class="n">assert</span> (<span class="n">mp-</span>&gt;<span class="n">ma_table</span> == <span class="n">mp-</span>&gt;<span class="n">ma_smalltable</span>);</span>
-<span class="code-line">        <span class="n">assert</span> (<span class="n">mp-</span>&gt;<span class="n">ma_mask</span> == <span class="n">PyDict_MINSIZE</span> - <span class="mi">1</span>);</span>
-<span class="code-line"><span class="c c-Singleline">#ifdef SHOW_ALLOC_COUNT</span></span>
-<span class="code-line">        <span class="n">count_reuse</span>++;</span>
-<span class="code-line"><span class="c c-Singleline">#endif</span></span>
-<span class="code-line">    } <span class="k">else</span> {</span>
-<span class="code-line">        // <span class="n">创建一个</span></span>
-<span class="code-line">        <span class="n">mp</span> = <span class="n">PyObject_GC_New</span>(<span class="n">PyDictObject</span>, <span class="nv">&amp;PyDict_Type</span>);</span>
-<span class="code-line">        <span class="k">if</span> (<span class="n">mp</span> == <span class="n">NULL</span>)</span>
-<span class="code-line">            <span class="k">return</span> <span class="n">NULL</span>;</span>
-<span class="code-line">        // <span class="n">初始化</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="o">/</span><span class="mi">3</span><span class="o">/</span><span class="mi">4</span></span>
-<span class="code-line">        <span class="n">EMPTY_TO_MINSIZE</span>(<span class="n">mp</span>);</span>
-<span class="code-line"></span>
-<span class="code-line"><span class="c c-Singleline">#ifdef SHOW_ALLOC_COUNT</span></span>
-<span class="code-line">        <span class="n">count_alloc</span>++;</span>
-<span class="code-line"><span class="c c-Singleline">#endif</span></span>
-<span class="code-line">    }</span>
-<span class="code-line"></span>
-<span class="code-line">    // <span class="n">搜索方法</span>, <span class="n">关注这个</span></span>
-<span class="code-line">    <span class="n">mp-</span>&gt;<span class="n">ma_lookup</span> = <span class="n">lookdict_string</span>;</span>
-<span class="code-line"></span>
-<span class="code-line"><span class="c c-Singleline">#ifdef SHOW_TRACK_COUNT</span></span>
-<span class="code-line">    <span class="n">count_untracked</span>++;</span>
-<span class="code-line"><span class="c c-Singleline">#endif</span></span>
-<span class="code-line"><span class="c c-Singleline">#ifdef SHOW_CONVERSION_COUNTS</span></span>
-<span class="code-line">    ++<span class="n">created</span>;</span>
-<span class="code-line"><span class="c c-Singleline">#endif</span></span>
-<span class="code-line"></span>
-<span class="code-line">    // <span class="n">返回</span></span>
-<span class="code-line">    <span class="k">return</span> (<span class="n">PyObject</span> *)<span class="n">mp</span>;</span>
-<span class="code-line">}</span>
+<div class="monokai"><pre><span></span><span class="n">PyObject</span> *
+<span class="n">PyDict_New</span>(<span class="nb">void</span>)
+{
+    <span class="n">register</span> <span class="n">PyDictObject</span> *<span class="n">mp</span>;
+
+    // <span class="n">初始化dummy</span>
+    <span class="k">if</span> (<span class="n">dummy</span> == <span class="n">NULL</span>) {
+        <span class="n">dummy</span> = <span class="n">PyString_FromString</span>(<span class="s">"&lt;dummy key&gt;"</span>);
+        <span class="k">if</span> (<span class="n">dummy</span> == <span class="n">NULL</span>)
+            <span class="k">return</span> <span class="n">NULL</span>;
+
+    // <span class="n">暂时忽略</span>
+<span class="c c-Singleline">#ifdef SHOW_CONVERSION_COUNTS</span>
+        <span class="n">Py_AtExit</span>(<span class="n">show_counts</span>);
+<span class="c c-Singleline">#endif</span>
+<span class="c c-Singleline">#ifdef SHOW_ALLOC_COUNT</span>
+        <span class="n">Py_AtExit</span>(<span class="n">show_alloc</span>);
+<span class="c c-Singleline">#endif</span>
+<span class="c c-Singleline">#ifdef SHOW_TRACK_COUNT</span>
+        <span class="n">Py_AtExit</span>(<span class="n">show_track</span>);
+<span class="c c-Singleline">#endif</span>
+    }
+
+    // <span class="n">如果PyDictObject缓冲池可用</span>
+    <span class="k">if</span> (<span class="n">numfree</span>) {
+        // <span class="n">取缓冲池最后一个可用对象</span>
+        <span class="n">mp</span> = <span class="n">free_list</span>[--<span class="n">numfree</span>];
+
+        <span class="n">assert</span> (<span class="n">mp</span> != <span class="n">NULL</span>);
+        <span class="n">assert</span> (<span class="n">Py_TYPE</span>(<span class="n">mp</span>) == <span class="nv">&amp;PyDict_Type</span>);
+        <span class="n">_Py_NewReference</span>((<span class="n">PyObject</span> *)<span class="n">mp</span>);
+
+        // <span class="n">初始化</span>
+        <span class="k">if</span> (<span class="n">mp-</span>&gt;<span class="n">ma_fill</span>) {
+            // <span class="mi">1</span>. <span class="n">清空</span> <span class="n">ma_smalltable</span>
+            // <span class="mi">2</span>. <span class="n">ma_used</span> = <span class="n">ma_fill</span> = <span class="mi">0</span>
+            // <span class="mi">3</span>. <span class="n">ma_table</span> -&gt; <span class="n">ma_smalltable</span>
+            // <span class="mi">4</span>. <span class="n">ma_mask</span> = <span class="n">PyDict_MINSIZE</span> - <span class="mi">1</span> = <span class="mi">7</span>
+            <span class="n">EMPTY_TO_MINSIZE</span>(<span class="n">mp</span>);
+        } <span class="k">else</span> {
+            // <span class="mi">1</span>. <span class="n">ma_table</span> -&gt; <span class="n">ma_smalltable</span>
+            // <span class="mi">2</span>. <span class="n">ma_mask</span> = <span class="n">PyDict_MINSIZE</span> - <span class="mi">1</span> = <span class="mi">7</span>
+            <span class="n">INIT_NONZERO_DICT_SLOTS</span>(<span class="n">mp</span>);
+        }
+
+        <span class="n">assert</span> (<span class="n">mp-</span>&gt;<span class="n">ma_used</span> == <span class="mi">0</span>);
+        <span class="n">assert</span> (<span class="n">mp-</span>&gt;<span class="n">ma_table</span> == <span class="n">mp-</span>&gt;<span class="n">ma_smalltable</span>);
+        <span class="n">assert</span> (<span class="n">mp-</span>&gt;<span class="n">ma_mask</span> == <span class="n">PyDict_MINSIZE</span> - <span class="mi">1</span>);
+<span class="c c-Singleline">#ifdef SHOW_ALLOC_COUNT</span>
+        <span class="n">count_reuse</span>++;
+<span class="c c-Singleline">#endif</span>
+    } <span class="k">else</span> {
+        // <span class="n">创建一个</span>
+        <span class="n">mp</span> = <span class="n">PyObject_GC_New</span>(<span class="n">PyDictObject</span>, <span class="nv">&amp;PyDict_Type</span>);
+        <span class="k">if</span> (<span class="n">mp</span> == <span class="n">NULL</span>)
+            <span class="k">return</span> <span class="n">NULL</span>;
+        // <span class="n">初始化</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="o">/</span><span class="mi">3</span><span class="o">/</span><span class="mi">4</span>
+        <span class="n">EMPTY_TO_MINSIZE</span>(<span class="n">mp</span>);
+
+<span class="c c-Singleline">#ifdef SHOW_ALLOC_COUNT</span>
+        <span class="n">count_alloc</span>++;
+<span class="c c-Singleline">#endif</span>
+    }
+
+    // <span class="n">搜索方法</span>, <span class="n">关注这个</span>
+    <span class="n">mp-</span>&gt;<span class="n">ma_lookup</span> = <span class="n">lookdict_string</span>;
+
+<span class="c c-Singleline">#ifdef SHOW_TRACK_COUNT</span>
+    <span class="n">count_untracked</span>++;
+<span class="c c-Singleline">#endif</span>
+<span class="c c-Singleline">#ifdef SHOW_CONVERSION_COUNTS</span>
+    ++<span class="n">created</span>;
+<span class="c c-Singleline">#endif</span>
+
+    // <span class="n">返回</span>
+    <span class="k">return</span> (<span class="n">PyObject</span> *)<span class="n">mp</span>;
+}
 </pre></div>
 <p>简化步骤</p>
-<div class="monokai"><pre><span class="code-line"><span></span>1. 如果PyDictObject对象缓冲池有, 从里面直接取, 初始化</span>
-<span class="code-line"></span>
-<span class="code-line">2. 否则, 创建一个, 初始化</span>
-<span class="code-line"></span>
-<span class="code-line">3. 关联搜索方法lookdict_string</span>
-<span class="code-line"></span>
-<span class="code-line">4. 返回</span>
+<div class="monokai"><pre><span></span>1. 如果PyDictObject对象缓冲池有, 从里面直接取, 初始化
+
+2. 否则, 创建一个, 初始化
+
+3. 关联搜索方法lookdict_string
+
+4. 返回
 </pre></div>
 <p>结论</p>
-<div class="monokai"><pre><span class="code-line"><span></span>1. 关注对象缓冲池</span>
-<span class="code-line"></span>
-<span class="code-line">2. 关注lookdict_string</span>
+<div class="monokai"><pre><span></span>1. 关注对象缓冲池
+
+2. 关注lookdict_string
 </pre></div>
 <h1 id="xiao-hui-guo-cheng">销毁过程</h1>
 <p>方法定义</p>
-<div class="monokai"><pre><span class="code-line"><span></span>static void</span>
-<span class="code-line">dict_dealloc(register PyDictObject *mp)</span>
-<span class="code-line">{</span>
-<span class="code-line">    register PyDictEntry *ep;</span>
-<span class="code-line">    Py_ssize_t fill = mp-&gt;ma_fill;</span>
-<span class="code-line">    PyObject_GC_UnTrack(mp);</span>
-<span class="code-line">    Py_TRASHCAN_SAFE_BEGIN(mp)</span>
-<span class="code-line"></span>
-<span class="code-line">    // 遍历销毁ma_table中元素 (ma_table可能指向small_table 或 外部)</span>
-<span class="code-line">    for (ep = mp-&gt;ma_table; fill &gt; 0; ep++) {</span>
-<span class="code-line">        if (ep-&gt;me_key) {</span>
-<span class="code-line">            --fill;</span>
-<span class="code-line">            Py_DECREF(ep-&gt;me_key);</span>
-<span class="code-line">            Py_XDECREF(ep-&gt;me_value);</span>
-<span class="code-line">        }</span>
-<span class="code-line">    }</span>
-<span class="code-line"></span>
-<span class="code-line">    // 如果指向外部, 销毁整个(上面一步只销毁内部元素)</span>
-<span class="code-line">    if (mp-&gt;ma_table != mp-&gt;ma_smalltable)</span>
-<span class="code-line">        PyMem_DEL(mp-&gt;ma_table);</span>
-<span class="code-line"></span>
-<span class="code-line">    // 如果对象缓冲池未满且是PyDict_Type, 放入</span>
-<span class="code-line">    if (numfree &lt; PyDict_MAXFREELIST &amp;&amp; Py_TYPE(mp) == &amp;PyDict_Type)</span>
-<span class="code-line">        free_list[numfree++] = mp;</span>
-<span class="code-line">    else</span>
-<span class="code-line">        // 否则回收</span>
-<span class="code-line">        Py_TYPE(mp)-&gt;tp_free((PyObject *)mp);</span>
-<span class="code-line">    Py_TRASHCAN_SAFE_END(mp)</span>
-<span class="code-line">}</span>
+<div class="monokai"><pre><span></span>static void
+dict_dealloc(register PyDictObject *mp)
+{
+    register PyDictEntry *ep;
+    Py_ssize_t fill = mp-&gt;ma_fill;
+    PyObject_GC_UnTrack(mp);
+    Py_TRASHCAN_SAFE_BEGIN(mp)
+
+    // 遍历销毁ma_table中元素 (ma_table可能指向small_table 或 外部)
+    for (ep = mp-&gt;ma_table; fill &gt; 0; ep++) {
+        if (ep-&gt;me_key) {
+            --fill;
+            Py_DECREF(ep-&gt;me_key);
+            Py_XDECREF(ep-&gt;me_value);
+        }
+    }
+
+    // 如果指向外部, 销毁整个(上面一步只销毁内部元素)
+    if (mp-&gt;ma_table != mp-&gt;ma_smalltable)
+        PyMem_DEL(mp-&gt;ma_table);
+
+    // 如果对象缓冲池未满且是PyDict_Type, 放入
+    if (numfree &lt; PyDict_MAXFREELIST &amp;&amp; Py_TYPE(mp) == &amp;PyDict_Type)
+        free_list[numfree++] = mp;
+    else
+        // 否则回收
+        Py_TYPE(mp)-&gt;tp_free((PyObject *)mp);
+    Py_TRASHCAN_SAFE_END(mp)
+}
 </pre></div>
 <hr/>
 <h1 id="pydictobjectdui-xiang-huan-chong-chi">PyDictObject对象缓冲池</h1>
 <p>定义</p>
-<div class="monokai"><pre><span class="code-line"><span></span><span class="cp">#ifndef PyDict_MAXFREELIST</span></span>
-<span class="code-line"><span class="cp">#define PyDict_MAXFREELIST 80</span></span>
-<span class="code-line"><span class="cp">#endif</span></span>
-<span class="code-line"></span>
-<span class="code-line"><span class="k">static</span> <span class="n">PyDictObject</span> <span class="o">*</span><span class="n">free_list</span><span class="p">[</span><span class="n">PyDict_MAXFREELIST</span><span class="p">];</span></span>
-<span class="code-line"><span class="k">static</span> <span class="kt">int</span> <span class="n">numfree</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span></span>
+<div class="monokai"><pre><span></span><span class="cp">#ifndef PyDict_MAXFREELIST</span>
+<span class="cp">#define PyDict_MAXFREELIST 80</span>
+<span class="cp">#endif</span>
+
+<span class="k">static</span> <span class="n">PyDictObject</span> <span class="o">*</span><span class="n">free_list</span><span class="p">[</span><span class="n">PyDict_MAXFREELIST</span><span class="p">];</span>
+<span class="k">static</span> <span class="kt">int</span> <span class="n">numfree</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
 </pre></div>
 <p>对象缓冲池的结构(跟PyListObject对象缓冲池结构基本一样)</p>
 <p><img alt="PyDictObjectPool" src="/imgs/python-source/PyDictObjectPool.png"/></p>
 <p>结论</p>
-<div class="monokai"><pre><span class="code-line"><span></span>1. 最多会缓存80个对象</span>
-<span class="code-line"></span>
-<span class="code-line">2. 只缓存 PyDictObject 本身, 其PyDictEntry全部会被回收</span>
-<span class="code-line"></span>
-<span class="code-line">3. 缓存对象进去, 旧有的值没有变化, 取出来用的时候初始化时才改变</span>
+<div class="monokai"><pre><span></span>1. 最多会缓存80个对象
+
+2. 只缓存 PyDictObject 本身, 其PyDictEntry全部会被回收
+
+3. 缓存对象进去, 旧有的值没有变化, 取出来用的时候初始化时才改变
 </pre></div>
 <hr/>
 <h1 id="dict-cao-zuo">Dict 操作</h1>
 <p>查找/插入/resize/删除, 下个版本补</p>
 <hr/>
 <p>changelog</p>
-<div class="monokai"><pre><span class="code-line"><span></span>2014-08-11 first version</span>
+<div class="monokai"><pre><span></span>2014-08-11 first version
 </pre></div>
     </section>
 
