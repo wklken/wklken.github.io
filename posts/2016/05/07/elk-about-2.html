@@ -75,20 +75,20 @@
     </section>
 
         <section id="toc">
-            <div id="toc"><ul><li><a class="toc-href" href="#" title="ELK维护的一些点(二)">ELK维护的一些点(二)</a><ul><li><a class="toc-href" href="#string" title="根据string转浮点数的某个字段排序">根据string转浮点数的某个字段排序</a></li><li><a class="toc-href" href="#fielddata-format-disabled" title="fielddata-format-disabled导致的排序失效">fielddata-format-disabled导致的排序失效</a></li><li><a class="toc-href" href="#_1" title="使用聚合">使用聚合</a></li><li><a class="toc-href" href="#logstash-grok-default-patterns" title="logstash grok default patterns">logstash grok default patterns</a></li><li><a class="toc-href" href="#logstash-codec-multiline" title="logstash codec multiline 限制行数和日志大小">logstash codec multiline 限制行数和日志大小</a></li><li><a class="toc-href" href="#supervisordlogstash" title="使用supervisord管理logstash进程">使用supervisord管理logstash进程</a></li><li><a class="toc-href" href="#logstashtop" title="查看当前机器logstash进程top">查看当前机器logstash进程top</a></li><li><a class="toc-href" href="#cpu" title="进程占用cpu检测脚本">进程占用cpu检测脚本</a></li><li><a class="toc-href" href="#yellow" title="数据盘满了导致集群状态yellow">数据盘满了导致集群状态yellow</a></li><li><a class="toc-href" href="#redis" title="查看redis中队列的堆积">查看redis中队列的堆积</a></li><li><a class="toc-href" href="#_2" title="解析失败丢弃及黑名单实现">解析失败丢弃及黑名单实现</a></li><li><a class="toc-href" href="#worker" title="启动限制使用的worker数">启动限制使用的worker数</a></li><li><a class="toc-href" href="#_3" title="几个简单脚本">几个简单脚本</a></li></ul></li></ul></div>
+            <div id="toc"><ul><li><a class="toc-href" href="#" title="ELK维护的一些点(二)">ELK维护的一些点(二)</a><ul><li><a class="toc-href" href="#gen-ju-stringzhuan-fu-dian-shu-de-mou-ge-zi-duan-pai-xu" title="根据string转浮点数的某个字段排序">根据string转浮点数的某个字段排序</a></li><li><a class="toc-href" href="#fielddata-format-disableddao-zhi-de-pai-xu-shi-xiao" title="fielddata-format-disabled导致的排序失效">fielddata-format-disabled导致的排序失效</a></li><li><a class="toc-href" href="#shi-yong-ju-he" title="使用聚合">使用聚合</a></li><li><a class="toc-href" href="#logstash-grok-default-patterns" title="logstash grok default patterns">logstash grok default patterns</a></li><li><a class="toc-href" href="#logstash-codec-multiline-xian-zhi-xing-shu-he-ri-zhi-da-xiao" title="logstash codec multiline 限制行数和日志大小">logstash codec multiline 限制行数和日志大小</a></li><li><a class="toc-href" href="#shi-yong-supervisordguan-li-logstashjin-cheng" title="使用supervisord管理logstash进程">使用supervisord管理logstash进程</a></li><li><a class="toc-href" href="#cha-kan-dang-qian-ji-qi-logstashjin-cheng-top" title="查看当前机器logstash进程top">查看当前机器logstash进程top</a></li><li><a class="toc-href" href="#jin-cheng-zhan-yong-cpujian-ce-jiao-ben" title="进程占用cpu检测脚本">进程占用cpu检测脚本</a></li><li><a class="toc-href" href="#shu-ju-pan-man-liao-dao-zhi-ji-qun-zhuang-tai-yellow" title="数据盘满了导致集群状态yellow">数据盘满了导致集群状态yellow</a></li><li><a class="toc-href" href="#cha-kan-rediszhong-dui-lie-de-dui-ji" title="查看redis中队列的堆积">查看redis中队列的堆积</a></li><li><a class="toc-href" href="#jie-xi-shi-bai-diu-qi-ji-hei-ming-dan-shi-xian" title="解析失败丢弃及黑名单实现">解析失败丢弃及黑名单实现</a></li><li><a class="toc-href" href="#qi-dong-xian-zhi-shi-yong-de-workershu" title="启动限制使用的worker数">启动限制使用的worker数</a></li><li><a class="toc-href" href="#ji-ge-jian-dan-jiao-ben" title="几个简单脚本">几个简单脚本</a></li></ul></li></ul></div>
         </section>
     <section id="content">
         <p>很杂, 涉及到最近处理的一些点</p>
 <hr/>
-<h3 id="string">根据string转浮点数的某个字段排序</h3>
+<h3 id="gen-ju-stringzhuan-fu-dian-shu-de-mou-ge-zi-duan-pai-xu">根据string转浮点数的某个字段排序</h3>
 <p>一个字段, <code>resp_time</code>, mapping中是string, 有需求是, 按照响应时间降序排序, 此时需要构造qsl(在search中使用), 使用该字段转换为浮点数, 降序排列</p>
 <p>第一步, 修改es配置, 增加groovy支持</p>
 <p>elasticsearch.yml中加入</p>
-<div class="monokai"><pre><span></span>script.engine.groovy.inline.search: on
+<div class="highlight"><pre><span></span>script.engine.groovy.inline.search: on
 </pre></div>
 <p>然后, 执行 <a href="http://www.wklken.me/posts/2016/02/16/elk-about-upgrade.html#rolling-restart">rolling restart</a>, 逐一重启集群每个节点</p>
 <p>第二步, 构造qsl,  <code>sort</code>中,  增加<code>_script</code> 使用groovy脚本, 将对应字段从string转成数字, 再进行排序</p>
-<div class="monokai"><pre><span></span>'sort': [{'_script': {'lang': 'groovy',
+<div class="highlight"><pre><span></span>'sort': [{'_script': {'lang': 'groovy',
                        'order': 'desc',
                        'script': 'Float.parseFloat(doc["resp_time"].value)',
                        'type': 'number'}},
@@ -96,9 +96,9 @@
           ]
 </pre></div>
 <p>附 <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/modules-scripting.html">scripting文档</a></p>
-<h3 id="fielddata-format-disabled"><code>fielddata-format-disabled</code>导致的排序失效</h3>
+<h3 id="fielddata-format-disableddao-zhi-de-pai-xu-shi-xiao"><code>fielddata-format-disabled</code>导致的排序失效</h3>
 <p>有个集群, 升级后, 发现<code>resp_time</code>字段的mapping是</p>
-<div class="monokai"><pre><span></span>"resp_time" : {
+<div class="highlight"><pre><span></span>"resp_time" : {
 "type" : "string",
 "norms" : {
     "enabled" : false
@@ -115,30 +115,30 @@
 }
 </pre></div>
 <p>注意这里的, 是因为升级es 2.0之后, 默认值变更带来的问题</p>
-<div class="monokai"><pre><span></span>"fielddata" : {
+<div class="highlight"><pre><span></span>"fielddata" : {
   "format" : "disabled"
 },
 </pre></div>
 <p><a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/fielddata.html">fielddata文档</a></p>
 <p>此时, 排序的qsl将会报错, 无法按照对应要求排序</p>
-<div class="monokai"><pre><span></span>Field data loading is forbidden on resp_time
+<div class="highlight"><pre><span></span>Field data loading is forbidden on resp_time
 </pre></div>
 <p>解决方案, 挺简单的, 使用<code>foo.raw</code>即可</p>
-<div class="monokai"><pre><span></span>'sort': [{'_script': {'lang': 'groovy',
+<div class="highlight"><pre><span></span>'sort': [{'_script': {'lang': 'groovy',
     'order': 'desc',
     'script': 'Float.parseFloat(doc["resp_time.raw"].value)',
     'type': 'number'}},
 {'@timestamp': 'desc'}
 ]
 </pre></div>
-<h3 id="_1">使用聚合</h3>
+<h3 id="shi-yong-ju-he">使用聚合</h3>
 <p>把string类型的<code>resp_time</code>放到<code>aggs</code>中做聚合的时候.</p>
-<div class="monokai"><pre><span></span>"aggs": {
+<div class="highlight"><pre><span></span>"aggs": {
      "resp_time_stats": {"stats": {"script": 'Float.parseFloat(doc["resp_time.raw"].value)'}}
 }
 </pre></div>
 <p>此时, 会报错</p>
-<div class="monokai"><pre><span></span>{u'error': {u'failed_shards': [{u'index': u'logstash-2016.04.10',
+<div class="highlight"><pre><span></span>{u'error': {u'failed_shards': [{u'index': u'logstash-2016.04.10',
                                 u'node': u'AvemqKN-RGKy68zJXUapBg',
                                 u'reason': {u'reason': u'scripts of type [inline], operation [aggs] and lang [groovy] are disabled',
                                             u'type': u'script_exception'},
@@ -152,15 +152,15 @@
  u'status': 500}
 </pre></div>
 <p>处理, es加配置, 逐一重启</p>
-<div class="monokai"><pre><span></span>script.engine.groovy.inline.aggs: on
+<div class="highlight"><pre><span></span>script.engine.groovy.inline.aggs: on
 </pre></div>
 <p>相关 <a href="https://discuss.elastic.co/t/scripts-of-type-inline-operation-aggs-and-lang-groovy-are-disabled/2493">文档</a></p>
 <h3 id="logstash-grok-default-patterns">logstash grok default patterns</h3>
 <p>默认的一些pattern, 见 <a href="https://github.com/logstash-plugins/logstash-patterns-core/blob/master/patterns/grok-patterns">grok-patterns</a></p>
 <p>grok检查在线实时编辑, https://grokdebug.herokuapp.com/</p>
-<h3 id="logstash-codec-multiline">logstash codec multiline 限制行数和日志大小</h3>
+<h3 id="logstash-codec-multiline-xian-zhi-xing-shu-he-ri-zhi-da-xiao">logstash codec multiline 限制行数和日志大小</h3>
 <p>配置, 具体见 <a href="https://www.elastic.co/guide/en/logstash/current/plugins-codecs-multiline.html">multiline文档</a></p>
-<div class="monokai"><pre><span></span>input {
+<div class="highlight"><pre><span></span>input {
         codec =&gt; multiline {
             patterns_dir =&gt; "./patterns"
             pattern =&gt; ""
@@ -175,7 +175,7 @@
 <p>实践中, 使用<code>max_bytes</code>, 当<code>what=previous + negate=true</code>的情况下, 即不匹配模式的, 归属前一部分, 这种情况下, 性能ok, 反之<code>what=next + negate=true</code>的情况下, 不匹配成功归属于后半部分, 此时产生的cpu消耗非常之大, 可以将一台机器跑满.</p>
 <p>另外, 假设配置<code>max_bytes=1M</code>, 此时用户打了50M, 会给这个event打上tag <code>multiline_codec_max_bytes_reache</code>, 但是, 这50M 最终还是会经logstash灌入到es里面. 即, 超了, 但是并不自动截掉</p>
 <p>这时候, 我们可以, 使用<code>mutate-replace</code>直接替换掉</p>
-<div class="monokai"><pre><span></span>    # if multiline_codec_max_lines_reached
+<div class="highlight"><pre><span></span>    # if multiline_codec_max_lines_reached
     if ("multiline_codec_max_bytes_reached" in [tags]) {
         mutate {
             replace =&gt; {
@@ -185,17 +185,42 @@
         }
     }
 </pre></div>
-<h3 id="supervisordlogstash">使用supervisord管理logstash进程</h3>
+<h3 id="shi-yong-supervisordguan-li-logstashjin-cheng">使用supervisord管理logstash进程</h3>
 <p>之前提到, 升级集群后, 使用supervisord统一管理logstash进程, <a href="http://www.wklken.me/posts/2016/02/16/elk-about-upgrade.html#supervisord">链接</a></p>
-<h3 id="logstashtop">查看当前机器logstash进程top</h3>
+<h3 id="cha-kan-dang-qian-ji-qi-logstashjin-cheng-top">查看当前机器logstash进程top</h3>
 <p>有时, 需要上机器看看对应采集端所有logstash进程是否存在问题, 常常用到<code>top</code>命令, 所以写了个简单的脚本, 配合supervisord的脚本使用</p>
 <p>ltop.sh</p>
-<div class="monokai"><pre><span></span><span class="ch">#!/bin/bash</span>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="ch">#!/bin/bash</span>
 ./logstashd.sh status
 top -p <span class="k">$(</span>./logstashd.sh status <span class="p">|</span> awk <span class="s1">'{print $4}'</span> <span class="p">|</span> awk -F<span class="s1">','</span> <span class="s1">'{print $1}'</span> <span class="p">|</span> tr <span class="s1">'\n'</span> <span class="s1">','</span> <span class="p">|</span> sed <span class="s1">'s/,$//g'</span><span class="k">)</span>
 </pre></div>
-<h3 id="cpu">进程占用cpu检测脚本</h3>
-<div class="monokai"><pre><span></span><span class="ch">#!/bin/bash</span>
+</td></tr></table>
+<h3 id="jin-cheng-zhan-yong-cpujian-ce-jiao-ben">进程占用cpu检测脚本</h3>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="ch">#!/bin/bash</span>
 <span class="nv">BASEDIR</span><span class="o">=</span><span class="k">$(</span>dirname <span class="nv">$0</span><span class="k">)</span>
 <span class="nb">cd</span> <span class="nv">$BASEDIR</span>
 <span class="nv">CURRENT_DIR</span><span class="o">=</span><span class="sb">`</span><span class="nb">pwd</span><span class="sb">`</span>
@@ -219,49 +244,54 @@ date
 <span class="nb">export</span> -f check
 ./logstashd.sh status <span class="p">|</span> awk <span class="s1">'{print "-", $1, $4}'</span> <span class="p">|</span> awk -F<span class="s1">','</span> <span class="s1">'{print $1}'</span> <span class="p">|</span> xargs -n3 bash -c <span class="s1">'check $@'</span>
 </pre></div>
-<h3 id="yellow">数据盘满了导致集群状态yellow</h3>
+</td></tr></table>
+<h3 id="shu-ju-pan-man-liao-dao-zhi-ji-qun-zhuang-tai-yellow">数据盘满了导致集群状态yellow</h3>
 <p>机器节点本身有1T 硬盘, 由两块盘组成, 配置es的时候, 数据分别写到了两个盘上, 然后有一天集群状态告警了</p>
-<div class="monokai"><pre><span></span>"status" : "yellow",
+<div class="highlight"><pre><span></span>"status" : "yellow",
 </pre></div>
 <p>查看es的日志</p>
-<div class="monokai"><pre><span></span>[2016-03-21 12:43:45,934][INFO ][cluster.routing.allocation.decider] [node_01] low disk watermark [85%] exceeded
+<div class="highlight"><pre><span></span>[2016-03-21 12:43:45,934][INFO ][cluster.routing.allocation.decider] [node_01] low disk watermark [85%] exceeded
 on [AvemqKN-RGKy68zJXUapBg][node_01][/data/LogNewData/xxx/nodes/0] free: 75.5gb[14.1%], replicas will not be assigned to this node
 </pre></div>
 <p>处理: 腾磁盘空间出来, es会自动检测恢复</p>
 <p>PS: 磁盘大小要预估好</p>
-<h3 id="redis">查看redis中队列的堆积</h3>
+<h3 id="cha-kan-rediszhong-dui-lie-de-dui-ji">查看redis中队列的堆积</h3>
 <p>历史遗留问题, 有些节点采集发送到redis的key, 在indexer阶段并没有被消费, 导致越堆越多....</p>
 <p>这时候, 可以通过redis查下哪些队列堆积了</p>
-<div class="monokai"><pre><span></span>bin/redis-cli -h 127.0.0.1 -p 6379 -a blueking_log --bigkeys
+<div class="highlight"><pre><span></span>bin/redis-cli -h 127.0.0.1 -p 6379 -a blueking_log --bigkeys
 </pre></div>
 <p>需要redis版本支持<code>bigkeys</code> =&gt; This is a "new" feature beginning with 2.8</p>
-<h3 id="_2">解析失败丢弃及黑名单实现</h3>
+<h3 id="jie-xi-shi-bai-diu-qi-ji-hei-ming-dan-shi-xian">解析失败丢弃及黑名单实现</h3>
 <p>grok解析失败, 丢弃</p>
-<div class="monokai"><pre><span></span>if ("_grokparsefailure" in [tags]) {
+<div class="highlight"><pre><span></span>if ("_grokparsefailure" in [tags]) {
     drop {}
 }
 </pre></div>
 <p>有时候, 需要禁止采集某些文件, 但由于<code>file</code>类型的<code>exclude</code>只能用文件名, 而没有更强大的规则, 所以只能采集进来再丢弃, 此时, 可以根据路径grok解析出关键字, 然后判断丢弃</p>
-<div class="monokai"><pre><span></span>if ([keyworod] in ["data", "not_exists"])
+<div class="highlight"><pre><span></span>if ([keyworod] in ["data", "not_exists"])
 {
     drop {}
 }
 </pre></div>
-<h3 id="worker">启动限制使用的worker数</h3>
+<h3 id="qi-dong-xian-zhi-shi-yong-de-workershu">启动限制使用的worker数</h3>
 <p>默认情况, 有可能把所有cpu跑满, 这时候, 可以专门加下</p>
-<div class="monokai"><pre><span></span>-w, --pipeline-workers COUNT  Sets the number of pipeline workers to run. (default: 24)
+<div class="highlight"><pre><span></span>-w, --pipeline-workers COUNT  Sets the number of pipeline workers to run. (default: 24)
 
 logstash agent -f conf/xxx.conf -w 2
 </pre></div>
-<h3 id="_3">几个简单脚本</h3>
+<h3 id="ji-ge-jian-dan-jiao-ben">几个简单脚本</h3>
 <p>health.sh</p>
-<div class="monokai"><pre><span></span><span class="ch">#!/bin/bash</span>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="ch">#!/bin/bash</span>
 curl <span class="s1">'http://127.0.0.1:9200/_cluster/health?pretty=true'</span>
 </pre></div>
+</td></tr></table>
 <p>indices.sh</p>
-<div class="monokai"><pre><span></span><span class="ch">#!/bin/bash</span>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="ch">#!/bin/bash</span>
 curl <span class="s1">'http://127.0.0.1:9200/_cat/indices?v'</span> <span class="p">|</span> sort -k 3
 </pre></div>
+</td></tr></table>
     </section>
 
     <section id="copyright">

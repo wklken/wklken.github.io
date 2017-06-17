@@ -75,16 +75,16 @@
     </section>
 
         <section id="toc">
-            <div id="toc"><ul><li><a class="toc-href" href="#" title="Python 源码阅读 - list">Python 源码阅读 - list</a><ul><li><a class="toc-href" href="#_1" title="定义">定义</a></li><li><a class="toc-href" href="#_2" title="构造">构造</a></li><li><a class="toc-href" href="#list_resize" title="list_resize">list_resize</a></li><li><a class="toc-href" href="#pylistobject" title="回收和PyListObject对象缓冲池">回收和PyListObject对象缓冲池</a></li><li><a class="toc-href" href="#list" title="List的操作过程">List的操作过程</a><ul><li><a class="toc-href" href="#_3" title="插入">插入</a></li><li><a class="toc-href" href="#append" title="append">append</a></li><li><a class="toc-href" href="#extend" title="extend">extend</a></li><li><a class="toc-href" href="#_4" title="删除">删除</a></li></ul></li></ul></li></ul></div>
+            <div id="toc"><ul><li><a class="toc-href" href="#" title="Python 源码阅读 - list">Python 源码阅读 - list</a><ul><li><a class="toc-href" href="#ding-yi" title="定义">定义</a></li><li><a class="toc-href" href="#gou-zao" title="构造">构造</a></li><li><a class="toc-href" href="#list_resize" title="list_resize">list_resize</a></li><li><a class="toc-href" href="#hui-shou-he-pylistobjectdui-xiang-huan-chong-chi" title="回收和PyListObject对象缓冲池">回收和PyListObject对象缓冲池</a></li><li><a class="toc-href" href="#listde-cao-zuo-guo-cheng" title="List的操作过程">List的操作过程</a><ul><li><a class="toc-href" href="#cha-ru" title="插入">插入</a></li><li><a class="toc-href" href="#append" title="append">append</a></li><li><a class="toc-href" href="#extend" title="extend">extend</a></li><li><a class="toc-href" href="#shan-chu" title="删除">删除</a></li></ul></li></ul></li></ul></div>
         </section>
     <section id="content">
         <p>还剩 tuple 和 dict就把几个基本类型写完了, 然后歇歇先找工作&gt;_&lt;</p>
 <hr/>
-<p>源码位置 <a href="https://github.com/wklken/Python-2.7.8/blob/master/Include/listobject.h">Include/listobject.h</a> |<br/>
-<a href="https://github.com/wklken/Python-2.7.8/blob/master/Objects/listobject.c">Objects/listobject.c</a></p>
+<p>源码位置 <a href="https://github.com/wklken/Python-2.7.8/blob/master/Include/listobject.h">Include/listobject.h</a> |
+         <a href="https://github.com/wklken/Python-2.7.8/blob/master/Objects/listobject.c">Objects/listobject.c</a></p>
 <hr/>
-<h1 id="_1">定义</h1>
-<div class="monokai"><pre><span></span>typedef struct {
+<h1 id="ding-yi">定义</h1>
+<div class="highlight"><pre><span></span>typedef struct {
     PyObject_VAR_HEAD
 
     PyObject **ob_item;
@@ -93,7 +93,7 @@
 } PyListObject;
 </pre></div>
 <p>说明</p>
-<div class="monokai"><pre><span></span>1. PyObject_VAR_HEAD
+<div class="highlight"><pre><span></span>1. PyObject_VAR_HEAD
 PyListObject是变长对象
 
 2. PyObject **ob_item;
@@ -112,10 +112,10 @@ ob_size 实际使用内存数量
 </pre></div>
 <p>结构</p>
 <p><img alt="PyListObject" src="/imgs/python-source/PyListObject.png"/></p>
-<h1 id="_2">构造</h1>
+<h1 id="gou-zao">构造</h1>
 <p>只有一个方法</p>
 <p>定义如下</p>
-<div class="monokai"><pre><span></span><span class="n">PyObject</span> <span class="o">*</span>
+<div class="highlight"><pre><span></span><span class="n">PyObject</span> <span class="o">*</span>
 <span class="nf">PyList_New</span><span class="p">(</span><span class="n">Py_ssize_t</span> <span class="n">size</span><span class="p">)</span>
 <span class="p">{</span>
     <span class="n">PyListObject</span> <span class="o">*</span><span class="n">op</span><span class="p">;</span>
@@ -194,23 +194,23 @@ ob_size 实际使用内存数量
 <span class="p">}</span>
 </pre></div>
 <p>简化步骤</p>
-<div class="monokai"><pre><span></span>1. 判断列表缓冲池是否为空, 是的话从缓冲池取(复用)
+<div class="highlight"><pre><span></span>1. 判断列表缓冲池是否为空, 是的话从缓冲池取(复用)
 2. 否则, 从内存中分配空间
 3. 然后初始化数据
 </pre></div>
 <p>结论</p>
-<div class="monokai"><pre><span></span>Py_SIZE(op) = size;
+<div class="highlight"><pre><span></span>Py_SIZE(op) = size;
 op-&gt;allocated = size;
 第一次生成list, 其allocated = ob_size
 </pre></div>
 <h1 id="list_resize">list_resize</h1>
 <p>同时注意list_resize方法</p>
-<div class="monokai"><pre><span></span>extends方法, list_resize(self, m + n)
+<div class="highlight"><pre><span></span>extends方法, list_resize(self, m + n)
 pop方法,  list_resize(self, Py_SIZE(self) - 1)
 append方法, list_resize(self, n+1)
 </pre></div>
 <p>其定义</p>
-<div class="monokai"><pre><span></span>list_resize(PyListObject *self, Py_ssize_t newsize)
+<div class="highlight"><pre><span></span>list_resize(PyListObject *self, Py_ssize_t newsize)
 {
   ...........
 
@@ -236,7 +236,7 @@ append方法, list_resize(self, n+1)
 }
 </pre></div>
 <p>即</p>
-<div class="monokai"><pre><span></span>if allocated/2 &lt;= newsize &lt;= allocated
+<div class="highlight"><pre><span></span>if allocated/2 &lt;= newsize &lt;= allocated
 
     allocated 不变
     ob_size = newsize
@@ -246,9 +246,9 @@ else
     allocated =  newsize +   ((newsize &gt;&gt; 3) + (newsize &lt; 9 ? 3 : 6))
     ob_size = newsize
 </pre></div>
-<h1 id="pylistobject">回收和PyListObject对象缓冲池</h1>
+<h1 id="hui-shou-he-pylistobjectdui-xiang-huan-chong-chi">回收和PyListObject对象缓冲池</h1>
 <p>看下缓冲池相关的定义</p>
-<div class="monokai"><pre><span></span><span class="cm">/* Empty list reuse scheme to save calls to malloc and free */</span>
+<div class="highlight"><pre><span></span><span class="cm">/* Empty list reuse scheme to save calls to malloc and free */</span>
 <span class="cp">#ifndef PyList_MAXFREELIST</span>
 <span class="cp">#define PyList_MAXFREELIST 80</span>
 <span class="cp">#endif</span>
@@ -259,7 +259,7 @@ else
 <span class="k">static</span> <span class="kt">int</span> <span class="n">numfree</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
 </pre></div>
 <p>我们先看下list_dealloc的定义</p>
-<div class="monokai"><pre><span></span>static void
+<div class="highlight"><pre><span></span>static void
 list_dealloc(PyListObject *op)
 {
     Py_ssize_t i;
@@ -290,59 +290,59 @@ list_dealloc(PyListObject *op)
 }
 </pre></div>
 <p>即</p>
-<div class="monokai"><pre><span></span>对一个列表对象PyListObject, 回收时, ob_item会被回收, 其每个元素指向的对象引用-1.
+<div class="highlight"><pre><span></span>对一个列表对象PyListObject, 回收时, ob_item会被回收, 其每个元素指向的对象引用-1.
 但是PyListObject对象本身, 如果缓冲池未满, 会被放入缓冲池, 复用
 </pre></div>
 <p>缓冲池结构</p>
 <p><img alt="PyListObjectPool" src="/imgs/python-source/PyListObjectPool.png"/></p>
-<h1 id="list">List的操作过程</h1>
-<h3 id="_3">插入</h3>
-<div class="monokai"><pre><span></span>1. resize n+1
+<h1 id="listde-cao-zuo-guo-cheng">List的操作过程</h1>
+<h3 id="cha-ru">插入</h3>
+<div class="highlight"><pre><span></span>1. resize n+1
 2. 确定插入点
 3. 插入点后所有元素后移
 4. 执行插入
 </pre></div>
 <p>示例</p>
-<div class="monokai"><pre><span></span>&gt;&gt;&gt; a = [1, 2, 3]
+<div class="highlight"><pre><span></span>&gt;&gt;&gt; a = [1, 2, 3]
 &gt;&gt;&gt; a.insert(0, 9)
 &gt;&gt;&gt; a
 [9, 1, 2, 3]
 </pre></div>
 <h3 id="append">append</h3>
-<div class="monokai"><pre><span></span>1. resize n+1
+<div class="highlight"><pre><span></span>1. resize n+1
 2. 放入最后一个位置(ob_size)
 </pre></div>
 <p>示例</p>
-<div class="monokai"><pre><span></span>&gt;&gt;&gt; a = [1, 2, 3]
+<div class="highlight"><pre><span></span>&gt;&gt;&gt; a = [1, 2, 3]
 &gt;&gt;&gt; a.append(4)
 &gt;&gt;&gt; a
 [1, 2, 3, 4]
 </pre></div>
 <h3 id="extend">extend</h3>
-<div class="monokai"><pre><span></span>1. 计算两个list大小 m n
+<div class="highlight"><pre><span></span>1. 计算两个list大小 m n
 2. resize m+n(此时本身被复制)
 3. 遍历长度为n的数组, 从ob_item+m的位置开始加入
 </pre></div>
 <p>示例</p>
-<div class="monokai"><pre><span></span>&gt;&gt;&gt; m = [1, 2, 3]
+<div class="highlight"><pre><span></span>&gt;&gt;&gt; m = [1, 2, 3]
 &gt;&gt;&gt; n = [4, 5]
 &gt;&gt;&gt; m.extend(n)
 &gt;&gt;&gt; m
 [1, 2, 3, 4, 5]
 </pre></div>
-<h3 id="_4">删除</h3>
-<div class="monokai"><pre><span></span>1. 找到要删除元素位置
+<h3 id="shan-chu">删除</h3>
+<div class="highlight"><pre><span></span>1. 找到要删除元素位置
 2. 删除之, 后面元素前移
 </pre></div>
 <p>示例</p>
-<div class="monokai"><pre><span></span>&gt;&gt;&gt; a = [1, 2, 3, 2]
+<div class="highlight"><pre><span></span>&gt;&gt;&gt; a = [1, 2, 3, 2]
 &gt;&gt;&gt; a.remove(2)
 &gt;&gt;&gt; a
 [1, 3, 2]
 </pre></div>
 <hr/>
 <p>changelog</p>
-<div class="monokai"><pre><span></span>2014-08-10 first version
+<div class="highlight"><pre><span></span>2014-08-10 first version
 </pre></div>
     </section>
 

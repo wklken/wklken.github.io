@@ -1,343 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0"><channel><title>wklken's blog</title><link>http://www.wklken.me/</link><description></description><lastBuildDate>Wed, 03 Feb 2016 00:00:00 +0800</lastBuildDate><item><title>一些vim的个性化配置</title><link>http://www.wklken.me/posts/2016/02/03/some-vim-configs.html</link><description>&lt;p&gt;在咖啡馆kill time, 时间不多但实在无聊, 随便写写&lt;/p&gt;
+<rss version="2.0"><channel><title>wklken's blog - vim</title><link>http://www.wklken.me/</link><description></description><lastBuildDate>Wed, 03 Feb 2016 00:00:00 +0800</lastBuildDate><item><title>一些vim的个性化配置</title><link>http://www.wklken.me/posts/2016/02/03/some-vim-configs.html</link><description>&lt;p&gt;在咖啡馆kill time, 时间不多但实在无聊, 随便写写&lt;/p&gt;
 &lt;hr/&gt;
 &lt;p&gt;入坑vim, 四年有余了&lt;/p&gt;
 &lt;p&gt;自从2012年将自己的配置发布到github后, 持续性的维护着, 逐步解决一些使用中的痛点, 反直觉的东西, 慢慢形成了现有的配置.&lt;/p&gt;
 &lt;p&gt;&lt;a href="https://github.com/wklken/k-vim"&gt;k-vim&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;以下, 就列下, 在k-vim中, 做了哪些配置, 下面这些在 &lt;a href="https://github.com/wklken/k-vim/blob/master/vimrc"&gt;vimrc&lt;/a&gt; 中都可以找到&lt;/p&gt;
 &lt;p&gt;首先, 一上来就把&lt;code&gt;leader&lt;/code&gt;键改掉&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;" 修改leader键
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;" 修改leader键
 let mapleader = ','
 let g:mapleader = ','
 &lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;移动时, 保留到底部的空间&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;" 在上下移动光标时，光标的上方或下方至少会保留显示的行数
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;" 在上下移动光标时，光标的上方或下方至少会保留显示的行数
 set scrolloff=7
 &lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;自定义代码折叠toggle&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;" 代码折叠自定义快捷键 &amp;lt;leader&amp;gt;zz
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;" 代码折叠自定义快捷键 &amp;lt;leader&amp;gt;zz
 let g:FoldMethod = 0
-map &amp;lt;leader&amp;gt;zz :call ToggleFold()&amp;lt;cr&amp;gt;
-fun! ToggleFold()
-    if g:FoldMethod == 0
-        exe "normal! zM"
-        let g:FoldMethod = 1
-    else
-        exe "normal! zR"
-        let g:FoldMethod = 0
-    endif
-endfun
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;&lt;code&gt;ctrl-n&lt;/code&gt;进行相对行号/绝对行号切换&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;" 相对行号: 行号变成相对，可以用 nj/nk 进行跳转
-set relativenumber number
-au FocusLost * :set norelativenumber number
-au FocusGained * :set relativenumber
-" 插入模式下用绝对行号, 普通模式下用相对
-autocmd InsertEnter * :set norelativenumber number
-autocmd InsertLeave * :set relativenumber
-function! NumberToggle()
-  if(&amp;amp;relativenumber == 1)
-    set norelativenumber number
-  else
-    set relativenumber
-  endif
-endfunc
-nnoremap &amp;lt;C-n&amp;gt; :call NumberToggle()&amp;lt;cr&amp;gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;quickfix的使用, 回车跳转到报错点, &lt;code&gt;s&lt;/code&gt;或&lt;code&gt;v&lt;/code&gt;分屏打开&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;" In the quickfix window, &amp;lt;CR&amp;gt; is used to jump to the error under the
-" cursor, so undefine the mapping there.
-autocmd BufReadPost quickfix nnoremap &amp;lt;buffer&amp;gt; &amp;lt;CR&amp;gt; &amp;lt;CR&amp;gt;
-" quickfix window  s/v to open in split window,  ,gd/,jd =&amp;gt; quickfix window =&amp;gt; open it
-autocmd BufReadPost quickfix nnoremap &amp;lt;buffer&amp;gt; v &amp;lt;C-w&amp;gt;&amp;lt;Enter&amp;gt;&amp;lt;C-w&amp;gt;L
-autocmd BufReadPost quickfix nnoremap &amp;lt;buffer&amp;gt; s &amp;lt;C-w&amp;gt;&amp;lt;Enter&amp;gt;&amp;lt;C-w&amp;gt;K
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;打开vim, 自动定位到上次最后变更位置&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;" 打开自动定位到最后编辑的位置, 需要确认 .viminfo 当前用户可写
-if has("autocmd")
-  au BufReadPost * if line("'\"") &amp;gt; 1 &amp;amp;&amp;amp; line("'\"") &amp;lt;= line("$") | exe "normal! g'\"" | endif
-endif
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;干掉方向键, 强迫自己使用&lt;code&gt;hjkl&lt;/code&gt;&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;" 关闭方向键, 强迫自己用 hjkl
-map &amp;lt;Left&amp;gt; &amp;lt;Nop&amp;gt;
-map &amp;lt;Right&amp;gt; &amp;lt;Nop&amp;gt;
-map &amp;lt;Up&amp;gt; &amp;lt;Nop&amp;gt;
-map &amp;lt;Down&amp;gt; &amp;lt;Nop&amp;gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;&lt;code&gt;swap&lt;/code&gt;换行展示时, 使用&lt;code&gt;hjkl&lt;/code&gt;体验更好&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;"Treat long lines as break lines (useful when moving around in them)
-"se swap之后，同物理行上线直接跳
-nnoremap k gk
-nnoremap gk k
-nnoremap j gj
-nnoremap gj j
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;F键区的映射&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;" F2 行号开关，用于鼠标复制代码用
-" 为方便复制，用&amp;lt;F2&amp;gt;开启/关闭行号显示:
-function! HideNumber()
-  if(&amp;amp;relativenumber == &amp;amp;number)
-    set relativenumber! number!
-  elseif(&amp;amp;number)
-    set number!
-  else
-    set relativenumber!
-  endif
-  set number?
-endfunc
-nnoremap &amp;lt;F2&amp;gt; :call HideNumber()&amp;lt;CR&amp;gt;
-
-" F3 显示可打印字符开关
-nnoremap &amp;lt;F3&amp;gt; :set list! list?&amp;lt;CR&amp;gt;
-" F4 换行开关
-nnoremap &amp;lt;F4&amp;gt; :set wrap! wrap?&amp;lt;CR&amp;gt;
-
-set pastetoggle=&amp;lt;F5&amp;gt;            "    when in insert mode, press &amp;lt;F5&amp;gt; to go to
-                                "    paste mode, where you can paste mass data
-                                "    that won't be autoindented
-
-" disbale paste mode when leaving insert mode
-au InsertLeave * set nopaste
-
-" F6 语法开关，关闭语法可以加快大文件的展示
-nnoremap &amp;lt;F6&amp;gt; :exec exists('syntax_on') ? 'syn off' : 'syn on'&amp;lt;CR&amp;gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;分屏窗口切换时, 直接使用&lt;code&gt;ctrl-h/j/k/l&lt;/code&gt;&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;" 分屏窗口移动, Smart way to move between windows
-map &amp;lt;C-j&amp;gt; &amp;lt;C-W&amp;gt;j
-map &amp;lt;C-k&amp;gt; &amp;lt;C-W&amp;gt;k
-map &amp;lt;C-h&amp;gt; &amp;lt;C-W&amp;gt;h
-map &amp;lt;C-l&amp;gt; &amp;lt;C-W&amp;gt;l
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;多窗口编辑时, 临时放大某个窗口, 编辑完再切回原来的布局&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;" http://stackoverflow.com/questions/13194428/is-better-way-to-zoom-windows-in-vim-than-zoomwin
-" Zoom / Restore window.
-function! s:ZoomToggle() abort
-    if exists('t:zoomed') &amp;amp;&amp;amp; t:zoomed
-        execute t:zoom_winrestcmd
-        let t:zoomed = 0
-    else
-        let t:zoom_winrestcmd = winrestcmd()
-        resize
-        vertical resize
-        let t:zoomed = 1
-    endif
-endfunction
-command! ZoomToggle call s:ZoomToggle()
-nnoremap &amp;lt;silent&amp;gt; &amp;lt;Leader&amp;gt;z :ZoomToggle&amp;lt;CR&amp;gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;分号映射为冒号, 省得要进入命令模式需要按&lt;code&gt;shift&lt;/code&gt;&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;" Map ; to : and save a million keystrokes 用于快速进入命令行
-nnoremap ; :
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;&lt;code&gt;H&lt;/code&gt;和&lt;code&gt;L&lt;/code&gt;跳转到行首行末, 实在不想按&lt;code&gt;0&lt;/code&gt;和&lt;code&gt;$&lt;/code&gt;, 太远&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;" Go to home and end using capitalized directions
-noremap H ^
-noremap L $
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;命令行模式快捷键, &lt;code&gt;ctrl-a/e&lt;/code&gt;跳转到行首行尾&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;" 命令行模式增强，ctrl - a到行首， -e 到行尾
-cnoremap &amp;lt;C-j&amp;gt; &amp;lt;t_kd&amp;gt;
-cnoremap &amp;lt;C-k&amp;gt; &amp;lt;t_ku&amp;gt;
-cnoremap &amp;lt;C-a&amp;gt; &amp;lt;Home&amp;gt;
-cnoremap &amp;lt;C-e&amp;gt; &amp;lt;End&amp;gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;空格进入搜索&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;" 搜索相关
-" Map &amp;lt;Space&amp;gt; to / (search) and Ctrl-&amp;lt;Space&amp;gt; to ? (backwards search)
-map &amp;lt;space&amp;gt; /
-" 进入搜索Use sane regexes"
-nnoremap / /\v
-vnoremap / /\v
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;搜索时, 进入下一个上一个始终放在屏幕中间&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;" Keep search pattern at the center of the screen.
-nnoremap &amp;lt;silent&amp;gt; n nzz
-nnoremap &amp;lt;silent&amp;gt; N Nzz
-nnoremap &amp;lt;silent&amp;gt; * *zz
-nnoremap &amp;lt;silent&amp;gt; # #zz
-nnoremap &amp;lt;silent&amp;gt; g* g*zz
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;&lt;code&gt;leader-/&lt;/code&gt; 关闭掉上次搜索的高亮&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;" 去掉搜索高亮
-noremap &amp;lt;silent&amp;gt;&amp;lt;leader&amp;gt;/ :nohls&amp;lt;CR&amp;gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;交换&lt;code&gt;#&lt;/code&gt;和&lt;code&gt;*&lt;/code&gt;, &lt;code&gt;#&lt;/code&gt;更近&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;" switch # *
-nnoremap # *
-nnoremap * #
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;Python 写入注释&lt;code&gt;#&lt;/code&gt;号时, 不每次都跳到行首&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;" for # indent, python文件中输入新行时#号注释不切回行首
-autocmd BufNewFile,BufRead *.py inoremap # X&amp;lt;c-h&amp;gt;#
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;buffer切换相关, 使用不多&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="s"&gt;" 切换前后buffer&lt;/span&gt;
-&lt;span class="n"&gt;nnoremap&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="nl"&gt;b&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="n"&gt;bprevious&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;cr&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;
-&lt;span class="n"&gt;nnoremap&lt;/span&gt; &lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="nl"&gt;b&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="n"&gt;bnext&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;cr&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;
-&lt;span class="s"&gt;" 使用方向键切换buffer&lt;/span&gt;
-&lt;span class="n"&gt;noremap&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;left&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="n"&gt;bp&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;CR&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;
-&lt;span class="n"&gt;noremap&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;right&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="n"&gt;bn&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;CR&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;tab操作....看个人喜好, 不过自从用了crtlspace之后, 逐渐很少用了&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;" tab 操作
-" http://vim.wikia.com/wiki/Alternative_tab_navigation
-" http://stackoverflow.com/questions/2005214/switching-to-a-particular-tab-in-vim
-
-" tab切换
-map &amp;lt;leader&amp;gt;th :tabfirst&amp;lt;cr&amp;gt;
-map &amp;lt;leader&amp;gt;tl :tablast&amp;lt;cr&amp;gt;
-
-map &amp;lt;leader&amp;gt;tj :tabnext&amp;lt;cr&amp;gt;
-map &amp;lt;leader&amp;gt;tk :tabprev&amp;lt;cr&amp;gt;
-map &amp;lt;leader&amp;gt;tn :tabnext&amp;lt;cr&amp;gt;
-map &amp;lt;leader&amp;gt;tp :tabprev&amp;lt;cr&amp;gt;
-
-map &amp;lt;leader&amp;gt;te :tabedit&amp;lt;cr&amp;gt;
-map &amp;lt;leader&amp;gt;td :tabclose&amp;lt;cr&amp;gt;
-map &amp;lt;leader&amp;gt;tm :tabm&amp;lt;cr&amp;gt;
-
-" normal模式下切换到确切的tab
-noremap &amp;lt;leader&amp;gt;1 1gt
-noremap &amp;lt;leader&amp;gt;2 2gt
-noremap &amp;lt;leader&amp;gt;3 3gt
-noremap &amp;lt;leader&amp;gt;4 4gt
-noremap &amp;lt;leader&amp;gt;5 5gt
-noremap &amp;lt;leader&amp;gt;6 6gt
-noremap &amp;lt;leader&amp;gt;7 7gt
-noremap &amp;lt;leader&amp;gt;8 8gt
-noremap &amp;lt;leader&amp;gt;9 9gt
-noremap &amp;lt;leader&amp;gt;0 :tablast&amp;lt;cr&amp;gt;
-
-" Toggles between the active and last active tab "
-" The first tab is always 1 "
-let g:last_active_tab = 1
-" nnoremap &amp;lt;leader&amp;gt;gt :execute 'tabnext ' . g:last_active_tab&amp;lt;cr&amp;gt;
-" nnoremap &amp;lt;silent&amp;gt; &amp;lt;c-o&amp;gt; :execute 'tabnext ' . g:last_active_tab&amp;lt;cr&amp;gt;
-" vnoremap &amp;lt;silent&amp;gt; &amp;lt;c-o&amp;gt; :execute 'tabnext ' . g:last_active_tab&amp;lt;cr&amp;gt;
-nnoremap &amp;lt;silent&amp;gt; &amp;lt;leader&amp;gt;tt :execute 'tabnext ' . g:last_active_tab&amp;lt;cr&amp;gt;
-autocmd TabLeave * let g:last_active_tab = tabpagenr()
-
-" 新建tab  Ctrl+t
-nnoremap &amp;lt;C-t&amp;gt;     :tabnew&amp;lt;CR&amp;gt;
-inoremap &amp;lt;C-t&amp;gt;     &amp;lt;Esc&amp;gt;:tabnew&amp;lt;CR&amp;gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;选中后, 调整缩进, 可能需要多次调整, 默认调整一次后退出了选中, 需要再次选.&lt;/p&gt;
-&lt;p&gt;这个变更, 保证调整缩进后, 还是选中状态&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;" 调整缩进后自动选中，方便再次操作
-vnoremap &amp;lt; &amp;lt;gv
-vnoremap &amp;gt; &amp;gt;gv
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;复制动作的变更, &lt;code&gt;Y&lt;/code&gt;, 复制到行末&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;" y$ -&amp;gt; Y Make Y behave like other capitals
-map Y y$
-
-" 复制选中区到系统剪切板中
-vnoremap &amp;lt;leader&amp;gt;y "+y
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;选中全部/选中段落&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;" select all
-map &amp;lt;Leader&amp;gt;sa ggVG"
-
-" select block
-nnoremap &amp;lt;leader&amp;gt;v V`}
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;保存, 没权限的时候&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;" w!! to sudo &amp;amp; write a file
-cmap w!! w !sudo tee &amp;gt;/dev/null %
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;使用&lt;code&gt;kj&lt;/code&gt;, 替换&lt;code&gt;ESC&lt;/code&gt;&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;" kj 替换 Esc
-inoremap kj &amp;lt;Esc&amp;gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;调整&lt;code&gt;Ctrl-e/y&lt;/code&gt;滚动&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;" 滚动Speed up scrolling of the viewport slightly
-nnoremap &amp;lt;C-e&amp;gt; 2&amp;lt;C-e&amp;gt;
-nnoremap &amp;lt;C-y&amp;gt; 2&amp;lt;C-y&amp;gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;快捷保存和退出&lt;code&gt;leader-q/w&lt;/code&gt;&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;" Quickly close the current window
-nnoremap &amp;lt;leader&amp;gt;q :q&amp;lt;CR&amp;gt;
-
-" Quickly save the current file
-nnoremap &amp;lt;leader&amp;gt;w :w&amp;lt;CR&amp;gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;交换&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;" 交换 ' `, 使得可以快速使用'跳到marked位置
-nnoremap ' `
-nnoremap ` '
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;变更&lt;code&gt;U&lt;/code&gt;, 撤销重做的时候更快&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;" remap U to &amp;lt;C-r&amp;gt; for easier redo
-nnoremap U &amp;lt;C-r&amp;gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;保存文件时, 自动移除多余空格&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="s"&gt;" 保存python文件时删除多余空格&lt;/span&gt;
-&lt;span class="n"&gt;fun&lt;/span&gt;&lt;span class="o"&gt;!&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;SID&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;StripTrailingWhitespaces&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
-    &lt;span class="n"&gt;let&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;line&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;"."&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-    &lt;span class="n"&gt;let&lt;/span&gt; &lt;span class="n"&gt;c&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;col&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;"."&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-    &lt;span class="nf"&gt;%s&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="err"&gt;\&lt;/span&gt;&lt;span class="n"&gt;s&lt;/span&gt;&lt;span class="err"&gt;\&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="c1"&gt;//e&lt;/span&gt;
-    &lt;span class="n"&gt;call&lt;/span&gt; &lt;span class="n"&gt;cursor&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;c&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;span class="n"&gt;endfun&lt;/span&gt;
-&lt;span class="n"&gt;autocmd&lt;/span&gt; &lt;span class="n"&gt;FileType&lt;/span&gt; &lt;span class="n"&gt;c&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="n"&gt;cpp&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="n"&gt;java&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="n"&gt;go&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="n"&gt;php&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="n"&gt;javascript&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="n"&gt;puppet&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="n"&gt;python&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="n"&gt;rust&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="n"&gt;twig&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="n"&gt;xml&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="n"&gt;yml&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="n"&gt;perl&lt;/span&gt; &lt;span class="n"&gt;autocmd&lt;/span&gt; &lt;span class="n"&gt;BufWritePre&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;buffer&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="n"&gt;call&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;SID&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;StripTrailingWhitespaces&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;shell和python文件新建时, 自动插入行头&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;" 定义函数AutoSetFileHead，自动插入文件头
-autocmd BufNewFile *.sh,*.py exec ":call AutoSetFileHead()"
-function! AutoSetFileHead()
-    "如果文件类型为.sh文件
-    if &amp;amp;filetype == 'sh'
-        call setline(1, "\#!/bin/bash")
-    endif
-
-    "如果文件类型为python
-    if &amp;amp;filetype == 'python'
-        call setline(1, "\#!/usr/bin/env python")
-        call append(1, "\# encoding: utf-8")
-    endif
-
-    normal G
-    normal o
-    normal o
-endfunc
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;自定义一些高亮的关键字&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;" 设置可以高亮的关键字
-if has("autocmd")
-  " Highlight TODO, FIXME, NOTE, etc.
-  if v:version &amp;gt; 701
-    autocmd Syntax * call matchadd('Todo',  '\W\zs\(TODO\|FIXME\|CHANGED\|DONE\|XXX\|BUG\|HACK\)')
-    autocmd Syntax * call matchadd('Debug', '\W\zs\(NOTE\|INFO\|IDEA\|NOTICE\)')
-  endif
-endif
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;其他一些设置&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;" 启动的时候不显示那个援助索马里儿童的提示
-set shortmess=atI
-
-" 设置 退出vim后，内容显示在终端屏幕, 可以用于查看和复制, 不需要可以去掉
-" 好处：误删什么的，如果以前屏幕打开，可以找回
-set t_ti= t_te=
-
-" 鼠标暂不启用, 键盘党....
-set mouse-=a
-
-" 回车即选中当前项, 慎用
-inoremap &amp;lt;expr&amp;gt; &amp;lt;CR&amp;gt;       pumvisible() ? "\&amp;lt;C-y&amp;gt;" : "\&amp;lt;CR&amp;gt;"
-&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Wed, 03 Feb 2016 00:00:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2016-02-03:posts/2016/02/03/some-vim-configs.html</guid><category>vim</category><category>linux</category></item><item><title>vim插件: surround &amp; repeat[成对符号编辑]</title><link>http://www.wklken.me/posts/2015/06/13/vim-plugin-surround-repeat.html</link><description>&lt;p&gt;k-vim配置 &lt;a href="https://github.com/wklken/k-vim"&gt;github&lt;/a&gt;&lt;/p&gt;
+map &amp;lt;leader&amp;gt;zz :call ToggleFold()&amp;lt;cr …&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Wed, 03 Feb 2016 00:00:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2016-02-03:/posts/2016/02/03/some-vim-configs.html</guid><category>vim</category><category>linux</category></item><item><title>vim插件: surround &amp; repeat[成对符号编辑]</title><link>http://www.wklken.me/posts/2015/06/13/vim-plugin-surround-repeat.html</link><description>&lt;p&gt;k-vim配置 &lt;a href="https://github.com/wklken/k-vim"&gt;github&lt;/a&gt;&lt;/p&gt;
 &lt;hr/&gt;
 &lt;h2 id="surround"&gt;surround&lt;/h2&gt;
 &lt;p&gt;作用: 快速给词加环绕符号,例如单引号/双引号/括号/成对标签等&lt;/p&gt;
 &lt;p&gt;github: &lt;a href="https://github.com/tpope/vim-surround"&gt;vim-surround&lt;/a&gt;&lt;/p&gt;
-&lt;h3 id="_1"&gt;安装&lt;/h3&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'tpope/vim-surround'
+&lt;h3 id="an-zhuang"&gt;安装&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'tpope/vim-surround'
 &lt;/pre&gt;&lt;/div&gt;
-&lt;h3 id="_2"&gt;使用&lt;/h3&gt;
+&lt;h3 id="shi-yong"&gt;使用&lt;/h3&gt;
 &lt;p&gt;注意(括号, 左括号会加空格, 右括号不会)&lt;/p&gt;
 &lt;p&gt;示例:&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;# 替换: cs"'
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;# 替换: cs"'
 "Hello world!" -&amp;gt; 'Hello world!'
 
 # 替换-标签(t=tag): cst"
@@ -349,117 +40,68 @@ cst&lt;span class="nt"&gt;&amp;lt;html&amp;gt;&lt;/span&gt;
 # 删除: ds"
 "Hello world!" -&amp;gt; Hello world!
 
-# 添加(ys=you surround): ysiw"
-Hello -&amp;gt; "Hello"
-
-# 添加: csw"
-Hello -&amp;gt; "Hello"
-
-# 添加-整行: yss"
-Hello world -&amp;gt; "Hello world"
-
-# ySS"
-Hello world -&amp;gt;
-"
-    hello world
-"
-
-# 添加-两个词: veeS"
-hello world -&amp;gt; "hello world"
-
-# 添加-当前到行尾: ys$"
-
-# 左符号/右符号 =&amp;gt; 带不带空格
-cs([
-(hello) -&amp;gt; [ hello ]
-
-cs(]
-(hello) -&amp;gt; [hello]
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;演示:&lt;/p&gt;
-&lt;p&gt;&lt;img alt="surround.gif" src="/imgs/vim/surround.gif"/&gt;&lt;/p&gt;
+# 添加 …&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sat, 13 Jun 2015 12:16:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2015-06-13:/posts/2015/06/13/vim-plugin-surround-repeat.html</guid><category>vim</category></item><item><title>vim插件: gundo[时光机]</title><link>http://www.wklken.me/posts/2015/06/13/vim-plugin-gundo.html</link><description>&lt;p&gt;k-vim配置 &lt;a href="https://github.com/wklken/k-vim"&gt;github&lt;/a&gt;&lt;/p&gt;
 &lt;hr/&gt;
-&lt;h2 id="vim-repeat_1"&gt;vim-repeat&lt;/h2&gt;
-&lt;p&gt;作用: 重复一个插件的操作, 支持surround.vim, 通过 surround 操作之后的行为, &lt;code&gt;.&lt;/code&gt;号重复&lt;/p&gt;
-&lt;p&gt;github: &lt;a href="https://github.com/tpope/vim-repeat"&gt;vim-repeat&lt;/a&gt;&lt;/p&gt;
-&lt;h3 id="_3"&gt;安装&lt;/h3&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;" for repeat -&amp;gt; enhance surround.vim, . to repeat command
-Bundle 'tpope/vim-repeat'
-&lt;/pre&gt;&lt;/div&gt;
-&lt;h3 id="_4"&gt;使用&lt;/h3&gt;
-&lt;p&gt;演示:&lt;/p&gt;
-&lt;p&gt;&lt;img alt="repeat.gif" src="/imgs/vim/repeat.gif"/&gt;&lt;/p&gt;
-&lt;h3 id="_5"&gt;最终配置&lt;/h3&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'tpope/vim-surround'
-Bundle 'tpope/vim-repeat'
-&lt;/pre&gt;&lt;/div&gt;
-&lt;h3 id="_6"&gt;建议&lt;/h3&gt;
-&lt;ol&gt;
-&lt;li&gt;善用&lt;code&gt;.&lt;/code&gt;&lt;/li&gt;
-&lt;li&gt;&lt;code&gt;repeat&lt;/code&gt;同时还支持的插件 &lt;a href="https://github.com/tpope/vim-repeat#repeatvim"&gt;doc&lt;/a&gt;&lt;/li&gt;
-&lt;/ol&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sat, 13 Jun 2015 12:16:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2015-06-13:posts/2015/06/13/vim-plugin-surround-repeat.html</guid><category>vim</category></item><item><title>vim插件: gundo[时光机]</title><link>http://www.wklken.me/posts/2015/06/13/vim-plugin-gundo.html</link><description>&lt;p&gt;k-vim配置 &lt;a href="https://github.com/wklken/k-vim"&gt;github&lt;/a&gt;&lt;/p&gt;
-&lt;hr/&gt;
-&lt;p&gt;有时候编辑一半, 特别是删除了一些东西, 然后想找回, 但是没有存下来(只在脑子里有)&lt;br/&gt;
+&lt;p&gt;有时候编辑一半, 特别是删除了一些东西, 然后想找回, 但是没有存下来(只在脑子里有)
 这时候时光机就发挥作用了&lt;/p&gt;
 &lt;p&gt;作用: 文件时光机, 可以查看同一个文件之前的历史内容&lt;/p&gt;
 &lt;p&gt;github: &lt;a href="https://github.com/sjl/gundo.vim"&gt;gundo&lt;/a&gt;&lt;/p&gt;
-&lt;h2 id="_1"&gt;安装&lt;/h2&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'sjl/gundo.vim'
+&lt;h2 id="an-zhuang"&gt;安装&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'sjl/gundo.vim'
 &lt;/pre&gt;&lt;/div&gt;
-&lt;h2 id="_2"&gt;使用&lt;/h2&gt;
+&lt;h2 id="shi-yong"&gt;使用&lt;/h2&gt;
 &lt;p&gt;绑定快捷键&lt;code&gt;&amp;lt;leader&amp;gt;h&lt;/code&gt;作为&lt;code&gt;toggle&lt;/code&gt;, 进入之后&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;j/k   上下选择
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;j/k   上下选择
 p     查看diff
 回车  回滚文件到这个时刻的版本
 &amp;lt;leader&amp;gt;h  关闭(或者wq关闭gundo打开的窗口)
 &lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;注意, 你可以跳进预览, 复制一些东西出来, 不必走回滚&lt;/p&gt;
 &lt;p&gt;&lt;img alt="gundo.gif" src="/imgs/vim/gundo.gif"/&gt;&lt;/p&gt;
-&lt;h2 id="_3"&gt;最终配置&lt;/h2&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;nnoremap &amp;lt;leader&amp;gt;h :GundoToggle&amp;lt;CR&amp;gt;
+&lt;h2 id="zui-zhong-pei-zhi"&gt;最终配置&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;nnoremap &amp;lt;leader&amp;gt;h :GundoToggle&amp;lt;CR&amp;gt;
 &lt;/pre&gt;&lt;/div&gt;
-&lt;h2 id="_4"&gt;建议&lt;/h2&gt;
+&lt;h2 id="jian-yi"&gt;建议&lt;/h2&gt;
 &lt;ol&gt;
 &lt;li&gt;只要写过的, 都能找回来&lt;/li&gt;
-&lt;li&gt;同类插件 &lt;a href="https://github.com/mbbill/undotree"&gt;undotree&lt;/a&gt;&lt;/li&gt;
-&lt;/ol&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sat, 13 Jun 2015 10:37:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2015-06-13:posts/2015/06/13/vim-plugin-gundo.html</guid><category>vim</category></item><item><title>vim插件: expand-region[区域选中]</title><link>http://www.wklken.me/posts/2015/06/13/vim-plugin-expandregion.html</link><description>&lt;p&gt;k-vim配置 &lt;a href="https://github.com/wklken/k-vim"&gt;github&lt;/a&gt;&lt;/p&gt;
+&lt;li&gt;同类插件 …&lt;/li&gt;&lt;/ol&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sat, 13 Jun 2015 10:37:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2015-06-13:/posts/2015/06/13/vim-plugin-gundo.html</guid><category>vim</category></item><item><title>vim插件: expand-region[区域选中]</title><link>http://www.wklken.me/posts/2015/06/13/vim-plugin-expandregion.html</link><description>&lt;p&gt;k-vim配置 &lt;a href="https://github.com/wklken/k-vim"&gt;github&lt;/a&gt;&lt;/p&gt;
 &lt;hr/&gt;
 &lt;p&gt;作用: 视图模式下可伸缩选中部分，用于快速选中某些块&lt;/p&gt;
 &lt;p&gt;github: &lt;a href="https://github.com/terryma/vim-expand-region"&gt;expand-region&lt;/a&gt;&lt;/p&gt;
-&lt;h3 id="_1"&gt;安装&lt;/h3&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'terryma/vim-expand-region'
+&lt;h3 id="an-zhuang"&gt;安装&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'terryma/vim-expand-region'
 &lt;/pre&gt;&lt;/div&gt;
-&lt;h3 id="_2"&gt;使用&lt;/h3&gt;
+&lt;h3 id="shi-yong"&gt;使用&lt;/h3&gt;
 &lt;p&gt;自定义key&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;v 增加选中范围
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;v 增加选中范围
 V 减少选中范围
 &lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;演示:&lt;/p&gt;
 &lt;p&gt;&lt;img alt="expand-region.gif" src="/imgs/vim/expand-region.gif"/&gt;&lt;/p&gt;
-&lt;h3 id="_3"&gt;最终配置&lt;/h3&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'terryma/vim-expand-region'
+&lt;h3 id="zui-zhong-pei-zhi"&gt;最终配置&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'terryma/vim-expand-region'
 vmap v &amp;lt;Plug&amp;gt;(expand_region_expand)
 vmap V &amp;lt;Plug&amp;gt;(expand_region_shrink)
 &lt;/pre&gt;&lt;/div&gt;
-&lt;h3 id="_4"&gt;建议&lt;/h3&gt;
+&lt;h3 id="jian-yi"&gt;建议&lt;/h3&gt;
 &lt;ol&gt;
 &lt;li&gt;培养使用&lt;code&gt;v&lt;/code&gt;/&lt;code&gt;V&lt;/code&gt;进行区块选中的习惯, 避免每次多敲键位&lt;/li&gt;
 &lt;li&gt;可以进行选中规则的自定义, 具体见 &lt;a href="https://github.com/terryma/vim-expand-region#customize-selected-regions"&gt;文档&lt;/a&gt;&lt;/li&gt;
-&lt;/ol&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sat, 13 Jun 2015 10:21:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2015-06-13:posts/2015/06/13/vim-plugin-expandregion.html</guid><category>vim</category></item><item><title>vim插件: quickrun[快速执行]</title><link>http://www.wklken.me/posts/2015/06/13/vim-plugin-quickrun.html</link><description>&lt;p&gt;k-vim配置 &lt;a href="https://github.com/wklken/k-vim"&gt;github&lt;/a&gt;&lt;/p&gt;
+&lt;/ol&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sat, 13 Jun 2015 10:21:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2015-06-13:/posts/2015/06/13/vim-plugin-expandregion.html</guid><category>vim</category></item><item><title>vim插件: quickrun[快速执行]</title><link>http://www.wklken.me/posts/2015/06/13/vim-plugin-quickrun.html</link><description>&lt;p&gt;k-vim配置 &lt;a href="https://github.com/wklken/k-vim"&gt;github&lt;/a&gt;&lt;/p&gt;
 &lt;hr/&gt;
 &lt;p&gt;作用: 快速执行当前文件, 例如&lt;em&gt;.py/&lt;/em&gt;.rb/*.sh等等, 用于快速验证一些代码实现&lt;/p&gt;
 &lt;p&gt;github: &lt;a href="https://github.com/thinca/vim-quickrun"&gt;vim-quickrun&lt;/a&gt;&lt;/p&gt;
-&lt;h2 id="_1"&gt;安装&lt;/h2&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'thinca/vim-quickrun'
+&lt;h2 id="an-zhuang"&gt;安装&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'thinca/vim-quickrun'
 &lt;/pre&gt;&lt;/div&gt;
-&lt;h2 id="_2"&gt;使用&lt;/h2&gt;
+&lt;h2 id="shi-yong"&gt;使用&lt;/h2&gt;
 &lt;p&gt;配置使用&lt;code&gt;message&lt;/code&gt;进行结果展示, 即, 展示运行结果后, 按任意键回到vim编辑&lt;/p&gt;
 &lt;p&gt;同时, 映射&lt;code&gt;&amp;lt;leader&amp;gt;r&lt;/code&gt;以及&lt;code&gt;F10&lt;/code&gt;快捷键&lt;/p&gt;
 &lt;p&gt;在快速编写验证性代码时非常有用&lt;/p&gt;
 &lt;p&gt;演示:&lt;/p&gt;
 &lt;p&gt;&lt;img alt="quick-run.gif" src="/imgs/vim/quick-run.gif"/&gt;&lt;/p&gt;
-&lt;h2 id="_3"&gt;最终配置&lt;/h2&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'thinca/vim-quickrun'
+&lt;h2 id="zui-zhong-pei-zhi"&gt;最终配置&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'thinca/vim-quickrun'
 let g:quickrun_config = {
 \   "_" : {
 \       "outputter" : "message",
@@ -467,60 +109,56 @@ let g:quickrun_config = {
 \}
 
 let g:quickrun_no_default_key_mappings = 1
-nmap &amp;lt;Leader&amp;gt;r &amp;lt;Plug&amp;gt;(quickrun)
-map &amp;lt;F10&amp;gt; :QuickRun&amp;lt;CR&amp;gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;h2 id="_4"&gt;建议&lt;/h2&gt;
-&lt;p&gt;无&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sat, 13 Jun 2015 10:09:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2015-06-13:posts/2015/06/13/vim-plugin-quickrun.html</guid><category>vim</category></item><item><title>vim插件: trailing-whitespace[行尾空格处理]</title><link>http://www.wklken.me/posts/2015/06/07/vim-plugin-trailing-whitespace.html</link><description>&lt;p&gt;k-vim配置 &lt;a href="https://github.com/wklken/k-vim"&gt;github&lt;/a&gt;&lt;/p&gt;
+nmap &amp;lt;Leader&amp;gt;r &amp;lt;Plug&amp;gt;(quickrun …&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sat, 13 Jun 2015 10:09:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2015-06-13:/posts/2015/06/13/vim-plugin-quickrun.html</guid><category>vim</category></item><item><title>vim插件: trailing-whitespace[行尾空格处理]</title><link>http://www.wklken.me/posts/2015/06/07/vim-plugin-trailing-whitespace.html</link><description>&lt;p&gt;k-vim配置 &lt;a href="https://github.com/wklken/k-vim"&gt;github&lt;/a&gt;&lt;/p&gt;
 &lt;hr/&gt;
 &lt;p&gt;没有什么太多需要讲的, 功能+一个快捷键&lt;/p&gt;
 &lt;p&gt;代码洁癖/强迫症必备&lt;/p&gt;
 &lt;p&gt;作用: 高亮行末空格(标红), 也可以一键去除文件中所有行行尾空格&lt;/p&gt;
 &lt;p&gt;github: &lt;a href="https://github.com/bronson/vim-trailing-whitespace"&gt;vim-trailing-whitespace&lt;/a&gt;&lt;/p&gt;
-&lt;h2 id="_1"&gt;安装&lt;/h2&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'bronson/vim-trailing-whitespace'
+&lt;h2 id="an-zhuang"&gt;安装&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'bronson/vim-trailing-whitespace'
 &lt;/pre&gt;&lt;/div&gt;
-&lt;h2 id="_2"&gt;使用&lt;/h2&gt;
+&lt;h2 id="shi-yong"&gt;使用&lt;/h2&gt;
 &lt;p&gt;被动技能: 自动标记行尾的空格&lt;/p&gt;
 &lt;p&gt;&lt;img alt="trailing-whitespace.png" src="/imgs/vim/trailing-whitespace.png"/&gt;&lt;/p&gt;
-&lt;p&gt;主动技能: 绑定&lt;code&gt;&amp;lt;leader&amp;gt;&amp;lt;space&amp;gt;&lt;/code&gt;为快捷键, 一键去除所有行尾空格&lt;br/&gt;
+&lt;p&gt;主动技能: 绑定&lt;code&gt;&amp;lt;leader&amp;gt;&amp;lt;space&amp;gt;&lt;/code&gt;为快捷键, 一键去除所有行尾空格
 (&lt;code&gt;k-vim&lt;/code&gt;中为&lt;code&gt;,空格&lt;/code&gt;)&lt;/p&gt;
 &lt;p&gt;&lt;img alt="trailing-whitespace.gif" src="/imgs/vim/trailing-whitespace.gif"/&gt;&lt;/p&gt;
-&lt;h2 id="_3"&gt;最终配置&lt;/h2&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'bronson/vim-trailing-whitespace'
+&lt;h2 id="zui-zhong-pei-zhi"&gt;最终配置&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'bronson/vim-trailing-whitespace'
 map &amp;lt;leader&amp;gt;&amp;lt;space&amp;gt; :FixWhitespace&amp;lt;cr&amp;gt;
-&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sun, 07 Jun 2015 18:16:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2015-06-07:posts/2015/06/07/vim-plugin-trailing-whitespace.html</guid><category>vim</category></item><item><title>vim插件: closetag[成对标签补全]</title><link>http://www.wklken.me/posts/2015/06/07/vim-plugin-closetag.html</link><description>&lt;p&gt;k-vim配置 &lt;a href="https://github.com/wklken/k-vim"&gt;github&lt;/a&gt;&lt;/p&gt;
+&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sun, 07 Jun 2015 18:16:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2015-06-07:/posts/2015/06/07/vim-plugin-trailing-whitespace.html</guid><category>vim</category></item><item><title>vim插件: closetag[成对标签补全]</title><link>http://www.wklken.me/posts/2015/06/07/vim-plugin-closetag.html</link><description>&lt;p&gt;k-vim配置 &lt;a href="https://github.com/wklken/k-vim"&gt;github&lt;/a&gt;&lt;/p&gt;
 &lt;hr/&gt;
 &lt;p&gt;如果日常开发中要编辑xml和html文件, 一个字符一个字符敲是不聪明地, 虽然你可以这么做...&lt;/p&gt;
 &lt;p&gt;作用: 编辑xml/html时, 自动补全闭合标签&lt;/p&gt;
 &lt;p&gt;github: &lt;a href="https://github.com/docunext/closetag.vim"&gt;closetag&lt;/a&gt;&lt;/p&gt;
-&lt;h2 id="_1"&gt;安装&lt;/h2&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'docunext/closetag.vim'
+&lt;h2 id="an-zhuang"&gt;安装&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'docunext/closetag.vim'
 &lt;/pre&gt;&lt;/div&gt;
-&lt;h2 id="_2"&gt;使用&lt;/h2&gt;
+&lt;h2 id="shi-yong"&gt;使用&lt;/h2&gt;
 &lt;p&gt;被动技能, 自动补全&lt;/p&gt;
 &lt;p&gt;&lt;img alt="closetag.gif" src="/imgs/vim/closetag.gif"/&gt;&lt;/p&gt;
-&lt;h2 id="_3"&gt;最终配置&lt;/h2&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'docunext/closetag.vim'
+&lt;h2 id="zui-zhong-pei-zhi"&gt;最终配置&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'docunext/closetag.vim'
 let g:closetag_html_style=1
 &lt;/pre&gt;&lt;/div&gt;
-&lt;h2 id="_4"&gt;建议&lt;/h2&gt;
+&lt;h2 id="jian-yi"&gt;建议&lt;/h2&gt;
 &lt;ol&gt;
 &lt;li&gt;被动技能, 越简单越好, 当然如果你要用这个来写前端代码, 是远远不够的, 你可能需要&lt;a href="https://github.com/mattn/emmet-vim"&gt;emmet&lt;/a&gt;&lt;/li&gt;
-&lt;/ol&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sun, 07 Jun 2015 18:15:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2015-06-07:posts/2015/06/07/vim-plugin-closetag.html</guid><category>vim</category></item><item><title>vim插件: ctrlp[文件搜索]</title><link>http://www.wklken.me/posts/2015/06/07/vim-plugin-ctrlp.html</link><description>&lt;p&gt;k-vim配置 &lt;a href="https://github.com/wklken/k-vim"&gt;github&lt;/a&gt;&lt;/p&gt;
+&lt;/ol&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sun, 07 Jun 2015 18:15:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2015-06-07:/posts/2015/06/07/vim-plugin-closetag.html</guid><category>vim</category></item><item><title>vim插件: ctrlp[文件搜索]</title><link>http://www.wklken.me/posts/2015/06/07/vim-plugin-ctrlp.html</link><description>&lt;p&gt;k-vim配置 &lt;a href="https://github.com/wklken/k-vim"&gt;github&lt;/a&gt;&lt;/p&gt;
 &lt;hr/&gt;
 &lt;p&gt;使用频率最高的插件之一&lt;/p&gt;
 &lt;p&gt;作用: 模糊搜索, 可以搜索文件/buffer/mru/tag等等&lt;/p&gt;
 &lt;p&gt;github: 原始&lt;a href="https://github.com/kien/ctrlp.vim"&gt;kien/ctrlp&lt;/a&gt;, 使用的是国人改进版本 &lt;a href="https://github.com/ctrlpvim/ctrlp.vim"&gt;ctrlpvim/ctrlp.vim&lt;/a&gt;&lt;/p&gt;
-&lt;h2 id="_1"&gt;安装&lt;/h2&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'ctrlpvim/ctrlp.vim'
+&lt;h2 id="an-zhuang"&gt;安装&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'ctrlpvim/ctrlp.vim'
 &lt;/pre&gt;&lt;/div&gt;
-&lt;h2 id="_2"&gt;使用&lt;/h2&gt;
+&lt;h2 id="shi-yong"&gt;使用&lt;/h2&gt;
 &lt;p&gt;绑定快捷键&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;&amp;lt;leader&amp;gt;-f&lt;/code&gt;模糊搜索最近打开的文件(MRU)&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;&amp;lt;leader&amp;gt;-p&lt;/code&gt;模糊搜索当前目录及其子目录下的所有文件&lt;/p&gt;
 &lt;p&gt;搜索框出来后, 输入关键字, 然后&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;ctrl + j/k 进行上下选择
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;ctrl + j/k 进行上下选择
 
 ctrl + x 在当前窗口水平分屏打开文件
 
@@ -529,63 +167,22 @@ ctrl + v 同上, 垂直分屏
 ctrl + t 在tab中打开
 &lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;&lt;img alt="ctrlp.gif" src="/imgs/vim/ctrlp.gif"/&gt;&lt;/p&gt;
-&lt;h2 id="_3"&gt;最终配置&lt;/h2&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'ctrlpvim/ctrlp.vim'
-let g:ctrlp_map = '&amp;lt;leader&amp;gt;p'
-let g:ctrlp_cmd = 'CtrlP'
-map &amp;lt;leader&amp;gt;f :CtrlPMRU&amp;lt;CR&amp;gt;
-let g:ctrlp_custom_ignore = {
-    \ 'dir':  '\v[\/]\.(git|hg|svn|rvm)$',
-    \ 'file': '\v\.(exe|so|dll|zip|tar|tar.gz|pyc)$',
-    \ }
-let g:ctrlp_working_path_mode=0
-let g:ctrlp_match_window_bottom=1
-let g:ctrlp_max_height=15
-let g:ctrlp_match_window_reversed=0
-let g:ctrlp_mruf_max=500
-let g:ctrlp_follow_symlinks=1
-&lt;/pre&gt;&lt;/div&gt;
-&lt;h2 id="_4"&gt;其他&lt;/h2&gt;
-&lt;ol&gt;
-&lt;li&gt;更多操作, 详见 &lt;a href="https://github.com/ctrlpvim/ctrlp.vim#once-ctrlp-is-open"&gt;文档&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;可以考虑废弃&lt;code&gt;fuzzyfinder&lt;/code&gt; / &lt;code&gt;Command-T&lt;/code&gt;&lt;/li&gt;
-&lt;li&gt;可以考虑只用一个快捷键, 配置映射到&lt;code&gt;:CtrlPMixed&lt;/code&gt;, 就可以一键搜索文件/buffer/mru&lt;/li&gt;
-&lt;/ol&gt;
-&lt;hr/&gt;
-&lt;h2 id="ctrlpctrlp-funky"&gt;附: ctrlp的插件&lt;code&gt;ctrlp-funky&lt;/code&gt;&lt;/h2&gt;
-&lt;p&gt;作用: 模糊搜索当前文件中所有函数&lt;/p&gt;
-&lt;p&gt;github: &lt;a href="https://github.com/tacahiroy/ctrlp-funky"&gt;ctrlp-funky&lt;/a&gt;&lt;/p&gt;
-&lt;h2 id="_5"&gt;安装&lt;/h2&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'tacahiroy/ctrlp-funky'
-&lt;/pre&gt;&lt;/div&gt;
-&lt;h2 id="_6"&gt;使用&lt;/h2&gt;
-&lt;p&gt;绑定快捷键&lt;/p&gt;
-&lt;p&gt;&lt;code&gt;&amp;lt;leader&amp;gt;fu&lt;/code&gt; 进入当前文件的函数列表搜索&lt;/p&gt;
-&lt;p&gt;&lt;code&gt;&amp;lt;leader&amp;gt;fU&lt;/code&gt; 搜索当前光标下单词对应的函数&lt;/p&gt;
-&lt;p&gt;&lt;img alt="ctrlp-funky.gif" src="/imgs/vim/ctrlp-funky.gif"/&gt;&lt;/p&gt;
-&lt;h2 id="_7"&gt;最终配置&lt;/h2&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'tacahiroy/ctrlp-funky'
-nnoremap &amp;lt;Leader&amp;gt;fu :CtrlPFunky&amp;lt;Cr&amp;gt;
-" narrow the list down with a word under cursor
-nnoremap &amp;lt;Leader&amp;gt;fU :execute 'CtrlPFunky ' . expand('&amp;lt;cword&amp;gt;')&amp;lt;Cr&amp;gt;
-let g:ctrlp_funky_syntax_highlight = 1
-
-let g:ctrlp_extensions = ['funky']
-&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sun, 07 Jun 2015 18:14:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2015-06-07:posts/2015/06/07/vim-plugin-ctrlp.html</guid><category>vim</category></item><item><title>vim插件: airline[状态栏增强]</title><link>http://www.wklken.me/posts/2015/06/07/vim-plugin-airline.html</link><description>&lt;p&gt;k-vim配置 &lt;a href="https://github.com/wklken/k-vim"&gt;github&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id="zui-zhong-pei-zhi"&gt;最终配置&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle …&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sun, 07 Jun 2015 18:14:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2015-06-07:/posts/2015/06/07/vim-plugin-ctrlp.html</guid><category>vim</category></item><item><title>vim插件: airline[状态栏增强]</title><link>http://www.wklken.me/posts/2015/06/07/vim-plugin-airline.html</link><description>&lt;p&gt;k-vim配置 &lt;a href="https://github.com/wklken/k-vim"&gt;github&lt;/a&gt;&lt;/p&gt;
 &lt;hr/&gt;
 &lt;p&gt;作用: 状态栏增强展示&lt;/p&gt;
 &lt;p&gt;github:&lt;a href="https://github.com/bling/vim-airline"&gt;vim-airline&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;之前用过powline, 最终切到airline&lt;/p&gt;
-&lt;h2 id="_1"&gt;安装&lt;/h2&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'bling/vim-airline'
+&lt;h2 id="an-zhuang"&gt;安装&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'bling/vim-airline'
 &lt;/pre&gt;&lt;/div&gt;
-&lt;h2 id="_2"&gt;使用&lt;/h2&gt;
+&lt;h2 id="shi-yong"&gt;使用&lt;/h2&gt;
 &lt;p&gt;状态栏增强, 集成支持ctrlp/nerdtree/tagbar等一些列插件&lt;a href="https://github.com/bling/vim-airline#features"&gt;features&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;airline.png&lt;/p&gt;
-&lt;p&gt;&lt;img alt="airline_1.png" src="/imgs/vim/airline_1.png"/&gt;&lt;br/&gt;
+&lt;p&gt;&lt;img alt="airline_1.png" src="/imgs/vim/airline_1.png"/&gt;
 &lt;img alt="airline_2.png" src="/imgs/vim/airline_2.png"/&gt;&lt;/p&gt;
-&lt;h2 id="_3"&gt;最终配置&lt;/h2&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'bling/vim-airline'
+&lt;h2 id="zui-zhong-pei-zhi"&gt;最终配置&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'bling/vim-airline'
 if !exists('g:airline_symbols')
 let g:airline_symbols = {}
 endif
@@ -594,18 +191,14 @@ let g:airline_left_alt_sep = '❯'
 let g:airline_right_sep = '◀'
 let g:airline_right_alt_sep = '❮'
 let g:airline_symbols.linenr = '&amp;para;'
-let g:airline_symbols.branch = '⎇'
-
-" 是否打开tabline
-" let g:airline#extensions#tabline#enabled = 1
-&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sun, 07 Jun 2015 18:13:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2015-06-07:posts/2015/06/07/vim-plugin-airline.html</guid><category>vim</category></item><item><title>vim插件: theme[主题]</title><link>http://www.wklken.me/posts/2015/06/07/vim-plugin-theme.html</link><description>&lt;p&gt;k-vim配置 &lt;a href="https://github.com/wklken/k-vim"&gt;github&lt;/a&gt;&lt;/p&gt;
+let g …&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sun, 07 Jun 2015 18:13:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2015-06-07:/posts/2015/06/07/vim-plugin-airline.html</guid><category>vim</category></item><item><title>vim插件: theme[主题]</title><link>http://www.wklken.me/posts/2015/06/07/vim-plugin-theme.html</link><description>&lt;p&gt;k-vim配置 &lt;a href="https://github.com/wklken/k-vim"&gt;github&lt;/a&gt;&lt;/p&gt;
 &lt;hr/&gt;
 &lt;p&gt;主题, 在&lt;code&gt;k-vim&lt;/code&gt;中, 默认配置了两个&lt;/p&gt;
 &lt;h3 id="1-solarize"&gt;1. solarize&lt;/h3&gt;
 &lt;p&gt;github: &lt;a href="https://github.com/altercation/vim-colors-solarized"&gt;solarized&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;&lt;img alt="solarized.png" src="/imgs/vim/solarized.png"/&gt;&lt;/p&gt;
 &lt;p&gt;配置&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'altercation/vim-colors-solarized'
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'altercation/vim-colors-solarized'
 let g:solarized_termtrans=1
 let g:solarized_contrast="normal"
 let g:solarized_visibility="normal"
@@ -614,32 +207,23 @@ let g:solarized_visibility="normal"
 &lt;p&gt;github: &lt;a href="https://github.com/tomasr/molokai"&gt;molokai&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;&lt;img alt="molokai.png" src="/imgs/vim/molokai.png"/&gt;&lt;/p&gt;
 &lt;p&gt;配置&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'tomasr/molokai'
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'tomasr/molokai'
 " monokai原始背景色
 let g:molokai_original = 1
 &lt;/pre&gt;&lt;/div&gt;
 &lt;hr/&gt;
-&lt;h3 id="_1"&gt;启用:&lt;/h3&gt;
+&lt;h3 id="qi-yong"&gt;启用:&lt;/h3&gt;
 &lt;p&gt;&lt;code&gt;Bundle&lt;/code&gt;之后安装, 仅仅是安装, 要启用哪个主题, 需要在&lt;code&gt;vimrc&lt;/code&gt;中显式指定&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;set background=dark
-set t_Co=256
-colorscheme solarized
-" colorscheme molokai
-" colorscheme desert
-&lt;/pre&gt;&lt;/div&gt;
-&lt;h3 id="_2"&gt;建议&lt;/h3&gt;
-&lt;ol&gt;
-&lt;li&gt;有包含大部分主题的插件, 但是就个人而言, 够用就行, 所以&lt;code&gt;k-vim&lt;/code&gt;中只保留了两个, 曾经习惯&lt;code&gt;monokai&lt;/code&gt;, 后来转到&lt;code&gt;solarized&lt;/code&gt;, 自己喜欢的才是最好的&lt;/li&gt;
-&lt;/ol&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sun, 07 Jun 2015 18:12:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2015-06-07:posts/2015/06/07/vim-plugin-theme.html</guid><category>vim</category></item><item><title>vim插件: tagbar[大纲式导航]</title><link>http://www.wklken.me/posts/2015/06/07/vim-plugin-tagbar.html</link><description>&lt;p&gt;k-vim配置 &lt;a href="https://github.com/wklken/k-vim"&gt;github&lt;/a&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;set background …&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sun, 07 Jun 2015 18:12:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2015-06-07:/posts/2015/06/07/vim-plugin-theme.html</guid><category>vim</category></item><item><title>vim插件: tagbar[大纲式导航]</title><link>http://www.wklken.me/posts/2015/06/07/vim-plugin-tagbar.html</link><description>&lt;p&gt;k-vim配置 &lt;a href="https://github.com/wklken/k-vim"&gt;github&lt;/a&gt;&lt;/p&gt;
 &lt;hr/&gt;
 &lt;p&gt;&lt;code&gt;tagbar&lt;/code&gt;, 可以将正在编辑的文件生成一个大纲, 包含类/方法/变量等, 可以选中快速跳转到目标位置, 编辑大文件特别有用.&lt;/p&gt;
 &lt;p&gt;评价: 五星&lt;/p&gt;
 &lt;p&gt;作用: 大纲式快速导航&lt;/p&gt;
 &lt;p&gt;github: &lt;a href="https://github.com/majutsushi/tagbar"&gt;tagbar&lt;/a&gt;&lt;/p&gt;
-&lt;h2 id="_1"&gt;安装&lt;/h2&gt;
+&lt;h2 id="an-zhuang"&gt;安装&lt;/h2&gt;
 &lt;p&gt;首先, vim必须是7.0以上&lt;/p&gt;
 &lt;p&gt;安装依赖 &lt;a href="http://ctags.sourceforge.net/"&gt;Exuberant ctags&lt;/a&gt;&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;# ubuntu
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;# ubuntu
 sudo apt-get install ctags
 
 # centos
@@ -649,73 +233,46 @@ sudo yum install ctags
 brew install ctags
 &lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;在vim中安装&lt;code&gt;tagbar&lt;/code&gt;&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'majutsushi/tagbar'
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'majutsushi/tagbar'
 &lt;/pre&gt;&lt;/div&gt;
-&lt;h2 id="_2"&gt;使用&lt;/h2&gt;
-&lt;p&gt;在&lt;code&gt;k-vim&lt;/code&gt;中配置快捷键为&lt;code&gt;F9&lt;/code&gt;, 编辑文件时按&lt;code&gt;F9&lt;/code&gt;, 进入, 上下移动(&lt;code&gt;jk&lt;/code&gt;)), 选中回车后会跳转&lt;/p&gt;
-&lt;p&gt;如果安装了i &lt;a href="http://www.wklken.me/posts/2015/06/07/vim-plugin-easymotion.html"&gt;easymotion&lt;/a&gt;, 还可以使用其快速跳转&lt;/p&gt;
-&lt;p&gt;&lt;img alt="tagbar.gif" src="/imgs/vim/tagbar.gif"/&gt;&lt;/p&gt;
-&lt;h2 id="_3"&gt;最终配置&lt;/h2&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'majutsushi/tagbar'
-nmap &amp;lt;F9&amp;gt; :TagbarToggle&amp;lt;CR&amp;gt;
-" 启动时自动focus
-let g:tagbar_autofocus = 1
-
-" for ruby, delete if you do not need
-let g:tagbar_type_ruby = {
-    \ 'kinds' : [
-        \ 'm:modules',
-        \ 'c:classes',
-        \ 'd:describes',
-        \ 'C:contexts',
-        \ 'f:methods',
-        \ 'F:singleton methods'
-    \ ]
-\ }
-&lt;/pre&gt;&lt;/div&gt;
-&lt;h2 id="_4"&gt;建议&lt;/h2&gt;
-&lt;ol&gt;
-&lt;li&gt;只配置一个快捷键, 可以根据需要定制具体语言的&lt;code&gt;tagbar&lt;/code&gt;展示内容. &lt;a href="https://github.com/majutsushi/tagbar/wiki"&gt;文档地址&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;建议废弃&lt;code&gt;taglist&lt;/code&gt;(年久失修了), &lt;code&gt;ctrlp&lt;/code&gt;+&lt;code&gt;tagbar&lt;/code&gt;实际使用效果更好&lt;/li&gt;
-&lt;li&gt;如果在写&lt;code&gt;golang&lt;/code&gt;的时候要用到&lt;code&gt;tagbar&lt;/code&gt;, 需要安装&lt;code&gt;gotags&lt;/code&gt;支持&lt;/li&gt;
-&lt;/ol&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sun, 07 Jun 2015 18:11:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2015-06-07:posts/2015/06/07/vim-plugin-tagbar.html</guid><category>vim</category></item><item><title>vim插件: nerdcommenter[快速注释]</title><link>http://www.wklken.me/posts/2015/06/07/vim-plugin-nerdcommenter.html</link><description>&lt;p&gt;k-vim配置 &lt;a href="https://github.com/wklken/k-vim"&gt;github&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id="shi-yong"&gt;使用&lt;/h2&gt;
+&lt;p&gt;在&lt;code&gt;k-vim&lt;/code&gt;中配置快捷键为&lt;code&gt;F9&lt;/code&gt;, 编辑文件时按&lt;code&gt;F9&lt;/code&gt;, 进入, 上下移动 …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sun, 07 Jun 2015 18:11:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2015-06-07:/posts/2015/06/07/vim-plugin-tagbar.html</guid><category>vim</category></item><item><title>vim插件: nerdcommenter[快速注释]</title><link>http://www.wklken.me/posts/2015/06/07/vim-plugin-nerdcommenter.html</link><description>&lt;p&gt;k-vim配置 &lt;a href="https://github.com/wklken/k-vim"&gt;github&lt;/a&gt;&lt;/p&gt;
 &lt;hr/&gt;
 &lt;p&gt;最经常用的插件之一&lt;/p&gt;
 &lt;p&gt;作用: 快速注释/解开注释&lt;/p&gt;
 &lt;p&gt;github: &lt;a href="https://github.com/scrooloose/nerdcommenter"&gt;nerdcommenter&lt;/a&gt;&lt;/p&gt;
-&lt;h2 id="_1"&gt;安装&lt;/h2&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'scrooloose/nerdcommenter'
+&lt;h2 id="an-zhuang"&gt;安装&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'scrooloose/nerdcommenter'
 &lt;/pre&gt;&lt;/div&gt;
-&lt;h2 id="_2"&gt;使用&lt;/h2&gt;
+&lt;h2 id="shi-yong"&gt;使用&lt;/h2&gt;
 &lt;p&gt;使用默认的快捷键, 不需要自己绑定&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&amp;lt;leader&amp;gt;cc   加注释
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&amp;lt;leader&amp;gt;cc   加注释
 &amp;lt;leader&amp;gt;cu   解开注释
 
 &amp;lt;leader&amp;gt;c&amp;lt;space&amp;gt;  加上/解开注释, 智能判断
 &amp;lt;leader&amp;gt;cy   先复制, 再注解(p可以进行黏贴)
 &lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;&lt;img alt="nerdcommenter.gif" src="/imgs/vim/nerdcommenter.gif"/&gt;&lt;/p&gt;
-&lt;h2 id="_3"&gt;最终配置&lt;/h2&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'scrooloose/nerdcommenter'
+&lt;h2 id="zui-zhong-pei-zhi"&gt;最终配置&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'scrooloose/nerdcommenter'
 " 注释的时候自动加个空格, 强迫症必配
 let g:NERDSpaceDelims=1
 &lt;/pre&gt;&lt;/div&gt;
-&lt;h2 id="_4"&gt;建议&lt;/h2&gt;
+&lt;h2 id="jian-yi"&gt;建议&lt;/h2&gt;
 &lt;ol&gt;
 &lt;li&gt;同类插件 &lt;a href="https://github.com/tomtom/tcomment_vim"&gt;tcomment&lt;/a&gt; / &lt;a href="https://github.com/tpope/vim-commentary"&gt;vim-commentary&lt;/a&gt;,  有兴趣的话, 可以对比下后者和nerdcommenter&lt;/li&gt;
-&lt;li&gt;常用就三四个快捷键, 更多快捷键自取 &lt;a href="https://github.com/scrooloose/nerdcommenter#usage"&gt;文档&lt;/a&gt;&lt;/li&gt;
-&lt;/ol&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sun, 07 Jun 2015 18:10:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2015-06-07:posts/2015/06/07/vim-plugin-nerdcommenter.html</guid><category>vim</category></item><item><title>vim插件: rainbow_parentheses[括号高亮]</title><link>http://www.wklken.me/posts/2015/06/07/vim-plugin-rainbowparentheses.html</link><description>&lt;p&gt;k-vim配置 &lt;a href="https://github.com/wklken/k-vim"&gt;github&lt;/a&gt;&lt;/p&gt;
+&lt;li&gt;常用就三四个快捷键, 更多快捷键自取 …&lt;/li&gt;&lt;/ol&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sun, 07 Jun 2015 18:10:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2015-06-07:/posts/2015/06/07/vim-plugin-nerdcommenter.html</guid><category>vim</category></item><item><title>vim插件: rainbow_parentheses[括号高亮]</title><link>http://www.wklken.me/posts/2015/06/07/vim-plugin-rainbowparentheses.html</link><description>&lt;p&gt;k-vim配置 &lt;a href="https://github.com/wklken/k-vim"&gt;github&lt;/a&gt;&lt;/p&gt;
 &lt;hr/&gt;
 &lt;p&gt;作用: 括号(小括号/中括号/大括号)&lt;/p&gt;
 &lt;p&gt;github: &lt;a href="https://github.com/kien/rainbow_parentheses.vim"&gt;rainbow_parentheses.vim&lt;/a&gt;&lt;/p&gt;
-&lt;h2 id="_1"&gt;安装&lt;/h2&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'kien/rainbow_parentheses.vim' [DONE]
+&lt;h2 id="an-zhuang"&gt;安装&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'kien/rainbow_parentheses.vim' [DONE]
 &lt;/pre&gt;&lt;/div&gt;
-&lt;h2 id="_2"&gt;使用&lt;/h2&gt;
+&lt;h2 id="shi-yong"&gt;使用&lt;/h2&gt;
 &lt;p&gt;被动(虽然支持主动触发), 可以设定括号高亮展示, 包括&lt;code&gt;()[]{}&amp;lt;&amp;gt;&lt;/code&gt;&lt;/p&gt;
 &lt;p&gt;&lt;img alt="rainbow_parentheses.png" src="/imgs/vim/rainbow_parentheses.png"/&gt;&lt;/p&gt;
-&lt;h2 id="_3"&gt;最终配置&lt;/h2&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'kien/rainbow_parentheses.vim'
+&lt;h2 id="zui-zhong-pei-zhi"&gt;最终配置&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'kien/rainbow_parentheses.vim'
 let g:rbpt_colorpairs = [
     \ ['brown',       'RoyalBlue3'],
     \ ['Darkblue',    'SeaGreen3'],
@@ -727,92 +284,42 @@ let g:rbpt_colorpairs = [
     \ ['brown',       'firebrick3'],
     \ ['gray',        'RoyalBlue3'],
     \ ['darkmagenta', 'DarkOrchid3'],
-    \ ['Darkblue',    'firebrick3'],
-    \ ['darkgreen',   'RoyalBlue3'],
-    \ ['darkcyan',    'SeaGreen3'],
-    \ ['darkred',     'DarkOrchid3'],
-    \ ['red',         'firebrick3'],
-    \ ]
-
-" 不加入这行, 防止黑色括号出现, 很难识别
-" \ ['black',       'SeaGreen3'],
-
-let g:rbpt_max = 16
-let g:rbpt_loadcmd_toggle = 0
-au VimEnter * RainbowParenthesesToggle
-au Syntax * RainbowParenthesesLoadRound
-au Syntax * RainbowParenthesesLoadSquare
-au Syntax * RainbowParenthesesLoadBraces
-&lt;/pre&gt;&lt;/div&gt;
-&lt;h2 id="_4"&gt;建议&lt;/h2&gt;
-&lt;ol&gt;
-&lt;li&gt;开启16对括号匹配一般就够了&lt;/li&gt;
-&lt;li&gt;可以根据自己需求, 确认&lt;code&gt;&amp;lt;&amp;gt;&lt;/code&gt;是否开启, 具体见github文档&lt;/li&gt;
-&lt;li&gt;不建议配置快捷键, 当做被动属性, 省心省事&lt;/li&gt;
-&lt;/ol&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sun, 07 Jun 2015 18:09:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2015-06-07:posts/2015/06/07/vim-plugin-rainbowparentheses.html</guid><category>vim</category></item><item><title>vim插件: syntastic[语法检查]</title><link>http://www.wklken.me/posts/2015/06/07/vim-plugin-syntastic.html</link><description>&lt;p&gt;k-vim配置 &lt;a href="https://github.com/wklken/k-vim"&gt;github&lt;/a&gt;&lt;/p&gt;
+    \ ['Darkblue' …&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sun, 07 Jun 2015 18:09:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2015-06-07:/posts/2015/06/07/vim-plugin-rainbowparentheses.html</guid><category>vim</category></item><item><title>vim插件: syntastic[语法检查]</title><link>http://www.wklken.me/posts/2015/06/07/vim-plugin-syntastic.html</link><description>&lt;p&gt;k-vim配置 &lt;a href="https://github.com/wklken/k-vim"&gt;github&lt;/a&gt;&lt;/p&gt;
 &lt;hr/&gt;
 &lt;p&gt;作用: 语法检查, 支持大部分的语言&lt;/p&gt;
 &lt;p&gt;github: &lt;a href="https://github.com/scrooloose/syntastic"&gt;syntastic&lt;/a&gt;&lt;/p&gt;
-&lt;h2 id="_1"&gt;安装&lt;/h2&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'scrooloose/syntastic'
+&lt;h2 id="an-zhuang"&gt;安装&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'scrooloose/syntastic'
 &lt;/pre&gt;&lt;/div&gt;
-&lt;h2 id="_2"&gt;使用&lt;/h2&gt;
+&lt;h2 id="shi-yong"&gt;使用&lt;/h2&gt;
 &lt;p&gt;被动技能, 设置打开时开启, 则打开对应文件的时候, 会自动进行语法检查, 高亮错误位置&lt;/p&gt;
 &lt;p&gt;注意, 针对某些具体语言, 指定了checker, 需要对应安装外部依赖, 例如&lt;code&gt;pyflakes&lt;/code&gt;/&lt;code&gt;pep8&lt;/code&gt;/&lt;code&gt;jshint&lt;/code&gt;等等&lt;/p&gt;
 &lt;p&gt;主动技能, &lt;code&gt;k-vim&lt;/code&gt;中配置绑定了&lt;code&gt;&amp;lt;leader&amp;gt;s&lt;/code&gt;打开错误列表面板&lt;/p&gt;
 &lt;p&gt;&lt;img alt="syntastic.png" src="/imgs/vim/syntastic.png"/&gt;&lt;/p&gt;
 &lt;p&gt;默认&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;:Errors 显示错误面板
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;:Errors 显示错误面板
 :lnext  到下一个错误
 :lprevious 到上一个错误
 &lt;/pre&gt;&lt;/div&gt;
-&lt;h2 id="_3"&gt;最终配置&lt;/h2&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'scrooloose/syntastic'
+&lt;h2 id="zui-zhong-pei-zhi"&gt;最终配置&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'scrooloose/syntastic'
 let g:syntastic_error_symbol='&amp;gt;&amp;gt;'
 let g:syntastic_warning_symbol='&amp;gt;'
-let g:syntastic_check_on_open=1
-let g:syntastic_check_on_wq=0
-let g:syntastic_enable_highlighting=1
-let g:syntastic_python_checkers=['pyflakes'] " 使用pyflakes,速度比pylint快
-let g:syntastic_javascript_checkers = ['jsl', 'jshint']
-let g:syntastic_html_checkers=['tidy', 'jshint']
-" 修改高亮的背景色, 适应主题
-highlight SyntasticErrorSign guifg=white guibg=black
-
-" to see error location list
-let g:syntastic_always_populate_loc_list = 0
-let g:syntastic_auto_loc_list = 0
-let g:syntastic_loc_list_height = 5
-function! ToggleErrors()
-    let old_last_winnr = winnr('$')
-    lclose
-    if old_last_winnr == winnr('$')
-        " Nothing was closed, open syntastic error location panel
-        Errors
-    endif
-endfunction
-nnoremap &amp;lt;Leader&amp;gt;s :call ToggleErrors()&amp;lt;cr&amp;gt;
-" nnoremap &amp;lt;Leader&amp;gt;sn :lnext&amp;lt;cr&amp;gt;
-" nnoremap &amp;lt;Leader&amp;gt;sp :lprevious&amp;lt;cr&amp;gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;h2 id="_4"&gt;建议&lt;/h2&gt;
-&lt;ol&gt;
-&lt;li&gt;支持语言的列表, 见 &lt;a href="https://github.com/scrooloose/syntastic#1-introduction"&gt;这里&lt;/a&gt;&lt;/li&gt;
-&lt;/ol&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sun, 07 Jun 2015 18:08:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2015-06-07:posts/2015/06/07/vim-plugin-syntastic.html</guid><category>vim</category></item><item><title>vim插件: delimitmate[符号自动补全]</title><link>http://www.wklken.me/posts/2015/06/07/vim-plugin-delimitmate.html</link><description>&lt;p&gt;k-vim配置 &lt;a href="https://github.com/wklken/k-vim"&gt;github&lt;/a&gt;&lt;/p&gt;
+let …&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sun, 07 Jun 2015 18:08:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2015-06-07:/posts/2015/06/07/vim-plugin-syntastic.html</guid><category>vim</category></item><item><title>vim插件: delimitmate[符号自动补全]</title><link>http://www.wklken.me/posts/2015/06/07/vim-plugin-delimitmate.html</link><description>&lt;p&gt;k-vim配置 &lt;a href="https://github.com/wklken/k-vim"&gt;github&lt;/a&gt;&lt;/p&gt;
 &lt;hr/&gt;
 &lt;p&gt;作用: 自动补全引号(单引号/双引号/反引号), 括号(&lt;code&gt;()[]{}&lt;/code&gt;)&lt;/p&gt;
 &lt;p&gt;github: &lt;a href="https://github.com/Raimondi/delimitMate"&gt;delimitMate&lt;/a&gt;&lt;/p&gt;
-&lt;h2 id="_1"&gt;安装&lt;/h2&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'Raimondi/delimitMate'
+&lt;h2 id="an-zhuang"&gt;安装&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'Raimondi/delimitMate'
 &lt;/pre&gt;&lt;/div&gt;
-&lt;h2 id="_2"&gt;使用&lt;/h2&gt;
+&lt;h2 id="shi-yong"&gt;使用&lt;/h2&gt;
 &lt;p&gt;被动技能, 在编辑输入的时候触发&lt;/p&gt;
 &lt;p&gt;&lt;img alt="delimitmate.gif" src="/imgs/vim/delimitmate.gif"/&gt;&lt;/p&gt;
 &lt;blockquote&gt;
 &lt;p&gt;问题: 如何在结束输入后, 自动跳转到符号后面&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;p&gt;触发后, 假设你要跳到补全后的符号后面继续编辑, 按&lt;code&gt;Shift-Tab&lt;/code&gt;&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;# 1. 按", 自动补全
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;# 1. 按", 自动补全
 "|"
 
 # 2.输入`hello`
@@ -821,61 +328,41 @@ nnoremap &amp;lt;Leader&amp;gt;s :call ToggleErrors()&amp;lt;cr&amp;gt;
 # 3. 按 shift-tab, 跳到补全的符号后面, 还是insert-mode
 "hello"|
 &lt;/pre&gt;&lt;/div&gt;
-&lt;h2 id="_3"&gt;最终配置&lt;/h2&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;" 自动补全单引号，双引号等
+&lt;h2 id="zui-zhong-pei-zhi"&gt;最终配置&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;" 自动补全单引号，双引号等
 Bundle 'Raimondi/delimitMate'
 
 " for python docstring ", 特别有用
-au FileType python let b:delimitMate_nesting_quotes = ['"']
-" 关闭某些类型文件的自动补全
-"au FileType mail let b:delimitMate_autoclose = 0
-&lt;/pre&gt;&lt;/div&gt;
-&lt;h2 id="_4"&gt;建议&lt;/h2&gt;
-&lt;ol&gt;
-&lt;li&gt;
-&lt;p&gt;有很多款括号等自动补全的插件, 这款在功能和可配上都不错, 需要自定义的可以看文档&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;同类插件&lt;/p&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;smartinput https://github.com/kana/vim-smartinput
-lexima https://github.com/cohama/lexima.vim  类似多光标替换
-auto-pairs https://github.com/jiangmiao/auto-pairs
-autoclose  https://github.com/Townk/vim-autoclose
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;TODO:&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;粘贴代码的时候自动补全括号这个特性怎么去掉?
-&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sun, 07 Jun 2015 18:07:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2015-06-07:posts/2015/06/07/vim-plugin-delimitmate.html</guid><category>vim</category></item><item><title>vim插件: matchit[成对标签跳转]</title><link>http://www.wklken.me/posts/2015/06/07/vim-plugin-matchit.html</link><description>&lt;p&gt;k-vim配置 &lt;a href="https://github.com/wklken/k-vim"&gt;github&lt;/a&gt;&lt;/p&gt;
+au FileType python …&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sun, 07 Jun 2015 18:07:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2015-06-07:/posts/2015/06/07/vim-plugin-delimitmate.html</guid><category>vim</category></item><item><title>vim插件: matchit[成对标签跳转]</title><link>http://www.wklken.me/posts/2015/06/07/vim-plugin-matchit.html</link><description>&lt;p&gt;k-vim配置 &lt;a href="https://github.com/wklken/k-vim"&gt;github&lt;/a&gt;&lt;/p&gt;
 &lt;hr/&gt;
 &lt;p&gt;这个插件最后一次更新是2008年, 七年前了......&lt;/p&gt;
 &lt;p&gt;vim的&lt;code&gt;%&lt;/code&gt;, 会自动跳转到匹配的&lt;code&gt;()[]{}&amp;lt;&amp;gt;&lt;/code&gt;等符号, 但是在编辑&lt;code&gt;html&lt;/code&gt;和&lt;code&gt;xml&lt;/code&gt;的时候, 可能需要在配对标签直接跳转, 这个插件扩展实现了这个功能.&lt;/p&gt;
 &lt;p&gt;作用: &lt;code&gt;%&lt;/code&gt;跳转到匹配的标签&lt;/p&gt;
 &lt;p&gt;github: &lt;a href="https://github.com/vim-scripts/matchit.zip"&gt;matchit&lt;/a&gt;&lt;/p&gt;
-&lt;h2 id="_1"&gt;安装&lt;/h2&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'vim-scripts/matchit.zip'
+&lt;h2 id="an-zhuang"&gt;安装&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'vim-scripts/matchit.zip'
 &lt;/pre&gt;&lt;/div&gt;
-&lt;h2 id="_2"&gt;使用&lt;/h2&gt;
+&lt;h2 id="shi-yong"&gt;使用&lt;/h2&gt;
 &lt;p&gt;在需要跳转的位置按&lt;code&gt;%&lt;/code&gt;, 跳转到匹配位置&lt;/p&gt;
 &lt;p&gt;例如 xml/html中支持成对标签之间的跳转&lt;/p&gt;
 &lt;p&gt;&lt;img alt="matchit.gif" src="/imgs/vim/matchit.gif"/&gt;&lt;/p&gt;
-&lt;h2 id="_3"&gt;最终配置&lt;/h2&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;" 没错, 只有一行
+&lt;h2 id="zui-zhong-pei-zhi"&gt;最终配置&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;" 没错, 只有一行
 Bundle 'vim-scripts/matchit.zip'
 &lt;/pre&gt;&lt;/div&gt;
-&lt;h2 id="_4"&gt;建议&lt;/h2&gt;
+&lt;h2 id="jian-yi"&gt;建议&lt;/h2&gt;
 &lt;ol&gt;
 &lt;li&gt;根据自己需求确定要不要这个插件, 虽然小, 但是没用的话就不需要装了&lt;/li&gt;
-&lt;/ol&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sun, 07 Jun 2015 18:06:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2015-06-07:posts/2015/06/07/vim-plugin-matchit.html</guid><category>vim</category></item><item><title>vim插件: easy-align[快速对齐]</title><link>http://www.wklken.me/posts/2015/06/07/vim-plugin-easyalign.html</link><description>&lt;p&gt;k-vim配置 &lt;a href="https://github.com/wklken/k-vim"&gt;github&lt;/a&gt;&lt;/p&gt;
+&lt;/ol&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sun, 07 Jun 2015 18:06:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2015-06-07:/posts/2015/06/07/vim-plugin-matchit.html</guid><category>vim</category></item><item><title>vim插件: easy-align[快速对齐]</title><link>http://www.wklken.me/posts/2015/06/07/vim-plugin-easyalign.html</link><description>&lt;p&gt;k-vim配置 &lt;a href="https://github.com/wklken/k-vim"&gt;github&lt;/a&gt;&lt;/p&gt;
 &lt;hr/&gt;
 &lt;p&gt;作用: 快速进行对齐/格式化&lt;/p&gt;
 &lt;p&gt;github: &lt;a href="https://github.com/junegunn/vim-easy-align"&gt;vim-easy-align&lt;/a&gt;&lt;/p&gt;
-&lt;h2 id="_1"&gt;安装&lt;/h2&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'junegunn/vim-easy-align'
+&lt;h2 id="an-zhuang"&gt;安装&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'junegunn/vim-easy-align'
 &lt;/pre&gt;&lt;/div&gt;
-&lt;h2 id="_2"&gt;使用&lt;/h2&gt;
+&lt;h2 id="shi-yong"&gt;使用&lt;/h2&gt;
 &lt;p&gt;绑定快捷键 &lt;code&gt;&amp;lt;leader&amp;gt;a&lt;/code&gt;, 使用&lt;code&gt;V&lt;/code&gt;进入选择, 选取多行, 之后触发&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;,a=        对齐等号表达
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;,a=        对齐等号表达
 ,a:        对齐冒号表达式(json/map等)
 
 # 默认左对齐
@@ -889,55 +376,38 @@ Bundle 'vim-scripts/matchit.zip'
 ,a&amp;lt;Enter&amp;gt;*&amp;lt;space&amp;gt;
 &lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;&lt;img alt="easy-align.gif" src="/imgs/vim/easy-align.gif"/&gt;&lt;/p&gt;
-&lt;h2 id="_3"&gt;最终配置&lt;/h2&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'junegunn/vim-easy-align'
-vmap &amp;lt;Leader&amp;gt;a &amp;lt;Plug&amp;gt;(EasyAlign)
-nmap &amp;lt;Leader&amp;gt;a &amp;lt;Plug&amp;gt;(EasyAlign)
-if !exists('g:easy_align_delimiters')
-  let g:easy_align_delimiters = {}
-endif
-let g:easy_align_delimiters['#'] = { 'pattern': '#', 'ignore_groups': ['String'] }
-&lt;/pre&gt;&lt;/div&gt;
-&lt;h2 id="_4"&gt;建议&lt;/h2&gt;
-&lt;ol&gt;
-&lt;li&gt;同类插件 &lt;a href="https://github.com/godlygeek/tabular"&gt;tabular&lt;/a&gt;&lt;br/&gt;
-, 个人觉得&lt;code&gt;vim-easy-align&lt;/code&gt;更符合直觉, 更新频繁, 文档, 教程也更全, &lt;a href="https://github.com/junegunn/vim-easy-align/blob/master/EXAMPLES.md"&gt;例子&lt;/a&gt;&lt;/li&gt;
-&lt;/ol&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sun, 07 Jun 2015 18:05:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2015-06-07:posts/2015/06/07/vim-plugin-easyalign.html</guid><category>vim</category></item><item><title>vim插件: multiple-cursors[多光标操作]</title><link>http://www.wklken.me/posts/2015/06/07/vim-plugin-multiplecursors.html</link><description>&lt;p&gt;k-vim配置 &lt;a href="https://github.com/wklken/k-vim"&gt;github&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id="zui-zhong-pei-zhi"&gt;最终配置&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'junegunn/vim-easy-align' …&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sun, 07 Jun 2015 18:05:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2015-06-07:/posts/2015/06/07/vim-plugin-easyalign.html</guid><category>vim</category></item><item><title>vim插件: multiple-cursors[多光标操作]</title><link>http://www.wklken.me/posts/2015/06/07/vim-plugin-multiplecursors.html</link><description>&lt;p&gt;k-vim配置 &lt;a href="https://github.com/wklken/k-vim"&gt;github&lt;/a&gt;&lt;/p&gt;
 &lt;hr/&gt;
 &lt;p&gt;作用: 类似sublimetext的多光标选中&lt;/p&gt;
 &lt;p&gt;github: &lt;a href="https://github.com/terryma/vim-multiple-cursors"&gt;vim=multiple-cursors&lt;/a&gt;&lt;/p&gt;
-&lt;h2 id="_1"&gt;安装&lt;/h2&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'terryma/vim-multiple-cursors'
+&lt;h2 id="an-zhuang"&gt;安装&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'terryma/vim-multiple-cursors'
 &lt;/pre&gt;&lt;/div&gt;
-&lt;h2 id="_2"&gt;使用&lt;/h2&gt;
+&lt;h2 id="shi-yong"&gt;使用&lt;/h2&gt;
 &lt;p&gt;默认快捷键&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;ctrl+m 选中一个
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;ctrl+m 选中一个
 ctrl+p 放弃一个, 回到上一个
 ctrl+x 跳过当前选中, 选中下一个
 esc    退出
 &lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;&lt;img alt="multiple-cursors.gif" src="/imgs/vim/multiple-cursors.gif"/&gt;&lt;/p&gt;
 &lt;p&gt;选中后, 可以进行增删替换&lt;code&gt;a/c/x&lt;/code&gt;等&lt;/p&gt;
-&lt;h2 id="_3"&gt;最终配置&lt;/h2&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'terryma/vim-multiple-cursors'
+&lt;h2 id="zui-zhong-pei-zhi"&gt;最终配置&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'terryma/vim-multiple-cursors'
 let g:multi_cursor_use_default_mapping=0
 " Default mapping
 let g:multi_cursor_next_key='&amp;lt;C-m&amp;gt;'
-let g:multi_cursor_prev_key='&amp;lt;C-p&amp;gt;'
-let g:multi_cursor_skip_key='&amp;lt;C-x&amp;gt;'
-let g:multi_cursor_quit_key='&amp;lt;Esc&amp;gt;'
-&lt;/pre&gt;&lt;/div&gt;
-&lt;h2 id="_4"&gt;建议&lt;/h2&gt;
-&lt;p&gt;无&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sun, 07 Jun 2015 18:03:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2015-06-07:posts/2015/06/07/vim-plugin-multiplecursors.html</guid><category>vim</category></item><item><title>vim插件: vim-signature[快速标记跳转]</title><link>http://www.wklken.me/posts/2015/06/07/vim-plugin-signature.html</link><description>&lt;p&gt;k-vim配置 &lt;a href="https://github.com/wklken/k-vim"&gt;github&lt;/a&gt;&lt;/p&gt;
+let g:multi_cursor_prev_key='&amp;lt;C-p …&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sun, 07 Jun 2015 18:03:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2015-06-07:/posts/2015/06/07/vim-plugin-multiplecursors.html</guid><category>vim</category></item><item><title>vim插件: vim-signature[快速标记跳转]</title><link>http://www.wklken.me/posts/2015/06/07/vim-plugin-signature.html</link><description>&lt;p&gt;k-vim配置 &lt;a href="https://github.com/wklken/k-vim"&gt;github&lt;/a&gt;&lt;/p&gt;
 &lt;hr/&gt;
 &lt;p&gt;作用: 标签展示以及快速跳转(增强vim的书签功能)&lt;/p&gt;
 &lt;p&gt;github: &lt;a href="https://github.com/kshenoy/vim-signature"&gt;signature&lt;/a&gt;&lt;/p&gt;
-&lt;h2 id="_1"&gt;安装&lt;/h2&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle "kshenoy/vim-signature"
+&lt;h2 id="an-zhuang"&gt;安装&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle "kshenoy/vim-signature"
 &lt;/pre&gt;&lt;/div&gt;
-&lt;h2 id="_2"&gt;使用&lt;/h2&gt;
+&lt;h2 id="shi-yong"&gt;使用&lt;/h2&gt;
 &lt;p&gt;使用默认快捷键&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;m[a-zA-Z]   打标签
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;m[a-zA-Z]   打标签
 '[a-zA-Z]   跳转到标签位置
 
 '.          最后一次变更的地方
@@ -946,11 +416,11 @@ let g:multi_cursor_quit_key='&amp;lt;Esc&amp;gt;'
 m&amp;lt;space&amp;gt;    去除所有标签
 &lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;&lt;img alt="signature.gif" src="/imgs/vim/signature.gif"/&gt;&lt;/p&gt;
-&lt;h2 id="_3"&gt;最终配置&lt;/h2&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle "kshenoy/vim-signature"
+&lt;h2 id="zui-zhong-pei-zhi"&gt;最终配置&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle "kshenoy/vim-signature"
 &lt;/pre&gt;&lt;/div&gt;
-&lt;h2 id="_4"&gt;建议&lt;/h2&gt;
-&lt;p&gt;无&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sun, 07 Jun 2015 18:02:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2015-06-07:posts/2015/06/07/vim-plugin-signature.html</guid><category>vim</category></item><item><title>vim插件: easymotion[快速跳转]</title><link>http://www.wklken.me/posts/2015/06/07/vim-plugin-easymotion.html</link><description>&lt;p&gt;k-vim配置 &lt;a href="https://github.com/wklken/k-vim"&gt;github&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id="jian-yi"&gt;建议&lt;/h2&gt;
+&lt;p&gt;无&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sun, 07 Jun 2015 18:02:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2015-06-07:/posts/2015/06/07/vim-plugin-signature.html</guid><category>vim</category></item><item><title>vim插件: easymotion[快速跳转]</title><link>http://www.wklken.me/posts/2015/06/07/vim-plugin-easymotion.html</link><description>&lt;p&gt;k-vim配置 &lt;a href="https://github.com/wklken/k-vim"&gt;github&lt;/a&gt;&lt;/p&gt;
 &lt;hr/&gt;
 &lt;p&gt;说明: &lt;code&gt;&amp;lt;leader&amp;gt;&lt;/code&gt;全局映射为&lt;code&gt;,&lt;/code&gt;&lt;/p&gt;
 &lt;p&gt;除却&lt;code&gt;hjkl&lt;/code&gt;, &lt;code&gt;gg&lt;/code&gt;, &lt;code&gt;G&lt;/code&gt;, &lt;code&gt;Ctrl-D/U&lt;/code&gt;, 以及 &lt;code&gt;[f/F]&amp;lt;char&amp;gt;&lt;/code&gt;和&lt;code&gt;[t/T]&amp;lt;char&amp;gt;&lt;/code&gt;这些&lt;code&gt;vim&lt;/code&gt;默认的移动方式&lt;/p&gt;
@@ -958,102 +428,29 @@ m&amp;lt;space&amp;gt;    去除所有标签
 &lt;p&gt;这个插件的唯一目的就是: 快速跳转&lt;/p&gt;
 &lt;p&gt;作用: 如何进行更快速的光标移动&lt;/p&gt;
 &lt;p&gt;github: &lt;a href="https://github.com/Lokaltog/vim-easymotion"&gt;github&lt;/a&gt;&lt;/p&gt;
-&lt;h2 id="_1"&gt;安装&lt;/h2&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'Lokaltog/vim-easymotion'
+&lt;h2 id="an-zhuang"&gt;安装&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'Lokaltog/vim-easymotion'
 &lt;/pre&gt;&lt;/div&gt;
-&lt;h2 id="1-wb"&gt;用法1: 跳转到当前光标前后的位置(w/b)&lt;/h2&gt;
-&lt;p&gt;快捷键&lt;code&gt;&amp;lt;leader&amp;gt;&amp;lt;leader&amp;gt;w&lt;/code&gt;(即&lt;code&gt;,,w&lt;/code&gt;)和&lt;code&gt;&amp;lt;leader&amp;gt;&amp;lt;leader&amp;gt;b&lt;/code&gt;(即&lt;code&gt;,,b&lt;/code&gt;)&lt;/p&gt;
-&lt;p&gt;助记: &lt;code&gt;word&lt;/code&gt; and &lt;code&gt;back&lt;/code&gt;&lt;/p&gt;
-&lt;p&gt;演示:&lt;/p&gt;
-&lt;p&gt;&lt;img alt="easy_motion_base.gif" src="/imgs/vim/easy_motion_base.gif"/&gt;&lt;/p&gt;
-&lt;p&gt;easy_motion_base.gif&lt;/p&gt;
-&lt;h2 id="2-s"&gt;用法2: 搜索跳转(s)&lt;/h2&gt;
-&lt;p&gt;快捷键&lt;code&gt;&amp;lt;leader&amp;gt;&amp;lt;leader&amp;gt;s&lt;/code&gt;(即&lt;code&gt;,,s&lt;/code&gt;), 然后输入要搜索的字母, 这个跳转是双向的&lt;/p&gt;
-&lt;p&gt;助记: &lt;code&gt;search&lt;/code&gt;&lt;/p&gt;
-&lt;p&gt;演示:&lt;/p&gt;
-&lt;p&gt;&lt;img alt="easy_motion_search.gif" src="/imgs/vim/easy_motion_search.gif"/&gt;&lt;/p&gt;
-&lt;h2 id="3-jk"&gt;用法3: 行级跳转(jk)&lt;/h2&gt;
-&lt;p&gt;配置&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;map &amp;lt;Leader&amp;gt;&amp;lt;Leader&amp;gt;j &amp;lt;Plug&amp;gt;(easymotion-j)
-map &amp;lt;Leader&amp;gt;&amp;lt;Leader&amp;gt;k &amp;lt;Plug&amp;gt;(easymotion-k)
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;快捷键: &lt;code&gt;&amp;lt;leader&amp;gt;&amp;lt;leader&amp;gt;j&lt;/code&gt;和&lt;code&gt;&amp;lt;leader&amp;gt;&amp;lt;leader&amp;gt;k&lt;/code&gt;(即&lt;code&gt;,,j&lt;/code&gt;和&lt;code&gt;,,k&lt;/code&gt;)&lt;/p&gt;
-&lt;p&gt;助记: &lt;code&gt;hjkl&lt;/code&gt;不解释&lt;/p&gt;
-&lt;p&gt;演示:&lt;/p&gt;
-&lt;p&gt;&lt;img alt="easy_motion_lines.gif" src="/imgs/vim/easy_motion_lines.gif"/&gt;&lt;/p&gt;
-&lt;h2 id="4-hl"&gt;用法4: 行内跳转(hl)&lt;/h2&gt;
-&lt;p&gt;配置&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;map &amp;lt;Leader&amp;gt;&amp;lt;leader&amp;gt;h &amp;lt;Plug&amp;gt;(easymotion-linebackward)
-map &amp;lt;Leader&amp;gt;&amp;lt;leader&amp;gt;l &amp;lt;Plug&amp;gt;(easymotion-lineforward)
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;快捷键&lt;code&gt;&amp;lt;leader&amp;gt;&amp;lt;leader&amp;gt;h&lt;/code&gt;和&lt;code&gt;&amp;lt;leader&amp;gt;&amp;lt;leader&amp;gt;l&lt;/code&gt;(即&lt;code&gt;,,h&lt;/code&gt;和&lt;code&gt;,,l&lt;/code&gt;)&lt;/p&gt;
-&lt;p&gt;助记: &lt;code&gt;hjkl&lt;/code&gt;不解释&lt;/p&gt;
-&lt;p&gt;&lt;img alt="easy_motion_inline.gif" src="/imgs/vim/easy_motion_inline.gif"/&gt;&lt;/p&gt;
-&lt;h2 id="5"&gt;用法5: 重复上一次动作(.)&lt;/h2&gt;
-&lt;p&gt;配置&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;map &amp;lt;Leader&amp;gt;&amp;lt;leader&amp;gt;. &amp;lt;Plug&amp;gt;(easymotion-repeat)
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;快捷键&lt;code&gt;&amp;lt;leader&amp;gt;&amp;lt;leader&amp;gt;.&lt;/code&gt;&lt;/p&gt;
-&lt;p&gt;助记: 同&lt;code&gt;repeat&lt;/code&gt;插件....&lt;/p&gt;
-&lt;p&gt;&lt;img alt="easy_motion_repeat.gif" src="/imgs/vim/easy_motion_repeat.gif"/&gt;&lt;/p&gt;
-&lt;hr/&gt;
-&lt;h2 id="_2"&gt;最终配置&lt;/h2&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'Lokaltog/vim-easymotion'
-let g:EasyMotion_smartcase = 1
-"let g:EasyMotion_startofline = 0 " keep cursor colum when JK motion
-map &amp;lt;Leader&amp;gt;&amp;lt;leader&amp;gt;h &amp;lt;Plug&amp;gt;(easymotion-linebackward)
-map &amp;lt;Leader&amp;gt;&amp;lt;Leader&amp;gt;j &amp;lt;Plug&amp;gt;(easymotion-j)
-map &amp;lt;Leader&amp;gt;&amp;lt;Leader&amp;gt;k &amp;lt;Plug&amp;gt;(easymotion-k)
-map &amp;lt;Leader&amp;gt;&amp;lt;leader&amp;gt;l &amp;lt;Plug&amp;gt;(easymotion-lineforward)
-" 重复上一次操作, 类似repeat插件, 很强大
-map &amp;lt;Leader&amp;gt;&amp;lt;leader&amp;gt;. &amp;lt;Plug&amp;gt;(easymotion-repeat)
-&lt;/pre&gt;&lt;/div&gt;
-&lt;hr/&gt;
-&lt;h2 id="_3"&gt;建议&lt;/h2&gt;
-&lt;ol&gt;
-&lt;li&gt;
-&lt;p&gt;还可以&lt;code&gt;&amp;lt;Leader&amp;gt;&amp;lt;leader&amp;gt;f&lt;/code&gt;和&lt;code&gt;&amp;lt;Leader&amp;gt;&amp;lt;leader&amp;gt;t&lt;/code&gt;, 不过建议简单化, 一个&lt;code&gt;&amp;lt;Leader&amp;gt;&amp;lt;leader&amp;gt;w/b&lt;/code&gt;走天下.&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;如果你不经常使用&lt;code&gt;s&lt;/code&gt;, 可以将&lt;code&gt;s&lt;/code&gt;改键, &lt;code&gt;nmap s &amp;lt;Plug&amp;gt;(easymotion-s)&lt;/code&gt;, 这样你只需要输入&lt;code&gt;s&lt;/code&gt;就可以进行搜索快速跳转(强迫症表示不能忍....)&lt;br/&gt;
-具体做法见&lt;a href="https://github.com/Lokaltog/vim-easymotion#bidirectional-motions"&gt;官方文档&lt;/a&gt;&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;默认&lt;code&gt;&amp;lt;leader&amp;gt;&amp;lt;leader&amp;gt;&lt;/code&gt;作为这个插件的快捷键其实挺好的, 貌似没有其他插件会导致冲突, 还可以配置一整套, 强迫症很满意&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;可以配置2/n个字符的搜索跳转, 更精准, 按需自取(个人觉得太复杂了没必要) &lt;a href="https://github.com/Lokaltog/vim-easymotion#2-character-search-motion"&gt;文档&lt;/a&gt;和&lt;a href="https://github.com/Lokaltog/vim-easymotion#n-character-search-motion"&gt;文档&lt;/a&gt;&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;这个插件专心做好跳转就好, 没必要把搜索的活给做了&lt;/p&gt;
-&lt;/li&gt;
-&lt;/ol&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sun, 07 Jun 2015 18:01:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2015-06-07:posts/2015/06/07/vim-plugin-easymotion.html</guid><category>vim</category></item><item><title>vim插件: vundle[管理插件]</title><link>http://www.wklken.me/posts/2015/06/07/vim-plugin-vundle.html</link><description>&lt;p&gt;k-vim配置 &lt;a href="https://github.com/wklken/k-vim"&gt;github&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id="yong-fa-1-tiao-zhuan-dao-dang-qian-guang-biao-qian-hou-de-wei-zhi-wb"&gt;用法1: 跳转到当前光标前后的位置(w/b)&lt;/h2&gt;
+&lt;p&gt;快捷键&lt;code&gt;&amp;lt;leader&amp;gt;&amp;lt;leader&amp;gt;w&lt;/code&gt;(即&lt;code&gt;,,w&lt;/code&gt;)和&lt;code&gt;&amp;lt;leader&amp;gt;&amp;lt;leader&amp;gt;b&lt;/code&gt;(即&lt;code&gt;,,b …&lt;/code&gt;&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sun, 07 Jun 2015 18:01:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2015-06-07:/posts/2015/06/07/vim-plugin-easymotion.html</guid><category>vim</category></item><item><title>vim插件: vundle[管理插件]</title><link>http://www.wklken.me/posts/2015/06/07/vim-plugin-vundle.html</link><description>&lt;p&gt;k-vim配置 &lt;a href="https://github.com/wklken/k-vim"&gt;github&lt;/a&gt;&lt;/p&gt;
 &lt;hr/&gt;
 &lt;p&gt;第一个需要手动安装的插件, 其他的插件通过这个来进行管理&lt;/p&gt;
 &lt;p&gt;作用: 管理其他所有插件(安装/更新/移除)&lt;/p&gt;
 &lt;p&gt;github:&lt;a href="https://github.com/gmarik/Vundle.vim"&gt;vundle&lt;/a&gt;&lt;/p&gt;
-&lt;h2 id="_1"&gt;安装&lt;/h2&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;git clone https://github.com/gmarik/Vundle.vim.git ~/.vim/bundle/Vundle.vi
+&lt;h2 id="an-zhuang"&gt;安装&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;git clone https://github.com/gmarik/Vundle.vim.git ~/.vim/bundle/Vundle.vi
 &lt;/pre&gt;&lt;/div&gt;
-&lt;h2 id="_2"&gt;使用&lt;/h2&gt;
+&lt;h2 id="shi-yong"&gt;使用&lt;/h2&gt;
 &lt;p&gt;在&lt;code&gt;.vimrc&lt;/code&gt;中加入/修改/删除自己需要的插件配置&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'scrooloose/syntastic'
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Bundle 'scrooloose/syntastic'
 &lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;然后, 在命令行模式下运行&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;:BundleInstall     install 安装配置的插件
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;:BundleInstall     install 安装配置的插件
 :BundleInstall!    update  更新
 :BundleClean       remove plugin not in list 删除本地无用插件
 &lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;&lt;img alt="vundle.png" src="/imgs/vim/vundle.png"/&gt;&lt;/p&gt;
-&lt;h2 id="_3"&gt;其他&lt;/h2&gt;
-&lt;ol&gt;
-&lt;li&gt;
-&lt;p&gt;同类插件 &lt;a href="https://github.com/tpope/vim-pathogen"&gt;pathogen&lt;/a&gt;, &lt;a href="https://github.com/Shougo/neobundle.vim"&gt;neobundle&lt;/a&gt;&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;依旧是同类插件, &lt;a href="https://github.com/junegunn/vim-plug"&gt;vim-plug&lt;/a&gt;, 不过这个支持并行安装插件(目测如果是第一次配置机器会快很多....)&lt;/p&gt;
-&lt;/li&gt;
-&lt;/ol&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sun, 07 Jun 2015 18:00:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2015-06-07:posts/2015/06/07/vim-plugin-vundle.html</guid><category>vim</category></item><item><title>分享一份 Vim 简介PPT</title><link>http://www.wklken.me/posts/2015/05/10/vim-intro.html</link><description>&lt;p&gt;这是近期做团队分享的一份ppt, 原稿用&lt;code&gt;markdown&lt;/code&gt;仓促写的, 感谢&lt;code&gt;markdown&lt;/code&gt;及&lt;a href="https://github.com/onesuper/weakpoint"&gt;weakpoint&lt;/a&gt;, 可以直接将&lt;code&gt;markdown&lt;/code&gt;转成ppt&lt;/p&gt;
+&lt;h2 id="qi-ta"&gt;其他 …&lt;/h2&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sun, 07 Jun 2015 18:00:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2015-06-07:/posts/2015/06/07/vim-plugin-vundle.html</guid><category>vim</category></item><item><title>分享一份 Vim 简介PPT</title><link>http://www.wklken.me/posts/2015/05/10/vim-intro.html</link><description>&lt;p&gt;这是近期做团队分享的一份ppt, 原稿用&lt;code&gt;markdown&lt;/code&gt;仓促写的, 感谢&lt;code&gt;markdown&lt;/code&gt;及&lt;a href="https://github.com/onesuper/weakpoint"&gt;weakpoint&lt;/a&gt;, 可以直接将&lt;code&gt;markdown&lt;/code&gt;转成ppt&lt;/p&gt;
 &lt;p&gt;这次分享主要不是讲vim, 更多的是关于工具的使用和思考&lt;/p&gt;
 &lt;p&gt;其实, 无非是记住一些东西, 忘记一些东西, 定制和寻找适合自己的工具, 善用工具, 成为主人而不是奴隶&lt;/p&gt;
 &lt;p&gt;将markdown原稿放出, 很多实操演示, 在文稿中是看不到的......&lt;/p&gt;
@@ -1082,317 +479,13 @@ map &amp;lt;Leader&amp;gt;&amp;lt;leader&amp;gt;. &amp;lt;Plug&amp;gt;(easymotio
 &lt;p&gt;能做一些事情, 但是一些事情是做不到的, 不要强求, 该用IDE的时候, 用就是了&lt;/p&gt;
 &lt;hr/&gt;
 &lt;h2 id="how"&gt;how&lt;/h2&gt;
-&lt;p&gt;步骤:(简明 Vim 练级攻略)&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;存活
-感觉良好
-觉得更好，更强，更快
-使用VIM的超能力
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;诀窍:&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;不断练习
-
-肌肉记忆, 直觉-行动而不是思考-行动(十倍差距)
-&lt;/pre&gt;&lt;/div&gt;
-&lt;hr/&gt;
-&lt;h2 id="_1"&gt;过程:&lt;/h2&gt;
-&lt;p&gt;一个vimer必定会经历的过程&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;什么都没有, 纯vi&lt;/li&gt;
-&lt;li&gt;什么都有&lt;/li&gt;
-&lt;li&gt;只留适合自己的, 不适合自己也要配置成适合自己的&lt;/li&gt;
-&lt;li&gt;什么都没有(听说)&lt;/li&gt;
-&lt;/ol&gt;
-&lt;hr/&gt;
-&lt;h2 id="target"&gt;target&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;实操: vim能做什么?&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;思考:&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;哪些是你常用编辑器可以实现的?&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;哪些好的功能是你想要却没有的? 能否解决&lt;/li&gt;
-&lt;li&gt;你的痛点在哪里?&lt;/li&gt;
-&lt;li&gt;工作流&lt;/li&gt;
-&lt;/ul&gt;
-&lt;hr/&gt;
-&lt;h2 id="_2"&gt;模式&lt;/h2&gt;
-&lt;p&gt;&lt;img alt="vim-mode" src="https://github.com/wklken/gallery/blob/master/vim/vim-modes.png?raw=true"/&gt;&lt;/p&gt;
-&lt;hr/&gt;
-&lt;h2 id="1"&gt;移动1&lt;/h2&gt;
-&lt;p&gt;概览&lt;/p&gt;
-&lt;p&gt;&lt;img alt="" src="https://github.com/wklken/gallery/blob/master/vim/vim-movement.png?raw=true"/&gt;&lt;/p&gt;
-&lt;hr/&gt;
-&lt;h2 id="2"&gt;移动2&lt;/h2&gt;
-&lt;p&gt;忘掉刚才那张图......&lt;/p&gt;
-&lt;hr/&gt;
-&lt;h2 id="3"&gt;移动3&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;
-&lt;p&gt;hjkl (请杜绝方向键, 移动右手到方向键区浪费时间)&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;map &amp;lt;Left&amp;gt; &amp;lt;Nop&amp;gt;
-map &amp;lt;Right&amp;gt; &amp;lt;Nop&amp;gt;
-map &amp;lt;Up&amp;gt; &amp;lt;Nop&amp;gt;
-map &amp;lt;Down&amp;gt; &amp;lt;Nop&amp;gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;单词: w / b / e (忘记: W/B/E-以空白为分隔符, 要多按shift键键/不好记/用得少)&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;行内: 0 / $  (忘记: ^, 够不着啊)&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;段落: { / }&lt;/p&gt;
-&lt;/li&gt;
-&lt;/ul&gt;
-&lt;hr/&gt;
-&lt;h2 id="4"&gt;移动4&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;
-&lt;p&gt;页: \&amp;lt;ctrl-u&amp;gt; / \&amp;lt;ctrl-d&amp;gt; (忘记: ctrl-f/ctrl-b, 都在左侧键区左手太累, 经常是要上要下, 而不是往一个方向走)&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;可视范围: H M L (全部忘记, 没多大用, 要按shift, 混淆记忆)&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;文件内: gg / G / :N (基本够了)&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;匹配处: % 括号匹配 /  # (忘记: *, 在键盘左侧, 太远不好敲, 可以交换#和*的功能)&lt;/p&gt;
-&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;更强大的, 看后面的插件部分&lt;/p&gt;
-&lt;hr/&gt;
-&lt;h2 id="_3"&gt;编辑&lt;/h2&gt;
-&lt;blockquote&gt;
-&lt;p&gt;N\&amp;lt;action&amp;gt;&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;ul&gt;
-&lt;li&gt;x&lt;/li&gt;
-&lt;li&gt;dd&lt;/li&gt;
-&lt;li&gt;dw / db / d$ / dG / dgg&lt;/li&gt;
-&lt;li&gt;yw / yb / y$&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;yy / p / P&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;J&lt;/p&gt;
-&lt;/li&gt;
-&lt;/ul&gt;
-&lt;hr/&gt;
-&lt;h2 id="_4"&gt;撤销和重复&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;u&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;.&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;N\&amp;lt;command&amp;gt;&lt;/p&gt;
-&lt;/li&gt;
-&lt;/ul&gt;
-&lt;hr/&gt;
-&lt;h2 id="_5"&gt;选中&lt;/h2&gt;
-&lt;p&gt;select&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;v:  vw / vb / vta / v$&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;block select&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;\&lt;ctrl+v\&gt; -&amp;gt; hjkl/\&amp;lt;ctrl+d&amp;gt;&lt;/ctrl+v\&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;行首加 / 行尾加&lt;/p&gt;
-&lt;hr/&gt;
-&lt;h2 id="_6"&gt;搜索&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;行内搜索: f / t (可以选择性遗忘t, 同时, 忘记F/T, 甚至可以忘记f, 你不需要)&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;为什么? 看后面的easy-motion插件&lt;/p&gt;
-&lt;hr/&gt;
-&lt;h2 id="_7"&gt;替换&lt;/h2&gt;
-&lt;p&gt;记住这两个似乎够了(频率最高)&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;
-&lt;p&gt;:1,10s/a/b/g&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;:%s/a/b/g&lt;/p&gt;
-&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;字符替换&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;rX&lt;/li&gt;
-&lt;/ul&gt;
-&lt;hr/&gt;
-&lt;h2 id="_8"&gt;文本对象&lt;/h2&gt;
-&lt;p&gt;初学者基本不了解的一个特性&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;\&amp;lt;action&amp;gt;a\&amp;lt;object&amp;gt;  or \&amp;lt;action&amp;gt;i\&amp;lt;object&amp;gt;&lt;/li&gt;
-&lt;li&gt;a = all /  i = in&lt;/li&gt;
-&lt;li&gt;action: d y v c&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;object:&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;w(world) / s(sentence) / p{paragraph}
-" ' ) ] }
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;装插件, 可以是: l(line) e(entire file)  i(indent)&lt;/p&gt;
-&lt;/li&gt;
-&lt;/ul&gt;
-&lt;hr/&gt;
-&lt;h2 id="_9"&gt;分屏&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;
-&lt;p&gt;:sp file1&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;:vsp file2&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;ctrl-w-h/j/k/l (改键 ctrl-h/j/k/l)&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;ctrl-w-H/J/K/L&lt;/li&gt;
-&lt;/ul&gt;
-&lt;hr/&gt;
-&lt;h2 id="1_1"&gt;插件1: 语法检查&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://github.com/scrooloose/syntastic"&gt;syntastic&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;hr/&gt;
-&lt;h2 id="2_1"&gt;插件2: 自动补全与代码片段&lt;/h2&gt;
-&lt;p&gt;两大效率神器&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://github.com/Valloric/YouCompleteMe"&gt;YCM&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;毫秒级补全/ python / c系等, 编译安装, 具体自行文档&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://github.com/SirVer/ultisnips"&gt;ultisnips&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://github.com/honza/vim-snippets"&gt;vim-snippets&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;括号补全&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://github.com/Raimondi/delimitMate"&gt;delimimate&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;xml/html标签补全&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://github.com/docunext/closetag.vim"&gt;closetag&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;hr/&gt;
-&lt;h2 id="3_1"&gt;插件3: 快速编码&lt;/h2&gt;
-&lt;p&gt;快速注释:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://github.com/scrooloose/nerdcommenter"&gt;nerdcommenter&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;快速编辑&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://github.com/tpope/vim-surround"&gt;vim-surround&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://github.com/tpope/vim-repeat"&gt;vim-repeat&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;去空格&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://github.com/bronson/vim-trailing-whitespace"&gt;vim-trailing-whitespace&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;代码对齐&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://github.com/junegunn/vim-easy-align"&gt;vim-easy-align&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;hr/&gt;
-&lt;h2 id="4_1"&gt;插件4: 快速运行&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://github.com/thinca/vim-quickrun"&gt;vim-quickrun&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;hr/&gt;
-&lt;h2 id="5"&gt;插件5: 快速移动&lt;/h2&gt;
-&lt;p&gt;行/位置/搜索&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://github.com/Lokaltog/vim-easymotion"&gt;vim-easymotion&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;mark&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://github.com/kshenoy/vim-signature"&gt;vim-signature&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;hr/&gt;
-&lt;h2 id="6"&gt;插件6: 快速选中&lt;/h2&gt;
-&lt;p&gt;区块&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://github.com/terryma/vim-expand-region"&gt;vim-expand-region&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;多标签&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://github.com/terryma/vim-multiple-cursors"&gt;vim-multiple-cursors&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;hr/&gt;
-&lt;h2 id="7"&gt;插件7: 文件导航/搜索&lt;/h2&gt;
-&lt;p&gt;目录导航&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://github.com/scrooloose/nerdtree"&gt;nerdtree&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;标签导航&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://github.com/majutsushi/tagbar"&gt;tagbar&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;搜索文件&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://github.com/kien/ctrlp.vim"&gt;ctrlp.vim&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;搜索代码&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://github.com/dyng/ctrlsf.vim"&gt;ctrlsf.vim&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;hr/&gt;
-&lt;h2 id="1_2"&gt;关于插件1&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;不是越多越好&lt;/li&gt;
-&lt;li&gt;配了用不上 = 没配 + 浪费资源&lt;/li&gt;
-&lt;li&gt;同一功能, 对比几个插件, 选择一个合适的&lt;/li&gt;
-&lt;li&gt;快捷键配置一定要容易记&lt;/li&gt;
-&lt;li&gt;相信我, 一个插件用的最多的快捷键就两个, 绝大多数情况下不会多于两个, 不用耗费心力在配置&lt;code&gt;更强大的&lt;/code&gt;操作上&lt;/li&gt;
-&lt;/ul&gt;
-&lt;hr/&gt;
-&lt;h2 id="2_2"&gt;关于插件2&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;更符合自觉的键位/操作&lt;/li&gt;
-&lt;li&gt;尽量减少敲击次数&lt;/li&gt;
-&lt;li&gt;杜绝一切无效的敲击&lt;/li&gt;
-&lt;li&gt;个性化, 定制到每个细节, 力争解决自己所有痛点&lt;/li&gt;
-&lt;/ul&gt;
-&lt;hr/&gt;
-&lt;h2 id="_10"&gt;高级&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;
-&lt;p&gt;怎么配置:&lt;/p&gt;
-&lt;p&gt;参考下别人的vim配置, 读插件文档, 读插件代码, 必要时改一份&lt;/p&gt;
-&lt;/li&gt;
-&lt;/ul&gt;
-&lt;hr/&gt;
-&lt;h2 id="_11"&gt;资源&lt;/h2&gt;
-&lt;p&gt;配置:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://github.com/spf13/spf13-vim"&gt;spf13&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://github.com/wklken/k-vim"&gt;k-vim&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://github.com/square/maximum-awesome"&gt;maximum-awsome&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;文章:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="http://www.jianshu.com/p/bcbe916f97e1"&gt;vim 入门基础&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="http://coolshell.cn/articles/5426.html"&gt;简明vim练级攻略&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="http://www.kunli.info/2013/08/13/vim/"&gt;不要复杂化vim&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="http://segmentfault.com/blog/nightire/1190000000445598"&gt;vim 哲学&lt;/a&gt; 一个系列, 推荐&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;others:&lt;br/&gt;
-- &lt;a href="http://vimawesome.com/"&gt;插件库 vimawsome&lt;/a&gt;&lt;br/&gt;
-- &lt;a href="http://vimcolors.com/"&gt;主题库 vim colors&lt;/a&gt;&lt;/p&gt;
-&lt;hr/&gt;
-&lt;h2 id="qa"&gt;QA&lt;/h2&gt;
-&lt;p&gt;Thx:)&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sun, 10 May 2015 00:00:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2015-05-10:posts/2015/05/10/vim-intro.html</guid><category>vim</category></item><item><title>k-vim 更新9.0版本</title><link>http://www.wklken.me/posts/2015/05/05/k-vim-update-v9.html</link><description>&lt;p&gt;&lt;a href="https://github.com/wklken/k-vim"&gt;直达链接&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;步骤:(简明 Vim …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sun, 10 May 2015 00:00:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2015-05-10:/posts/2015/05/10/vim-intro.html</guid><category>vim</category></item><item><title>k-vim 更新9.0版本</title><link>http://www.wklken.me/posts/2015/05/05/k-vim-update-v9.html</link><description>&lt;p&gt;&lt;a href="https://github.com/wklken/k-vim"&gt;直达链接&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;趁着近期有点时间, 将积累几个月的改进/痛点/更新等处理了一把, &lt;code&gt;k-vim&lt;/code&gt;正式更新到9.0版本.&lt;/p&gt;
 &lt;p&gt;如果喜欢, 欢迎star/fork, 欢迎提pr.&lt;/p&gt;
 &lt;p&gt;本次更新:  &lt;a href="https://github.com/wklken/k-vim/blob/master/UPDATE_LOG.md"&gt;完整更新日志&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;```markdown &lt;br/&gt;
+&lt;p&gt;```markdown 
     1. 新增依赖ag(the_silver_searcher)&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;安装 [the_silver_searcher](https://github.com/ggreer/the_silver_searcher#installing)
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;安装 [the_silver_searcher](https://github.com/ggreer/the_silver_searcher#installing)
 
 具体见文档
 
@@ -1403,49 +496,9 @@ map &amp;lt;Down&amp;gt; &amp;lt;Nop&amp;gt;
 
 2. 引入dyng/ctrlsf.vim, 类似 sublimetext的全局搜索
 
-    2.1 依赖于ag的全局搜索
-    2.2 将光标挪到单词, 快捷键\  - 进入全局搜索, 移入分屏界面, o/t/T/q操作
-
-
-3. 代码折叠
-
-    3.1 &amp;lt;leader&amp;gt;zz 折叠/打开所有代码toggle(本次新增配置)
-    3.2 za 当前光标所在区域折叠toggle(vim默认的)
-
-4. syntastic语法检查
-
-    4.1 修正语法检查错误高亮, 精确到具体错误单词
-    4.2 开启python的pep8, 允许忽略某些warning, vimrc.bundles: line 40
-    4.3 &amp;lt;leader&amp;gt;s  打开当前文件所有语法错误列表(新增配置)
-
-5.  easymotion
-
-    5.1 &amp;lt;leader&amp;gt;&amp;lt;leader&amp;gt;.  重复上一次easymotion命令, 更高效(新增配置)
-
-6. 修改RainbowParentheses, 防止黑色括号出现
-
-7. 修改vim-expand-region快捷键
-
-    7.1 v 扩增选中范围
-    7.2 V 缩小选中范围
-
-8. 新增主题tomorrow
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;```&lt;/p&gt;
-&lt;p&gt;后面, 针对每个插件的使用, 之前笔记整理了一把, 后续逐步发出.&lt;/p&gt;
-&lt;hr/&gt;
-&lt;p&gt;另外, 开始在实际项目中更多的使用&lt;code&gt;golang&lt;/code&gt;, 最近在搞ELK日志收集统计系统,  做了一个收集任意端上报数据, 落地成日志文件, 然后经由logstash转存储到es.&lt;/p&gt;
-&lt;p&gt;&lt;a href="https://github.com/wklken/http_json_logger"&gt;http_json_logger&lt;/a&gt;: 一个日志上报收集服务, 可以收集从浏览器/js/android/ios等通过http上报的日志, 落地为文本文件, 用作后续日志统计/分析/数据挖掘等. logger模块是使用&lt;code&gt;beego&lt;/code&gt;的logger模块精简后的, 这是第二个&lt;code&gt;golang&lt;/code&gt;项目, 上一个是下拉提示 &lt;a href="https://github.com/wklken/suggestion"&gt;suggestion&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;另一个更新是, 花了两个小时, 给blog文章页面加了生成目录的功能,  另外搞了下阅读时左侧展示当前所在位置标题.(还无法支持响应式......)&lt;/p&gt;
-&lt;hr/&gt;
-&lt;p&gt;度过了接近一年多的瓶颈期, 过去一年多可能是近几年迷茫和挣扎的一段时间,    眼睁睁看自己在某个地方卡住, 苦苦挣扎, 一步步往前, 这个过程是痛苦的, 独自成长, 一点点地去达成1万小时的目标&lt;/p&gt;
-&lt;p&gt;随着时间流逝, 一切在逐渐明晰, 从测试转开发, 正式两年半了, 不短不长, 近期却有很多感悟. 或许, 该有些突破了吧.&lt;/p&gt;
-&lt;hr/&gt;
-&lt;p&gt;后续在自建wiki的同时, 提高blog的更新频率.&lt;/p&gt;
-&lt;p&gt;wklken&lt;/p&gt;
-&lt;p&gt;2015-05-05 于深圳&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Tue, 05 May 2015 00:00:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2015-05-05:posts/2015/05/05/k-vim-update-v9.html</guid><category>vim</category></item><item><title>Vim相关资源</title><link>http://www.wklken.me/posts/2014/10/03/vim-resources.html</link><description>&lt;h1 id="vim"&gt;Vim资源列表&lt;/h1&gt;
+    2.1 …&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Tue, 05 May 2015 00:00:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2015-05-05:/posts/2015/05/05/k-vim-update-v9.html</guid><category>vim</category></item><item><title>Vim相关资源</title><link>http://www.wklken.me/posts/2014/10/03/vim-resources.html</link><description>&lt;h1 id="vimzi-yuan-lie-biao"&gt;Vim资源列表&lt;/h1&gt;
 &lt;p&gt;之前在 &lt;a href="https://github.com/wklken/k-vim"&gt;k-vim&lt;/a&gt; 的readme中写了很多, 本次更新8.0版本后, 对其进行了梳理, 感觉放那并不合适, 所以迁过来这边:)&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;    .----------------.  .----------------.  .----------------.
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;    .----------------.  .----------------.  .----------------.
     | .--------------. || .--------------. || .--------------. |
     | | ____   ____  | || |     _____    | || | ____    ____ | |
     | ||_  _| |_  _| | || |    |_   _|   | || ||_   \  /   _|| |
@@ -1458,7 +511,7 @@ map &amp;lt;Down&amp;gt; &amp;lt;Nop&amp;gt;
     '----------------'  '----------------'  '----------------'
 &lt;/pre&gt;&lt;/div&gt;
 &lt;hr/&gt;
-&lt;h2 id="_1"&gt;资源库&lt;/h2&gt;
+&lt;h2 id="zi-yuan-ku"&gt;资源库&lt;/h2&gt;
 &lt;ul&gt;
 &lt;li&gt;&lt;a href="http://u.memect.com/vim/"&gt;memect vim资源汇总&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href="https://plus.google.com/communities/105049811056605918816"&gt;Google+&lt;/a&gt;&lt;/li&gt;
@@ -1473,62 +526,10 @@ map &amp;lt;Down&amp;gt; &amp;lt;Nop&amp;gt;
 &lt;li&gt;&lt;a href="http://vim-adventures.com/"&gt;vim大冒险&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href="http://inside.github.io/vim-presentation/#/"&gt;一个很赞的ppt&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
-&lt;h2 id="tips"&gt;Tips&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="http://www.vimbits.com/bits?sort=top"&gt;vimbits&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://www.cs.oberlin.edu/~kuperman/help/vim/home.html"&gt;vim tips and tricks&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id="_2"&gt;国内文章&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="http://coolshell.cn/articles/5426.html"&gt;简明vim练级攻略&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="http://www.kunli.info/2013/08/13/vim/"&gt;不要复杂化vim&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="http://blog.jobbole.com/44891/"&gt;七个高效文本编辑习惯&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="http://edyfox.codecarver.org/html/vim_fileencodings_detection.html"&gt;vim fileencodings&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="http://www.jianshu.com/p/bcbe916f97e1"&gt;vim 入门基础&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="http://segmentfault.com/blog/nightire/1190000000445598"&gt;vim 哲学&lt;/a&gt; 一个系列, 推荐&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id="_3"&gt;国外文章&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="http://www.moolenaar.net/habits.html"&gt;Seven habits of effective text editing&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="http://benmccormick.org/learning-vim-in-2014/"&gt;learning vim in 2014&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="http://vimcasts.org/"&gt;vimcasts&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="http://sheerun.net/2014/03/21/how-to-boost-your-vim-productivity/"&gt;how to boost your vim productivity&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="http://mislav.uniqpath.com/2011/12/vim-revisited/"&gt;vim revisited&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="http://huangjian.info/learn-vim-script/"&gt;learn vim script&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id="_4"&gt;视频&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://vimeo.com/search?q=vim"&gt;vimeo&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://vimeo.com/user1690209/videos"&gt;Derek Wyatt&amp;rsquo;s Videos&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://vimeo.com/vimlondon/videos"&gt;vim london&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://www.youtube.com/user/MinuteVimTricks/videos"&gt;minute vim tricks&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="http://railscasts-china.com/episodes/rails-with-vim"&gt;rails with vim&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="http://www.youtube.com/watch?v=YhqsjUUHj6g"&gt;vim as a python ide&lt;/a&gt; 对应 &lt;a href="https://speakerdeck.com/mbrochh/vim-as-a-python-ide"&gt;ppt&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id="vim_1"&gt;其他vim配置&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="https://github.com/spf13/spf13-vim"&gt;spf13&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://github.com/square/maximum-awesome"&gt;maximum-awsome&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://github.com/exvim/main"&gt;exvim&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://github.com/carlhuda/janus"&gt;janus&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="https://github.com/mathiasbynens/dotfiles"&gt;dotfiles&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id="sof"&gt;sof&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="http://stackoverflow.com/questions/1218390/what-is-your-most-productive-shortcut-with-vim"&gt;What is your most productive shortcut with Vim?&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="http://stackoverflow.com/questions/726894/what-are-the-dark-corners-of-vim-your-mom-never-told-you-about"&gt;What are the dark corners of Vim your mom never told you about? &lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id="_5"&gt;其他&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href="http://learnvimscriptthehardway.stevelosh.com/"&gt;Learning vim the hard way&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="http://www.swaroopch.com/notes/vim/#Introduction"&gt;A Byte of vim&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="http://painlessvim.com/"&gt;painless vim&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href="http://derekwyatt.org/"&gt;derekwyatt&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;BOOK: VIM 实用技巧&lt;/li&gt;
-&lt;/ul&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Fri, 03 Oct 2014 00:00:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2014-10-03:posts/2014/10/03/vim-resources.html</guid><category>vim</category></item><item><title>Vim技巧补充</title><link>http://www.wklken.me/posts/2014/04/13/vim-addition-skills.html</link><description>&lt;p&gt;读了一些文章，重新理一理，大部分是平常操作中容易忽视的,很容易忘了其实还可以这么干&lt;/p&gt;
+&lt;h2 id="tips"&gt;Tips …&lt;/h2&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Fri, 03 Oct 2014 00:00:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2014-10-03:/posts/2014/10/03/vim-resources.html</guid><category>vim</category></item><item><title>Vim技巧补充</title><link>http://www.wklken.me/posts/2014/04/13/vim-addition-skills.html</link><description>&lt;p&gt;读了一些文章，重新理一理，大部分是平常操作中容易忽视的,很容易忘了其实还可以这么干&lt;/p&gt;
 &lt;h3 id="text-object"&gt;Text Object&lt;/h3&gt;
 &lt;p&gt;y/d/c + text-object-operation&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;    * iw &amp;hellip;inner word
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;    * iw &amp;hellip;inner word
     * aw &amp;hellip;a word
     * iW &amp;hellip;inner WORD
     * aW &amp;hellip;a WORD
@@ -1544,205 +545,10 @@ map &amp;lt;Down&amp;gt; &amp;lt;Nop&amp;gt;
     * i( or i) &amp;hellip;inner block
     * a( or a) &amp;hellip;a block
     * i&amp;lt; or i&amp;gt; &amp;hellip;inner block
-    * a&amp;lt; or i&amp;gt; &amp;hellip;a block
-    * i{ or i} &amp;hellip;inner block
-    * a{ or a} &amp;hellip;a block
-
-    * i" &amp;hellip;inner block
-    * a" &amp;hellip;a block
-    * i` &amp;hellip;inner block
-    * a` &amp;hellip;a block
-&lt;/pre&gt;&lt;/div&gt;
-&lt;h3 id="_1"&gt;替换&lt;/h3&gt;
-&lt;p&gt;命令格式&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;:[range]s/pattern/string/[c,e,g,i]
-
-range,范围， 1,7指从第一行到第七行  1,$第一行到最后一行
-pattern,被替换字符串，可以用regexp来表示
-string,替换成的字符串
-
-c: confirm，每次替换前询问
-e: 不提示error
-g: globe, 不询问，整行替换[默认只替换第一个]
-i: ignore,不区分大小写
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;e.g.&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="x"&gt;:s/vivian/sky/&lt;/span&gt;
-&lt;span class="x"&gt;替换当前行第一个vivian为sky&lt;/span&gt;
-
-&lt;span class="x"&gt;:s/vivian/sky/g&lt;/span&gt;
-&lt;span class="x"&gt;替换当前行所有vivian为sky，g表示global&lt;/span&gt;
-
-&lt;span class="x"&gt;:n,&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;s&lt;/span&gt;&lt;span class="x"&gt;/vivian/sky/&lt;/span&gt;
-&lt;span class="x"&gt;替换第n行开始到最后一行中每一行的第一个vivian为sky，n为数字&lt;/span&gt;
-
-&lt;span class="x"&gt;:.,&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;s&lt;/span&gt;&lt;span class="x"&gt;/vivian/sky/g&lt;/span&gt;
-&lt;span class="x"&gt;替换当前行开始到最后一行中每一行所有vivian为sky&lt;/span&gt;
-
-&lt;span class="x"&gt;:%s/vivian/sky/g（等同于 :g/vivian/sky/g）&lt;/span&gt;
-&lt;span class="x"&gt;替换每一行中所有 vivian 为 sky&lt;/span&gt;
-
-&lt;span class="x"&gt;:s/vivian\//sky\//&lt;/span&gt;
-&lt;span class="x"&gt;替换当前行第一个vivian/为sky/，可以使用\作为转义符&lt;/span&gt;
-
-&lt;span class="x"&gt;:1,&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;s&lt;/span&gt;&lt;span class="x"&gt;/^/some string/&lt;/span&gt;
-&lt;span class="x"&gt;在文件的第一行至最后一行的行首前插入some string&lt;/span&gt;
-
-&lt;span class="x"&gt;:%s/&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="x"&gt;/some string/g&lt;/span&gt;
-&lt;span class="x"&gt;在整个文件每一行的行尾添加some string&lt;/span&gt;
-
-&lt;span class="x"&gt;:%s/\s\+&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="x"&gt;//&lt;/span&gt;
-&lt;span class="x"&gt;去掉所有的行尾空格，&amp;ldquo;\s&amp;rdquo;表示空白字符（空格和制表符），&amp;ldquo;\+&amp;rdquo;对前面的字符匹配一次或多次（越多越好），&amp;ldquo;&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="x"&gt;&amp;rdquo;匹配行尾（使用&amp;ldquo;\&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="x"&gt;&amp;rdquo;表示单纯的&amp;ldquo;&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="x"&gt;&amp;rdquo;字符）&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;反向引用&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nf"&gt;%s&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="err"&gt;\&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;aa&lt;/span&gt;&lt;span class="err"&gt;\&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="err"&gt;\&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="o"&gt;-/&lt;/span&gt;&lt;span class="n"&gt;g&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;h3 id="_2"&gt;修改&lt;/h3&gt;
-&lt;p&gt;1.字符修改-大小写&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;v选中, U切换大写，u切花小写
-~      光标所在之处字符大小写呼唤
-guw    光标下的单词变为小写
-gUw    光标下的单词变为大写
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;2.字符互换&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;xp  左右交换光标处两字符的位置
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;3.行-合并&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;J   上下两行连起来
-选中多行，然后 J    多行连起来
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;4.操作&lt;/p&gt;
-&lt;p&gt;命令格式&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;c{motion}
-删除并进入输入模式 c$  ct!
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;e.g.&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;ciw  change inner word, 修改当前光标下单词
-cis  change inner sentence, 修改一整个句子
-
-#text-object
-ci"
-ci(
-
-cw   修改一个单词
-cc   change the whole line,剪切光标所在行并进入插入模式
-
-ctx  剪切光标至字符x，进入插入模式
-&lt;/pre&gt;&lt;/div&gt;
-&lt;h3 id="_3"&gt;删除&lt;/h3&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;dG 删除至文件末尾
-dgg 删除只文件开头
-&lt;/pre&gt;&lt;/div&gt;
-&lt;h3 id="_4"&gt;查找和跳转&lt;/h3&gt;
-&lt;p&gt;跳转到当前行某个位置&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;fx  到第一个x
-2fx 到第二个x
-
-Fx  往回查找
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;跳转到某行&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;50G 移动到 50行
-:50
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;标记并跳转&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;#对26个字母有效
-ma 标记书签
-'a 跳到书签
-'.  最后一次编辑的地方
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;段落跳转&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;{   上一段(以空白行分隔)
-}   下一段(以空白行分隔)
-
-) 下一个句子
-( 上一个句子
-&lt;/pre&gt;&lt;/div&gt;
-&lt;h3 id="_5"&gt;选中&lt;/h3&gt;
-&lt;p&gt;操作&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;v   按字符
-V   按行
-ctrl+v 按块
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;命令格式&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;va&amp;lt;object&amp;gt; or vi&amp;lt;object&amp;gt;
-
-object ：
-    w 一个单词， W 一个以空格为分隔的单词，
-    s 一个句子，
-    p 一个段落。
-    也可以是一个特别的字符："、 '、 )、 }、 ]。
-注意，这里v换成d/y就成了删除，拷贝的命令
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;e.g.&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;假设你有一个字符串
-    (map (+) ("foo")).
-
-而光标键在第一个 o 的位置。
-vi" &amp;rarr; 会选择 foo.
-va" &amp;rarr; 会选择 "foo".
-vi) &amp;rarr; 会选择 "foo".
-va) &amp;rarr; 会选择("foo").
-v2i) &amp;rarr; 会选择 map (+) ("foo")
-v2a) &amp;rarr; 会选择 (map (+) ("foo"))'"
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;选中括号里的内容&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;v% 光标在一侧括号
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;全选&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;ggVG
-&lt;/pre&gt;&lt;/div&gt;
-&lt;h3 id="_6"&gt;保存和退出&lt;/h3&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;:e file 打开文件
-ZQ  无条件退出
-ZZ  存盘退出
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;保存部分内容&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;:1,10 w a.txt
-:1,10 w &amp;gt;&amp;gt; a.txt
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;另存为&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;:saveas new_file
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;执行外部命令&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;:!cmd
-:r!cmd  指向外部命令的结果插入到当前
-&lt;/pre&gt;&lt;/div&gt;
-&lt;h3 id="vim"&gt;关于vim学习的建议&lt;/h3&gt;
-&lt;p&gt;来自网上两篇文章&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;更多的是技能而非知识
-更多的是双手而非头脑
-Vim技巧
-不贪图一下子掌握
-不断实践
-不是由头脑来搜索该用哪条操作技巧
-而是建立手指的自然反应
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;一定要阅读一下Bram Moolenaar(vim的作者)写的Seven habits of effective text editing(七个有效的文本编辑习惯)&lt;/p&gt;
-&lt;p&gt;七个习惯&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;快速移动
-不要两次键入同样的东西
-错误修复
-经常需要编辑不止一个文件
-协同作业
-文本是结构化的
-养成习惯
-&lt;/pre&gt;&lt;/div&gt;
-&lt;h3 id="_7"&gt;其他&lt;/h3&gt;
-&lt;p&gt;大写的&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;D 删除当前到行尾，不要用d$
-Y 复制整行，建议改写成复制当前到行尾
-C 修改当前到行尾
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;repeat:&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;. &amp;rarr; (小数点) 可以重复上一次的命令
-N&amp;lt;command&amp;gt; &amp;rarr; 重复某个命令N次
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;宏录制和使用&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;待补充
-&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sun, 13 Apr 2014 00:00:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2014-04-13:posts/2014/04/13/vim-addition-skills.html</guid><category>vim</category><category>linux</category></item><item><title>[翻译]130+vim基本命令</title><link>http://www.wklken.me/posts/2013/08/17/130-essential-vim-commands.html</link><description>&lt;p&gt;文章  &lt;a href="http://www.catswhocode.com/blog/130-essential-vim-commands"&gt;链接&lt;/a&gt;&lt;/p&gt;
+    * a …&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sun, 13 Apr 2014 00:00:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2014-04-13:/posts/2014/04/13/vim-addition-skills.html</guid><category>vim</category><category>linux</category></item><item><title>[翻译]130+vim基本命令</title><link>http://www.wklken.me/posts/2013/08/17/130-essential-vim-commands.html</link><description>&lt;p&gt;文章  &lt;a href="http://www.catswhocode.com/blog/130-essential-vim-commands"&gt;链接&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;从八十年代起，vi和vim在程序员中十分流行.5年前，我写了《程序员必须知道的100个vim命令》，这是重写更新版本，希望你喜欢!&lt;/p&gt;
-&lt;h3 id="_1"&gt;基础&lt;/h3&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;:e filename     在编辑器中打开一个文件
+&lt;h3 id="ji-chu"&gt;基础&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;:e filename     在编辑器中打开一个文件
 :w              保存文件
 :q              退出vim
 :q!             退出但不保存
@@ -1751,410 +557,37 @@ N&amp;lt;command&amp;gt; &amp;rarr; 重复某个命令N次
 .               在正常模式中重复执行上一个变更
 5.              重复五次
 &lt;/pre&gt;&lt;/div&gt;
-&lt;h3 id="_2"&gt;移动&lt;/h3&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;k or Up Arrow   上移一行
+&lt;h3 id="yi-dong"&gt;移动&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;k or Up Arrow   上移一行
 j or Down Arrow 下移一行
 e               移动到单词末尾
 b               移动到单词开头
 0               移动到行首
 G               移动到文件末尾
-gg              移动到文件开头
-L               移动到屏幕底
-:59             移动到59行
-20|             移动到第20列
-%               移动到匹配的括号
-[[              到函数头
-[{              到块开始位置
-&lt;/pre&gt;&lt;/div&gt;
-&lt;h3 id="_3"&gt;剪切，复制和粘贴&lt;/h3&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;y   拷贝选中部分到剪贴板
-p   粘贴剪贴板中内容
-dd  剪切当前行
-yy  拷贝当前行
-y$  拷贝到行尾
-D   剪切到行尾
-&lt;/pre&gt;&lt;/div&gt;
-&lt;h3 id="_4"&gt;搜索&lt;/h3&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;/word           从开头到结尾搜索单词word
-?word           从结尾到卡头
-*               搜索光标下单词
-/\cstring       搜索string或STRING, 大小写不敏感
-/jo[ha]n        搜索john 或 joan
-/\&amp;lt; the         搜索以the开头的，the, theatre 或 then
-/the\&amp;gt;          搜索以the结尾的，the 或 breathe
-/\&amp;lt; the\&amp;gt;       搜索the
-/\&amp;lt; &amp;brvbar;.\&amp;gt;        搜索所有含有四个字母的
-/\/             搜索fred 但不是alfred 或 frederick
-/fred\|joe      搜索fred 或 joe
-/\&amp;lt;\d\d\d\d\&amp;gt;   搜索仅有四个数字的
-/^\n\{3}        搜索连续3个空行的
-:bufdo /searchstr/  在所有打开buf中搜索
-bufdo %s/something/somethingelse/g  在所有打开buf中搜索并替换
-&lt;/pre&gt;&lt;/div&gt;
-&lt;h3 id="_5"&gt;替换&lt;/h3&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="x"&gt;:%s/old/new/g           将所有出现的old替换为new&lt;/span&gt;
-&lt;span class="x"&gt;:%s/onward/forward/gi   将所有onward替换为forward，大小写不敏感&lt;/span&gt;
-&lt;span class="x"&gt;:%s/old/new/gc          替换前确认&lt;/span&gt;
-&lt;span class="x"&gt;:2,35s/old/new/g        将第2行到第35行之间的old替换为new&lt;/span&gt;
-&lt;span class="x"&gt;:5,&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;s&lt;/span&gt;&lt;span class="x"&gt;/old/new/g         将第5行到文件结尾的old替换为new&lt;/span&gt;
-&lt;span class="x"&gt;:%s/^/hello/g           在每一行开头加入hello&lt;/span&gt;
-&lt;span class="x"&gt;:%s/&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="x"&gt;/Harry/g           在每一行结尾加入Harry&lt;/span&gt;
-&lt;span class="x"&gt;:%s/ *&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="x"&gt;//g              删除每行末尾无用空格&lt;/span&gt;
-&lt;span class="x"&gt;:g/string/d             删除所有包含string的行&lt;/span&gt;
-&lt;span class="x"&gt;:v/string/d             删除所有不包含string的行&lt;/span&gt;
-&lt;span class="x"&gt;:s/Bill/Steve/          替换当前行第一个Bill为Steve&lt;/span&gt;
-&lt;span class="x"&gt;:s/Bill/Steve/g         替换当前行中所有Bill&lt;/span&gt;
-&lt;span class="x"&gt;:%s/Bill/Steve/g        替换文件中所有Bill&lt;/span&gt;
-&lt;span class="x"&gt;:%s/^M//g               删掉DOS保存文件中(^M)&lt;/span&gt;
-&lt;span class="x"&gt;:%s/\r/\r/g             Transform DOS carriage returns in returns&lt;/span&gt;
-&lt;span class="x"&gt;:%s&lt;/span&gt;&lt;span class="err"&gt;#&lt;/span&gt;&lt;span class="x"&gt;&amp;lt;[^&amp;gt;]\+&amp;gt;&lt;/span&gt;&lt;span class="cp"&gt;##&lt;/span&gt;&lt;span class="c"&gt;g         删除html标签但是保留文本&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
-&lt;span class="x"&gt;:%s/^\(.*\)\n\1&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="x"&gt;/\1/    删除所有连续出现过两次的行，保留一行&lt;/span&gt;
-&lt;span class="x"&gt;Ctrl+a                  递增光标下的数字&lt;/span&gt;
-&lt;span class="x"&gt;Ctrl+x                  递减光标下的数字&lt;/span&gt;
-&lt;span class="x"&gt;ggVGg?                  文本转换为 Rot13&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;h3 id="_6"&gt;大小写&lt;/h3&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Vu                  整行小写
-VU                  整行大写
-g~~                 整行大小写反转
-vEU                 单词转为大写
-vE~                 单词大小写反转
-ggguG               所有文本小写
-gggUG               所有文本大写
-:set ignorecase     搜索中忽略大小写
-:set smartcase      搜索中忽略大小写，除非搜索词中存在大小写字母
-:%s/\&amp;lt;./\u&amp;amp;/g       将所有单词首字母大写
-:%s/\&amp;lt;./\l&amp;amp;/g       将所有单词首字母小写
-:%s/.*/\u&amp;amp;          将每行第一个字母大写
-:%s/.*/\l&amp;amp;          将每行第一个字母小写
-&lt;/pre&gt;&lt;/div&gt;
-&lt;h3 id="_7"&gt;读写文件&lt;/h3&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;:1,10 w outfile     1到10行内容写到outfile
-:1,10 w &amp;gt;&amp;gt; outfile  1到10行内容追加到outfile
-:r infile           插入文件内容
-:23r infile         插入文件23行的内容
-&lt;/pre&gt;&lt;/div&gt;
-&lt;h3 id="_8"&gt;文件浏览器&lt;/h3&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;:e .                打开完整文件浏览器
-:Sex                切分窗口，打开文件浏览器
-:Sex!               同上，垂直切分
-:browse e           图像化文件浏览器
-:ls                 列出buffers
-:cd ..              移到上一层目录
-:args               列出文件
-:args *.php         打开文件列表
-:grep expression *.php  返回包含expression的php文件列表
-gf                  打开光标下文件名对应的文件
-&lt;/pre&gt;&lt;/div&gt;
-&lt;h3 id="unix"&gt;和Unix交互&lt;/h3&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="x"&gt;:!pwd               执行pwd命令，返回结果&lt;/span&gt;
-&lt;span class="x"&gt;!!pwd               执行命令并插入结果到文件中&lt;/span&gt;
-&lt;span class="x"&gt;:sh                 临时返回unix&lt;/span&gt;
-&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;exit&lt;/span&gt;&lt;span class="x"&gt;               从unix中返回vim&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;h3 id="_9"&gt;对齐&lt;/h3&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;:%!fmt              所有行对齐
-!}fmt               当前位置所有行对齐
-5!!fmt              后五行对齐
-&lt;/pre&gt;&lt;/div&gt;
-&lt;h3 id="tabswindows"&gt;Tabs和Windows&lt;/h3&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;:tabnew             创建一个新的tab
-gt                  展示下一个tab
-:tabfirst           展示第一个tab
-:tablast            展示最后一个tag
-:tabm n(position)   重排tab
-:tabdo %s/foo/bar/g 在所有tab中执行一个命令
-:tab ball           将所有打开文件放入tab中
-:new abc.txt        在新window中编辑abc.txt
-&lt;/pre&gt;&lt;/div&gt;
-&lt;h3 id="_10"&gt;窗口分屏&lt;/h3&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;:e filename         在当前窗口中编辑文件
-:split filename     切分当前窗口并打开文件(缩写 :sp filename)
-ctrl-w up arrow     移到上一个文件
-ctrl-w ctrl-w       移到下一个窗口
-ctrl-w_             当前窗口垂直最大化
-ctrl-w|             当前窗口水平最大化
-ctrl-w=             所有窗口等大小
-10 ctrl-w+          当前窗口增加10行
-:vsplit file        竖直切分窗口
-:sview file         同:split, 只读模式
-:hide               关闭当前窗口
-:&amp;shy;nly               关闭出了当前窗口之外的所有窗口
-:b 2                打开2号窗口
-&lt;/pre&gt;&lt;/div&gt;
-&lt;h3 id="_11"&gt;自动补全&lt;/h3&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Ctrl+n Ctrl+p (插入模式)  补全单词
-Ctrl+x Ctrl+l           补全行
-:set dictionary=dict    定义dict为dictionnary
-Ctrl+x Ctrl+k           用字典中内容补全
-&lt;/pre&gt;&lt;/div&gt;
-&lt;h3 id="_12"&gt;标签&lt;/h3&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;m {a-z}                 在当前位置做标签{a-z}
-' {a-z}                 移动到标签位置
-''                      移动到上一个位置
-&lt;/pre&gt;&lt;/div&gt;
-&lt;h3 id="_13"&gt;缩写&lt;/h3&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;:ab mail mail@provider.org      定义mail 作为 mail@provider.org的缩写
-&lt;/pre&gt;&lt;/div&gt;
-&lt;h3 id="_14"&gt;文本缩进&lt;/h3&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;:set autoindent         打开自动缩进
-:set smartindent        打开自动智能缩进
-:set shiftwidth=4       缩进设为4个空格
-ctrl-t, ctrl-d          插入模式中缩进/去缩进
-&amp;gt;&amp;gt;                      缩进
-&amp;lt;&amp;lt;                      去缩进
-=%                      缩进括号中的代码
-1GVG=                   缩进整个文件
-&lt;/pre&gt;&lt;/div&gt;
-&lt;h3 id="_15"&gt;语法高亮&lt;/h3&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;:syntax on              打开语法高亮
-:syntax off             关闭语法高亮
-:set syntax=perl        强制语法高亮
-&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sat, 17 Aug 2013 00:00:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2013-08-17:posts/2013/08/17/130-essential-vim-commands.html</guid><category>vim</category></item><item><title>[翻译]vim入门指南</title><link>http://www.wklken.me/posts/2013/08/04/translation-vim-introduction-and-tutorial.html</link><description>&lt;p&gt;今天稍微整理了下vim配置 &lt;a href="https://github.com/wklken/k-vim"&gt;k-vim&lt;/a&gt;&lt;/p&gt;
+gg              移动到文件开头 …&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sat, 17 Aug 2013 00:00:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2013-08-17:/posts/2013/08/17/130-essential-vim-commands.html</guid><category>vim</category></item><item><title>[翻译]vim入门指南</title><link>http://www.wklken.me/posts/2013/08/04/translation-vim-introduction-and-tutorial.html</link><description>&lt;p&gt;今天稍微整理了下vim配置 &lt;a href="https://github.com/wklken/k-vim"&gt;k-vim&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;原文链接 &lt;a href="http://blog.interlinked.org/tutorials/vim_tutorial.html"&gt;Vim Introduction and Tutorial&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;搜了下没发现中文版,顺手翻译下, 建议读原版&lt;/p&gt;
 &lt;hr/&gt;
-&lt;h1 id="vim"&gt;vim简介及入门指南&lt;/h1&gt;
+&lt;h1 id="vimjian-jie-ji-ru-men-zhi-nan"&gt;vim简介及入门指南&lt;/h1&gt;
 &lt;p&gt;我经常试图去学习Emac编辑器/IDE/OS. 我最后一次尝试时，我花了一些时间去适应，直到我想去配置一个自己的.emacs文件&lt;/p&gt;
 &lt;p&gt;在我用vi打开.emacs文件那一刻，我意识到我做了什么，vim早已经赢得了我的青睐.&lt;/p&gt;
 &lt;p&gt;所以，我将vim作为我的首选编辑器[注1]&lt;/p&gt;
 &lt;p&gt;另一个动机是，我发现我最喜欢的shell(&lt;a href="http://www.zsh.org/"&gt;ZSH&lt;/a&gt;)有很酷的 vi-mode 包含命令模式(使得，你可以在命令和插入模式之间切换)&lt;/p&gt;
 &lt;p&gt;Vim有一系列给力的特性，并且学习它们需要花费一些时间.当然，现在有很多在线指南和技巧文章，但是帮助文档同样很优秀！有概览页面，总结页面和一些注释&lt;/p&gt;
 &lt;p&gt;我开始使用官网的指南和帮助系统学习(输入 :help &lt;command&gt; 可以从命令模式获取帮助)， 我喜欢在测试文件中测试命令，并且对重要的命令写下简短的说明&lt;/command&gt;&lt;/p&gt;
-&lt;p&gt;另一个我使用Vim的原因是，使用Vim比Emacs更加健康(使用默认键映射).健康?很多命令可以简单地通过一次敲击完成 - 模式编辑器的优点，不需要使用由很多修改关键字组成的长命令串.即使你有一个正常的键盘，敲击Ctrl，Alt等键很显然不是那么正常&lt;/p&gt;
-&lt;p&gt;只需要记住:Vim的命令都非常简单，但是简单命令组合起来将变得十分强大&lt;/p&gt;
-&lt;h2 id="_1"&gt;模式&lt;/h2&gt;
-&lt;p&gt;Vim有3种模式：&lt;/p&gt;
-&lt;p&gt;1.命令行模式：所有键盘输入都是命令&lt;/p&gt;
-&lt;p&gt;2.插入模式:大部分键盘输入作为文本插入(出了少部分特殊键)&lt;/p&gt;
-&lt;p&gt;3.可视模式：用于帮助选中文本，可以看做是命令行模式的子模式&lt;/p&gt;
-&lt;p&gt;&lt;img alt="模式转换图" src="https://github.com/wklken/gallery/blob/master/vim/vim-modes.png?raw=true"/&gt;&lt;/p&gt;
-&lt;p&gt;从插入模式或可视模式切换到命令模式,按&lt;esc&gt;&lt;/esc&gt;&lt;/p&gt;
-&lt;p&gt;从命令模式切换到插入模式:&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;* i  在当前位置之前插入
-* a  在当前位置之后插入(追加)
-* I  调到当前行第一个非空白字符之前插入
-* A  调到当前行最后一个字符之后插入
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;从命令模式到可视模式：&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;* v  切换到可视模式(字符级别)
-* V  切换到可视模式(行级别)
-* ctrl-v  切换到块可视模式(块级别的)
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;所有操作，比如替换，删除，拷贝或排版，在可视模式下同样适用&lt;/p&gt;
-&lt;h2 id="_2"&gt;移动&lt;/h2&gt;
-&lt;p&gt;简单的移动命令&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;* h 左移
-* l 右移
-* k 上移
-* j 下移
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;很显然，这几个命令只在命令模式下可用，当然，你可以用方向键(在所有模式下适用)&lt;/p&gt;
-&lt;p&gt;Vim有很多移动命令，我只是学习了一部分，但是如果你需要一些特殊的移动方式，可以看看帮助，我确定你会找到有用的方法&lt;/p&gt;
-&lt;p&gt;&lt;img alt="移动说明图" src="https://github.com/wklken/gallery/blob/master/vim/vim-movement.png?raw=true"/&gt;&lt;/p&gt;
-&lt;p&gt;Vim distinguishes between screen-lines (those shown on the monitor) and real lines (those ended with a new-line).&lt;br/&gt;
-Vim区分逻辑行(频幕上展示的)和物理行(实际以\n结尾的)&lt;/p&gt;
-&lt;p&gt;以下是一些重要的命令&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;0 当前行第一列
-^ 当前行第一个非空白字符
-w 移到下一个单词
-W 移到下一个单词，忽略标点
-e 移动到单词尾部
-E 移动到单词尾部，忽略标点
-b 移动到单词开头
-B 移动到单词开头，忽略标点
-ge 移动到前一个词尾部
-gE 移动到前一个词尾部，忽略标点
-g_ 移动到最后一个非空白字符
-$  移动到最后一列
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;如果你记住一部分，你将学会如何快速从A移动到B！另一个重要的事实是，这些命令说明了基本命令的定义方式&lt;/p&gt;
-&lt;h2 id="_3"&gt;编辑&lt;/h2&gt;
-&lt;p&gt;在Vim中，插入文本是很简单的事情，只需要敲i并且开始输入.但是vim提供了相当丰富的文本编辑命令&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;d 删除当前光标位置到下一个命令哪个提供位置之间的字符(例如: d$删除当前行光标位置到最后一列的所有字符)
-c 修改
-x 删除光标位置字符
-X 删除光标之前的字符(相当于回退)
-y 拷贝
-p 在当前光标之后黏贴拷贝的内容
-P 在当前光标之前黏贴拷贝的内容
-r 替换当前字符
-s 用输入替换当前位置到下一个命令给出位置的字符
-. 重复上一个命令
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;dd, cc 或yy 将操作整行，例如yy拷贝当前行&lt;/p&gt;
-&lt;p&gt;需要注意的是，很多命令比我在这里描述的额更为强大.例如你可以 输入"ayy 拷贝当前行道一个寄存器a,可以使用 "ap 黏贴a中的内容. Vim自动保存最后几个复制或删除的内容,要查看寄存器的内容，输入:registers, 你可以使用它们去黏贴一些老的文本&lt;/p&gt;
-&lt;h2 id="_4"&gt;可视块&lt;/h2&gt;
-&lt;p&gt;可视块使得能够在选中文本每一行某个位置插入一个字符&lt;/p&gt;
-&lt;p&gt;假设你选中了一块代码(Ctrl-v),你可以键入I，在代码块之前插入文本(切换到插入模式).当你离开插入模式时，输入的文本将作用于选中的每一行.使用A在代码块之后进行插入&lt;/p&gt;
-&lt;p&gt;另一个有用的特性是，你可以用新文本替换整个代码块.选中代码块，输入s，vim进入插入模式，然后输入内容.离开插入模式时，vim将输入的内容插入到剩余行&lt;/p&gt;
-&lt;p&gt;如果你想追加文本到某些行后边，使用Ctrl-v$选中需要修改的行选中需要修改的行. 这个和上一个命令不同的是，$表示"行尾",ctrl-v选中行的行尾，忽略文本&lt;/p&gt;
-&lt;p&gt;使用 Ctrl-v:&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;This is a testNEWLY INSERTED
-This is a     NEWLY INSERTED
-This is       NEWLY INSERTED
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;使用 Ctrl-v$:&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;This is a testNEWLY INSERTED
-This is aNEWLY INSERTED
-This isNEWLY INSERTED
-&lt;/pre&gt;&lt;/div&gt;
-&lt;h2 id="_5"&gt;文本对象&lt;/h2&gt;
-&lt;p&gt;Vim命令操作文本对象(字符，单词，括号分割的字符，句子等等)&lt;/p&gt;
-&lt;p&gt;对我来说，最重要的一个是 在单词中: iw. 要选中当前的单词，只需要键入 viw (v可视模式，iw选中光标所在词),同样的，删除: diw&lt;/p&gt;
-&lt;p&gt;inner-word/block和a-word/block的区别在于，前者只选中单词的字符(不包括空白字符) 或者括号中的内容(不包括括号本身).后者包括括号本身或者单词后的空白字符&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;iw 单词
-aw 单词+后面空白
-iW &amp;hellip;inner WORD
-aW &amp;hellip;a WORD
-is 句子
-as 句子+后面空白
-ip 段落
-ap 段落+段落后空白
-i( or i) 括号中
-a( or a) 括号中+括号
-i&amp;lt; or i&amp;gt;
-a&amp;lt; or i&amp;gt;
-i{ or i}
-a{ or a}
-i" 引号中
-a" 引号中+引号
-i`
-a`
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;下面是命令命令的展示，[]表示选中的文本:&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;iw&lt;/span&gt;   &lt;span class="n"&gt;This&lt;/span&gt; &lt;span class="n"&gt;is&lt;/span&gt; &lt;span class="n"&gt;a&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;test&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="n"&gt;sentence&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;
-&lt;span class="n"&gt;aw&lt;/span&gt;   &lt;span class="n"&gt;This&lt;/span&gt; &lt;span class="n"&gt;is&lt;/span&gt; &lt;span class="n"&gt;a&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;test&lt;/span&gt; &lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="n"&gt;sentence&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;
-&lt;span class="n"&gt;iW&lt;/span&gt;   &lt;span class="n"&gt;This&lt;/span&gt; &lt;span class="n"&gt;is&lt;/span&gt; &lt;span class="n"&gt;a&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="err"&gt;&amp;hellip;&lt;/span&gt;&lt;span class="n"&gt;test&lt;/span&gt;&lt;span class="err"&gt;&amp;hellip;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="n"&gt;sentence&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;
-&lt;span class="n"&gt;aW&lt;/span&gt;   &lt;span class="n"&gt;This&lt;/span&gt; &lt;span class="n"&gt;is&lt;/span&gt; &lt;span class="n"&gt;a&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="err"&gt;&amp;hellip;&lt;/span&gt;&lt;span class="n"&gt;test&lt;/span&gt;&lt;span class="err"&gt;&amp;hellip;&lt;/span&gt; &lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="n"&gt;sentence&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;
-&lt;span class="n"&gt;is&lt;/span&gt;   &lt;span class="err"&gt;&amp;hellip;&lt;/span&gt;&lt;span class="n"&gt;sentence&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;This&lt;/span&gt; &lt;span class="n"&gt;is&lt;/span&gt; &lt;span class="n"&gt;a&lt;/span&gt; &lt;span class="n"&gt;sentence&lt;/span&gt;&lt;span class="p"&gt;.]&lt;/span&gt; &lt;span class="n"&gt;This&lt;/span&gt;&lt;span class="err"&gt;&amp;hellip;&lt;/span&gt;
-&lt;span class="n"&gt;as&lt;/span&gt;   &lt;span class="err"&gt;&amp;hellip;&lt;/span&gt;&lt;span class="n"&gt;sentence&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;This&lt;/span&gt; &lt;span class="n"&gt;is&lt;/span&gt; &lt;span class="n"&gt;a&lt;/span&gt; &lt;span class="n"&gt;sentence&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt; &lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="n"&gt;This&lt;/span&gt;&lt;span class="err"&gt;&amp;hellip;&lt;/span&gt;
-&lt;span class="n"&gt;ip&lt;/span&gt;   &lt;span class="n"&gt;End&lt;/span&gt; &lt;span class="n"&gt;of&lt;/span&gt; &lt;span class="n"&gt;previous&lt;/span&gt; &lt;span class="n"&gt;paragraph&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;
-
-     &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;This&lt;/span&gt; &lt;span class="n"&gt;is&lt;/span&gt; &lt;span class="n"&gt;a&lt;/span&gt; &lt;span class="n"&gt;paragraph&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt; &lt;span class="n"&gt;It&lt;/span&gt; &lt;span class="n"&gt;has&lt;/span&gt; &lt;span class="n"&gt;two&lt;/span&gt; &lt;span class="n"&gt;sentences&lt;/span&gt;&lt;span class="p"&gt;.]&lt;/span&gt;
-
-     &lt;span class="n"&gt;The&lt;/span&gt; &lt;span class="n"&gt;next&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;
-&lt;span class="n"&gt;ap&lt;/span&gt;   &lt;span class="n"&gt;End&lt;/span&gt; &lt;span class="n"&gt;of&lt;/span&gt; &lt;span class="n"&gt;previous&lt;/span&gt; &lt;span class="n"&gt;paragraph&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;
-
-     &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;This&lt;/span&gt; &lt;span class="n"&gt;is&lt;/span&gt; &lt;span class="n"&gt;a&lt;/span&gt; &lt;span class="n"&gt;paragraph&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt; &lt;span class="n"&gt;It&lt;/span&gt; &lt;span class="n"&gt;has&lt;/span&gt; &lt;span class="n"&gt;two&lt;/span&gt; &lt;span class="n"&gt;sentences&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;
-
-     &lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="n"&gt;The&lt;/span&gt; &lt;span class="n"&gt;next&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;
-&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="n"&gt;or&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;     &lt;span class="mi"&gt;1&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="p"&gt;([&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
-&lt;span class="n"&gt;a&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="n"&gt;or&lt;/span&gt; &lt;span class="n"&gt;a&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;     &lt;span class="mi"&gt;1&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="p"&gt;[(&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="p"&gt;)]&lt;/span&gt;
-&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="n"&gt;or&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;     &lt;span class="n"&gt;The&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;tag&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;
-&lt;span class="n"&gt;a&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="n"&gt;or&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;     &lt;span class="n"&gt;The&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;tag&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
-&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt; &lt;span class="n"&gt;or&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;     &lt;span class="n"&gt;some&lt;/span&gt; &lt;span class="p"&gt;{[&lt;/span&gt; &lt;span class="n"&gt;code&lt;/span&gt; &lt;span class="n"&gt;block&lt;/span&gt; &lt;span class="p"&gt;]}&lt;/span&gt;
-&lt;span class="n"&gt;a&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt; &lt;span class="n"&gt;or&lt;/span&gt; &lt;span class="n"&gt;a&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;     &lt;span class="n"&gt;some&lt;/span&gt; &lt;span class="p"&gt;[{&lt;/span&gt; &lt;span class="n"&gt;code&lt;/span&gt; &lt;span class="n"&gt;block&lt;/span&gt; &lt;span class="p"&gt;}]&lt;/span&gt;
-&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="s"&gt;"   The "&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;best&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="s"&gt;"&lt;/span&gt;
-&lt;span class="n"&gt;a&lt;/span&gt;&lt;span class="s"&gt;"   The[ &amp;ldquo;best&amp;rdquo;]&lt;/span&gt;
-&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="err"&gt;`&lt;/span&gt;   &lt;span class="n"&gt;The&lt;/span&gt; &lt;span class="err"&gt;`&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;best&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="err"&gt;`&lt;/span&gt;
-&lt;span class="n"&gt;a&lt;/span&gt;&lt;span class="err"&gt;`&lt;/span&gt;   &lt;span class="n"&gt;The&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt; &lt;span class="err"&gt;`&lt;/span&gt;&lt;span class="n"&gt;best&lt;/span&gt;&lt;span class="err"&gt;`&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;可以尝试使用，熟悉并记住(对我而言，iw和i() 真正地节省了时间)&lt;/p&gt;
-&lt;h2 id="undoredo"&gt;Undo和Redo&lt;/h2&gt;
-&lt;p&gt;不要害怕使用一系列命令，你可以在命令模式下撤销，用u - 甚至用ctrl-r撤销刚才的撤销操作&lt;/p&gt;
-&lt;p&gt;Vim7.0 介绍了撤销分支，但我没有时间去深入了解&lt;/p&gt;
-&lt;h2 id="_6"&gt;外部命令&lt;/h2&gt;
-&lt;p&gt;Vim很容易加入外部命令的输出,或者通过外部过滤器过滤整行或部分&lt;/p&gt;
-&lt;p&gt;使用外部命令 :!command    输出将会展现出来&lt;/p&gt;
-&lt;p&gt;通过外部命令过滤文本，可以使用  :!sort %&lt;/p&gt;
-&lt;p&gt;将外部命令的输出插入到当前文件  :r!command (例如 :r!which ls)&lt;/p&gt;
-&lt;p&gt;查看更多关于filter的信息 :h filter&lt;/p&gt;
-&lt;h2 id="_7"&gt;搜索和替换&lt;/h2&gt;
-&lt;p&gt;在Vim中搜索非常简单，在命令模式下输入 / ，然后填入你要搜索的词，然后vim会搜索这个文件(当前位置向前)&lt;/p&gt;
-&lt;p&gt;使用? 进行向后搜索&lt;/p&gt;
-&lt;p&gt;在搜索结果中，使用n或N进行重复搜索(和前一个搜索同一个方向)&lt;/p&gt;
-&lt;p&gt;如果设置了"incsearch", Vim会立刻跳到匹配文本位置，如果设置了"hlsearch", 将会高亮所有匹配文本. 要去除高亮，:nohl&lt;/p&gt;
-&lt;p&gt;替换同样不是很难，但是你需要对正则表达式有所了解&lt;/p&gt;
-&lt;p&gt;使用正则替换某些文本，输入 :%s/old/new/gc 这个命令将会遍历整个文件%, 用单词"new"替换所有"old". g代表替换行中所有匹配文本，c代表替换前询问&lt;/p&gt;
-&lt;p&gt;如果只需要替换选中区域中的某些文本，选中区域，输入 :s/old/new/g.&lt;/p&gt;
-&lt;p&gt;这个就像&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;:'&amp;lt;,'&amp;gt;s/old/new/g
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;在标签一节之后，你将会知道 '&amp;lt;'和'&amp;gt;'的意思&lt;/p&gt;
-&lt;h2 id="_8"&gt;补全&lt;/h2&gt;
-&lt;p&gt;在你输入时，反复输入同一个词是很正常的事情. 使用Ctrl-p，vim会反向搜索最近输入过的拥有相同开头的词, ctrl-x ctrl-l补全整个词&lt;/p&gt;
-&lt;p&gt;如果你不确定如何拼写某个词，并且你设置了拼写检查(:set spell),你可以使用 Ctrl-x Ctrl-k 到字典中查询已经输入的词.Vim自动补全系统在7.0后得到了很大的改善.&lt;/p&gt;
-&lt;p&gt;注意，自动补全命令仅在插入模式下有效，在命令模式有其他的作用&lt;/p&gt;
-&lt;h2 id="_9"&gt;标签&lt;/h2&gt;
-&lt;p&gt;你可以在文档中设置标签，实现在文档中不同位置的快速跳转&lt;/p&gt;
-&lt;p&gt;vim自动设置的标签&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;{0-9} 关闭文件的最近10个位置(0 最后一个, 1 倒数第二个)
-&amp;lt; and &amp;gt; 标记文本左边/右边的位置
-( and ) 当前句子的开始/结束
-{ and } 当前段落的开始/结束
-[ and ] 拷贝或修改文本的第一/最后一个字符的位置
-. 最后修改点位置
-' or ` 上次跳转点位置
-" 退出文件前的最后一个位置
-^ 最后插入/修改位置
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;要设置自定义标签，使用 m{a-zA-Z} (例如 ma ), 如果要跳转到某个标签(自定义或预定义),可以使用 ' 和 `&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;' 将光标移到标记行首个非空字符位置
-` 移到设置标签时得准确位置
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;大写和小写标记之间有些区别&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;{a-z} 文件维度
-{A-Z} 会话维度，和文件关联，可以跨文件跳转
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;例如，可以使用 L 标记work-log 使用T标记time-table ,然后进行快速跳转&lt;/p&gt;
-&lt;p&gt;例如，你可以键入 '" 跳转到文件关闭前光标所在位置(Vim可以通过配置实现)&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;列出标签列表&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="n"&gt;marks&lt;/span&gt;
-
-&lt;span class="err"&gt;删除&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="n"&gt;delmarks&lt;/span&gt; &lt;span class="n"&gt;a&lt;/span&gt; &lt;span class="n"&gt;b&lt;/span&gt; &lt;span class="n"&gt;c&lt;/span&gt;
-
-&lt;span class="err"&gt;删除所有&lt;/span&gt;  &lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="n"&gt;delmarks&lt;/span&gt;&lt;span class="o"&gt;!&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;h2 id="tab-buffer-window"&gt;标签页(tab) ，缓冲(buffer) 和 窗口(window)&lt;/h2&gt;
-&lt;p&gt;Vim 7.0介绍过tabs. 我们都知道并喜欢tabs,所以这里不多提. (注意: vim中的tabs和其他程序中的tabs略有不同.不同点在于，每个tab页可以拥有自己的布局, 例如我可以在第一个tab中切分窗口，在第二个tab中不切分)&lt;/p&gt;
-&lt;p&gt;命令行中用vim一次性打开多个tab  vim -p *.txt&lt;/p&gt;
-&lt;p&gt;切换tab, 可以使用鼠标(gVim) 或者输入 gt&lt;/p&gt;
-&lt;p&gt;创建一个新的空tab,输入 :tabnew&lt;/p&gt;
-&lt;p&gt;或者在一个新tab中打开文件  :tabe xyz&lt;/p&gt;
-&lt;p&gt;buffer和window有些不好理解，window是打开vim时你看到的，当你打开帮助(:help bufers), 你将会得到两个window.并非真正的窗口，是vim提供的展示视图&lt;/p&gt;
-&lt;p&gt;你可以打开一个window,切分成水平两个 :sp 或者竖直两个 :vsp. 通过这个方法，vim将同一个buffer放在两个不同的window. 你可以打开文件, :sp filea  或者 :vsp fileb. 在窗口之间跳转，命令模式下使用 Ctrl-w {hjkl}&lt;/p&gt;
-&lt;p&gt;buffer大多数情况下是一个文件，但是不要求可见. 所以通常一个window中有多个buffer, 要在当前window中展现不同的buffer , 使用 :b NUMBER, 可以使用 :buffers查看对应buffer的编号，通常情况下，vim要求你在切换到另一个buffer之前，保存当前buffer, 所以切换报错时不要太过惊讶(可以 :set hidden 使未保存buffer生效，但需谨慎使用)&lt;/p&gt;
-&lt;p&gt;下面是我的笔记:&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;:b N 切换到buffer N
-:buffers 展示buffer列表, 字符含义
-    % 当前window
-    # 替换buffer (使用 :e# or :b#切换)
-    a 活动的(加载并可见)
-    h 隐藏的(加载但不可见)
-    + 修改的
-:bd 关闭buffer并从buffer列表移除(不关闭vim,即使最后一个buffer关闭)
-:bun 关闭buffer但留存在bufferlist
-:sp #N 分屏并编辑buffer N
-:w 保存当前buffer
-:e 重新加载当前文件
-:q 退出
-:new 新的空window
-:on 关闭除当前活动window之外的所有window(Ctrl-W o)
-Ctrl-W {h,j,k,l} 窗口之间切换
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;设置'hidden'后，允许修改未保存的buffer隐藏，buffer会自动保存如果未设置'hidden'，设置了'autowrite'&lt;/p&gt;
-&lt;h2 id="_10"&gt;宏&lt;/h2&gt;
-&lt;p&gt;Vim允许使用点. 重复某些命令，当存在多个命令时，使用宏&lt;/p&gt;
-&lt;p&gt;你可以开始 录制宏， 使用 q和{0-9a-zA-Z}， 例如 qq  录制用于buffer"q"的宏，完成录制后，键入q退出&lt;/p&gt;
-&lt;p&gt;现在你可以使用 @q 在任何时候调用宏&lt;/p&gt;
-&lt;h2 id="_11"&gt;最后&lt;/h2&gt;
-&lt;p&gt;我希望可以帮助你开始学习vim. 我可以做的最后一件事是，提供我的vim配置文件.  使用 :help ... 去学习vim更强大的功能并在后续写一篇指南&lt;/p&gt;
-&lt;p&gt;可以将&lt;a href="http://blog.interlinked.org/static/files/vimrc"&gt;vimrc&lt;/a&gt;文件放入你的home目录(~/.vimrc),但是要先确定这个目录下还没有这个文件&lt;/p&gt;
-&lt;p&gt;注解1： Vim是一个编辑器，不是IDE 或者操作系统. 不要通过其试图创建一个IDE,如果你喜欢IDE,挑一个来用！当然，vim可以将很多任务自动化,例如编译，跳转到编译错误处，要实现这些，关注下vim的插件&lt;/p&gt;
-&lt;p&gt;Emacs is a good operating system, but it lacks a good editor.&lt;br/&gt;
-&amp;mdash; Old saying.&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sun, 04 Aug 2013 00:00:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2013-08-04:posts/2013/08/04/translation-vim-introduction-and-tutorial.html</guid><category>vim</category><category>linux</category></item><item><title>我的vim配置及说明【k-vim】</title><link>http://www.wklken.me/posts/2013/06/11/linux-my-vim.html</link><description>&lt;p&gt;ps: k-vim github地址 : https://github.com/wklken/k-vim&lt;/p&gt;
-&lt;h3 id="vim"&gt;vim插件分类及快捷键&lt;/h3&gt;
+&lt;p&gt;另一个我使用Vim的原因是，使用Vim比Emacs更加健康(使用默认键映射).健康 …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sun, 04 Aug 2013 00:00:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2013-08-04:/posts/2013/08/04/translation-vim-introduction-and-tutorial.html</guid><category>vim</category><category>linux</category></item><item><title>我的vim配置及说明【k-vim】</title><link>http://www.wklken.me/posts/2013/06/11/linux-my-vim.html</link><description>&lt;p&gt;ps: k-vim github地址 : https://github.com/wklken/k-vim&lt;/p&gt;
+&lt;h3 id="vimcha-jian-fen-lei-ji-kuai-jie-jian"&gt;vim插件分类及快捷键&lt;/h3&gt;
 &lt;blockquote&gt;
 &lt;p&gt;给人一条Vim 命令，他能折腾一晚上；告诉他怎么自定义Vim 命令，他能捣腾一辈子&lt;/p&gt;
 &lt;p&gt;生命不息,折腾不止 (╯‵□&amp;prime;)╯︵┻━┻)&lt;/p&gt;
 &lt;p&gt;编辑器之神 = 生产力(效率为王) + 性感(界面快捷键) + 装x神器&lt;/p&gt;
 &lt;/blockquote&gt;
-&lt;h3 id="vim_1"&gt;vim基本用法&lt;/h3&gt;
-&lt;p&gt;初学者: &lt;a href="http://blog.csdn.net/wklken/article/details/7533272"&gt;vim训练稿&lt;/a&gt;&lt;br/&gt;
+&lt;h3 id="vimji-ben-yong-fa"&gt;vim基本用法&lt;/h3&gt;
+&lt;p&gt;初学者: &lt;a href="http://blog.csdn.net/wklken/article/details/7533272"&gt;vim训练稿&lt;/a&gt;
 几年前的三月份,第一次正儿八经开始使用vim,后来整理了一份,对着敲几遍,训练稿&lt;/p&gt;
 &lt;p&gt;推荐: 耗子叔的 &lt;a href="http://coolshell.cn/articles/5426.html"&gt;简明vim练级攻略&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;或者,玩游戏 &lt;a href="http://vim-adventures.com/"&gt;vim大冒险&lt;/a&gt;&lt;/p&gt;
-&lt;h3 id="_1"&gt;使用说明&lt;/h3&gt;
+&lt;h3 id="shi-yong-shuo-ming"&gt;使用说明&lt;/h3&gt;
 &lt;ol&gt;
 &lt;li&gt;
 &lt;p&gt;能熟练使用原生vim,最好先熟悉了再来使用插件扩展&lt;/p&gt;
@@ -2164,554 +597,4 @@ Ctrl-W {h,j,k,l} 窗口之间切换
 &lt;/li&gt;
 &lt;/ol&gt;
 &lt;p&gt;当前vim使用配置,在vimrc中查看&lt;/p&gt;
-&lt;p&gt;快捷键为插件默认/或者当前配置vimrc定义的,如果需要修改,查看vimrc中对插件配置进行修改 [sd]标记的为自定义 [d]标记的为默认快捷键&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;由于平时会使用python和golang,所以语言方面的配置偏向于这两个&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;其它的可以参照网上配置(通用的插件可以配置,其他具体语言插件可以自己配置加入)&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;fork一份&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;根据自己使用的语言，自身习惯进行修改&lt;/p&gt;
-&lt;p&gt;有些插件用不到，可以注释删除，有些插件没有，可以自行添加（vundle很强大只要github上有都能配置），有些插件快捷键等可以自己去进一步了解&lt;/p&gt;
-&lt;p&gt;得到一份符合自己习惯的vim配置，后续能在任何地方进行一键配置&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;      二八定律,关注可以最大提升自身生产力的那20%插件,具体要亲自实践
-      有什么问题,先看插件文档说明-&amp;gt;代码选项-&amp;gt;github上的issues-&amp;gt;google it
-      你遇到的问题,一定别人也遇到了,大部分可解决,少部分无解&amp;hellip;.
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;欢迎推荐好用更酷的插件配置:)&lt;/p&gt;
-&lt;p&gt;我的配置也会不定期更新，thx&lt;/p&gt;
-&lt;p&gt;PS: 这个vim配置是我的&lt;a href="https://github.com/wklken/linux_config"&gt;linux_config&lt;/a&gt;下一部分，如果需要，可以参考，主要是用于一键配置环境&lt;/p&gt;
-&lt;hr/&gt;
-&lt;h3 id="_2"&gt;配置步骤&lt;/h3&gt;
-&lt;ol&gt;
-&lt;li&gt;
-&lt;p&gt;clone到本地,配置到linux个人目录（如果是从linux_config过来的，不需要clone）&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;git clone https://github.com/wklken/k-vim.git
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;安装依赖包&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;sudo apt-get install ctags
-#brew install ctags     (mac用户)
-
-#使用python需要
-sudo pip install pyflakes
-sudo pip install pylint
-sudo pip install pep8
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;安装插件&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="x"&gt;cd k-vim/&lt;/span&gt;
-
-&lt;span class="x"&gt;sh -x install.sh&lt;/span&gt;
-
-&lt;span class="err"&gt;#&lt;/span&gt;&lt;span class="x"&gt;会进入安装插件的列表，目前30+个插件，一一安装是从github clone的，完全取决于网速&lt;/span&gt;
-
-&lt;span class="err"&gt;#&lt;/span&gt;&lt;span class="x"&gt;安装完插件后，会自动编译YCM，注意，可能编译失败（缺少某些依赖包,暂不支持mac osx 10.9）&lt;/span&gt;
-&lt;span class="x"&gt;失败的话手动编译吧，看第4步 编译自动补全YouCompleteMe （这步耗时也有点长，但绝对值得）&lt;/span&gt;
-
-&lt;span class="x"&gt;install.sh&lt;/span&gt;
-&lt;span class="x"&gt;本质上做的事情&lt;/span&gt;
-&lt;span class="x"&gt;1.将vimrc/vim文件夹软链接到&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;HOME&lt;/span&gt;&lt;span class="x"&gt;，编程系统vim配置&lt;/span&gt;
-&lt;span class="x"&gt;2.git clone安装vundle（clone到bundle目录下）&lt;/span&gt;
-&lt;span class="x"&gt;3.通过vundle安装其他所有插件（相当于进入vimrc, 命令行执行:BundleInstall）,从github全部搞到本地&lt;/span&gt;
-&lt;span class="x"&gt;4.编译需要手动编译的插件，eg.YCM&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;可能遇到的问题:&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;编译自动补全YouCompleteMe&lt;/p&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;&lt;a href="https://github.com/Valloric/YouCompleteMe"&gt;文档&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;这个插件需要Vim 7.3.584,所以,如果vim版本太低,需要&lt;a href="https://github.com/Valloric/YouCompleteMe/wiki/Building-Vim-from-source"&gt;编译安装&lt;/a&gt;&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;相对行号&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;vimrc中配置,如果不习惯,可以去掉,&lt;a href="http://jeffkreeftmeijer.com/2012/relative-line-numbers-in-vim-for-super-fast-movement/"&gt;相关参考&lt;/a&gt;&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;配置主题&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;到vimrc中修改colortheme,可以使用molokai(用惯sublimetext2的童鞋很熟悉)&lt;/p&gt;
-&lt;p&gt;默认配置的是&lt;a href="https://github.com/altercation/vim-colors-solarized"&gt;solarized dark主题&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;想要修改终端配色为solarized可以参考 &lt;a href="https://github.com/sigurdga/gnome-terminal-colors-solarized"&gt;这里&lt;/a&gt;&lt;/p&gt;
-&lt;hr/&gt;
-&lt;h3 id="_3"&gt;其他&lt;/h3&gt;
-&lt;ol&gt;
-&lt;li&gt;安装/卸载/更新插件：&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;可能发现打开vim很慢，可能是插件有点多了，这个配置插件全开&lt;/p&gt;
-&lt;p&gt;去掉某些自己用不到的插件: 编辑vimrc，注释掉插件对应Bundle行即可(加一个双引号),保存退出即可&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;    "Bundle 'fholgado/minibufexpl.vim'
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;如果想从物理上清除（删除插件文件），注释保存后再次进入vim&lt;/p&gt;
-&lt;p&gt;命令行模式，执行:&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;    :BundleClean
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;如果要安装新插件，在vimrc中加入bundle，然后执行&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;    :BundleInstall
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;更新插件&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;    :BundleUpdate
-&lt;/pre&gt;&lt;/div&gt;
-&lt;ol&gt;
-&lt;li&gt;给mac用户&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;可以使用mac vim&lt;/p&gt;
-&lt;p&gt;首先，安装最新mac vim ,可以正常打开&lt;/p&gt;
-&lt;p&gt;然后(需要sudo)&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;    mv /usr/bin/vim /usr/bin/vim.bk
-    ln -s /usr/local/bin/mvim /usr/bin/vim
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;最后，在.bashrc/.bash_profile中加入&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;    alias vi='mvim -v'
-    alias vim='mvim -v'
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;配置完成&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;冲突和问题排查&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;插件很多，并且其默认快捷键或者配置可能发生冲突&lt;/p&gt;
-&lt;p&gt;当加入新插件发现有冲突或者展现有问题&lt;/p&gt;
-&lt;p&gt;排除法进行排查：注掉所有插件或配置，然后二分法逐一恢复，可以定位到出现问题的插件或配置&lt;/p&gt;
-&lt;hr/&gt;
-&lt;h3 id="_4"&gt;截图&lt;/h3&gt;
-&lt;p&gt;solarized主题&lt;/p&gt;
-&lt;p&gt;&lt;img alt="solarized" src="https://github.com/wklken/gallery/blob/master/vim/solarized.png?raw=true"/&gt;&lt;/p&gt;
-&lt;p&gt;molokai主题&lt;/p&gt;
-&lt;p&gt;&lt;img alt="molokai" src="https://github.com/wklken/gallery/blob/master/vim/molokai.png?raw=true"/&gt;&lt;/p&gt;
-&lt;hr/&gt;
-&lt;h3 id="_5"&gt;自定义快捷键说明&lt;/h3&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;F1  关掉，防止跳出帮助
-F2  set nu/nonu
-F3  set list/nolist
-F4  set wrap/nowrap
-F5  set paste/nopaste
-F6  syntax on/off
-空格 /开启查找
-Y   =y$   复制到行尾
-w!!  以sudo的权限保存
-kj   &amp;lt;Esc&amp;gt;，不用到角落去按esc了
-t    新起一行，下面，不进入插入模式
-T    新起一行，上面
-,sa   全选(select all)
-hjkl  上下左右，强迫使用，要解开的自己改
-ctrl + jkhl 进行上下左右窗口跳转,不需要ctrl+w+jkhl
-
-,tn  new tab
-,tc  tab close
-,to  tab only
-,tm  tab move
-,te  new tab edit
-ctrl+n  相对行号绝对行号变换，默认用相对行号
-5j/5k  在相对行号模式下，往上移动5行 往下移动5行
-
-,y 展示历史剪贴板
-,yc 清空
-yy/dd -&amp;gt; p -&amp;gt; ctrl+p可以替换非最近一次剪贴内容
-
-,p 开启文件搜索 ctrlp
-,/ 去除匹配高亮
-&lt;/pre&gt;&lt;/div&gt;
-&lt;hr/&gt;
-&lt;h3 id="_6"&gt;插件及其快捷键说明&lt;/h3&gt;
-&lt;p&gt;图片有点多，展示有点慢，截得不是很专业，耐心看完:)&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;插件管理&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;ol&gt;
-&lt;li&gt;
-&lt;h4 id="gmarikvundle"&gt;&lt;a href="https://github.com/gmarik/vundle"&gt;gmarik/vundle&lt;/a&gt;&lt;/h4&gt;
-&lt;p&gt;必装,用于管理所有插件&lt;/p&gt;
-&lt;p&gt;命令行模式下管理命令:&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;:BundleInstall     install
-:BundleInstall!    update
-:BundleClean       remove plugin not in list
-&lt;/pre&gt;&lt;/div&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;blockquote&gt;
-&lt;p&gt;导航及搜索&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;ol&gt;
-&lt;li&gt;
-&lt;h4 id="scrooloosenerdtree"&gt;&lt;a href="https://github.com/scrooloose/nerdtree"&gt;scrooloose/nerdtree&lt;/a&gt;&lt;/h4&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;必装,开启目录树导航&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;    [sd]
-        ,n  打开 关闭树形目录结构
-
-        在nerdtree窗口常用操作：(小写当前，大写root)
-        x.......Close the current nodes parent收起当前目录树
-        R.......Recursively refresh the current root刷新根目录树
-        r.......Recursively refresh the current directory刷新当前目录
-        P.......Jump to the root node
-        p.......Jump to current nodes parent
-        K.......Jump up inside directories at the current tree depth  到同目录第一个节点
-        J.......Jump down inside directories at the current tree depth 最后一个节点
-        o.......Open files, directories and bookmarks
-        i.......Open selected file in a split window上下分屏
-        s.......Open selected file in a new vsplit左右分屏
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;演示&lt;/p&gt;
-&lt;p&gt;&lt;img alt="thenerdtree" src="https://github.com/wklken/gallery/blob/master/vim/thenerdtree.gif?raw=true"/&gt;&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;
-&lt;h4 id="fholgadominibufexplvim"&gt;&lt;a href="https://github.com/fholgado/minibufexpl.vim"&gt;fholgado/minibufexpl.vim&lt;/a&gt;&lt;/h4&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;必装，buffer管理, 可以查找其他同类插件&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;    [sd]
-        &amp;lt;Tab&amp;gt;  切换buffer
-        左右方向键  切换buffer
-        ,bn   切到后一个
-        ,bp   切到前一个
-        ,bd   关闭当前buffer
-&lt;/pre&gt;&lt;/div&gt;
-&lt;ol&gt;
-&lt;li&gt;
-&lt;h4 id="majutsushitagbar"&gt;&lt;a href="https://github.com/majutsushi/tagbar"&gt;majutsushi/tagbar&lt;/a&gt;&lt;/h4&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;必装,标签导航,纬度和taglist不同&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;    [sd] &amp;lt;F9&amp;gt; 打开
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;演示&lt;/p&gt;
-&lt;p&gt;&lt;img alt="tagbar" src="https://github.com/wklken/gallery/blob/master/vim/tagbar.gif?raw=true"/&gt;&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;
-&lt;h4 id="vim-scriptstaglistvim"&gt;&lt;a href="https://github.com/vim-scripts/taglist.vim"&gt;vim-scripts/taglist.vim&lt;/a&gt;&lt;/h4&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;必装&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;    [sd] &amp;lt;F8&amp;gt;打开
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;演示:&lt;/p&gt;
-&lt;p&gt;&lt;img alt="taglist" src="https://github.com/wklken/gallery/blob/master/vim/taglist.png?raw=true"/&gt;&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;
-&lt;h4 id="kienctrlpvim"&gt;&lt;a href="https://github.com/hdima/python-syntax"&gt;kien/ctrlp.vim&lt;/a&gt;&lt;/h4&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;文件搜索,ack/Command-T需要依赖于外部包,不喜欢有太多依赖的,除非十分强大, 具体 &lt;a href="http://kien.github.io/ctrlp.vim/"&gt;文档&lt;/a&gt;&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;    [sd] ,p  打开ctrlp搜索
-    [sd] ,f  相当于mru功能，show recently opened files
-
-    ctrl + j/k 进行上下移动
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;演示&lt;/p&gt;
-&lt;p&gt;&lt;img alt="ctrip" src="https://github.com/wklken/gallery/blob/master/vim/ctrlp.gif?raw=true"/&gt;&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;显示增强&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;被动技能,无快捷键
-&lt;/pre&gt;&lt;/div&gt;
-&lt;ol&gt;
-&lt;li&gt;
-&lt;h4 id="lokaltogvim-powerline"&gt;&lt;a href="https://github.com/Lokaltog/vim-powerline"&gt;Lokaltog/vim-powerline&lt;/a&gt;&lt;/h4&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;必装，状态栏美观&lt;/p&gt;
-&lt;p&gt;演示&lt;/p&gt;
-&lt;p&gt;&lt;img alt="powerline" src="https://github.com/wklken/gallery/blob/master/vim/powerline.png?raw=true"/&gt;&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;
-&lt;h4 id="kienrainbow_parenthesesvim"&gt;&lt;a href="https://github.com/kien/rainbow_parentheses.vim"&gt;kien/rainbow_parentheses.vim&lt;/a&gt;&lt;/h4&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;必装,括号高亮&lt;/p&gt;
-&lt;p&gt;演示&lt;/p&gt;
-&lt;p&gt;&lt;img alt="rainbow" src="https://github.com/wklken/gallery/blob/master/vim/rainbow_parentheses.png?raw=true"/&gt;&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;
-&lt;h4 id="yggdrootindentline"&gt;&lt;a href="https://github.com/Yggdroot/indentLine"&gt;Yggdroot/indentLine&lt;/a&gt;&lt;/h4&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;选装,装不装看个人喜好了,缩进标识&lt;/p&gt;
-&lt;p&gt;另一个类似的,整块背景色的的,&lt;a href="https://github.com/nathanaelkane/vim-indent-guides"&gt;nathanaelkane/vim-indent-guides&lt;/a&gt;,自选吧, 看来看去还是st2的好看,唉&lt;/p&gt;
-&lt;p&gt;调整颜色和solarized一致,不至于太显眼影响注意力,可以根据自己主题设置颜色(&lt;a href="http://vim.wikia.com/wiki/Xterm256_color_names_for_console_Vim?file=Xterm-color-table.png"&gt;颜色&lt;/a&gt;)&lt;/p&gt;
-&lt;p&gt;演示:&lt;/p&gt;
-&lt;p&gt;&lt;img alt="indentline" src="https://github.com/wklken/gallery/blob/master/vim/indentline.png?raw=true"/&gt;&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;
-&lt;h4 id="bronsonvim-trailing-whitespace"&gt;&lt;a href="https://github.com/bronson/vim-trailing-whitespace"&gt;bronson/vim-trailing-whitespace&lt;/a&gt;&lt;/h4&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;将代码行最后无效的空格标红&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;
-&lt;h4 id="altercationvim-colors-solarized"&gt;&lt;a href="https://github.com/altercation/vim-colors-solarized"&gt;altercation/vim-colors-solarized&lt;/a&gt;&lt;/h4&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;经典主题,目前我使用的,看起来舒服&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;
-&lt;h4 id="tomasrmolokai"&gt;&lt;a href="https://github.com/tomasr/molokai"&gt;tomasr/molokai&lt;/a&gt;&lt;/h4&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;用sublime text2的同学应该很熟悉, 另一个主题,可选,偶尔换换味道&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;快速移动&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;主动技能,需要快捷键
-&lt;/pre&gt;&lt;/div&gt;
-&lt;ol&gt;
-&lt;li&gt;
-&lt;h4 id="lokaltogvim-easymotion"&gt;&lt;a href="https://github.com/Lokaltog/vim-easymotion"&gt;Lokaltog/vim-easymotion&lt;/a&gt;&lt;/h4&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;必装，效率提升杀手锏，跳转到光标后任意位置&lt;/p&gt;
-&lt;p&gt;配置(我的leader键配置 let g:mapleader = ',')&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;    ,, + w  跳转
-    ,, + fe  查找'e',快速跳转定位到某个字符位置
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;演示&lt;/p&gt;
-&lt;p&gt;&lt;img alt="easy_motion" src="https://github.com/wklken/gallery/blob/master/vim/easymotion.gif?raw=true"/&gt;&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;
-&lt;h4 id="vim-scriptsmatchitzip"&gt;&lt;a href="https://github.com/vim-scripts/matchit.zip"&gt;vim-scripts/matchit.zip&lt;/a&gt;&lt;/h4&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;选装&lt;/p&gt;
-&lt;p&gt;% 匹配成对的标签，跳转&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;自动补全及快速编辑&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;主动技能,需要快捷键,高效编辑无上利器
-&lt;/pre&gt;&lt;/div&gt;
-&lt;ol&gt;
-&lt;li&gt;
-&lt;h4 id="valloricyoucompleteme"&gt;&lt;a href="https://github.com/Valloric/YouCompleteMe"&gt;Valloric/YouCompleteMe&lt;/a&gt;&lt;/h4&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;必装，强烈推荐&lt;/p&gt;
-&lt;p&gt;YCM是我目前用到的最好的自动补全插件,我只能说，用这个写代码太舒畅了&lt;/p&gt;
-&lt;p&gt;需要编译这个插件(见github文档)&lt;/p&gt;
-&lt;p&gt;这个需要自己去看官方的配置方式,演示在官方github有&lt;/p&gt;
-&lt;p&gt;需要Vim 7.3.584 以上版本(&lt;a href="https://github.com/Valloric/YouCompleteMe/wiki/Building-Vim-from-source"&gt;如何编译vim&lt;/a&gt;)&lt;/p&gt;
-&lt;p&gt;这个插件包含了以下四个插件功能,所以不需要装下面四个&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;    clang_complete
-    AutoComplPop
-    Supertab
-    neocomplcache
-    jedi(对python的补全)
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;快捷键:&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;    ,gd  跳到声明位置, 仅 filetypes: c, cpp, objc, objcpp, python 有效
-&lt;/pre&gt;&lt;/div&gt;
-&lt;ol&gt;
-&lt;li&gt;
-&lt;h4 id="sirverultisnips"&gt;&lt;a href="https://github.com/SirVer/ultisnips"&gt;SirVer/ultisnips&lt;/a&gt;&lt;/h4&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;必装，效率杀手锏，快速插入自定义的代码片段&lt;/p&gt;
-&lt;p&gt;自动补全加这个,高效必备, 针对各种语言已经带了一份配置了，可以到安装目录下查看具体，我有针对性补全一份，在snippets目录下，可自行修改&lt;/p&gt;
-&lt;p&gt;演示&lt;/p&gt;
-&lt;p&gt;&lt;img alt="ultisnips" src="https://github.com/wklken/gallery/blob/master/vim/utilsnips.gif?raw=true"/&gt;&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;
-&lt;h4 id="scrooloosenerdcommenter"&gt;&lt;a href="https://github.com/scrooloose/nerdcommenter"&gt;scrooloose/nerdcommenter&lt;/a&gt;&lt;/h4&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;必装，另一个大大提升效率的地方，快速批量加减注释&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;    [d] shift+v+方向键选中(默认当前行)   -&amp;gt;  ,cc  加上注释  -&amp;gt; ,cu 解开注释
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;演示&lt;/p&gt;
-&lt;p&gt;&lt;img alt="nerdcommenter" src="https://github.com/wklken/gallery/blob/master/vim/nerdcomment.gif?raw=true"/&gt;&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;
-&lt;h4 id="tpopevim-surround"&gt;&lt;a href="https://github.com/tpope/vim-surround"&gt;tpope/vim-surround&lt;/a&gt;&lt;/h4&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;必装，很给力的功能，快速给词加环绕符号,例如引号&lt;/p&gt;
-&lt;p&gt;&lt;a href="https://github.com/tpope/vim-repeat"&gt;tpope/vim-repeat&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;repeat进行增强,'.'可以重复命令&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;    [d]
-    cs"' [inside]
-    "Hello world!" -&amp;gt; 'Hello world!'
-    ds"
-    "Hello world!" -&amp;gt; Hello world!
-    ysiw"
-    Hello -&amp;gt; "Hello"
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;演示&lt;/p&gt;
-&lt;p&gt;&lt;img alt="surround" src="https://github.com/wklken/gallery/blob/master/vim/surround.gif?raw=true"/&gt;&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;
-&lt;h4 id="raimondidelimitmate"&gt;&lt;a href="https://github.com/Raimondi/delimitMate"&gt;Raimondi/delimitMate&lt;/a&gt;&lt;/h4&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;必装，输入引号,括号时,自动补全&lt;/p&gt;
-&lt;p&gt;对python的docstring 三引号做了处理(只处理""", '''暂时没配，可以自己加)&lt;/p&gt;
-&lt;p&gt;演示&lt;/p&gt;
-&lt;p&gt;&lt;img alt="delimitmate" src="https://github.com/wklken/gallery/blob/master/vim/delimate.gif?raw=true"/&gt;&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;
-&lt;h4 id="godlygeektabular"&gt;&lt;a href="https://github.com/godlygeek/tabular"&gt;godlygeek/tabular&lt;/a&gt;&lt;/h4&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;选装，代码格式化用的，code alignment&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;    [sd]
-    ,a=  按等号切分格式化
-    ,a:  按逗号切分格式化
-&lt;/pre&gt;&lt;/div&gt;
-&lt;ol&gt;
-&lt;li&gt;
-&lt;h4 id="terrymavim-expand-region"&gt;&lt;a href="https://github.com/terryma/vim-expand-region"&gt;terryma/vim-expand-region&lt;/a&gt;&lt;/h4&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;选装，visual mode selection&lt;br/&gt;
-   视图模式下可伸缩选中部分，用于快速选中某些块&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;    [sd]
-    = 增加选中范围(+/=按键)
-    - 减少选中范围(_/-按键)
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;演示（直接取链到其github图)&lt;/p&gt;
-&lt;p&gt;&lt;img alt="expand-region" src="https://raw.github.com/terryma/vim-expand-region/master/expand-region.gif"/&gt;&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;
-&lt;h4 id="vim-multiple-cursors"&gt;&lt;a href="https://github.com/terryma/vim-multiple-cursors"&gt;vim-multiple-cursors&lt;/a&gt;&lt;/h4&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;选装，多光标批量操作&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;    [sd]
-    ctrl + m 开始选择
-    ctrl + p 向上取消
-    ctrl + x 跳过
-    esc   退出
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;演示(官方演示图)&lt;/p&gt;
-&lt;p&gt;&lt;img alt="multiple-cursors" src="https://raw.github.com/terryma/vim-multiple-cursors/master/assets/example1.gif"/&gt;&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;语法检查&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;ol&gt;
-&lt;li&gt;
-&lt;h4 id="scrooloosesyntastic"&gt;&lt;a href="https://github.com/scrooloose/syntastic"&gt;scrooloose/syntastic&lt;/a&gt;&lt;/h4&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;建议安装，静态语法及风格检查,支持多种语言&lt;/p&gt;
-&lt;p&gt;修改了下标记一列的背景色,原有的背景色在solarized下太难看了&amp;hellip;..&lt;/p&gt;
-&lt;p&gt;演示&lt;/p&gt;
-&lt;p&gt;&lt;img alt="syntastic" src="https://github.com/wklken/gallery/blob/master/vim/syntastic.png?raw=true"/&gt;&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;
-&lt;h4 id="kevinwpyflakes-vim"&gt;&lt;a href="https://github.com/kevinw/pyflakes-vim"&gt;kevinw/pyflakes-vim&lt;/a&gt;&lt;/h4&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;虽然这个的作者推荐使用syntastic,但是这个插件对于pythoner还是很需要的&lt;/p&gt;
-&lt;p&gt;因为有一个特牛的功能,fly check,即,编码时在buffer状态就能动态查错标记,弥补syntastic只能保存和打开时检查语法错误的不足&lt;/p&gt;
-&lt;p&gt;演示&lt;br/&gt;
-&lt;img alt="pyflakes" src="https://github.com/wklken/gallery/blob/master/vim/pyflakes.png?raw=true"/&gt;&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;具体语言&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;主要是python  其它语言以及前端的,用得少没有研究使用过
-python   golang   markdown
-需要其它语言支持的,可以到github上捞,上面很多流行的vim配置,eg. spf13-vim
-以下均为选装，根据自己需要
-&lt;/pre&gt;&lt;/div&gt;
-&lt;ol&gt;
-&lt;li&gt;
-&lt;h4 id="python-syntax"&gt;&lt;a href="https://github.com/hdima/python-syntax"&gt;python-syntax&lt;/a&gt;&lt;/h4&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;使用Python建议安装，python语法高亮,就是python.vim,在github,有维护和更新&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;
-&lt;h4 id="jnwhitehvim-golang"&gt;&lt;a href="https://github.com/jnwhiteh/vim-golang"&gt;jnwhiteh/vim-golang&lt;/a&gt;&lt;/h4&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;使用golang建议安装， golang语法高亮&lt;/p&gt;
-&lt;p&gt;golang刚入门使用,项目中还没正式开始,目前很多golang的手册有配置vim的介绍,后续有需求再弄&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;
-&lt;h4 id="plasticboyvim-markdown"&gt;&lt;a href="https://github.com/plasticboy/vim-markdown"&gt;plasticboy/vim-markdown&lt;/a&gt;&lt;/h4&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;markdown语法,编辑md文件&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;
-&lt;h4 id="panglossvim-javascript"&gt;&lt;a href="https://github.com/pangloss/vim-javascript"&gt;pangloss/vim-javascript&lt;/a&gt;&lt;/h4&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;偶尔会看看js,频率不高&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;
-&lt;h4 id="nonojqueryvim"&gt;&lt;a href="https://github.com/nono/jquery.vim"&gt;nono/jquery.vim&lt;/a&gt;&lt;/h4&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;jquery高亮&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;
-&lt;h4 id="thidermannginx-vim-syntax"&gt;&lt;a href="https://github.com/thiderman/nginx-vim-syntax"&gt;thiderman/nginx-vim-syntax&lt;/a&gt;&lt;/h4&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;nginx配置文件语法高亮,常常配置服务器很有用&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;
-&lt;h4 id="glenchvim-jinja2-syntax"&gt;&lt;a href="https://github.com/Glench/Vim-Jinja2-Syntax"&gt;Glench/Vim-Jinja2-Syntax&lt;/a&gt;&lt;/h4&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;jinja2 语法高亮&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;其它扩展增强&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;根据自身需求自取配置,不需要的话自己注解
-&lt;/pre&gt;&lt;/div&gt;
-&lt;ol&gt;
-&lt;li&gt;
-&lt;h4 id="vim-scriptstasklistvim"&gt;&lt;a href="https://github.com/vim-scripts/TaskList.vim"&gt;vim-scripts/TaskList.vim&lt;/a&gt;&lt;/h4&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;查看并快速跳转到代码中的TODO列表&lt;/p&gt;
-&lt;p&gt;重构代码时一般通读,标记修改位置,非常实用&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;    [sd]
-    ,td 打开todo列表
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;演示&lt;/p&gt;
-&lt;p&gt;&lt;img alt="tasklist" src="https://github.com/wklken/gallery/blob/master/vim/tasklist.gif?raw=true"/&gt;&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;
-&lt;h4 id="tpopevim-fugitive"&gt;&lt;a href="https://github.com/tpope/vim-fugitive"&gt;tpope/vim-fugitive&lt;/a&gt;&lt;/h4&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;git插件&lt;/p&gt;
-&lt;p&gt;不是很习惯,所以用的次数太少,目前和现有配置快捷键有冲突,尚未解决&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;
-&lt;h4 id="sjlgundovim"&gt;&lt;a href="https://github.com/sjl/gundo.vim"&gt;sjl/gundo.vim&lt;/a&gt;&lt;/h4&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;编辑文件时光机&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;    [sd] ,h  查看文件编辑历史
-&lt;/pre&gt;&lt;/div&gt;
-&lt;blockquote&gt;
-&lt;p&gt;待考察的&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;ol&gt;
-&lt;li&gt;
-&lt;h4 id="sjlvitalityvim"&gt;sjl/vitality.vim&lt;/h4&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;h4 id="vim-scriptsconque-shell"&gt;vim-scripts/Conque-Shell&lt;/h4&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;h4 id="vim-scriptsyankringvim"&gt;vim-scripts/YankRing.vim&lt;/h4&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;h4 id="vim-scriptsautogit"&gt;vim-scripts/auto.git&lt;/h4&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;hr/&gt;
-&lt;p&gt;The End!&lt;/p&gt;
-&lt;p&gt;wklken (凌岳/pythoner/vim党预备党员)&lt;/p&gt;
-&lt;p&gt;Email: wklken@yeah.net&lt;/p&gt;
-&lt;p&gt;Github: https://github.com/wklken&lt;/p&gt;
-&lt;p&gt;Blog: http://wklken.me&lt;/p&gt;
-&lt;p&gt;2013-06-11 于深圳&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Tue, 11 Jun 2013 00:00:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2013-06-11:posts/2013/06/11/linux-my-vim.html</guid><category>vim</category><category>linux</category></item></channel></rss>
+&lt;p&gt;快捷键为插件默认/或者当前配置vimrc定义的,如果需要修改,查看vimrc中对插件配置进行修改 [sd …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Tue, 11 Jun 2013 00:00:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2013-06-11:/posts/2013/06/11/linux-my-vim.html</guid><category>vim</category><category>linux</category></item></channel></rss>

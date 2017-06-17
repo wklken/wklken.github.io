@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--[if IE 8]> <html class="no-js lt-ie9" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
+
+<head>
+    <meta name="google-site-verification" content="SzE6WCs23qFevgBzRIuG9vcfLU0lW_Vd5hFT-cJOLBE" />
+    <title>重构 - 读书笔记(Python示例)</title>
+    <meta charset="utf-8" />
+    <meta name="description" content="">
+    <meta name="keywords" content="" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+        <link rel="shortcut icon" href="/favicon.ico"/>
+        <link rel="stylesheet" href="/theme/css/styles.css" media="all" />
+        <link rel="stylesheet" href="/theme/css/monokai.css" media="all" />
+        <link rel="stylesheet" href="/theme/css/tab.min.css" media="all" />
+        <link rel="stylesheet" href="/theme/css/jquery-ui.min.css" media="all" />
+
+        <link rel="stylesheet" href="/theme/css/font-awesome.min.css">
+        <!--
+        <link rel="stylesheet" href="http://apps.bdimg.com/libs/fontawesome/4.2.0/css/font-awesome.min.css">
+        -->
+        <!--[if IE 7]>
+            <link rel="stylesheet" href="/theme/css/font-awesome-ie7.min.css">
+        <![endif]-->
+
+        <link href="/" type="application/atom+xml" rel="alternate" title="wklken's blog ATOM Feed" />
+        <link href="/feed.xml" type="application/atom+xml" rel="alternate" title="wklken's blog RSS Feed" />
+
+</head>
+
+<body>
+    <div id="page" class="row">
+        <div class="large-9 large-centered columns">
+
+        <header id="header">
+            <div class="constraint">
+                <div class="o">
+                    <a href="/"><h1 class="banner">Wklken <span class="blue"> Building </span></h1></a>
+
+                <div class="social">
+                            <a href="https://github.com/wklken" target='_blank'><i class="icon-github-sign icon-2x"></i></a>
+                            <a href="http://weibo.com/wklken" target='_blank'><i class="icon-weibo icon-2x"></i></a>
+                            <a href="mailto:wklken@yeah.net"><i class="icon-envelope icon-2x"></i></a>
+                            <a href="http://www.wklken.me/feed.xml" target='_blank'><i class="icon-rss-sign icon-2x"></i></a>
+                </div>
+                <div class="nav">
+                            <a href="/">首页</a>
+                            <a href="/categories.html">分类</a>
+                            <a href="/archives.html">归档</a>
+                            <a href="/pages/projects.html">项目</a>
+                            <a href="/pages/links.html">友链</a>
+                            <a href="/pages/aboutme.html">关于</a>
+
+                </div>
+
+                </div>
+            </div>
+        </header><!-- /#banner -->
+
+        <section id="main">
+
+
+<article id="article">
+    <section id="header">
+        <!--
+        <div class="meta">2017年06月17日</div>
+        <h1 id="title"> 重构 - 读书笔记(Python示例) </h1>
+        -->
+        <div class="meta"> &nbsp; </div>
+        <h1> 重构 - 读书笔记(Python示例) </h1>
+    </section>
+
+        <section id="toc">
+            <div id="toc"><ul><li><a class="toc-href" href="#" title="重构 - 读书笔记(Python示例)">重构 - 读书笔记(Python示例)</a><ul><li><a class="toc-href" href="#yuan-ze" title="原则">原则</a></li><li><a class="toc-href" href="#1-ming-ming" title="1. 命名">1. 命名</a></li><li><a class="toc-href" href="#2-chang-liang-he-lin-shi-bian-liang" title="2. 常量和临时变量">2. 常量和临时变量</a><ul><li><a class="toc-href" href="#ti-qu-chang-liang" title="提取常量">提取常量</a></li><li><a class="toc-href" href="#jia-ru-yin-ru-jie-shi-xing-bian-liang" title="加入: 引入解释性变量">加入: 引入解释性变量</a></li><li><a class="toc-href" href="#fen-jie-fen-jie-lin-shi-bian-liang" title="分解: 分解临时变量">分解: 分解临时变量</a></li><li><a class="toc-href" href="#qu-chu-yi-chu-lin-shi-bian-liang" title="去除: 移除临时变量">去除: 移除临时变量</a></li><li><a class="toc-href" href="#yi-chu-kong-zhi-biao-ji" title="移除: 控制标记">移除: 控制标记</a></li></ul></li><li><a class="toc-href" href="#3-han-shu_1" title="3. 函数">3. 函数</a><ul><li><a class="toc-href" href="#chai-fen-extract-methodti-lian-han-shu" title="拆分: Extract Method提炼函数">拆分: Extract Method提炼函数</a></li><li><a class="toc-href" href="#qu-chu-inline-methodnei-lian-han-shu" title="去除: Inline Method内联函数">去除: Inline Method内联函数</a></li><li><a class="toc-href" href="#he-bing-he-bing-duo-ge-han-shu-shi-yong-can-shu" title="合并: 合并多个函数, 使用参数">合并: 合并多个函数, 使用参数</a></li><li><a class="toc-href" href="#fu-zuo-yong-han-shu-bu-ying-gai-you-fu-zuo-yong" title="副作用: 函数不应该有副作用">副作用: 函数不应该有副作用</a></li></ul></li><li><a class="toc-href" href="#4-biao-da-shi_1" title="4. 表达式">4. 表达式</a><ul><li><a class="toc-href" href="#guardzhu-yi-li-xiang-guan" title="guard(注意力相关)">guard(注意力相关)</a></li><li><a class="toc-href" href="#he-bing-he-bing-tiao-jian-biao-da-shi" title="合并: 合并条件表达式">合并: 合并条件表达式</a></li><li><a class="toc-href" href="#fen-jie-fen-jie-fu-za-tiao-jian-biao-da-shi" title="分解: 分解复杂条件表达式">分解: 分解复杂条件表达式</a></li><li><a class="toc-href" href="#ti-qu-he-bing-zhong-fu-de-tiao-jian-pian-duan" title="提取: 合并重复的条件片段">提取: 合并重复的条件片段</a></li></ul></li><li><a class="toc-href" href="#5-can-shu-ji-fan-hui-zhi_1" title="5. 参数及返回值">5. 参数及返回值</a><ul><li><a class="toc-href" href="#can-shu-he-fan-hui-zhi-ti-qu-dui-xiang" title="参数和返回值: 提取对象">参数和返回值: 提取对象</a></li><li><a class="toc-href" href="#jian-shao-can-shu" title="减少参数">减少参数</a></li></ul></li><li><a class="toc-href" href="#6-lei_1" title="6. 类">6. 类</a><ul><li><a class="toc-href" href="#ban-yi-han-shu-zi-duan" title="搬移: 函数/字段">搬移: 函数/字段</a></li><li><a class="toc-href" href="#chai-fen-chai-fen-lei" title="拆分: 拆分类">拆分: 拆分类</a></li><li><a class="toc-href" href="#qu-chu" title="去除">去除</a></li></ul></li><li><a class="toc-href" href="#7-mo-shi_1" title="7. 模式">7. 模式</a><ul><li><a class="toc-href" href="#adapter" title="adapter">adapter</a></li><li><a class="toc-href" href="#facade" title="facade">facade</a></li><li><a class="toc-href" href="#template-method" title="template method">template method</a></li><li><a class="toc-href" href="#zhuang-shi-qi" title="装饰器">装饰器</a></li><li><a class="toc-href" href="#qi-ta" title="其他">其他</a></li></ul></li><li><a class="toc-href" href="#ju-li_1" title="举例">举例</a></li><li><a class="toc-href" href="#qi-ta_1" title="其他">其他</a></li></ul></li></ul></div>
+        </section>
+    <section id="content">
+        <p>去年十二月, 重读时, 输出了几篇博文, 主要几章重构技巧梳理 <a href="http://www.wklken.me/posts/2016/12/03/refactoring-01.html">6</a>/<a href="http://www.wklken.me/posts/2016/12/03/refactoring-02.html">7</a>/<a href="http://www.wklken.me/posts/2016/12/03/refactoring-03.html">8</a>/<a href="http://www.wklken.me/posts/2016/12/04/refactoring-04.html">9</a>/<a href="http://www.wklken.me/posts/2016/12/04/refactoring-05.html">10</a>/<a href="http://www.wklken.me/posts/2016/12/04/refactoring-06.html">11</a>, 这周重读时, 从另一个角度总结一下</p>
+<hr/>
+<p>我们总是想着, 找个时间重构, 额, 其实, 重构更应该放在平时, 每一次去变更代码时处理. 毕竟, 所谓的重构契机有时候太过遥远; 而如果不做重构, 痛苦的是每时每刻维护代码的自己</p>
+<blockquote>
+<p>如果你发现自己需要为程序添加一个特性, 而代码结构使你无法很方便地达成目的, 那就先重构那个程序, 使特性的添加比较容易进行, 然后再添加特性</p>
+</blockquote>
+<p>另外, 如果可能, 尽量加单元测试, 哪怕一次只增加一两个, 一段时间后, 你会发现, 你会感谢过去的自己</p>
+<h2 id="yuan-ze">原则</h2>
+<ul>
+<li>小步前进, 频繁测试</li>
+<li>隔离变化</li>
+<li>控制可见范围, 让变量/常量/函数/类等, 在最小的范围内可见. 例如设为私有变量/私有函数, 移除不必要的设值函数</li>
+<li>重构时, 不要关注性能. 到性能优化阶段, 再关注性能. 不同阶段关注点不一样, 不要过早优化. 很多时候, 性能并不是瓶颈, 可读性和可维护性更重要</li>
+<li>任何时候, 都不要拷贝代码, 拷贝类, 甚至拷贝源码文件</li>
+</ul>
+<hr/>
+<h2 id="1-ming-ming">1. 命名</h2>
+<ul>
+<li>好的名字, 清晰表达其含义. 命名至关重要</li>
+<li>好的代码应该清楚表达出自己的功能, 变量名称是代码清晰的关键</li>
+<li>如果为了提高代码的可读性, 需要修改某些名字, 大胆去改!</li>
+<li>IDE/单元测试/好的查找替换工具</li>
+<li>建议读<code>编写可读代码的艺术</code>这本书.</li>
+</ul>
+<h2 id="2-chang-liang-he-lin-shi-bian-liang">2. 常量和临时变量</h2>
+<h4 id="ti-qu-chang-liang">提取常量</h4>
+<blockquote>
+<p>你有一个字面数值, 带有特别含义. 创建一个常量, 根据其意义为它命名, 并将上述字面数值替换为这个常量</p>
+</blockquote>
+<div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">potential_energy</span><span class="p">(</span><span class="n">mass</span><span class="p">,</span> <span class="n">height</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">mass</span> <span class="o">*</span> <span class="mf">9.81</span> <span class="o">*</span> <span class="n">height</span>
+
+<span class="c1"># to</span>
+
+<span class="n">GRAVITATIONAL_CONSTANT</span> <span class="o">=</span> <span class="mf">9.81</span>
+<span class="k">def</span> <span class="nf">potential_energy</span><span class="p">(</span><span class="n">mass</span><span class="p">,</span> <span class="n">height</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">mass</span> <span class="o">*</span> <span class="n">GRAVITATIONAL_CONSTANT</span> <span class="o">*</span> <span class="n">height</span>
+</pre></div>
+<p>任何时候, 都不要拷贝常量, 当你发现要改一个数据, 要到非常多的文件去改字面值时, 你就需要意识到, 该提取常量了</p>
+<h4 id="jia-ru-yin-ru-jie-shi-xing-bian-liang">加入: 引入解释性变量</h4>
+<blockquote>
+<p>一个复杂的表达式, 将复杂表达式或其中一部分放入临时变量, 以变量名称来解释表达式用途</p>
+</blockquote>
+<div class="highlight"><pre><span></span><span class="k">if</span> <span class="s2">"MAC"</span> <span class="ow">in</span> <span class="n">platform</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="ow">and</span> <span class="s2">"IE"</span> <span class="ow">in</span> <span class="n">browser</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="ow">and</span> <span class="n">was_initialized</span><span class="p">()</span> <span class="ow">and</span> <span class="n">resize</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="c1">#do something</span>
+
+<span class="c1"># to</span>
+
+<span class="n">is_macos</span> <span class="o">=</span> <span class="s2">"MAC"</span> <span class="ow">in</span> <span class="n">platform</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+<span class="n">is_ie_browser</span> <span class="o">=</span> <span class="s2">"IE"</span> <span class="ow">in</span> <span class="n">browser</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+<span class="n">was_resized</span> <span class="o">=</span> <span class="n">resize</span> <span class="o">&gt;</span> <span class="mi">0</span>
+
+<span class="k">if</span> <span class="n">is_macos</span> <span class="ow">and</span> <span class="n">is_ie_browser</span> <span class="ow">and</span> <span class="n">was_initialized</span><span class="p">()</span> <span class="ow">and</span> <span class="n">was_resized</span><span class="p">:</span>
+    <span class="c1"># do something</span>
+</pre></div>
+<h4 id="fen-jie-fen-jie-lin-shi-bian-liang">分解: 分解临时变量</h4>
+<blockquote>
+<p>某个临时变量被赋值超过一次, 非循环变量, 也不用于收集计算结果.每次赋值, 创砸一个独立, 对应的临时变量</p>
+</blockquote>
+<p>单一职责原则</p>
+<div class="highlight"><pre><span></span><span class="n">tmp</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">height</span> <span class="o">*</span> <span class="n">width</span><span class="p">)</span>
+<span class="k">print</span> <span class="n">tmp</span>
+
+<span class="n">tmp</span> <span class="o">=</span> <span class="n">height</span> <span class="o">*</span> <span class="n">width</span>
+<span class="k">print</span> <span class="n">tmp</span>
+
+<span class="c1"># to</span>
+
+<span class="n">perimeter</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">height</span> <span class="o">*</span> <span class="n">width</span><span class="p">)</span>
+<span class="k">print</span> <span class="n">perimeter</span>
+
+<span class="n">area</span> <span class="o">=</span> <span class="n">height</span> <span class="o">*</span> <span class="n">width</span>
+<span class="k">print</span> <span class="n">area</span>
+</pre></div>
+<h4 id="qu-chu-yi-chu-lin-shi-bian-liang">去除: 移除临时变量</h4>
+<blockquote>
+<p>临时变量仅被一个简单表达式赋值一次, 可以去除这个临时变量</p>
+</blockquote>
+<p>临时变量, 简单表达式, 另外, 需要考虑使用次数, 如果仅使用一次, 可以去除, 如果多次, 则需谨慎考虑对可读性的而影响</p>
+<div class="highlight"><pre><span></span><span class="n">best_price</span> <span class="o">=</span> <span class="n">order</span><span class="o">.</span><span class="n">base_price</span><span class="p">()</span>
+<span class="k">return</span> <span class="n">best_price</span> <span class="o">&gt;</span> <span class="mi">1000</span>
+
+<span class="c1"># to</span>
+
+<span class="k">return</span> <span class="n">order</span><span class="o">.</span><span class="n">base_price</span> <span class="o">&gt;</span> <span class="mi">1000</span>
+</pre></div>
+<h4 id="yi-chu-kong-zhi-biao-ji">移除: 控制标记</h4>
+<blockquote>
+<p>在一系列布尔表达式中, 某个变量带有"控制标记"(control flag)的作用. 以break语句或return取代控制标记</p>
+</blockquote>
+<div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">dosomething</span><span class="p">():</span>
+    <span class="n">is_success</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="k">if</span> <span class="n">xxx</span><span class="p">:</span>
+       <span class="n">is_success</span> <span class="o">=</span> <span class="bp">True</span>
+
+    <span class="k">if</span> <span class="n">yyy</span><span class="p">:</span>
+       <span class="n">is_success</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="o">...</span>
+    <span class="k">return</span> <span class="n">is_success</span>
+
+<span class="c1"># to</span>
+
+<span class="k">def</span> <span class="nf">dosomething</span><span class="p">():</span>
+    <span class="k">if</span> <span class="n">xxx</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">True</span>
+
+    <span class="k">if</span> <span class="n">yyy</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">True</span>
+    <span class="o">...</span>
+    <span class="k">return</span> <span class="bp">False</span> <span class="c1"># 一定不要忘记</span>
+</pre></div>
+<p>注意力相关.</p>
+<p>这类逻辑中, 很痛苦的是, 你必须无时无刻关注这些控制标记的值, <code>追踪</code>变量在每一个逻辑之后的变化, 会带来额外的思考负担, 从而让代码变得不易读.</p>
+<h2 id="3-han-shu_1">3. 函数</h2>
+<h4 id="chai-fen-extract-methodti-lian-han-shu">拆分: Extract Method提炼函数</h4>
+<blockquote>
+<p>你有一段代码可以被组织在一起并独立出来, 将这段代码放进一个独立函数中, 并让函数名称解释该函数的用途</p>
+</blockquote>
+<div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">print_owing</span><span class="p">(</span><span class="n">double</span> <span class="n">amount</span><span class="p">):</span>
+    <span class="n">print_banner</span><span class="p">()</span>
+
+    <span class="o">//</span> <span class="k">print</span> <span class="n">details</span>
+    <span class="k">print</span> <span class="s2">"this is the detail: "</span>
+    <span class="k">print</span> <span class="s2">"amnount: </span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="n">amount</span>
+
+<span class="c1"># to</span>
+
+<span class="k">def</span> <span class="nf">print_details</span><span class="p">(</span><span class="n">amount</span><span class="p">):</span>
+    <span class="k">print</span> <span class="s2">"this is the detail: "</span>
+    <span class="k">print</span> <span class="s2">"amnount: </span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="n">amount</span>
+
+<span class="k">def</span> <span class="nf">print_owing</span><span class="p">(</span><span class="n">double</span> <span class="n">amount</span><span class="p">):</span>
+    <span class="n">print_banner</span><span class="p">()</span>
+    <span class="n">print_details</span><span class="p">(</span><span class="n">amount</span><span class="p">)</span>
+</pre></div>
+<h4 id="qu-chu-inline-methodnei-lian-han-shu">去除: Inline Method内联函数</h4>
+<blockquote>
+<p>一个函数的本体与名称同样清楚易懂, 在函数调用点插入函数本体, 然后移除该函数</p>
+</blockquote>
+<p>小型函数, 函数太过简单了, 可能只有一个表达式, 去除函数!</p>
+<div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">is_length_valid</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">10</span>
+
+<span class="k">print</span> <span class="s1">'the length is </span><span class="si">%s</span><span class="s1">'</span> <span class="o">%</span> <span class="p">(</span><span class="s1">'valid'</span> <span class="k">if</span> <span class="n">is_length_valid</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">else</span> <span class="s1">'invalid'</span><span class="p">)</span>
+<span class="c1"># to</span>
+<span class="k">print</span> <span class="s1">'the length is </span><span class="si">%s</span><span class="s1">'</span> <span class="o">%</span> <span class="p">(</span><span class="s1">'valid'</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">10</span> <span class="k">else</span> <span class="s1">'invalid)</span>
+</pre></div>
+<h4 id="he-bing-he-bing-duo-ge-han-shu-shi-yong-can-shu">合并: 合并多个函数, 使用参数</h4>
+<blockquote>
+<p>若干函数做了类似的工作. 但在函数本体中却包含了不同的值. 建立单一函数, 以参数表达那些不同的值</p>
+</blockquote>
+<div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">five_percent_raise</span><span class="p">():</span>
+    <span class="k">pass</span>
+<span class="k">def</span> <span class="nf">ten_percent_raise</span><span class="p">():</span>
+    <span class="k">pass</span>
+
+<span class="c1"># to</span>
+
+<span class="k">def</span> <span class="nf">percent_raise</span><span class="p">(</span><span class="n">percent</span><span class="p">):</span>
+    <span class="k">pass</span>
+</pre></div>
+<h4 id="fu-zuo-yong-han-shu-bu-ying-gai-you-fu-zuo-yong">副作用: 函数不应该有副作用</h4>
+<blockquote>
+<p>某个函数既返回对象状态值, 又修改对象状态. 建立两个不同函数, 一个负责查询, 一个负责修改.</p>
+</blockquote>
+<p>单一职责原则, 一个函数不应该做两件事, 函数粒度尽量小.</p>
+<h2 id="4-biao-da-shi_1">4. 表达式</h2>
+<h4 id="guardzhu-yi-li-xiang-guan">guard(注意力相关)</h4>
+<blockquote>
+<p>过多的条件逻辑, 难以理解正常的执行路径. 在python中的特征是, 缩进太深</p>
+</blockquote>
+<p>coolshell中曾经讨论过的问题 <a href="http://coolshell.cn/articles/17757.html">如何重构&ldquo;箭头型&rdquo;代码</a>, 而在python中的现象是, 缩进嵌套层级太深, 有时候甚至有十几层缩进, 整体难以理解</p>
+<p>而减少嵌套缩进的方式是, 使用<code>guard</code>语句, 尽早返回,</p>
+<p>注意力相关, 尽早<code>return</code>, 你也就不用关心已经过去的逻辑了, 只需关注后面代码的逻辑.</p>
+<div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">_is_dead</span><span class="p">:</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">dead_amount</span><span class="p">()</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">_is_separated</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">separated_amount</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">_is_retired</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">retired_amount</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">normal_payamount</span><span class="p">()</span>
+<span class="k">return</span> <span class="n">result</span>
+
+<span class="c1"># to</span>
+
+<span class="k">if</span> <span class="n">_is_dead</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">dead_amount</span><span class="p">()</span>
+
+<span class="k">if</span> <span class="n">_is_separated</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">separated_amount</span><span class="p">()</span>
+
+<span class="k">if</span> <span class="n">_is_retired</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">retired_amount</span><span class="p">()</span>
+
+<span class="k">return</span> <span class="n">normal_payamount</span><span class="p">()</span>
+</pre></div>
+<h4 id="he-bing-he-bing-tiao-jian-biao-da-shi">合并: 合并条件表达式</h4>
+<blockquote>
+<p>你有一系列条件测试, 都得到相同结果. 将这些测试合并成一个条件表达式, 并将这个条件表达式提炼成为一个独立函数</p>
+</blockquote>
+<div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">_seniority</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+    <span class="k">return</span> <span class="mi">0</span>
+<span class="k">if</span> <span class="n">_months_disabled</span> <span class="o">&gt;</span> <span class="mi">10</span><span class="p">:</span>
+    <span class="k">return</span> <span class="mi">0</span>
+<span class="k">if</span> <span class="n">_is_part_time</span><span class="p">:</span>
+    <span class="k">return</span> <span class="mi">0</span>
+
+<span class="c1"># to</span>
+
+<span class="k">if</span> <span class="n">is_not_eligible_for_disability</span><span class="p">:</span>
+    <span class="k">return</span> <span class="mi">0</span>
+</pre></div>
+<h4 id="fen-jie-fen-jie-fu-za-tiao-jian-biao-da-shi">分解: 分解复杂条件表达式</h4>
+<blockquote>
+<p>你有一个复杂的条件语句(if-then-else). 从if, the, else三个段落中分别提炼出独立函数</p>
+</blockquote>
+<div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">date</span> <span class="o">&lt;</span> <span class="n">SUMMER_START</span><span class="p">)</span> <span class="ow">or</span> <span class="n">date</span> <span class="o">&gt;</span> <span class="n">SUMMER_END</span><span class="p">:</span>
+    <span class="n">charge</span> <span class="o">=</span> <span class="n">quantity</span> <span class="o">*</span> <span class="n">_winter_rate</span> <span class="o">+</span> <span class="n">_winter_servioce_charge</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">charge</span> <span class="o">=</span> <span class="n">quantity</span> <span class="o">*</span> <span class="n">_summer_rate</span>
+
+<span class="c1"># to</span>
+
+<span class="k">if</span> <span class="n">not_summber</span><span class="p">(</span><span class="n">date</span><span class="p">):</span>
+    <span class="n">charge</span> <span class="o">=</span> <span class="n">winter_charge</span><span class="p">(</span><span class="n">quantity</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">charge</span> <span class="o">=</span> <span class="n">summber_charge</span><span class="p">(</span><span class="n">quantity</span><span class="p">)</span>
+</pre></div>
+<h4 id="ti-qu-he-bing-zhong-fu-de-tiao-jian-pian-duan">提取: 合并重复的条件片段</h4>
+<blockquote>
+<p>在条件表达式的每个分支上有着相同的一段代码. 将这段重复代码搬移到条件表达式之外</p>
+</blockquote>
+<div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">is_special</span><span class="p">:</span>
+    <span class="n">total</span> <span class="o">=</span> <span class="n">price</span> <span class="o">*</span> <span class="mf">0.95</span>
+    <span class="n">send</span><span class="p">()</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">total</span> <span class="o">=</span> <span class="n">price</span> <span class="o">*</span> <span class="mf">0.98</span>
+    <span class="n">send</span><span class="p">()</span>
+
+<span class="c1"># to</span>
+
+<span class="k">if</span> <span class="n">is_special</span><span class="p">:</span>
+    <span class="n">total</span> <span class="o">=</span> <span class="n">price</span> <span class="o">*</span> <span class="mf">0.95</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">total</span> <span class="o">=</span> <span class="n">price</span> <span class="o">*</span> <span class="mf">0.98</span>
+<span class="n">send</span><span class="p">()</span>
+</pre></div>
+<p>这是维护系统, 特别是中后期很容易忽略的问题. 很容易在代码中出现, 特别是遇到那种<code>加需求</code>的地方, 通常, 会选择不动原来的代码, 加个分支, 复制代码下来改. 但这样的后果是, 逐步地, 会发现每个分支中都有重复代码.</p>
+<h2 id="5-can-shu-ji-fan-hui-zhi_1">5. 参数及返回值</h2>
+<h4 id="can-shu-he-fan-hui-zhi-ti-qu-dui-xiang">参数和返回值: 提取对象</h4>
+<p>如果参数/返回值是一组相关的数值, 且总是一起出现, 可以考虑提取成一个对象.</p>
+<div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">get_width_height</span><span class="p">():</span>
+    <span class="o">....</span>
+
+    <span class="k">return</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span>
+
+<span class="k">def</span> <span class="nf">get_area</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span>
+
+
+<span class="c1"># to</span>
+<span class="k">class</span> <span class="nc">Rectangle</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="n">width</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">height</span> <span class="o">=</span> <span class="n">height</span>
+
+    <span class="k">def</span> <span class="nf">area</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">height</span>
+
+<span class="k">def</span> <span class="nf">get_shape</span><span class="p">():</span>
+    <span class="o">....</span>
+    <span class="k">return</span> <span class="n">Rectangle</span><span class="p">(</span><span class="n">height</span><span class="p">,</span> <span class="n">width</span><span class="p">)</span>
+</pre></div>
+<p>类似的还有: <code>start_time/end_time -&gt; TimeRange</code> /</p>
+<h4 id="jian-shao-can-shu">减少参数</h4>
+<blockquote>
+<p>对象调用了某个函数, 并将所得结果作为参数, 传递给另一个函数. 而接受该参数的函数本身也能调用前一个函数. 让参数接收者去除该参数, 并直接调用前一个函数</p>
+</blockquote>
+<div class="highlight"><pre><span></span><span class="n">base_price</span> <span class="o">=</span> <span class="n">quantity</span> <span class="o">*</span> <span class="n">item_price</span>
+<span class="n">discount_level</span> <span class="o">=</span> <span class="n">get_discount_level</span><span class="p">()</span>
+<span class="n">final_price</span> <span class="o">=</span> <span class="n">discounted_price</span><span class="p">(</span><span class="n">base_price</span><span class="p">,</span> <span class="n">discount_level</span><span class="p">)</span>
+
+<span class="c1"># to</span>
+
+<span class="n">base_price</span> <span class="o">=</span> <span class="n">quantity</span> <span class="o">*</span> <span class="n">item_price</span>
+<span class="n">final_price</span> <span class="o">=</span> <span class="n">discounted_price</span><span class="p">(</span><span class="n">base_price</span><span class="p">)</span>
+</pre></div>
+<h2 id="6-lei_1">6. 类</h2>
+<h4 id="ban-yi-han-shu-zi-duan">搬移: 函数/字段</h4>
+<ul>
+<li>搬移函数: 某个函数与所在类之外的另一个类有更多的交互, 调用或被调用(例如: 使用另一个对象的次数比使用自己所在对象的次数还多). 即, 跟另一个类更相关. 则搬移过去</li>
+<li>搬移字段: 某个字段被其所在类之外的另一个类更多地用到</li>
+</ul>
+<h4 id="chai-fen-chai-fen-lei">拆分: 拆分类</h4>
+<p>某个类做了应该由两个类做的事. 类太大/太臃肿. 建立一个新类, 将相关字段和函数从旧类版移到新类</p>
+<p>特征: 类中某些字段是有关系的整体, 或者有相同的前缀</p>
+<div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Persion</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">age</span><span class="p">,</span> <span class="n">office_area_code</span><span class="p">,</span> <span class="n">office_number</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">age</span> <span class="o">=</span> <span class="n">age</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">office_area_code</span> <span class="o">=</span> <span class="n">office_area_code</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">office_number</span> <span class="o">=</span> <span class="n">office_number</span>
+    <span class="k">def</span> <span class="nf">get_phone_number</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">"</span><span class="si">%s</span><span class="s2">-</span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">office_area_code</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">office_number</span><span class="p">)</span>
+
+<span class="c1"># to</span>
+
+<span class="k">class</span> <span class="nc">Person</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">age</span><span class="p">,</span> <span class="n">office_area_code</span><span class="p">,</span> <span class="n">office_number</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">age</span> <span class="o">=</span> <span class="n">age</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">phone_number</span> <span class="o">=</span> <span class="n">PhoneNumber</span><span class="p">(</span><span class="n">office_area_code</span><span class="p">,</span> <span class="n">office_number</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_phone_number</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">phone_number</span><span class="o">.</span><span class="n">get_number</span><span class="p">()</span>
+
+<span class="k">class</span> <span class="nc">PhoneNumber</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">area_code</span> <span class="p">,</span><span class="n">number</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">area_code</span> <span class="o">=</span> <span class="n">area_code</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">number</span> <span class="o">=</span> <span class="n">number</span>
+    <span class="k">def</span> <span class="nf">get_number</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">"</span><span class="si">%s</span><span class="s2">-</span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">area_code</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">number</span><span class="p">)</span>
+</pre></div>
+<h4 id="qu-chu">去除</h4>
+<p>一个类没有做太多的事情, 不再有独立存在的理由.</p>
+<h2 id="7-mo-shi_1">7. 模式</h2>
+<p>原则:</p>
+<ul>
+<li>慎用</li>
+<li>只使用你理解的模式</li>
+<li>只在符合的业务场景使用对应模式</li>
+</ul>
+<h4 id="adapter">adapter</h4>
+<p>你需要为提供服务的类增加功能, 但是你无法修改这个类.</p>
+<p>使用组合(推荐, 持有对象)/继承(加子类), 持有该对象, 增加对应附加功能</p>
+<p>adapter思维.</p>
+<p>使用场景: 使用一些第三方库处理外部依赖, 例如依赖一个系统, <code>业务A</code>(requests)/<code>es</code>(Elasticsearch)/<code>redis</code>(redispy), 但是, 基于第三方系统, 你需要有自己业务相关的统一处理逻辑, 此时, 你可以建立一个<code>XXClient</code>, 持有第三方组件底层调用逻辑, 同时封装自身业务逻辑, 在上层直接调用</p>
+<h4 id="facade">facade</h4>
+<p>适配模式中举的例子, 也有<code>facade</code>的思想, 将复杂的东西, 统一封装, 对外提供相对简单清晰地接口</p>
+<h4 id="template-method">template method</h4>
+<p>出现的次数也很高</p>
+<h4 id="zhuang-shi-qi">装饰器</h4>
+<p>python中最常用</p>
+<h4 id="qi-ta">其他</h4>
+<p>根据使用场景, 应用策略/桥梁/工厂/观察者等等, 具体看业务场景</p>
+<hr/>
+<h2 id="ju-li_1">举例</h2>
+<p>重构一个相对较大的<code>django</code>项目</p>
+<ul>
+<li>明确业务对象, 对象概念, 对象边界</li>
+<li>明确分层</li>
+<li>明确代码目录结构, 划分模块, 明确每个模块可以放入的东西</li>
+<li>粗粒度重构: 移动模块/类/函数, 根据前几步的划分, 将模块/类/函数等, 移动到对应模块中, 同时, 修改<code>import</code>和调用点</li>
+<li>中粒度重构: 根据<code>django</code>项目本身划分, 移动函数</li>
+<li>中粒度重构: Extract Method. 读具体函数代码, 遇到 <code>重复代码 / 过长函数 / 过大的类 / 超大的if-else或switch / 包含大段注释的代码</code> 等, 思考, 提炼函数, 放入对应模块</li>
+<li>细粒度重构: 提取常量 / 提取枚举 / 修改模块名类名函数名变量名</li>
+</ul>
+<p>举例:</p>
+<ul>
+<li>对于<code>django</code>项目, 原则<code>fat models, helper modules, thin views, stupid templates</code></li>
+<li><code>fat model</code>, 将对象本身相关的, 尽量放入<code>models</code>, 这个对象相关的, 可以加入补充一系列<code>porperty</code>/<code>classmethod</code>/<code>staticmethod</code>, 可以有效地降低使用这个对象时调用处的代码复杂度. 例如, 每次取兑现改一个字段都需要进行转换, 则搞个<code>property</code>替换每次都需要的转换逻辑. (找拿到<code>model</code>对象后的处理逻辑代码中那些反复出现的, 重复的)</li>
+<li>将对象查询相关的, 全部迁移到<code>manager</code>中, 需要先通过<code>Model.objects</code>查询然后做各种事情的, 迁移放入到<code>manager</code>中</li>
+<li><code>utils</code>, 将业务逻辑无关的工具函数等, 统一归入<code>utils</code>模块中; 将业务有关但多个<code>application</code>共用的<code>utils</code>放入到<code>common.utils</code>模块中, 而将<code>appication</code>依赖的局部<code>utils</code>, 放入到<code>application.utils</code>中</li>
+<li><code>constants</code>, 同上, 区分通用, 还是某个<code>applications</code>中使用</li>
+<li><code>thin view</code>, 业务逻辑, 尽量瘦小简短</li>
+<li><code>stupid template</code>, 模板, 尽量傻瓜, 不要包含复杂计算/判断逻辑, 将复杂迁移到后端代码</li>
+</ul>
+<h2 id="qi-ta_1">其他</h2>
+<p>善用工具, 有方案设计评审, 平时通过<code>pull request</code>, 走<code>code review</code>, 有代码风格自动检查, 要求单元测试, 走cicd流程. 在平时, 就有意识地控制代码质量</p>
+    </section>
+
+    <section id="copyright">
+        <div class="copyright">
+            版权声明：自由转载-非商用-非衍生-保持署名 | <a href="http://creativecommons.org/licenses/by-nc-nd/3.0/deed.zh" target="_blank" >Creative Commons BY-NC-ND 3.0</a>
+        </div>
+
+        <div class="donation">
+            <center>
+                <div style="width: 70%;">
+                    <img src="/imgs/life/donation_w.png" style=""/>
+                    <strong>
+                        <div style="text-align:center;">
+                            如果我的文章或项目对你有所帮助, 可以扫码进行小额捐赠<br>
+                            如果有主机需求, 可点下方vultr进入注册, 带小尾巴:)<br>
+                            如果要加广告位, 请邮件联系<br>
+                        </ol>
+                    </strong>
+                </div>
+            </center>
+
+        </div>
+    </section>
+
+
+    <section id="neighbors">
+        <div>
+                        <a class="left" href="http://www.wklken.me/posts/2016/12/04/refactoring-06.html">
+                            上一篇:  读书笔记-重构: 章11 处理概括关系
+                        </a>
+        </div>
+    </section>
+
+    <section id="ad">
+        <!-- <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script> -->
+        <!-- [> blog_ad_003 <] -->
+        <!-- <ins class="adsbygoogle" -->
+            <!-- style="display:block" -->
+            <!-- data-ad-client="ca-pub-7635941258020589" -->
+            <!-- data-ad-slot="7030416955" -->
+            <!-- data-ad-format="auto"></ins> -->
+        <!-- <script> -->
+        <!-- (adsbygoogle = window.adsbygoogle || []).push({}); -->
+        <!-- </script> -->
+
+        <a href='http://www.vultr.com/?ref=6847203' target="_blank">
+        <img src="/imgs/ads/vultr.png"> </img>
+        </a>
+    </section>
+
+
+
+<section id="comments">
+        <div class="comments">
+            <div id="disqus_thread"></div>
+            <script type="text/javascript">
+                var disqus_identifier = "posts/2017/06/17/refactoring-07.html";
+                (function() {
+                var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                dsq.src = 'http://wklken.disqus.com/embed.js';
+                (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                })();
+            </script>
+            </div>
+</section>
+
+
+
+</article>
+        </section><!--end #main-->
+
+            <footer class="row">
+                <div class="large-12 columns">
+                    <p>
+                            Copyright © 2015 wklken <br>
+                            Hosted on <a href="http://www.vultr.com/?ref=6954153-3B"> vultr </a>. Powered by <a href="http://alexis.notmyidea.org/pelican/">pelican</a>. Social Icons by <a href="http://fortawesome.github.io/Font-Awesome/">Font-Awesome</a>.
+                            <!-- Hosted on <a href="http://www.vultr.com/?ref=6847203"> vultr </a> Also <a href="https://www.digitalocean.com/?refcode=8ee73f2c47ce"> DigitalOcean </a>. Powered by <a href="http://alexis.notmyidea.org/pelican/">pelican</a>. Social Icons by <a href="http://fortawesome.github.io/Font-Awesome/">Font-Awesome</a>. -->
+                    </p>
+                </div>
+            </footer>
+
+            </div>
+        </div>
+
+        <section id="extras" class="body">
+        </section><!-- /#extras -->
+
+
+
+<script src="http://apps.bdimg.com/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="http://apps.bdimg.com/libs/jquery-scrollUp/2.1.0/jquery.scrollUp.min.js"></script>
+<script src="http://apps.bdimg.com/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+<script>
+    $(function(){
+        $.scrollUp({
+              scrollText: '', // Text for element, can contain HTML
+            });
+    });
+</script>
+
+
+<script type="text/javascript">
+  /* var Swiftype = window.Swiftype || {}; */
+  /* Swiftype.searchSearchFields = { */
+    /* "page": ["title^10", "body"] */
+  /* }; */
+
+  /* (function(w,d,t,u,n,s,e){w['SwiftypeObject']=n;w[n]=w[n]||function(){ */
+  /* (w[n].q=w[n].q||[]).push(arguments);};s=d.createElement(t); */
+  /* e=d.getElementsByTagName(t)[0];s.async=1;s.src=u;e.parentNode.insertBefore(s,e); */
+  /* })(window,document,'script','//s.swiftypecdn.com/install/v1/st.js','_st'); */
+
+  /* _st('install','v6K-_DamCeHvwX6z3o2F'); */
+</script>
+
+
+
+    <script type="text/javascript">
+    var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+    document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+    </script>
+    <script type="text/javascript">
+    try {
+        var pageTracker = _gat._getTracker("UA-42275748-1");
+    pageTracker._trackPageview();
+    } catch(err) {}</script>
+
+
+
+
+<div id="share">
+<script>window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"1","bdMiniList":["mshare","tsina","weixin","douban","meilishuo","mogujie","youdao","sdo","mail","twi","copy","print"],"bdPic":"","bdStyle":"0","bdSize":"16"},"slide":{"type":"slide","bdImg":"5","bdPos":"right","bdTop":"96.5"}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];</script>
+</div>
+
+
+
+<script  src="http://www.wklken.me/theme/js/scroll-header.js" type="text/javascript"></script>
+
+
+
+
+</body>
+</html>

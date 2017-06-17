@@ -75,7 +75,7 @@
     </section>
 
         <section id="toc">
-            <div id="toc"><ul><li><a class="toc-href" href="#" title="基于 PostgreSQL 的数据统计系统">基于 PostgreSQL 的数据统计系统</a><ul><li><a class="toc-href" href="#_1" title="一. 场景">一. 场景</a></li><li><a class="toc-href" href="#_2" title="二. 处理思路">二. 处理思路</a></li><li><a class="toc-href" href="#_3" title="三. 具体">三. 具体</a></li><li><a class="toc-href" href="#0" title="0. 基本架构">0. 基本架构</a></li><li><a class="toc-href" href="#1" title="1. 日志格式">1. 日志格式</a></li><li><a class="toc-href" href="#2" title="2. 日志收集汇总">2. 日志收集汇总</a></li><li><a class="toc-href" href="#3" title="3. 导入容器处理">3. 导入容器处理</a></li><li><a class="toc-href" href="#4" title="4. 容器">4. 容器</a></li><li><a class="toc-href" href="#5" title="5. 批处理">5. 批处理</a></li><li><a class="toc-href" href="#6" title="6. 输出">6. 输出</a></li><li><a class="toc-href" href="#7" title="7. 统一查询层">7. 统一查询层</a></li><li><a class="toc-href" href="#8" title="8. 前端框架及展现">8. 前端框架及展现</a></li><li><a class="toc-href" href="#9" title="9. 图表">9. 图表</a></li><li><a class="toc-href" href="#10" title="10. 过程日志及监控">10. 过程日志及监控</a></li><li><a class="toc-href" href="#_4" title="四. 小结">四. 小结</a></li></ul></li></ul></div>
+            <div id="toc"><ul><li><a class="toc-href" href="#" title="基于 PostgreSQL 的数据统计系统">基于 PostgreSQL 的数据统计系统</a><ul><li><a class="toc-href" href="#yi-chang-jing" title="一. 场景">一. 场景</a></li><li><a class="toc-href" href="#er-chu-li-si-lu" title="二. 处理思路">二. 处理思路</a></li><li><a class="toc-href" href="#san-ju-ti" title="三. 具体">三. 具体</a></li><li><a class="toc-href" href="#0-ji-ben-jia-gou" title="0. 基本架构">0. 基本架构</a></li><li><a class="toc-href" href="#1-ri-zhi-ge-shi" title="1. 日志格式">1. 日志格式</a></li><li><a class="toc-href" href="#2-ri-zhi-shou-ji-hui-zong" title="2. 日志收集汇总">2. 日志收集汇总</a></li><li><a class="toc-href" href="#3-dao-ru-rong-qi-chu-li" title="3. 导入容器处理">3. 导入容器处理</a></li><li><a class="toc-href" href="#4-rong-qi" title="4. 容器">4. 容器</a></li><li><a class="toc-href" href="#5-pi-chu-li" title="5. 批处理">5. 批处理</a></li><li><a class="toc-href" href="#6-shu-chu" title="6. 输出">6. 输出</a></li><li><a class="toc-href" href="#7-tong-yi-cha-xun-ceng" title="7. 统一查询层">7. 统一查询层</a></li><li><a class="toc-href" href="#8-qian-duan-kuang-jia-ji-zhan-xian" title="8. 前端框架及展现">8. 前端框架及展现</a></li><li><a class="toc-href" href="#9-tu-biao" title="9. 图表">9. 图表</a></li><li><a class="toc-href" href="#10-guo-cheng-ri-zhi-ji-jian-kong" title="10. 过程日志及监控">10. 过程日志及监控</a></li><li><a class="toc-href" href="#si-xiao-jie" title="四. 小结">四. 小结</a></li></ul></li></ul></div>
         </section>
     <section id="content">
         <p>看到标题就知道我要写什么了, 这是之前一个项目的小结吧, 自己对统计的一些认识和看法.</p>
@@ -85,7 +85,7 @@
 <p>(图为百度 echarts 示例)</p>
 <p><img alt="statistics" src="/imgs/system/statistics.png"/></p>
 <hr/>
-<h3 id="_1">一. 场景</h3>
+<h3 id="yi-chang-jing">一. 场景</h3>
 <ul>
 <li>统计</li>
 </ul>
@@ -97,21 +97,21 @@
 <ul>
 <li>以往的统计方式:</li>
 </ul>
-<div class="monokai"><pre><span></span>分析统计需求 -&gt; 修改项目记录日志内容和格式(到磁盘) -&gt; 自行将日志汇总到一台机器(rsync) -&gt; crontab脚本分析日志(要删或备份历史数据) -&gt; 新建db表, 存储统计结果 -&gt; 写管理后台, 查询统计结果(最繁琐) -&gt; 处理分页/图表等
+<div class="highlight"><pre><span></span>分析统计需求 -&gt; 修改项目记录日志内容和格式(到磁盘) -&gt; 自行将日志汇总到一台机器(rsync) -&gt; crontab脚本分析日志(要删或备份历史数据) -&gt; 新建db表, 存储统计结果 -&gt; 写管理后台, 查询统计结果(最繁琐) -&gt; 处理分页/图表等
 </pre></div>
 <p>虽然每次耗时或许并不会太长(0.5-2d, 视需求大小), 但对于不同项目和需求变更, 这些工作都是纯体力毫无技术含量的枯燥工作, 可以说是无意义的资源浪费.</p>
 <ul>
 <li>新的方式</li>
 </ul>
-<div class="monokai"><pre><span></span>分析统计需求 -&gt; 确认日志内容和格式  -&gt; 统计后台配置输入/处理/输出逻辑 -&gt; 查看结果
+<div class="highlight"><pre><span></span>分析统计需求 -&gt; 确认日志内容和格式  -&gt; 统计后台配置输入/处理/输出逻辑 -&gt; 查看结果
 </pre></div>
 <p>说白了就是, 处理统计需求变成了 <code>写sql</code> + <code>配置</code></p>
 <hr/>
-<h3 id="_2">二. 处理思路</h3>
+<h3 id="er-chu-li-si-lu">二. 处理思路</h3>
 <ul>
 <li>大体思路如下(从后往前):</li>
 </ul>
-<div class="monokai"><pre><span></span>1. 将日志进行汇总
+<div class="highlight"><pre><span></span>1. 将日志进行汇总
 2. 日志格式一致化
 3. 将日志导入到一个容器中
 4. 便捷地通过容器进行计算(计数)
@@ -123,7 +123,7 @@
 <ul>
 <li>需要统一的地方:</li>
 </ul>
-<div class="monokai"><pre><span></span>日志格式
+<div class="highlight"><pre><span></span>日志格式
 容器存储
 报告存储
 查询接口
@@ -132,12 +132,12 @@
 <ul>
 <li>系统成型后</li>
 </ul>
-<div class="monokai"><pre><span></span>增加/修改统计需求: 只需要在后台配置数据来源(日志), 处理逻辑(一段 sql), 展示逻辑(一段前端 json配置), 就可以实现图标
+<div class="highlight"><pre><span></span>增加/修改统计需求: 只需要在后台配置数据来源(日志), 处理逻辑(一段 sql), 展示逻辑(一段前端 json配置), 就可以实现图标
 </pre></div>
 <hr/>
-<h3 id="_3">三. 具体</h3>
-<h3 id="0">0. 基本架构</h3>
-<div class="monokai"><pre><span></span>             ----------------------------------------------
+<h3 id="san-ju-ti">三. 具体</h3>
+<h3 id="0-ji-ben-jia-gou">0. 基本架构</h3>
+<div class="highlight"><pre><span></span>             ----------------------------------------------
             |      日志(UniteStats or ApplicationLogs)     |
              ----------------------------------------------
                               ||
@@ -168,7 +168,7 @@
             |      [自定义前端-使用统一库-配置生成]   |
              ------------------------------------
 </pre></div>
-<h3 id="1">1. 日志格式</h3>
+<h3 id="1-ri-zhi-ge-shi">1. 日志格式</h3>
 <p>日志, 即文本.</p>
 <p>但是文本存在各种格式, 例如常见的&rsquo;\t&rsquo;分隔的列, csv, json, xml等等.</p>
 <p>这里的要求是: 一定要满足自描述, 易读(人), 易处理(生成和解析).</p>
@@ -176,11 +176,11 @@
 <p>原因之一, <code>容器</code>对半结构化的数据支持已经非常完善了, 例如postgresql, mongodb等, 对于后续计算很重要.</p>
 <p>原因之二, 作为一个统一的平台, 我只在乎数据是一份日志, 但是不在乎, 日志里存了些什么, 每个字段的意义, 这些只有平台的使用者需要知道. 否则带来很大一个问题是, 对于使用者在新增或变更一份日志格式时, 需要明确告诉系统这份日志各个字段是什么(名称和类型), 复杂化了</p>
 <p>到这里, 我们统一了日志的格式, 记录为json, 每条记录一行.</p>
-<h3 id="2">2. 日志收集汇总</h3>
+<h3 id="2-ri-zhi-shou-ji-hui-zong">2. 日志收集汇总</h3>
 <p>目的: 将日志汇总到同一台机器上, 便于统一处理</p>
 <p>命名规则: <code>$THE_LOG_PATH/{projectName}/{projectName}_{moduleName}_{ip}_{yyMMdd}.log</code> (示例)</p>
 <p>日志汇总的方案有很多:</p>
-<div class="monokai"><pre><span></span>scp
+<div class="highlight"><pre><span></span>scp
 rsync
 nfs
 logstash
@@ -188,76 +188,76 @@ logstash
 <p>最终的处理方案: 数据量小, 同一个机房, 使用NFS将日志汇总到目录, 不同机房, 使用rsync进行汇总. 如果数据量大, 可以考虑使用logstash, 直接将日志经过节点处理实时写到一台机器上(就不要分别记录到各自磁盘了).</p>
 <p>扩展: 使用多台机器, 只要保证最终导入同一个库即可.(同一个项目, 同一天存在一张表, 不同机器的日志导入之)</p>
 <p>到这里, 我们将所有json格式的日志汇集到了一起</p>
-<h3 id="3">3. 导入容器处理</h3>
+<h3 id="3-dao-ru-rong-qi-chu-li">3. 导入容器处理</h3>
 <p>目前每个项目的日志格式是,</p>
-<div class="monokai"><pre><span></span>{projectName}/{projectName}_{moduleName}_{ip}_{yyMMdd}.log
+<div class="highlight"><pre><span></span>{projectName}/{projectName}_{moduleName}_{ip}_{yyMMdd}.log
 </pre></div>
 <p>我们会将同一个项目, 可能来自不同机器的日志导入同一张表</p>
-<div class="monokai"><pre><span></span>{projectName}/{projectName}_{moduleName}_*_{yyMMdd}.log
+<div class="highlight"><pre><span></span>{projectName}/{projectName}_{moduleName}_*_{yyMMdd}.log
 =&gt;
 table: projectName_moduleName_yyMMdd
 </pre></div>
 <p>处理方式: 批量入库, 并且清理保留日期外的表</p>
 <p>建议使用批量导入的方式, 速度杠杠的. Postgresql请使用copy命令</p>
-<h3 id="4">4. 容器</h3>
+<h3 id="4-rong-qi">4. 容器</h3>
 <p>一个计算容器, 仅此而已</p>
 <p>技术选型时, 考虑过Mysql/Mongdb/Redis/MariaDB/OrientDB/CouchDB/RethinkDB等等, 最终敲定使用postgresql, 无它, 对json的完美支持, 满足业务: 一定的数据量, 足够简单的统计方式, 足够稳定, 简单易运维等</p>
 <p>提下<code>redis</code>, 当时做了整套的<code>redis</code>方案(接口文档都明确完了就差写代码了), 但是后来毙掉了. (典型的拿着锤子满世界都是钉子的案例). 思想是: 流式日志处理, 根据业务需求使用redis counter, 主从, 后台从redis直接取counter进行展示. 脑洞很大, 可以搞定实时/非实时情况, 还可以顺带把各类业务中的counter需求给做了, 以及更为灵活的展现方式, 但是学习成本较高, 对每个写统计的人要求较高(素质, 具备正确的统计思维, 否则会悲剧掉). 再加上业务本身要求实时性并不高, 所以废弃.</p>
 <p><code>MySql</code> 对 <code>json</code> 的支持, 相对于 postgresql 而言逊色太多了, 对<code>json</code>格式存在限制(多层复杂嵌套的情况)</p>
 <p><code>Mongodb</code> 虽然对<code>json</code>支持不错, 但是对于数据量较大的情况支持并不好, 并且查询以及运维都会带来一定困难, 对于使用者有一定学习成本</p>
 <p>PostGresql作为容器的好处:</p>
-<div class="monokai"><pre><span></span>1. 支持的数据量
+<div class="highlight"><pre><span></span>1. 支持的数据量
 2. 查询简单，支持json, 所有sql查询，group by/order by/嵌套子查询，聚集等
 3. 各种聚集、统计函数均可用，搞定基本统计查询无障碍（再复杂的都可以）
 4. 运维简单
 5. 对于开发而言几乎没有学习成本, 会sql再学习下postgresql的json查询
 </pre></div>
-<p>示例:<br/>
+<p>示例:
 假设搜索日志:</p>
-<div class="monokai"><pre><span></span>{&lsquo;ip&rsquo;: &lsquo;127.0.0.1&rsquo;,
+<div class="highlight"><pre><span></span>{&lsquo;ip&rsquo;: &lsquo;127.0.0.1&rsquo;,
  &lsquo;keyword&rsquo;: &lsquo;test&rsquo;,
  &lsquo;result_count&rsquo;: &lsquo;1&rsquo;,
 }
 </pre></div>
 <p>统计 pv</p>
-<div class="monokai"><pre><span></span>select count(data-&gt;'ip') from search_20141101;
+<div class="highlight"><pre><span></span>select count(data-&gt;'ip') from search_20141101;
 </pre></div>
 <p>统计 uv</p>
-<div class="monokai"><pre><span></span>select count(DISTINCT data-&gt;&gt;'ip') from search_20141101;
+<div class="highlight"><pre><span></span>select count(DISTINCT data-&gt;&gt;'ip') from search_20141101;
 </pre></div>
 <p>无结果数</p>
-<div class="monokai"><pre><span></span>select count(*) from search_20141101 where data-&gt;&gt;'result_count' = '0';
+<div class="highlight"><pre><span></span>select count(*) from search_20141101 where data-&gt;&gt;'result_count' = '0';
 </pre></div>
 <p>搜索热词排行榜</p>
-<div class="monokai"><pre><span></span>select data-&gt;&gt;&rsquo;keyword&rsquo;, count(*)
+<div class="highlight"><pre><span></span>select data-&gt;&gt;&rsquo;keyword&rsquo;, count(*)
 from search_20141101
 where data-&gt;&gt;'result_count' != '0'
 group by data-&gt;&gt;&rsquo;keyword&rsquo;
 order by count(*) desc
 limit 100;
 </pre></div>
-<h3 id="5">5. 批处理</h3>
+<h3 id="5-pi-chu-li">5. 批处理</h3>
 <p>这里要做的事情, 需要有一个管理后台, 让开发可以配置上传自己的处理脚本, 设定脚本执行时间, 执行参数(处理日期/报告表名), 甚至是执行依赖.</p>
 <p>这里需要形成一个约定</p>
-<div class="monokai"><pre><span></span><span class="err">报告表名</span><span class="o">:</span> <span class="n">projectName_statsModuleName</span>
-<span class="err">报告表一些字段名</span><span class="o">(</span><span class="err">因为统一查询接口需要用到</span><span class="o">):</span> <span class="err">日期</span> <span class="n">date</span><span class="o">,</span>
-<span class="err">其他约定字段</span>
+<div class="highlight"><pre><span></span>报告表名: projectName_statsModuleName
+报告表一些字段名(因为统一查询接口需要用到): 日期 date,
+其他约定字段
 </pre></div>
 <p>每天, 系统会扫描并调度任务, 执行, 处理得到统计结果, 存入报告表.</p>
 <p>到这里, 我们每天的统计结果都存入到了报告表中</p>
-<h3 id="6">6. 输出</h3>
+<h3 id="6-shu-chu">6. 输出</h3>
 <p>报告表, 是以时间为维度的, 每条记录带有日期, 每条记录细化到要统计到的精确维度.(具体表现是一个维度会多一列字段), 原则是, 需求分析时充分考虑当前及后续可能的统计需求(要预见还是蛮容易的), 直接将统计维度最细化.</p>
 <p>当然, 如果无法最细化, 后面存在变更, 可以修改统计脚本, 根据情况对历史数据进行重新统计.</p>
-<h3 id="7">7. 统一查询层</h3>
+<h3 id="7-tong-yi-cha-xun-ceng">7. 统一查询层</h3>
 <p>一层通用的接口, 支持传入表名, 条件, 需要结果字段, 格式等, 可以对系统中各类报告表进行各种形式的查询, 获取统计结果.</p>
-<h3 id="8">8. 前端框架及展现</h3>
+<h3 id="8-qian-duan-kuang-jia-ji-zhan-xian">8. 前端框架及展现</h3>
 <p>是一整套的js款干啊</p>
 <p>分成几块</p>
 <ul>
 <li>生成查询表单: 模块化组件, 通过json配置, 自动生成统计查询的表单, 支持各类维度</li>
 </ul>
 <p>配置示例:</p>
-<div class="monokai"><pre><span></span>// 产生条件html
+<div class="highlight"><pre><span></span>// 产生条件html
     var condition_configs = {
         title: "频道访问统计摘要",
         conditions: [
@@ -287,7 +287,7 @@ limit 100;
     };
 </pre></div>
 <p>就会自动生成表单</p>
-<div class="monokai"><pre><span></span><span class="n">begin_date</span><span class="o">:</span>
+<div class="highlight"><pre><span></span><span class="n">begin_date</span><span class="o">:</span>
 <span class="n">end_date</span><span class="o">:</span>
 <span class="n">channel</span><span class="o">:</span>
 <span class="n">version</span><span class="o">:</span>
@@ -301,7 +301,7 @@ limit 100;
 </li>
 </ul>
 <p>一个配置示例:</p>
-<div class="monokai"><pre><span></span><span class="x">一般文本</span>
+<div class="highlight"><pre><span></span><span class="x">一般文本</span>
 <span class="err">{</span><span class="x"></span>
 <span class="x">    'column': 'date',</span>
 <span class="x">    'name': '日期',</span>
@@ -337,13 +337,13 @@ limit 100;
 <span class="x">    }</span>
 <span class="x">},</span>
 </pre></div>
-<h3 id="9">9. 图表</h3>
+<h3 id="9-tu-biao">9. 图表</h3>
 <p>使用百度 <a href="http://echarts.baidu.com/">echats</a></p>
 <p>可以根据配置, 将统一查询层的接口返回数据直接灌入echats, 生成表单</p>
-<h3 id="10">10. 过程日志及监控</h3>
+<h3 id="10-guo-cheng-ri-zhi-ji-jian-kong">10. 过程日志及监控</h3>
 <p>需要一组管理表, 进行任务配置/调度/执行/执行结果, 整个过程中的操作可以配置和查看, 用于监控.</p>
 <hr/>
-<h3 id="_4">四. 小结</h3>
+<h3 id="si-xiao-jie">四. 小结</h3>
 <blockquote>
 <p>It&rsquo;s Simple, but it works.</p>
 </blockquote>

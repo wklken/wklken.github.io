@@ -75,7 +75,7 @@
     </section>
 
         <section id="toc">
-            <div id="toc"><ul><li><a class="toc-href" href="#" title="Logstash+ElasticSearch+Kibana处理nginx访问日志">Logstash+ElasticSearch+Kibana处理nginx访问日志</a><ul><li><a class="toc-href" href="#1-nginx-logstash-shipper-redis" title="1. nginx日志 -&gt; logstash shipper -&gt; redis">1. nginx日志 -&gt; logstash shipper -&gt; redis</a></li><li><a class="toc-href" href="#2-redis-logstash-indexer-elasticsearch" title="2. redis -&gt; logstash indexer -&gt; elasticsearch">2. redis -&gt; logstash indexer -&gt; elasticsearch</a></li><li><a class="toc-href" href="#3-elasticsearch-kibana" title="3. elasticsearch -&gt; kibana">3. elasticsearch -&gt; kibana</a></li><li><a class="toc-href" href="#_2" title="后续">后续</a></li><li><a class="toc-href" href="#_4" title="其他">其他</a><ul><li><a class="toc-href" href="#1-logformatgrok" title="1. 关于logformat和对应grok的配置">1. 关于logformat和对应grok的配置</a></li><li><a class="toc-href" href="#2-elasticsearch" title="2. elasticsearch插件">2. elasticsearch插件</a></li><li><a class="toc-href" href="#3-supervisor" title="3. supervisor">3. supervisor</a></li><li><a class="toc-href" href="#4-logstash" title="4. logstash坑">4. logstash坑</a></li></ul></li></ul></li></ul></div>
+            <div id="toc"><ul><li><a class="toc-href" href="#" title="Logstash+ElasticSearch+Kibana处理nginx访问日志">Logstash+ElasticSearch+Kibana处理nginx访问日志</a><ul><li><a class="toc-href" href="#1-nginxri-zhi-logstash-shipper-redis" title="1. nginx日志 -&gt; logstash shipper -&gt; redis">1. nginx日志 -&gt; logstash shipper -&gt; redis</a></li><li><a class="toc-href" href="#2-redis-logstash-indexer-elasticsearch" title="2. redis -&gt; logstash indexer -&gt; elasticsearch">2. redis -&gt; logstash indexer -&gt; elasticsearch</a></li><li><a class="toc-href" href="#3-elasticsearch-kibana" title="3. elasticsearch -&gt; kibana">3. elasticsearch -&gt; kibana</a></li><li><a class="toc-href" href="#hou-xu_1" title="后续">后续</a></li><li><a class="toc-href" href="#qi-ta_1" title="其他">其他</a><ul><li><a class="toc-href" href="#1-guan-yu-logformathe-dui-ying-grokde-pei-zhi" title="1. 关于logformat和对应grok的配置">1. 关于logformat和对应grok的配置</a></li><li><a class="toc-href" href="#2-elasticsearchcha-jian" title="2. elasticsearch插件">2. elasticsearch插件</a></li><li><a class="toc-href" href="#3-supervisor" title="3. supervisor">3. supervisor</a></li><li><a class="toc-href" href="#4-logstashkeng" title="4. logstash坑">4. logstash坑</a></li></ul></li></ul></li></ul></div>
         </section>
     <section id="content">
         <p><code>ELK</code>似乎是当前最为流行的日志收集-存储-分析的全套解决方案.</p>
@@ -86,27 +86,27 @@
 <p>搭建, 测试并上线了一套简单的系统, 初期将所有服务器的nginx日志, 以及搜索日志进行处理.</p>
 <p><img alt="elk" src="/imgs/system/elk.png"/></p>
 <p>下面主要介绍对nginx日志进行处理的过程, 不是针对<code>elk</code>的介绍, 所有涉及ip的地方都改成<code>127.0.0.1</code>了, 根据自己环境进行修改</p>
-<h3 id="1-nginx-logstash-shipper-redis">1. nginx日志 -&gt; logstash shipper -&gt; redis</h3>
+<h3 id="1-nginxri-zhi-logstash-shipper-redis">1. nginx日志 -&gt; logstash shipper -&gt; redis</h3>
 <p>在<code>centos</code>使用<code>yum</code>安装<code>nginx</code>后, 默认<code>/etc/nginx/nginx.conf</code>中的日志格式定义为:</p>
-<div class="monokai"><pre><span></span><span class="k">log_format</span>  <span class="s">main</span>  <span class="s">'</span><span class="nv">$remote_addr</span> <span class="s">-</span> <span class="nv">$remote_user</span> <span class="s">[</span><span class="nv">$time_local]</span> <span class="s">"</span><span class="nv">$request"</span> <span class="s">'</span>
+<div class="highlight"><pre><span></span><span class="k">log_format</span>  <span class="s">main</span>  <span class="s">'</span><span class="nv">$remote_addr</span> <span class="s">-</span> <span class="nv">$remote_user</span> <span class="s">[</span><span class="nv">$time_local]</span> <span class="s">"</span><span class="nv">$request"</span> <span class="s">'</span>
                   <span class="s">'</span><span class="nv">$status</span> <span class="nv">$body_bytes_sent</span> <span class="s">"</span><span class="nv">$http_referer"</span> <span class="s">'</span>
                   <span class="s">'"</span><span class="nv">$http_user_agent"</span> <span class="s">"</span><span class="nv">$http_x_forwarded_for"'</span><span class="p">;</span>
 </pre></div>
 <p>然后在具体<code>server</code>配置中使用</p>
-<div class="monokai"><pre><span></span>access_log /data/logs/nginx/{PROJECT_NAME}_access.log main;
+<div class="highlight"><pre><span></span>access_log /data/logs/nginx/{PROJECT_NAME}_access.log main;
 </pre></div>
 <p>此时, 我们需要做的是, 将<code>access log</code>通过<code>logstash shipper</code>读取, 转<code>json</code>, 发送到<code>redis</code>, 由后续的<code>logstash indexer</code>进行处理</p>
 <p>步骤</p>
 <p>1.在日志所在机器部署<code>logstash</code></p>
 <p>2.在<code>logstash</code>安装目录下的<code>patterns</code>中加入一个文件<code>nginx</code></p>
 <p>内容(与上面的<code>log_format</code>相对应)</p>
-<div class="monokai"><pre><span></span>NGUSERNAME [a-zA-Z\.\@\-\+_%]+
+<div class="highlight"><pre><span></span>NGUSERNAME [a-zA-Z\.\@\-\+_%]+
 NGUSER %{NGUSERNAME}
 NGINXACCESS %{IPORHOST:clientip} - %{NOTSPACE:remote_user} \[%{HTTPDATE:timestamp}\] \"(?:%{WORD:verb} %{NOTSPACE:request}(?: HTTP/%{NUMBER:httpversion})?|%{DATA:rawrequest})\" %{NUMBER:response} (?:%{NUMBER:bytes}|-) %{QS:referrer} %{QS:agent} %{NOTSPACE:http_x_forwarded_for}
 </pre></div>
 <p>3.增加一个<code>logstash</code>配置文件: <code>logstash-project-access-log.conf</code></p>
 <p>注意, input的file, filter的grok, output的redis-key</p>
-<div class="monokai"><pre><span></span>    input {
+<div class="highlight"><pre><span></span>    input {
     file {
         path =&gt; [ "/data/logs/nginx/xxxx_access.log" ]
         start_position =&gt; "beginning"
@@ -132,7 +132,7 @@ NGINXACCESS %{IPORHOST:clientip} - %{NOTSPACE:remote_user} \[%{HTTPDATE:timestam
     }
 </pre></div>
 <p>4.使用<code>supervisor</code>启动<code>shipper</code>.</p>
-<div class="monokai"><pre><span></span>    [program:logstash_xxxx_shipper]
+<div class="highlight"><pre><span></span>    [program:logstash_xxxx_shipper]
     command=/var/shell/logstash/bin/logstash -f /var/shell/logstash/configs/nginx-xxxx-shipper.conf
     numprocs=1
     autostart=true
@@ -143,7 +143,7 @@ NGINXACCESS %{IPORHOST:clientip} - %{NOTSPACE:remote_user} \[%{HTTPDATE:timestam
 </pre></div>
 <h3 id="2-redis-logstash-indexer-elasticsearch">2. redis -&gt; logstash indexer -&gt; elasticsearch</h3>
 <p>注意, input的redis为上一步redis配置, key要对应, output的elasticsearch配置, <code>index</code>指定了最终es中存储对应的index, 加日期, 方便对日志进行定期删除</p>
-<div class="monokai"><pre><span></span>input {
+<div class="highlight"><pre><span></span>input {
 redis {
     host =&gt; "127.0.0.1"
     port =&gt; "6379"
@@ -170,7 +170,7 @@ elasticsearch {
 <p>除了基本的nginx日志, 还需要在各类url入口, 加入平台, 渠道等信息, 这样通过nginx访问日志, 可以统计到更多的信息</p>
 <p>当然, 如果需要一些更为精确/特殊的统计, 需要自行进行数据上报的工作.</p>
 <hr/>
-<h2 id="_2">后续</h2>
+<h2 id="hou-xu_1">后续</h2>
 <ol>
 <li>更多的类型的日志聚合, 包括各类访问日志, 统计上报日志等, 日志落地成文件, 永久留存, 转入es中, 只留存三个月</li>
 <li>如何对各类数据进行拆分/汇总</li>
@@ -179,8 +179,8 @@ elasticsearch {
 <li>为什么不使用<code>logstash forwarder</code>, 因为目前日志组成等较为简单, 简单处理 , 后续需要用到时再考虑</li>
 </ol>
 <hr/>
-<h1 id="_4">其他</h1>
-<h2 id="1-logformatgrok">1. 关于<code>logformat</code>和对应<code>grok</code>的配置</h2>
+<h1 id="qi-ta_1">其他</h1>
+<h2 id="1-guan-yu-logformathe-dui-ying-grokde-pei-zhi">1. 关于<code>logformat</code>和对应<code>grok</code>的配置</h2>
 <p><code>grok</code>是<code>logstash</code>的一个插件,  <a href="http://logstash.net/docs/1.4.2/filters/grok">文档</a></p>
 <blockquote>
 <p>Grok is currently the best way in logstash to parse crappy unstructured log data into something structured and queryable</p>
@@ -188,7 +188,7 @@ elasticsearch {
 <p>所以, 我们在处理<code>nginx</code>日志时, 需要根据具体<code>logformat</code>定义对应的<code>grok</code>表达式</p>
 <p>除了上面例子中用的那套,  另一份</p>
 <p>logformat</p>
-<div class="monokai"><pre><span></span><span class="x">  log_format logstash '</span><span class="p">$</span><span class="nv">http_host</span><span class="x"> '</span>
+<div class="highlight"><pre><span></span><span class="x">  log_format logstash '</span><span class="p">$</span><span class="nv">http_host</span><span class="x"> '</span>
 <span class="x">                      '</span><span class="p">$</span><span class="nv">remote_addr</span><span class="x"> [</span><span class="p">$</span><span class="nv">time_local</span><span class="x">] '</span>
 <span class="x">                      '"</span><span class="p">$</span><span class="nv">request</span><span class="x">" </span><span class="p">$</span><span class="nv">status</span><span class="x"> </span><span class="p">$</span><span class="nv">body_bytes_sent</span><span class="x"> '</span>
 <span class="x">                      '"</span><span class="p">$</span><span class="nv">http_referer</span><span class="x">" "</span><span class="p">$</span><span class="nv">http_user_agent</span><span class="x">" '</span>
@@ -196,17 +196,17 @@ elasticsearch {
 <span class="x">                      '</span><span class="p">$</span><span class="nv">upstream_response_time</span><span class="x">';</span>
 </pre></div>
 <p>patterns/nginx</p>
-<div class="monokai"><pre><span></span>NGUSERNAME [a-zA-Z\.\@\-\+_%]+
+<div class="highlight"><pre><span></span>NGUSERNAME [a-zA-Z\.\@\-\+_%]+
 NGUSER %{NGUSERNAME}
 NGINXACCESS %{IPORHOST:http_host} %{IPORHOST:clientip} \[%{HTTPDATE:timestamp}\] \"(?:%{WORD:verb} %{NOTSPACE:request}(?: HTTP/%{NUMBER:httpversion})?|%{DATA:rawrequest})\" %{NUMBER:response} (?:%{NUMBER:bytes}|-) %{QS:referrer} %{QS:agent} %{NUMBER:request_time:float} %{NUMBER:upstream_time:float}
 </pre></div>
 <p>如果想自行定义, 可以使用 <a href="https://grokdebug.herokuapp.com/">grokdebug</a>, 将要解析的日志和配置的正则放入, 可以查看最终得到的结构化数据</p>
-<h2 id="2-elasticsearch">2. elasticsearch插件</h2>
+<h2 id="2-elasticsearchcha-jian">2. elasticsearch插件</h2>
 <p>初期只安装了一个 <a href="https://github.com/lmenezes/elasticsearch-kopf">kopf</a>, web界面查看</p>
 <h2 id="3-supervisor">3. supervisor</h2>
 <p>建议使用<code>supervisor</code>对<code>elk</code>进行管理,(ps. 不要用yum自带的, 版本太旧好多坑, 浪费1小时......使用pip install安装最新版本即可)</p>
 <p>配置示例<code>elk.conf</code></p>
-<div class="monokai"><pre><span></span><span class="k">[program:elasticsearch]</span>
+<div class="highlight"><pre><span></span><span class="k">[program:elasticsearch]</span>
 <span class="na">command</span><span class="o">=</span><span class="s">/var/shell/elk/elasticsearch/bin/elasticsearch</span>
 <span class="na">numprocs</span><span class="o">=</span><span class="s">1</span>
 <span class="na">autostart</span><span class="o">=</span><span class="s">true</span>
@@ -227,8 +227,8 @@ NGINXACCESS %{IPORHOST:http_host} %{IPORHOST:clientip} \[%{HTTPDATE:timestamp}\]
 <span class="na">log_stderr</span><span class="o">=</span><span class="s">true</span>
 <span class="na">logfile</span><span class="o">=</span><span class="s">/data/logs/elk/logstash/logstash_arthas_access.log</span>
 </pre></div>
-<h2 id="4-logstash">4. logstash坑</h2>
-<div class="monokai"><pre><span></span>start_position =&gt; "beginning"
+<h2 id="4-logstashkeng">4. logstash坑</h2>
+<div class="highlight"><pre><span></span>start_position =&gt; "beginning"
 </pre></div>
 <p>logstash, 会记录一份文件读到的位置, 在$HOME/.sincedb_xxxxx 如果要让logstash重新读取文件, 删除之即可, 重启<code>shipper</code>.</p>
 <p>但是你可能发现es中重复记录了, 这是因为, 在<code>output</code>中, 没有定义存储到es时使用的<code>document_id</code>, es全部当成新纪录存入, 导致数据重复</p>

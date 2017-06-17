@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0"><channel><title>wklken's blog</title><link>http://www.wklken.me/</link><description></description><lastBuildDate>Sat, 02 Jun 2012 00:00:00 +0800</lastBuildDate><item><title>数据结构&amp;算法实践—【排序|选择排序】堆排序</title><link>http://www.wklken.me/posts/2012/06/02/python-ds-09-sort-heap.html</link><description>&lt;blockquote&gt;
+<rss version="2.0"><channel><title>wklken's blog - python-ds-algorithm</title><link>http://www.wklken.me/</link><description></description><lastBuildDate>Sat, 02 Jun 2012 00:00:00 +0800</lastBuildDate><item><title>数据结构&amp;算法实践—【排序|选择排序】堆排序</title><link>http://www.wklken.me/posts/2012/06/02/python-ds-09-sort-heap.html</link><description>&lt;blockquote&gt;
 &lt;p&gt;排序&amp;gt;&amp;gt;选择排序&amp;gt;&amp;gt;堆排序&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;p&gt;List:&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;0.概念+伪代码+示例分析
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;0.概念+伪代码+示例分析
 1.堆排序实现
 2.Question
 &lt;/pre&gt;&lt;/div&gt;
@@ -12,120 +12,15 @@
 &lt;/ol&gt;
 &lt;p&gt;基本概念：&lt;/p&gt;
 &lt;p&gt;维基百科http://zh.wikipedia.org/zh-cn/%E5%A0%86%E7%A9%8D%E6%8E%92%E5%BA%8F&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;function heapSort(A : list[1..n]) {
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;function heapSort(A : list[1..n]) {
     max_heap = make_max_heap(A)  #构建一个最大堆
     i = 1
     while(max_heap.size() &amp;gt; 0){   #当堆中还存在值
-        A[n-i] = max_heap.pop_max()   #取出最大一个
-        i++
-    }
-}
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;堆为一棵完全二叉树，每个节点值都&amp;gt;=子节点值&lt;/p&gt;
-&lt;p&gt;堆排序根据这个特性，首先将所有元素建立堆，然后一个个取出，即有序的&lt;/p&gt;
-&lt;p&gt;堆中每个节点的位置：&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;父节点i的左子节点在位置 (2*i);
-父节点i的右子节点在位置 (2*i+1);
-子节点i的父节点在位置 floor(i/2);
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;最大堆主要操作逻辑：&lt;/p&gt;
-&lt;p&gt;插入：将新元素加入完全二叉树最后一个节点，依次往上，调整直到满足父节点值都&amp;gt;=子节点值&lt;/p&gt;
-&lt;p&gt;删除：移除根节点，将最后一个节点拿到根节点，依次往下，调整&lt;/p&gt;
-&lt;p&gt;原始:&lt;/p&gt;
-&lt;p&gt;&lt;img alt="heap1" src="https://github.com/wklken/gallery/blob/master/pyds/heap-1.jpg?raw=true"/&gt;&lt;/p&gt;
-&lt;p&gt;插入操作：12，先假定放在最后一个位置，然后从这个节点开始往上，同父节点比较，依次调整&lt;/p&gt;
-&lt;p&gt;&lt;img alt="heap2" src="https://github.com/wklken/gallery/blob/master/pyds/heap-2.jpg?raw=true"/&gt;&lt;/p&gt;
-&lt;p&gt;删除：取走11，将最后一个元素8移到根节点，从上往下，重新调整&lt;/p&gt;
-&lt;p&gt;&lt;img alt="heap3" src="https://github.com/wklken/gallery/blob/master/pyds/heap-3.jpg?raw=true"/&gt;&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;start&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;根据公式，我们可以使用数组模拟实现完全二叉树(不使用首个位置)&lt;/p&gt;
-&lt;p&gt;首先，我们先实现堆:&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="ch"&gt;#!/usr/bin/python&lt;/span&gt;
-&lt;span class="c1"&gt;# -*- coding:utf-8 -*-&lt;/span&gt;
-&lt;span class="c1"&gt;#堆排序&lt;/span&gt;
-&lt;span class="c1"&gt;#@author: wklken@yeah.net&lt;/span&gt;
-
-&lt;span class="c1"&gt;#先实现一个最大堆&lt;/span&gt;
-&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;MaxHeap&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
-    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;__init__&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-        &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;heap&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;  &lt;span class="c1"&gt;#第一个元素用不到，只是为了将下标转为1开始，方便计算节点的位置&lt;/span&gt;
-    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;isEmpty&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-        &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;heap&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;
-    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;size&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-        &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;heap&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;
-    &lt;span class="c1"&gt;#插入节点&lt;/span&gt;
-    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;insert&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;value&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-        &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;heap&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-        &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;heap&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;append&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;value&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-        &lt;span class="k"&gt;while&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;!=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt; &lt;span class="ow"&gt;and&lt;/span&gt; &lt;span class="n"&gt;value&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;heap&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;]:&lt;/span&gt;  &lt;span class="c1"&gt;#如果插入节点大于其父节点，需要交换二者,反复，直到值小于父节点&lt;/span&gt;
-            &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;heap&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;heap&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;heap&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;heap&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;  &lt;span class="c1"&gt;#父节点下移&lt;/span&gt;
-            &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;
-        &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;heap&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;value&lt;/span&gt;  &lt;span class="c1"&gt;#把 value插入对应位置&lt;/span&gt;
-    &lt;span class="c1"&gt;#删除最大节点&amp;mdash;&amp;mdash;最大的是根节点&lt;/span&gt;
-    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;deleteMax&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-        &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;isEmpty&lt;/span&gt;&lt;span class="p"&gt;():&lt;/span&gt; &lt;span class="c1"&gt;#没有元素了&lt;/span&gt;
-            &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="bp"&gt;None&lt;/span&gt;
-        &lt;span class="n"&gt;x&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;heap&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;  &lt;span class="c1"&gt;#最大&lt;/span&gt;
-
-        &lt;span class="n"&gt;last&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;heap&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;pop&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
-        &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;size&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="c1"&gt;#每次取最后一个，若是只剩两个的情况，pop&lt;/span&gt;
-            &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;x&lt;/span&gt;
-        &lt;span class="c1"&gt;#每次，移除根节点，将树的最后一个节点挪到根节点，然后从上到下，调整位置，保证树是一个最大堆&lt;/span&gt;
-        &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;
-        &lt;span class="n"&gt;ci&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;
-        &lt;span class="n"&gt;current_size&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;size&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
-        &lt;span class="k"&gt;while&lt;/span&gt;  &lt;span class="n"&gt;ci&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;=&lt;/span&gt; &lt;span class="n"&gt;current_size&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
-            &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;ci&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="n"&gt;current_size&lt;/span&gt; &lt;span class="ow"&gt;and&lt;/span&gt; &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;heap&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;ci&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;heap&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;ci&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;]:&lt;/span&gt;
-                &lt;span class="n"&gt;ci&lt;/span&gt; &lt;span class="o"&gt;+=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;
-
-            &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;last&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;=&lt;/span&gt; &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;heap&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;ci&lt;/span&gt;&lt;span class="p"&gt;]:&lt;/span&gt;
-                &lt;span class="k"&gt;break&lt;/span&gt;
-
-            &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;heap&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;heap&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;ci&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
-            &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;ci&lt;/span&gt;
-            &lt;span class="n"&gt;ci&lt;/span&gt; &lt;span class="o"&gt;*=&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;
-        &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;heap&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;last&lt;/span&gt;
-        &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;x&lt;/span&gt;
-
-    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;initFromList&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-        &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;heap&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;extend&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-        &lt;span class="n"&gt;size&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;size&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
-        &lt;span class="c1"&gt;#从最后一棵子树开始，调整每一棵子树&lt;/span&gt;
-        &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;size&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-              &lt;span class="n"&gt;t_root&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;heap&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
-
-              &lt;span class="n"&gt;c&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;
-              &lt;span class="k"&gt;while&lt;/span&gt; &lt;span class="n"&gt;c&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;=&lt;/span&gt; &lt;span class="n"&gt;size&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
-                  &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;c&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="n"&gt;size&lt;/span&gt; &lt;span class="ow"&gt;and&lt;/span&gt; &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;heap&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;c&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;heap&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;c&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;]:&lt;/span&gt;
-                      &lt;span class="n"&gt;c&lt;/span&gt; &lt;span class="o"&gt;+=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;
-                  &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;t_root&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;=&lt;/span&gt; &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;heap&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;c&lt;/span&gt;&lt;span class="p"&gt;]:&lt;/span&gt;
-                      &lt;span class="k"&gt;break&lt;/span&gt;
-                  &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;heap&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;c&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;heap&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;c&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
-                  &lt;span class="n"&gt;c&lt;/span&gt; &lt;span class="o"&gt;*=&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;
-                  &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;heap&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;c&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;t_root&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;然后，实现排序过程：&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;heap_sort&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-    &lt;span class="n"&gt;m&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;MaxHeap&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
-    &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;initFromList&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-    &lt;span class="n"&gt;result&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[]&lt;/span&gt;
-    &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;)):&lt;/span&gt;
-        &lt;span class="n"&gt;result&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;append&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;deleteMax&lt;/span&gt;&lt;span class="p"&gt;())&lt;/span&gt;
-        &lt;span class="k"&gt;print&lt;/span&gt; &lt;span class="n"&gt;result&lt;/span&gt;
-    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;result&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;ol&gt;
-&lt;li&gt;start&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;A.概念，过程描述？&lt;/p&gt;
-&lt;p&gt;B. 时间复杂度？空间复杂度？是否是稳定排序？&lt;/p&gt;
-&lt;p&gt;C.适用场景，何种情况下表现最优&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sat, 02 Jun 2012 00:00:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2012-06-02:posts/2012/06/02/python-ds-09-sort-heap.html</guid><category>python-ds-algorithm</category></item><item><title>数据结构&amp;算法实践—【排序|插入排序】插入排序</title><link>http://www.wklken.me/posts/2012/06/02/python-ds-10-sort-insert.html</link><description>&lt;blockquote&gt;
+        A[n-i …&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sat, 02 Jun 2012 00:00:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2012-06-02:/posts/2012/06/02/python-ds-09-sort-heap.html</guid><category>python-ds-algorithm</category></item><item><title>数据结构&amp;算法实践—【排序|插入排序】插入排序</title><link>http://www.wklken.me/posts/2012/06/02/python-ds-10-sort-insert.html</link><description>&lt;blockquote&gt;
 &lt;p&gt;排序&amp;gt;&amp;gt;选择排序&amp;gt;&amp;gt;选择排序&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;p&gt;List:&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;0.概念+示例分析
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;0.概念+示例分析
 1.插入排序实现
 &lt;/pre&gt;&lt;/div&gt;
 &lt;ol&gt;
@@ -135,59 +30,14 @@
 &lt;p&gt;维基百科http://zh.wikipedia.org/wiki/%E6%8F%92%E5%85%A5%E6%8E%92%E5%BA%8F&lt;/p&gt;
 &lt;p&gt;插入排序，简单来说就是每次拿一个新的数，将其插入到有序序列中.&lt;/p&gt;
 &lt;p&gt;示例：&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;[8, 4, 3, 1, 6, 9, 2, 7]
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;[8, 4, 3, 1, 6, 9, 2, 7]
 &lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;index- 1  #从第二个数开始&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;move 1 , change-&amp;gt; [4, 8, 3, 1, 6, 9, 2, 7]  #移动一次，插入
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;index- 2&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;move 2 , change-&amp;gt; [3, 4, 8, 1, 6, 9, 2, 7] #移动两次，插入
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;index- 3&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;move 3 , change-&amp;gt; [1, 3, 4, 8, 6, 9, 2, 7]
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;index- 4&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;move 1 , change-&amp;gt; [1, 3, 4,6, 8, 9, 2, 7]
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;index- 5&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;move 0 ,  nochange -&amp;gt; [1, 3, 4, 6, 8, 9, 2, 7]
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;index- 6&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;move 5 , change-&amp;gt; [1,2, 3, 4, 6, 8, 9, 7]
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;index- 7&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;move 2 , change-&amp;gt; [1, 2, 3, 4, 6,7, 8, 9]
-
-[1, 2, 3, 4, 6, 7, 8, 9]
-&lt;/pre&gt;&lt;/div&gt;
-&lt;ol&gt;
-&lt;li&gt;start&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;插入排序python实现&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="ch"&gt;#!/usr/bin/python&lt;/span&gt;
-&lt;span class="c1"&gt;# -*- coding:utf-8 -*-&lt;/span&gt;
-&lt;span class="c1"&gt;#插入排序&lt;/span&gt;
-&lt;span class="c1"&gt;#@author: wklken@yeah.net&lt;/span&gt;
-
-&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;insert_sort&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-    &lt;span class="k"&gt;print&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;
-    &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;)):&lt;/span&gt; &lt;span class="c1"&gt;#从第二个元素开始&lt;/span&gt;
-        &lt;span class="n"&gt;value&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
-        &lt;span class="k"&gt;while&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt; &lt;span class="ow"&gt;and&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;value&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
-            &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
-            &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;-=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;
-        &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;value&lt;/span&gt;
-    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;
-&lt;span class="n"&gt;l&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;4&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;6&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;9&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;7&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
-&lt;span class="k"&gt;print&lt;/span&gt; &lt;span class="n"&gt;insert_sort&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;改进及优化：&lt;/p&gt;
-&lt;p&gt;1.加入监控，已排序完成直接退出&lt;/p&gt;
-&lt;p&gt;2.使用二分插入排序，即，处理某个节点往前插入的时候，使用二分查找插入&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sat, 02 Jun 2012 00:00:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2012-06-02:posts/2012/06/02/python-ds-10-sort-insert.html</guid><category>python-ds-algorithm</category></item><item><title>数据结构&amp;算法实践—【排序|交换排序】地精排序及改进</title><link>http://www.wklken.me/posts/2012/05/27/python-ds-06-sort-gnome.html</link><description>&lt;blockquote&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;move 1 , change-&amp;gt; [4, 8, 3, 1 …&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sat, 02 Jun 2012 00:00:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2012-06-02:/posts/2012/06/02/python-ds-10-sort-insert.html</guid><category>python-ds-algorithm</category></item><item><title>数据结构&amp;算法实践—【排序|交换排序】地精排序及改进</title><link>http://www.wklken.me/posts/2012/05/27/python-ds-06-sort-gnome.html</link><description>&lt;blockquote&gt;
 &lt;p&gt;排序&amp;gt;&amp;gt;交换排序&amp;gt;&amp;gt;地精排序&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;p&gt;List:&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;0.概念+伪代码+示例分析
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;0.概念+伪代码+示例分析
 1.地精排序实现
 2.改进
 3.Question
@@ -202,138 +52,7 @@
 &lt;p&gt;时间复杂度O(n^2)，最优复杂度O(n),平均时间复杂度O(n^2)&lt;/p&gt;
 &lt;p&gt;其实思想很简单,往前冒泡，一旦发生数据交换，就往回冒泡，直到把被交换数字放入正确位置，之后，继续前进&lt;/p&gt;
 &lt;p&gt;伪代码(来自于维基百科)&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;procedure gnomeSort(a[])
-    pos := 1
-    while pos &amp;lt; length(a)
-        if (a[pos] &amp;gt;= a[pos-1])
-            pos := pos + 1
-        else
-            swap a[pos] and a[pos-1]
-            if (pos &amp;gt; 1)
-                pos := pos - 1
-            else
-                pos := pos + 1
-            end if
-        end if
-    end while
-end procedure
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;例子：&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;[5, 3, 2, 4]               #输入数组
-
-i=0, i=i+1=1    #初始，i=0 ，直接i+=1
-
-cmp l[0]= 5  l[1]= 3
-change -&amp;gt; [3, 5, 2, 4]
-swap, i=i-1=0   #发生交换，i=i-1
-
-i=0, i=i+1=1   #i=0,i+=1
-
-cmp l[0]= 3  l[1]= 5
-no swap, i=i+1=1   #无交换，i+=1
-
-cmp l[1]= 5  l[2]= 2
-change -&amp;gt; [3, 2, 5, 4]  #交换
-swap, i=i-1=1    #i=i-1，反向冒泡开始
-
-cmp l[0]= 3  l[1]= 2
-change -&amp;gt; [2, 3, 5, 4]
-swap, i=i-1=0  # 交换
-
-i=0, i=i+1=1
-cmp l[0]= 2  l[1]= 3
-no swap, i=i+1=1 #无交换，i+=1
-
-cmp l[1]= 3  l[2]= 5
-no swap, i=i+1=2 #无交换，i+=1
-
-cmp l[2]= 5  l[3]= 4
-change -&amp;gt; [2, 3, 4, 5]
-swap, i=i-1=2  #交换,i-=1
-
-cmp l[1]= 3  l[2]= 4
-no swap, i=i+1=2
-
-cmp l[2]= 4  l[3]= 5
-no swap, i=i+1=3 #结束排序
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;1 start&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="ch"&gt;#!/usr/bin/python&lt;/span&gt;
-&lt;span class="c1"&gt;# -*- coding:utf-8 -*-&lt;/span&gt;
-&lt;span class="c1"&gt;# 地精排序&lt;/span&gt;
-&lt;span class="c1"&gt;#@author: wklken@yeah.net&lt;/span&gt;
-
-&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;gnome_sort&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-    &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;
-    &lt;span class="k"&gt;while&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-        &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt; &lt;span class="ow"&gt;or&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;]:&lt;/span&gt; &lt;span class="c1"&gt;#i=0或者正序不需交换，i+1&lt;/span&gt;
-            &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;+=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;
-        &lt;span class="k"&gt;else&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;  &lt;span class="c1"&gt;#否则，交换两数，i回退&lt;/span&gt;
-            &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
-            &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;-=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;ol&gt;
-&lt;li&gt;start&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;观察上面例子，是不是发现有些别扭.......&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;[3, 5, 2, 4]  #比较 5,2
-[3, 2, 5, 4]  #交换
-[3, 2,5, 4]  #比较 3,2
-[2, 3, 5, 4]  #交换
-[2, 3, 5, 4]    #比较2,3
-[2, 3, 5, 4]    #比较3,5
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;没错，若是到了b存在交换，反向冒泡，直至把被交换数冒泡放到其有序位置a,然后再从a-&amp;gt;b进行比较冒泡&lt;/p&gt;
-&lt;p&gt;其实，a-&amp;gt;b这一段序列已经是有序的，不需要浪费比较次数在这上面&lt;/p&gt;
-&lt;p&gt;所以我们进行jump&lt;/p&gt;
-&lt;p&gt;即，记录b的位置，当发现反序冒泡没有交换时（冒泡结束），jump到b位置，继续正序冒泡&lt;/p&gt;
-&lt;p&gt;代码:&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;gnome_sort2&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-    &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;
-    &lt;span class="n"&gt;current_index&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;  &lt;span class="c1"&gt;#保存反向冒泡前位置&lt;/span&gt;
-    &lt;span class="n"&gt;back_noswap&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="bp"&gt;True&lt;/span&gt;  &lt;span class="c1"&gt;#标识反向冒泡是否完成&lt;/span&gt;
-    &lt;span class="k"&gt;while&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-        &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt; &lt;span class="ow"&gt;or&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;]:&lt;/span&gt; &lt;span class="c1"&gt;#i=0或者正序不需交换，i+1&lt;/span&gt;
-            &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;+=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;
-            &lt;span class="n"&gt;back_noswap&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="bp"&gt;True&lt;/span&gt;
-        &lt;span class="k"&gt;else&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;  &lt;span class="c1"&gt;#否则，交换两数，i回退&lt;/span&gt;
-            &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
-            &lt;span class="n"&gt;current_index&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;  &lt;span class="c1"&gt;#开始反序，记录位置,跳转回来后比较就是 i i+1两个数的比较，之前数已有序&lt;/span&gt;
-            &lt;span class="n"&gt;back_noswap&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="bp"&gt;False&lt;/span&gt;
-            &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;-=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;
-            &lt;span class="k"&gt;print&lt;/span&gt; &lt;span class="s2"&gt;"change -&amp;gt;"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;
-        &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;current_index&lt;/span&gt; &lt;span class="ow"&gt;and&lt;/span&gt; &lt;span class="n"&gt;back_noswap&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;  &lt;span class="c1"&gt;#满足 当前是反序冒泡，且未发数据交换，代表已结束，可以跳回&lt;/span&gt;
-            &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;current_index&lt;/span&gt;
-            &lt;span class="n"&gt;current_index&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;
-            &lt;span class="k"&gt;print&lt;/span&gt; &lt;span class="s2"&gt;"jump"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;实际过程：&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;[5, 3, 2, 4]
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;cmp  5 3&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;change -&amp;gt; [3, 5, 2, 4]
-jump 2   #这里jump的位置是i+1
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;cmp  5 2&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;change -&amp;gt; [3, 2, 5, 4]
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;cmp  3 2&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;change -&amp;gt; [2, 3, 5, 4]
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;jump 2&lt;br/&gt;
-cmp  3 5&lt;br/&gt;
-cmp  5 4&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;change -&amp;gt; [2, 3, 4, 5]
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;cmp  3 4&lt;br/&gt;
-jump 4&lt;/p&gt;
-&lt;p&gt;相同例子的序列，改进前比较次数12，改进后只需要9次&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;start&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;A.地精排序概念，过程描述？&lt;/p&gt;
-&lt;p&gt;B.时间复杂度？空间复杂度？是否是稳定排序？&lt;/p&gt;
-&lt;p&gt;C.适用场景，何种情况下表现最优&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sun, 27 May 2012 00:00:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2012-05-27:posts/2012/05/27/python-ds-06-sort-gnome.html</guid><category>python-ds-algorithm</category></item><item><title>数据结构&amp;算法实践—【排序|交换排序】Bogo排序</title><link>http://www.wklken.me/posts/2012/05/27/python-ds-07-sort-bogo.html</link><description>&lt;p&gt;维基百科上排序算法表里的算法基本都实现完了，陆续发出来&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;procedure gnomeSort(a …&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sun, 27 May 2012 00:00:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2012-05-27:/posts/2012/05/27/python-ds-06-sort-gnome.html</guid><category>python-ds-algorithm</category></item><item><title>数据结构&amp;算法实践—【排序|交换排序】Bogo排序</title><link>http://www.wklken.me/posts/2012/05/27/python-ds-07-sort-bogo.html</link><description>&lt;p&gt;维基百科上排序算法表里的算法基本都实现完了，陆续发出来&lt;/p&gt;
 &lt;p&gt;有几个排序只有英文维基说明，有几个有中文，但是压根对不上，例如臭皮匠排序.....晕死，查找中....&lt;/p&gt;
 &lt;p&gt;另外快排不敢轻易发出，等完全所有实现版本都搜罗分析完了再来.&lt;/p&gt;
 &lt;hr/&gt;
@@ -341,7 +60,7 @@ jump 4&lt;/p&gt;
 &lt;p&gt;排序&amp;gt;&amp;gt;交换排序&amp;gt;&amp;gt;地精排序&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;p&gt;List:&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;0.概念(木有啥伪代码)
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;0.概念(木有啥伪代码)
 2.bogo排序实现
 &lt;/pre&gt;&lt;/div&gt;
 &lt;ol&gt;
@@ -350,29 +69,11 @@ jump 4&lt;/p&gt;
 &lt;p&gt;这是一个比较蛋碎的排序算法.....囧&lt;/p&gt;
 &lt;p&gt;原理：将一堆卡片撒到地上，查看是否已排序好，若没有，捡起来再撒一次，直到有序情况出现.&lt;/p&gt;
 &lt;p&gt;维基百科:http://zh.wikipedia.org/wiki/Bogo%E6%8E%92%E5%BA%8F&lt;/p&gt;
-&lt;p&gt;有兴趣看看无限猴子定理:http://zh.wikipedia.org/wiki/%E7%84%A1%E9%99%90%E7%8C%B4%E5%AD%90%E5%AE%9A%E7%90%86&lt;/p&gt;
-&lt;p&gt;1.实现:&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="ch"&gt;#!/usr/bin/python&lt;/span&gt;
-&lt;span class="c1"&gt;# -*- coding:utf-8 -*-&lt;/span&gt;
-&lt;span class="c1"&gt;#bogo排序&lt;/span&gt;
-&lt;span class="c1"&gt;#@author: wklken@yeah.net&lt;/span&gt;
-
-&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;random&lt;/span&gt;
-&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;is_order&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt; &lt;span class="c1"&gt;#判断序列是否有序&lt;/span&gt;
-    &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-        &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;]:&lt;/span&gt;
-          &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="bp"&gt;False&lt;/span&gt;
-    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="bp"&gt;True&lt;/span&gt;
-
-&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;bogo_sort&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-    &lt;span class="k"&gt;while&lt;/span&gt; &lt;span class="ow"&gt;not&lt;/span&gt; &lt;span class="n"&gt;is_order&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-        &lt;span class="n"&gt;random&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;shuffle&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="c1"&gt;#随机重排&lt;/span&gt;
-        &lt;span class="k"&gt;print&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sun, 27 May 2012 00:00:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2012-05-27:posts/2012/05/27/python-ds-07-sort-bogo.html</guid><category>python-ds-algorithm</category></item><item><title>数据结构&amp;算法实践—【排序|选择排序】选择排序</title><link>http://www.wklken.me/posts/2012/05/27/python-ds-07-sort-select.html</link><description>&lt;blockquote&gt;
+&lt;p&gt;有兴趣看看无限猴子定理:http://zh.wikipedia.org/wiki/%E7%84%A1 …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sun, 27 May 2012 00:00:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2012-05-27:/posts/2012/05/27/python-ds-07-sort-bogo.html</guid><category>python-ds-algorithm</category></item><item><title>数据结构&amp;算法实践—【排序|选择排序】选择排序</title><link>http://www.wklken.me/posts/2012/05/27/python-ds-07-sort-select.html</link><description>&lt;blockquote&gt;
 &lt;p&gt;排序&amp;gt;&amp;gt;选择排序&amp;gt;&amp;gt;选择排序&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;p&gt;List:&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;0.概念+伪代码+示例分析
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;0.概念+伪代码+示例分析
 1.选择排序实现
 2.Question
 &lt;/pre&gt;&lt;/div&gt;
@@ -382,64 +83,16 @@ jump 4&lt;/p&gt;
 &lt;p&gt;基本概念：&lt;/p&gt;
 &lt;p&gt;维基百科http://zh.wikipedia.org/wiki/%E9%81%B8%E6%93%87%E6%8E%92%E5%BA%8F&lt;/p&gt;
 &lt;p&gt;伪代码:&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;function selectSort(A : list[1..n]) {
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;function selectSort(A : list[1..n]) {
     index = n
     while (index &amp;gt; 1): #共有n-1次选择
     {
         max_index = index
-        for i from index  downto 1 {  #每次从剩余序列选出最大的
-        if(A[i] &amp;gt; A[max_index)
-        {
-            max_index = i
-            }
-        }
-        swap(A[index], A[max_index ])  #将最大的换到后面
-        index = index -1
-    }
-}
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;示例：&lt;/p&gt;
-&lt;p&gt;[49, 38, 65, 97, 76, 13, 27]&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Current index 6 value= 27 Max index: 3 value= 97
-exchange -&amp;gt; [49, 38, 65, 27, 76, 13, 97]
-Current index 5 value= 13 Max index: 4 value= 76
-exchange -&amp;gt; [49, 38, 65, 27, 13, 76, 97]
-Current index 4 value= 13 Max index: 2 value= 65
-exchange -&amp;gt; [49, 38, 13, 27, 65, 76, 97]
-Current index 3 value= 27 Max index: 0 value= 49
-exchange -&amp;gt; [27, 38, 13, 49, 65, 76, 97]
-Current index 2 value= 13 Max index: 1 value= 38
-exchange -&amp;gt; [27, 13, 38, 49, 65, 76, 97]
-Current index 1 value= 13 Max index: 0 value= 27
-exchange -&amp;gt; [13, 27, 38, 49, 65, 76, 97]
-Done
-&lt;/pre&gt;&lt;/div&gt;
-&lt;ol&gt;
-&lt;li&gt;start&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;实现代码&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;select_sort&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-    &lt;span class="n"&gt;index&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;
-    &lt;span class="k"&gt;while&lt;/span&gt; &lt;span class="n"&gt;index&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
-        &lt;span class="n"&gt;max_index&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;index&lt;/span&gt;
-        &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;index&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-            &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;max_index&lt;/span&gt;&lt;span class="p"&gt;]:&lt;/span&gt;
-                &lt;span class="n"&gt;max_index&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt;
-        &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;max_index&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;index&lt;/span&gt;&lt;span class="p"&gt;]:&lt;/span&gt;
-            &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;index&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt;&lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;max_index&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;max_index&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;index&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
-        &lt;span class="n"&gt;index&lt;/span&gt; &lt;span class="o"&gt;-=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;ol&gt;
-&lt;li&gt;start&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;A.概念，过程描述？&lt;/p&gt;
-&lt;p&gt;B.交换次数，比较次数，赋值次数?&lt;/p&gt;
-&lt;p&gt;C. 时间复杂度？空间复杂度？是否是稳定排序？&lt;/p&gt;
-&lt;p&gt;D.适用场景，何种情况下表现最优&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sun, 27 May 2012 00:00:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2012-05-27:posts/2012/05/27/python-ds-07-sort-select.html</guid><category>python-ds-algorithm</category></item><item><title>数据结构&amp;算法实践—【排序|交换排序】奇偶排序</title><link>http://www.wklken.me/posts/2012/05/17/python-ds-04-sort-oddeven.md.html</link><description>&lt;blockquote&gt;
+        for i from index …&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sun, 27 May 2012 00:00:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2012-05-27:/posts/2012/05/27/python-ds-07-sort-select.html</guid><category>python-ds-algorithm</category></item><item><title>数据结构&amp;算法实践—【排序|交换排序】奇偶排序</title><link>http://www.wklken.me/posts/2012/05/17/python-ds-04-sort-oddeven.md.html</link><description>&lt;blockquote&gt;
 &lt;p&gt;排序&amp;gt;&amp;gt;交换排序&amp;gt;&amp;gt;奇偶排序&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;p&gt;List:&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;0.概念+伪代码+示例分析
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;0.概念+伪代码+示例分析
 1.奇偶排序实现
 2.Question
 3.后续扩展
@@ -450,97 +103,13 @@ Done
 &lt;p&gt;基本概念:&lt;/p&gt;
 &lt;p&gt;维基百科http://zh.wikipedia.org/wiki/%E5%A5%87%E5%81%B6%E6%8E%92%E5%BA%8F&lt;/p&gt;
 &lt;p&gt;伪代码:&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;function odd_even(A: list[1..n]){
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;function odd_even(A: list[1..n]){
     whie has_swap:
-        for i from 0 to n-1 &amp;amp;&amp;amp; i%2==0 &amp;amp;&amp;amp; i+1&amp;lt;=n-1{
-            if(A[i] &amp;gt; A[i+1])
-                swap(A[i], A[i+1])
-        }
-        for j from 1 to n-1 &amp;amp;&amp;amp; j%2==1 &amp;amp;&amp;amp; j+1&amp;lt;=n-1{
-            if(A[j] &amp;gt; A[j+1])
-                swap(A[j], A[j+1])
-        }
-}
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;奇偶排序&lt;/p&gt;
-&lt;p&gt;类似于冒泡排序，冒泡排序并行化的版本()&lt;/p&gt;
-&lt;p&gt;简单但效率不高&lt;/p&gt;
-&lt;p&gt;每一轮存在两次排序：奇数排序（下标奇数与其邻居比较&amp;amp;交换），偶数排序（下标偶数与其邻居比较交换）&lt;/p&gt;
-&lt;p&gt;直到不存在数据交换&lt;/p&gt;
-&lt;p&gt;示例：&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;[50, 10, 30, 20, 40, 60]
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;第一轮 偶数排序&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;cmp 50 10
-change [10, 50, 30, 20, 40, 60]
-cmp 30 20
-change [10, 50, 20, 30, 40, 60]
-cmp 40 60
-odd range [10, 50, 20, 30, 40, 60]
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;第一轮 奇数排序&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;cmp 50 20
-change [10, 20, 50, 30, 40, 60]
-cmp 30 40
-even range [10, 20, 50, 30, 40, 60]
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;第二轮 偶数排序&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;cmp 10 20
-cmp 50 30
-change [10, 20, 30, 50, 40, 60]
-cmp 40 60
-odd range [10, 20, 30, 50, 40, 60]
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;第二轮 奇数排序&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;cmp 20 30
-cmp 50 40
-change [10, 20, 30, 40, 50, 60]
-even range [10, 20, 30, 40, 50, 60]
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;第三轮 不存在数据交换&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;cmp 10 20
-cmp 30 40
-cmp 50 60
-odd range [10, 20, 30, 40, 50, 60]
-cmp 20 30
-cmp 40 50
-even range [10, 20, 30, 40, 50, 60] #到这里，无数据交换，结束
-[10, 20, 30, 40, 50, 60]
-&lt;/pre&gt;&lt;/div&gt;
-&lt;ol&gt;
-&lt;li&gt;
-&lt;p&gt;start&lt;/p&gt;
-&lt;p&gt;:::python&lt;br/&gt;
-def oddeven_sort(l):&lt;br/&gt;
-    odd_range = range(0,len(l)-1,2)&lt;br/&gt;
-    even_range = range(1,len(l)-1,2)&lt;br/&gt;
-    sign = 1&lt;br/&gt;
-    while sign:&lt;br/&gt;
-        sign = 0&lt;br/&gt;
-        for i in odd_range:&lt;br/&gt;
-            if l[i] &amp;gt; l[i+1]:&lt;br/&gt;
-                l[i], l[i+1] = l[i+1],l[i]&lt;br/&gt;
-                sign = 1&lt;br/&gt;
-        for j in even_range:&lt;br/&gt;
-            if l[j] &amp;gt; l[j+1]:&lt;br/&gt;
-                l[j], l[j+1] = l[j+1], l[j]&lt;br/&gt;
-                sign = 1&lt;br/&gt;
-    print l&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;start&lt;/p&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;A.奇偶排序概念，过程描述？&lt;/p&gt;
-&lt;p&gt;B. 时间复杂度？空间复杂度？是否是稳定排序？&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;start&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;后续扩展&amp;mdash;&amp;mdash;Batcher奇偶归并排序（后面实现）&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Thu, 17 May 2012 00:00:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2012-05-17:posts/2012/05/17/python-ds-04-sort-oddeven.md.html</guid><category>python-ds-algorithm</category></item><item><title>数据结构&amp;算法实践—【排序|交换排序】梳子排序</title><link>http://www.wklken.me/posts/2012/05/17/python-ds-05-sort-comb.html</link><description>&lt;blockquote&gt;
+        for i from 0 to n-1 &amp;amp;&amp;amp; i%2 …&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Thu, 17 May 2012 00:00:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2012-05-17:/posts/2012/05/17/python-ds-04-sort-oddeven.md.html</guid><category>python-ds-algorithm</category></item><item><title>数据结构&amp;算法实践—【排序|交换排序】梳子排序</title><link>http://www.wklken.me/posts/2012/05/17/python-ds-05-sort-comb.html</link><description>&lt;blockquote&gt;
 &lt;p&gt;排序&amp;gt;&amp;gt;交换排序&amp;gt;&amp;gt;梳子排序&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;p&gt;List:&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;0.概念+伪代码+示例分析
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;0.概念+伪代码+示例分析
 1.梳子排序实现
 2.Question
 &lt;/pre&gt;&lt;/div&gt;
@@ -550,102 +119,16 @@ def oddeven_sort(l):&lt;br/&gt;
 &lt;p&gt;基本概念:&lt;/p&gt;
 &lt;p&gt;维基百科http://zh.wikipedia.org/wiki/%E6%A2%B3%E6%8E%92%E5%BA%8F&lt;/p&gt;
 &lt;p&gt;伪代码&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;function comb_sort(A: list[1..n]){
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;function comb_sort(A: list[1..n]){
     gap = A.size
     rate = 1.3
     while gap &amp;lt;= 1 &amp;amp;&amp;amp; swap = 0{
         //更新间距
-        gap := (int)gap/rate
-        swap := 0
-        i := 0
-        //梳一次
-        while i + gap &amp;lt; A.size{
-            if A[i] &amp;gt; A[i+gap]
-            A(array[i] , A[i+gap])
-            swap := 1 
-            i := i + 1
-        }
-    }
-}
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;梳子排序:&lt;/p&gt;
-&lt;p&gt;间隔gap   递减率rate(大于1的数)&lt;/p&gt;
-&lt;p&gt;比较 i 和 i+gap 位置的数字，若反序，交换，然后i+=1，直到比较i+gap超过最大索引&lt;/p&gt;
-&lt;p&gt;然后gap /= rate，再重复上面操作&lt;/p&gt;
-&lt;p&gt;直到gap=1 ，执行最后一遍梳理后结束&lt;/p&gt;
-&lt;p&gt;可以想象成 先拿一把大梳子（只有三个齿两个缝的）从第一个梳到最后一个，把两个缝隙里面反序的数交换&lt;/p&gt;
-&lt;p&gt;再换把小点的梳子，重复.&lt;/p&gt;
-&lt;p&gt;最终，中间那个齿消失（梳理相邻两个数），完成最后一遍梳理&lt;/p&gt;
-&lt;p&gt;例子：(关注gap和cmp的下标)&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;[8, 4, 3, 7, 6, 5, 2, 1]
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;gap:  6  [初始设定gap=size/1.3]&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;cmp l[0]=8,l[6]=2
-change [2, 4, 3, 7, 6, 5,8, 1]
-cmp l[1]=4,l[7]=1
-change [2, 1, 3, 7, 6, 5, 8,4]
-one time: [2, 1, 3, 7, 6, 5, 8, 4]
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;gap:  4&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;cmp l[0]=2,l[4]=6
-cmp l[1]=1,l[5]=5
-cmp l[2]=3,l[6]=8
-cmp l[3]=7,l[7]=4
-change [2, 1, 3, 4, 6, 5, 8,7]
-one time: [2, 1, 3, 4, 6, 5, 8, 7]
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;gap:  3&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;cmp l[0]=2,l[3]=4
-cmp l[1]=1,l[4]=6
-cmp l[2]=3,l[5]=5
-cmp l[3]=4,l[6]=8
-cmp l[4]=6,l[7]=7
-one time: [2, 1, 3, 4, 6, 5, 8, 7]
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;gap:  2&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;cmp l[0]=2,l[2]=3
-cmp l[1]=1,l[3]=4
-cmp l[2]=3,l[4]=6
-cmp l[3]=4,l[5]=5
-cmp l[4]=6,l[6]=8
-cmp l[5]=5,l[7]=7
-one time: [2, 1, 3, 4, 6, 5, 8, 7]
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;gap:  1&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;cmp l[0]=2,l[1]=1
-change [1,2, 3, 4, 6, 5, 8, 7]
-cmp l[1]=2,l[2]=3
-cmp l[2]=3,l[3]=4
-cmp l[3]=4,l[4]=6
-cmp l[4]=6,l[5]=5
-change [1, 2, 3, 4, 5,6, 8, 7]
-cmp l[5]=6,l[6]=8
-cmp l[6]=8,l[7]=7
-change [1, 2, 3, 4, 5, 6, 7,8]
-one time: [1, 2, 3, 4, 5, 6, 7, 8]
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;观察上面例子，梳排序可以有效地将乌龟（尾部的小数值和头部的大数值）调整到有序后位置的附近&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;
-&lt;p&gt;start&lt;/p&gt;
-&lt;p&gt;:::python&lt;br/&gt;
-def comb_sort(l):&lt;br/&gt;
-    dis = int(len(l)/1.3)&lt;br/&gt;
-    while dis:&lt;br/&gt;
-        for i in range(len(l)-dis):&lt;br/&gt;
-            if l[i] &amp;gt; l[i+dis]:&lt;br/&gt;
-                l[i], l[i+dis] = l[i+dis], l[i]&lt;br/&gt;
-        dis = int(dis/1.3)&lt;/p&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;2 start&lt;/p&gt;
-&lt;p&gt;A.奇偶排序概念，过程描述？&lt;/p&gt;
-&lt;p&gt;B. 时间复杂度？空间复杂度？是否是稳定排序？&lt;/p&gt;
-&lt;p&gt;C.适用场景&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Thu, 17 May 2012 00:00:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2012-05-17:posts/2012/05/17/python-ds-05-sort-comb.html</guid><category>python-ds-algorithm</category></item><item><title>数据结构&amp;算法实践—【排序|交换排序】冒泡排序及改进</title><link>http://www.wklken.me/posts/2012/05/16/python-ds-02-sort-bubble.html</link><description>&lt;blockquote&gt;
+        gap := (int)gap …&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Thu, 17 May 2012 00:00:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2012-05-17:/posts/2012/05/17/python-ds-05-sort-comb.html</guid><category>python-ds-algorithm</category></item><item><title>数据结构&amp;算法实践—【排序|交换排序】冒泡排序及改进</title><link>http://www.wklken.me/posts/2012/05/16/python-ds-02-sort-bubble.html</link><description>&lt;blockquote&gt;
 &lt;p&gt;排序&amp;gt;&amp;gt;交换排序&amp;gt;&amp;gt;冒泡排序&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;p&gt;List:&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;0.概念+伪代码+示例分析
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;0.概念+伪代码+示例分析
 1.基本冒泡排序
 2.冒泡排序改进1
 3.冒泡排序改进2&amp;mdash;&amp;mdash;局部冒泡排序
@@ -657,176 +140,13 @@ def comb_sort(l):&lt;br/&gt;
 &lt;p&gt;基本概念：&lt;/p&gt;
 &lt;p&gt;维基百科http://zh.wikipedia.org/wiki/%E5%86%92%E6%B3%A1%E6%8E%92%E5%BA%8F&lt;/p&gt;
 &lt;p&gt;伪代码：(来自百科)&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;function bubblesort (A : list[1..n]) {
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;function bubblesort (A : list[1..n]) {
     var int i, j;
-    for i from n downto 1 {
-        for j from 0 to i-1 { 
-            if (A[j] &amp;gt; A[j+1])
-                swap(A[j], A[j+1])
-        }
-    }
-}
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;简要排序过程的示例：(基本冒泡排序)&lt;/p&gt;
-&lt;p&gt;初始数组&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;[50, 10, 30, 20, 40, 60]
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;第一轮：&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;cmp 50 10 -&amp;gt; change [10, 50, 30, 20, 40, 60]
-cmp 50 30 -&amp;gt; change [10, 30, 50, 20, 40, 60]
-cmp 50 20 -&amp;gt; change [10, 30, 20, 50, 40, 60]
-cmp 50 40 -&amp;gt; change [10, 30, 20, 40, 50, 60]
-cmp 50 60 -&amp;gt; nochange
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;第二轮:&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;[10, 30, 20, 40, 50, 60]&lt;/span&gt;
-&lt;span class="err"&gt;cmp&lt;/span&gt; &lt;span class="err"&gt;10&lt;/span&gt; &lt;span class="err"&gt;30&lt;/span&gt; &lt;span class="err"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="err"&gt;nochange&lt;/span&gt;
-&lt;span class="err"&gt;cmp&lt;/span&gt; &lt;span class="err"&gt;30&lt;/span&gt; &lt;span class="err"&gt;20&lt;/span&gt; &lt;span class="err"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="err"&gt;change&lt;/span&gt; &lt;span class="k"&gt;[10, 20, 30, 40, 50, 60]&lt;/span&gt;
-&lt;span class="err"&gt;cmp&lt;/span&gt; &lt;span class="err"&gt;30&lt;/span&gt; &lt;span class="err"&gt;40&lt;/span&gt; &lt;span class="err"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="err"&gt;nochange&lt;/span&gt;
-&lt;span class="err"&gt;cmp&lt;/span&gt; &lt;span class="err"&gt;40&lt;/span&gt; &lt;span class="err"&gt;50&lt;/span&gt; &lt;span class="err"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="err"&gt;nochange&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;第三轮&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;[10, 20, 30, 40, 50, 60]&lt;/span&gt;
-&lt;span class="err"&gt;cmp&lt;/span&gt; &lt;span class="err"&gt;10&lt;/span&gt; &lt;span class="err"&gt;20&lt;/span&gt; &lt;span class="err"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="err"&gt;nochange&lt;/span&gt;
-&lt;span class="err"&gt;cmp&lt;/span&gt; &lt;span class="err"&gt;20&lt;/span&gt; &lt;span class="err"&gt;30&lt;/span&gt; &lt;span class="err"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="err"&gt;nochange&lt;/span&gt;
-&lt;span class="err"&gt;cmp&lt;/span&gt; &lt;span class="err"&gt;30&lt;/span&gt; &lt;span class="err"&gt;40&lt;/span&gt; &lt;span class="err"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="err"&gt;nochange&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;第四轮：&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;[10, 20, 30, 40, 50, 60]&lt;/span&gt;
-&lt;span class="err"&gt;cmp&lt;/span&gt; &lt;span class="err"&gt;10&lt;/span&gt; &lt;span class="err"&gt;20&lt;/span&gt; &lt;span class="err"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="err"&gt;nochange&lt;/span&gt;
-&lt;span class="err"&gt;cmp&lt;/span&gt; &lt;span class="err"&gt;20&lt;/span&gt; &lt;span class="err"&gt;30&lt;/span&gt; &lt;span class="err"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="err"&gt;nochange&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;第五轮：&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;[10, 20, 30, 40, 50, 60]&lt;/span&gt;
-&lt;span class="err"&gt;cmp&lt;/span&gt; &lt;span class="err"&gt;10&lt;/span&gt; &lt;span class="err"&gt;20&lt;/span&gt; &lt;span class="err"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="err"&gt;nochange&lt;/span&gt;
-&lt;span class="k"&gt;[10, 20, 30, 40, 50, 60]&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;cmp count 15&lt;/p&gt;
-&lt;p&gt;即共进行n-1=5轮冒泡，比较次数为 (n-1) + (n-2) + ......+1 =n*(n-1)/2=15&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;start&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;基本冒泡排序python实现:&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;#冒泡排序，base&lt;/span&gt;
-&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;bubble&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-    &lt;span class="k"&gt;print&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;
-    &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-        &lt;span class="c1"&gt;#每一轮冒泡，第 i个 元素会是最大的(i&amp;lt;=size-1)&lt;/span&gt;
-        &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;j&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-        &lt;span class="c1"&gt;#从0到i-1,比较 current 和next,若current &amp;gt; next，对换&lt;/span&gt;
-        &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;j&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;j&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;]:&lt;/span&gt;
-            &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;j&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;j&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;j&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;j&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
-        &lt;span class="k"&gt;print&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;ol&gt;
-&lt;li&gt;start&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;问题：在基本冒泡排序的示例中，第三轮结束时，其实已经排序完成了，但是还是一直会持续后面几轮的排序，这就带来了无谓的浪费.&lt;/p&gt;
-&lt;p&gt;改进：加入标志，判断，若是上一轮不存在数据交换，代表上一轮已经是排序的了，退出&lt;/p&gt;
-&lt;p&gt;比较次数:12&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;#改进1:  当某一轮跑完，不存在数据交换时，代表已排序完成，此时退出&lt;/span&gt;
-&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;bubble_improve&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-    &lt;span class="n"&gt;flag&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt; &lt;span class="c1"&gt;#初始标志，1&lt;/span&gt;
-    &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-        &lt;span class="c1"&gt;#若是上一轮存在数据交换，继续执行排序&lt;/span&gt;
-        &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;flag&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
-            &lt;span class="n"&gt;flag&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt; &lt;span class="c1"&gt;#每一轮初始，交换标志为0&lt;/span&gt;
-            &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;j&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-                &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;j&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;j&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;]:&lt;/span&gt;
-                    &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;j&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;j&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;j&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;j&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
-                    &lt;span class="n"&gt;flag&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt; &lt;span class="c1"&gt;#存在交换，标志置为1&lt;/span&gt;
-            &lt;span class="k"&gt;print&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;
-        &lt;span class="c1"&gt;#否则，代表目前序列已经排序完毕了&lt;/span&gt;
-        &lt;span class="k"&gt;else&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
-            &lt;span class="k"&gt;break&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;ol&gt;
-&lt;li&gt;start&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;局部冒泡排序：(资料不多，不知道自己理解对不对)&lt;/p&gt;
-&lt;p&gt;序列[ a b c d ] 冒泡到了b,此时a小于b，比较b c，若是 b 大于 c，交换b c 得到 [ a c b d ]&lt;/p&gt;
-&lt;p&gt;通常冒泡排序一直往前，继续比较b和d&lt;/p&gt;
-&lt;p&gt;其实，在完成一次数据交换时(b&amp;lt;-&amp;gt;c)，可以反向增加一次比较，(a 和 c) ，若是a&amp;gt;c,再次交换得到[ c a b d] &amp;mdash;&amp;mdash;反向做一次冒泡&lt;/p&gt;
-&lt;p&gt;（百度百科有几行....凑合看）&lt;/p&gt;
-&lt;p&gt;定义：可以在一趟全局扫描中，对每一反序数据对进行局部冒泡排序处理，称之为局部冒泡排序&lt;br/&gt;
-局部冒泡排序与冒泡排序算法具有相同的时间复杂度，并且在正序和逆序的情况下，所需的关键字的比较次数和移动次数完全相同。&lt;br/&gt;
-由于局部冒泡排序和冒泡排序的数据移动次数总是相同的，而局部冒泡排序所需关键字的比较次数常少于冒泡排序，这意味着局部冒泡排序很可能在平均比较次数上对冒泡排序有所改进&lt;br/&gt;
-当比较次数较少的优点不足以抵消其程序复杂度所带来的额外开销，而当数据量较大时，局部冒泡排序的时间性能则明显优于冒泡排序&lt;br/&gt;
-(查看百度百科，有张对比图)&lt;/p&gt;
-&lt;p&gt;简而言之，正向冒泡时，若存在数据交换，反向再进行一次冒泡比较。减少了比较次数&lt;/p&gt;
-&lt;p&gt;why?&lt;/p&gt;
-&lt;p&gt;假设在第二轮冒泡  到了50 &amp;lt;-&amp;gt; 30&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;[10, 20, 40, 50, 30, 60]&lt;/span&gt;
-&lt;span class="na"&gt;带标志位冒泡：cmp 50 30 -&amp;gt;change  [10, 20, 40, 30, 50, 60]     count+&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;1&lt;/span&gt;
-&lt;span class="na"&gt;第三轮 count+&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;4      (10,20) (20,40) (40,30) (40,50)&lt;/span&gt;
-&lt;span class="err"&gt;第四轮count&lt;/span&gt; &lt;span class="err"&gt;+3&lt;/span&gt;   &lt;span class="err"&gt;(10,20)&lt;/span&gt; &lt;span class="err"&gt;(20,30)&lt;/span&gt; &lt;span class="err"&gt;(30,40)&lt;/span&gt;     &lt;span class="err"&gt;(无数据交换了，退出)&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;共   8次&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;局部冒泡&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;cmp&lt;/span&gt; &lt;span class="mi"&gt;50&lt;/span&gt; &lt;span class="mi"&gt;30&lt;/span&gt; &lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;change&lt;/span&gt;  &lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;10&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;20&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;40&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;30&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;50&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;60&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;    &lt;span class="n"&gt;count&lt;/span&gt;&lt;span class="o"&gt;+=&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;
-&lt;span class="n"&gt;cmp&lt;/span&gt; &lt;span class="mi"&gt;40&lt;/span&gt; &lt;span class="mi"&gt;30&lt;/span&gt; &lt;span class="o"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;change&lt;/span&gt;  &lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;10&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;20&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;30&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;40&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt;  &lt;span class="mi"&gt;50&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;60&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;  &lt;span class="n"&gt;count&lt;/span&gt;&lt;span class="o"&gt;+=&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;
-&lt;span class="err"&gt;第三轮&lt;/span&gt; &lt;span class="n"&gt;count&lt;/span&gt;&lt;span class="o"&gt;+=&lt;/span&gt;&lt;span class="mi"&gt;4&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="err"&gt;无数据交换了，退出&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;共 6次&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;#改进2: 局部冒泡排序&lt;/span&gt;
-&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;bubble_improve2&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-    &lt;span class="k"&gt;print&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;
-    &lt;span class="n"&gt;flag&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;
-    &lt;span class="n"&gt;scope&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;
-    &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;scope&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-        &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;flag&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; 
-            &lt;span class="n"&gt;flag&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;
-            &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;j&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-                &lt;span class="n"&gt;inner_flag&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt; &lt;span class="c1"&gt;#本次是否存在数据交换标志，每次置空，不复用flag的原因是如果第一次就交换了，会造成不必要的局部冒泡&lt;/span&gt;
-                &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;j&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;j&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;]:&lt;/span&gt;
-                    &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;j&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;j&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;j&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;j&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
-                    &lt;span class="n"&gt;flag&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;
-                    &lt;span class="n"&gt;inner_flag&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;
-                &lt;span class="c1"&gt;#从前往后的冒泡，j与j+1发生数据交换了,反向冒泡 j-1 j&lt;/span&gt;
-                &lt;span class="c1"&gt;#若是本轮存在数据交换，局部排序处理 j-1  j j+1，保证是从小到大的 &lt;/span&gt;
-                &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;inner_flag&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
-                    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;j&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
-                        &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;j&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;j&lt;/span&gt;&lt;span class="p"&gt;]:&lt;/span&gt;
-                            &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;j&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;j&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;j&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt;&lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;j&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
-            &lt;span class="k"&gt;print&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;
-        &lt;span class="k"&gt;else&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
-        &lt;span class="k"&gt;break&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;局部冒泡排序一个示例过程：&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;[50, 10, 30, 20, 40, 60]&lt;/span&gt;
-&lt;span class="err"&gt;cmp&lt;/span&gt; &lt;span class="err"&gt;50&lt;/span&gt; &lt;span class="err"&gt;10&lt;/span&gt; &lt;span class="err"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="err"&gt;change&lt;/span&gt; &lt;span class="k"&gt;[10, 50, 30, 20, 40, 60]&lt;/span&gt;
-&lt;span class="err"&gt;cmp&lt;/span&gt; &lt;span class="err"&gt;50&lt;/span&gt; &lt;span class="err"&gt;30&lt;/span&gt; &lt;span class="err"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="err"&gt;change&lt;/span&gt; &lt;span class="k"&gt;[10, 30, 50, 20, 40, 60]&lt;/span&gt;
-&lt;span class="err"&gt;cmp&lt;/span&gt; &lt;span class="err"&gt;50&lt;/span&gt; &lt;span class="err"&gt;20&lt;/span&gt; &lt;span class="err"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="err"&gt;change&lt;/span&gt; &lt;span class="k"&gt;[10, 30, 20, 50, 40, 60]&lt;/span&gt;
-&lt;span class="err"&gt;inner&lt;/span&gt; &lt;span class="err"&gt;cmp&lt;/span&gt; &lt;span class="err"&gt;30&lt;/span&gt; &lt;span class="err"&gt;20&lt;/span&gt;
-&lt;span class="err"&gt;inner&lt;/span&gt; &lt;span class="err"&gt;change&lt;/span&gt; &lt;span class="k"&gt;[10, 20, 30, 50, 40, 60]&lt;/span&gt;
-&lt;span class="err"&gt;cmp&lt;/span&gt; &lt;span class="err"&gt;50&lt;/span&gt; &lt;span class="err"&gt;40&lt;/span&gt; &lt;span class="err"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="err"&gt;change&lt;/span&gt; &lt;span class="k"&gt;[10, 20, 30, 40, 50, 60]&lt;/span&gt;
-&lt;span class="err"&gt;inner&lt;/span&gt; &lt;span class="err"&gt;cmp&lt;/span&gt; &lt;span class="err"&gt;30&lt;/span&gt; &lt;span class="err"&gt;40&lt;/span&gt;
-&lt;span class="err"&gt;cmp&lt;/span&gt; &lt;span class="err"&gt;50&lt;/span&gt; &lt;span class="err"&gt;60&lt;/span&gt; &lt;span class="err"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="err"&gt;nochange&lt;/span&gt;
-&lt;span class="k"&gt;[10, 20, 30, 40, 50, 60]&lt;/span&gt;
-&lt;span class="err"&gt;cmp&lt;/span&gt; &lt;span class="err"&gt;10&lt;/span&gt; &lt;span class="err"&gt;20&lt;/span&gt; &lt;span class="err"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="err"&gt;nochange&lt;/span&gt;
-&lt;span class="err"&gt;cmp&lt;/span&gt; &lt;span class="err"&gt;20&lt;/span&gt; &lt;span class="err"&gt;30&lt;/span&gt; &lt;span class="err"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="err"&gt;nochange&lt;/span&gt;
-&lt;span class="err"&gt;cmp&lt;/span&gt; &lt;span class="err"&gt;30&lt;/span&gt; &lt;span class="err"&gt;40&lt;/span&gt; &lt;span class="err"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="err"&gt;nochange&lt;/span&gt;
-&lt;span class="err"&gt;cmp&lt;/span&gt; &lt;span class="err"&gt;40&lt;/span&gt; &lt;span class="err"&gt;50&lt;/span&gt; &lt;span class="err"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="err"&gt;nochange&lt;/span&gt;
-&lt;span class="k"&gt;[10, 20, 30, 40, 50, 60]&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;ol&gt;
-&lt;li&gt;start&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;仅是贴出来，权当复习，木有答案，后续补充&lt;/p&gt;
-&lt;p&gt;A.冒泡排序概念，过程描述？&lt;/p&gt;
-&lt;p&gt;B.最差，平均，最优 时间复杂度？&lt;/p&gt;
-&lt;p&gt;C.空间复杂度？&lt;/p&gt;
-&lt;p&gt;D.是否是稳定排序？&lt;/p&gt;
-&lt;p&gt;E.如何改进？&lt;/p&gt;
-&lt;p&gt;F.局部冒泡排序原理？&lt;/p&gt;
-&lt;p&gt;G.适用场景，什么情况下最优，什么情况下最差？&lt;/p&gt;
-&lt;p&gt;-----------------------------------------  END -------------------------------------------------&lt;/p&gt;
-&lt;p&gt;P.S.&lt;/p&gt;
-&lt;p&gt;这是第一篇，有什么不对请指正哈，欢迎补充任何问题和答案&lt;/p&gt;
-&lt;p&gt;白天上班加班(SDET)，夜深敲代码(python,java.......)，会坚持写完的&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Wed, 16 May 2012 00:00:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2012-05-16:posts/2012/05/16/python-ds-02-sort-bubble.html</guid><category>python-ds-algorithm</category></item><item><title>数据结构&amp;算法实践—【排序|交换排序】鸡尾酒排序</title><link>http://www.wklken.me/posts/2012/05/16/python-ds-03-sort-cocktail.html</link><description>&lt;blockquote&gt;
+    for i …&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Wed, 16 May 2012 00:00:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2012-05-16:/posts/2012/05/16/python-ds-02-sort-bubble.html</guid><category>python-ds-algorithm</category></item><item><title>数据结构&amp;算法实践—【排序|交换排序】鸡尾酒排序</title><link>http://www.wklken.me/posts/2012/05/16/python-ds-03-sort-cocktail.html</link><description>&lt;blockquote&gt;
 &lt;p&gt;排序&amp;gt;&amp;gt;交换排序&amp;gt;&amp;gt;鸡尾酒排序&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;p&gt;List:&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;0.概念+伪代码+示例分析
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;0.概念+伪代码+示例分析
 1.鸡尾酒排序实现
 2.Question
 &lt;/pre&gt;&lt;/div&gt;
@@ -836,126 +156,9 @@ cmp 50 60 -&amp;gt; nochange
 &lt;p&gt;基本概念:&lt;/p&gt;
 &lt;p&gt;维基百科http://zh.wikipedia.org/wiki/%E9%B8%A1%E5%B0%BE%E9%85%92%E6%8E%92%E5%BA%8F&lt;/p&gt;
 &lt;p&gt;伪代码：&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;function cocktail_sort(A: list[1..n]){
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;function cocktail_sort(A: list[1..n]){
     for i from 0 to n/2{
-        for f from i to (n-i-2){
-            if(A[a] &amp;gt; A[a+1])
-                swap(A[a],A[a+1])
-        }
-        for b from  (n-i-2) to (i+1){
-            if(A[b] &amp;lt; A[b-1])
-                swap(A[b],A[b-1]
-        }
-    }
-}
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;鸡尾酒排序是冒泡排序的变种&amp;mdash;&amp;mdash;双向冒泡排序&lt;/p&gt;
-&lt;p&gt;从伪代码可以看到，每一轮循环，从前到后一次正向冒泡，之后从后往前再进行一次逆向冒泡(每一轮存在两个数被排序)&lt;/p&gt;
-&lt;p&gt;可以看到的表现是两边先排序好，逐渐向中间有序&lt;/p&gt;
-&lt;p&gt;示例：&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;-&amp;gt;[50, 10, 30, 20, 60, 40, 1]
--&amp;gt; [10, 30, 20, 50, 40, 1, 60]  第一轮正向
--&amp;gt; [1, 10, 30, 20, 50, 40, 60]  第一轮逆向
--&amp;gt; [1, 10, 20, 30, 40, 50, 60]  第二轮正向
--&amp;gt; [1, 10, 20, 30, 40, 50, 60]  第二轮逆向，无交换，结束
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;详细比较过程:&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;[50, 10, 30, 20, 60, 40, 1]
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;第一轮     正向&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;l-&amp;gt;r  cmp 50 10
-change [10, 50, 30, 20, 60, 40, 1]
-l-&amp;gt;r  cmp 50 30
-change [10, 30, 50, 20, 60, 40, 1]
-l-&amp;gt;r  cmp 50 20
-change [10, 30, 20, 50, 60, 40, 1]
-l-&amp;gt;r  cmp 50 60
-l-&amp;gt;r  cmp 60 40
-change [10, 30, 20, 50, 40, 60, 1]
-l-&amp;gt;r  cmp 60 1
-change [10, 30, 20, 50, 40, 1, 60]
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;第一轮    逆向&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;r-&amp;gt;l  cmp 1 40
-change [10, 30, 20, 50, 1, 40, 60]
-r-&amp;gt;l  cmp 1 50
-change [10, 30, 20, 1, 50, 40, 60]
-r-&amp;gt;l  cmp 1 20
-change [10, 30, 1, 20, 50, 40, 60]
-r-&amp;gt;l  cmp 1 30
-change [10, 1, 30, 20, 50, 40, 60]
-r-&amp;gt;l  cmp 1 10
-change [1, 10, 30, 20, 50, 40, 60]
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;[1, 10, 30, 20, 50, 40, 60]&lt;/p&gt;
-&lt;p&gt;第二轮 正向&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;l-&amp;gt;r  cmp 10 30
-l-&amp;gt;r  cmp 30 20
-change [1, 10, 20, 30, 50, 40, 60]
-l-&amp;gt;r  cmp 30 50
-l-&amp;gt;r  cmp 50 40
-change [1, 10, 20, 30, 40, 50, 60]
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;第二轮 逆向&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;r-&amp;gt;l  cmp 40 30
-r-&amp;gt;l  cmp 30 20
-r-&amp;gt;l  cmp 20 10
-[1, 10, 20, 30, 40, 50, 60] (上一轮逆向无交换，结束排序)
-[1, 10, 20, 30, 40, 50, 60]
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;本数组共比较18次，而使用带标志冒泡排序需要21次&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;start&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;实现代码&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;cocktail_sort&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-    &lt;span class="n"&gt;size&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-    &lt;span class="n"&gt;sign&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;  &lt;span class="c1"&gt;#用于判断上轮排序是否存在数据交换&lt;/span&gt;
-    &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;size&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-        &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;sign&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
-            &lt;span class="n"&gt;sign&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;
-            &lt;span class="c1"&gt;#正向，冒泡   从   i 到    对称的位置-1&lt;/span&gt;
-            &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;j&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;size&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-                &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;j&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;j&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;]:&lt;/span&gt;
-                    &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;j&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;j&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;j&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;j&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
-            &lt;span class="c1"&gt;#逆向，冒泡  从正向排完最大数的前一个开始，到  i&lt;/span&gt;
-            &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;k&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;size&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-                &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;k&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;k&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;]:&lt;/span&gt;
-                    &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;k&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;k&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;k&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;k&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
-                    &lt;span class="n"&gt;sign&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;  &lt;span class="c1"&gt;#若是逆向存在交换，代表还没排序完成，否则，排序完成&lt;/span&gt;
-        &lt;span class="k"&gt;else&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
-            &lt;span class="k"&gt;break&lt;/span&gt;
-    &lt;span class="k"&gt;print&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;改换成while&lt;/p&gt;
-&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;cocktail_sort2&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-    &lt;span class="n"&gt;size&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-    &lt;span class="n"&gt;sign&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;  &lt;span class="c1"&gt;#用于判断上轮排序是否存在数据交换&lt;/span&gt;
-    &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;
-    &lt;span class="k"&gt;while&lt;/span&gt; &lt;span class="n"&gt;sign&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
-    &lt;span class="n"&gt;sign&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;
-    &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;j&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;size&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-        &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;j&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;j&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;]:&lt;/span&gt;
-            &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;j&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;j&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;j&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;j&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
-    &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;k&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;size&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-        &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;k&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;k&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;]:&lt;/span&gt;
-            &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;k&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;k&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;k&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;l&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;k&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
-            &lt;span class="n"&gt;sign&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;  &lt;span class="c1"&gt;#若是逆向存在交换，代表还没排序完成，否则，排序完成&lt;/span&gt;
-    &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;+=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;也可以维护一个bottom和top，每次bottom+1,top-1&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;start&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;A.鸡尾酒排序概念，过程描述？&lt;/p&gt;
-&lt;p&gt;B.最差，平均，最优 时间复杂度？&lt;br/&gt;
-   最差=平均=O(n^2)  最优=O(n)&lt;/p&gt;
-&lt;p&gt;C.空间复杂度？&lt;/p&gt;
-&lt;p&gt;D.是否是稳定排序？&lt;/p&gt;
-&lt;p&gt;E.存在什么方法可以更优化&lt;/p&gt;
-&lt;p&gt;F.适用场景，什么情况下最优，什么情况下最差？&lt;/p&gt;
-&lt;p&gt;-----------------------------------------  END -------------------------------------------------&lt;/p&gt;
-&lt;p&gt;p.s.维基百科的动态排序图很赞&amp;amp;坑爹好几种排序无中文描述，只能啃英文版的百科了，到时候一块贴了&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Wed, 16 May 2012 00:00:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2012-05-16:posts/2012/05/16/python-ds-03-sort-cocktail.html</guid><category>python-ds-algorithm</category></item><item><title>数据结构&amp;算法实践-Python——序章</title><link>http://www.wklken.me/posts/2012/05/10/python-ds-01-start.html</link><description>&lt;p&gt;很久很久之前的blog，没写完的系列，当时想写完来着，有点用，先转过来&lt;/p&gt;
+        for f …&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Wed, 16 May 2012 00:00:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2012-05-16:/posts/2012/05/16/python-ds-03-sort-cocktail.html</guid><category>python-ds-algorithm</category></item><item><title>数据结构&amp;算法实践-Python——序章</title><link>http://www.wklken.me/posts/2012/05/10/python-ds-01-start.html</link><description>&lt;p&gt;很久很久之前的blog，没写完的系列，当时想写完来着，有点用，先转过来&lt;/p&gt;
 &lt;p&gt;数据结构&amp;amp;算法实践&amp;mdash;&amp;mdash;Python&amp;nbsp;&lt;/p&gt;
 &lt;p&gt;--------------------------------------目录 START------------------------------------------------&lt;/p&gt;
 &lt;p&gt;第一部分列表(目录主要来自于维基百科)&lt;/p&gt;
@@ -971,38 +174,4 @@ r-&amp;gt;l  cmp 20 10
 &lt;p&gt;非比较排序法&lt;/p&gt;
 &lt;p&gt;基数排序 | 桶排序 | 计数排序 | 鸽巢排序 | Burstsort | Bead sort&lt;/p&gt;
 &lt;p&gt;其他&lt;/p&gt;
-&lt;p&gt;拓扑排序 | 排序网络 | Bitonic sorter | Batcher odd-even mergesort | Pancake sorting&lt;/p&gt;
-&lt;p&gt;低效排序法&lt;/p&gt;
-&lt;p&gt;Bogosort | Stooge sort&lt;/p&gt;
-&lt;p&gt;模块二：经典查找&lt;/p&gt;
-&lt;p&gt;模块三：数据结构(后续补充完整，树和图是大头，包含很多分类和经典算法)&lt;/p&gt;
-&lt;p&gt;线性表 &amp;nbsp; 队列 &amp;nbsp; 栈 &amp;nbsp; 堆 &amp;nbsp; 树 &amp;nbsp;图&lt;/p&gt;
-&lt;p&gt;--------------------------------------目录 END------------------------------------------------&lt;/p&gt;
-&lt;p&gt;写在前面&lt;/p&gt;
-&lt;p&gt;毕业迄今也接近一年了，发现很多学校的东西似乎生疏了.&lt;/p&gt;
-&lt;p&gt;最近重新拿起数据结构，算法导论，离散数学，决定用代码敲些东西，权当复习&lt;/p&gt;
-&lt;p&gt;大部分的地方我只会给出例子和具体的代码实现，顺带给出一些百科的链接，概念和理论性的东西网上都有，不赘述了&lt;br/&gt;
-&lt;br/&gt;
-之所以选择用python来写，主要是python的可读性非常好，即使不写注释，也能很轻松读懂.&lt;/p&gt;
-&lt;p&gt;我把这个过程大概切成三个部分：&lt;/p&gt;
-&lt;p&gt;1.经典数据结构和算法的实现&lt;/p&gt;
-&lt;p&gt;实现基本的经典算法，包括经典排序，经典查找，索引等，基本实现及改进&lt;/p&gt;
-&lt;p&gt;实现基本的数据结构，包括线性表，队列，栈，堆，树，图等，包含扩展&lt;/p&gt;
-&lt;p&gt;使用实现类似Java的数据结构，至始至终都认为java的api最为优美，使用Python实现之，包括Map,List,Set等，提供相同的API，同时希望会循序渐进，先用简单直观的方法实现，给出优化，涉及的知识主要是python面向对象，继承，重写内置方法，封装，（要对Python和java数据结构实现的底层源码有了解，需要看源代码）&lt;/p&gt;
-&lt;p&gt;2.笔试题面试题数据结构和算法实现&lt;/p&gt;
-&lt;p&gt;笔试&amp;amp;面试题的python处理&lt;/p&gt;
-&lt;p&gt;使用Python搞定笔试题&amp;amp;面试题中出现的算法和数据结构题目&lt;/p&gt;
-&lt;p&gt;包含大规模数据处理的详细例子&lt;/p&gt;
-&lt;p&gt;3.challenge&lt;/p&gt;
-&lt;p&gt;挑战一些大个的东西，深入实现一些较为复杂的算法&lt;/p&gt;
-&lt;p&gt;不罗嗦，先列下目录，已经写完一部分了，逐步发出来，更新目录(挪到前头去了)&lt;br/&gt;
-&lt;br/&gt;
-先列这些，逐渐补充.&lt;/p&gt;
-&lt;p&gt;每天上完班回来，啃这堆砖头，然后敲出来，累却充实.&lt;/p&gt;
-&lt;p&gt;敲代码，调试代码其实是一件十分快乐的事情&lt;/p&gt;
-&lt;p&gt;My daytime job is SDET,平时敲自己喜欢的代码的时间并不会太多，业余时间有限&lt;/p&gt;
-&lt;p&gt;但做事贵善始善终，会坚持搞完的哈!&lt;br/&gt;
-&lt;br/&gt;
-The End!&lt;/p&gt;
-&lt;p&gt;wklken@yeah.net&lt;/p&gt;
-&lt;p&gt;2012-05-10&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Thu, 10 May 2012 00:00:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2012-05-10:posts/2012/05/10/python-ds-01-start.html</guid><category>python-ds-algorithm</category></item></channel></rss>
+&lt;p&gt;拓扑排序 | 排序网络 | Bitonic …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Thu, 10 May 2012 00:00:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2012-05-10:/posts/2012/05/10/python-ds-01-start.html</guid><category>python-ds-algorithm</category></item></channel></rss>
