@@ -86,7 +86,32 @@
 <h2 id="pythonde-han-shu-shi-dui-xiang">python的函数是对象</h2>
 <p>要理解装饰器，首先，你必须明白，在python中，函数是对象. 这很重要.</p>
 <p>简单例子来理解为什么</p>
-<div class="monokai"><pre><span></span>def shout(word="yes"):
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26</pre></div></td><td class="code"><div class="monokai"><pre><span></span>def shout(word="yes"):
     return word.capitalize()+"!"
 
 print shout()
@@ -113,9 +138,29 @@ except NameError, e:
 print scream()
 # outputs: 'Yes!'
 </pre></div>
+</td></tr></table>
 <p>好了，记住这点，我们将会很快用到它.</p>
 <p>Python函数另一个有趣的特性是，函数可以被定义在另一个函数里面</p>
-<div class="monokai"><pre><span></span>def talk():
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20</pre></div></td><td class="code"><div class="monokai"><pre><span></span>def talk():
     # 你可以定义一个函数
     def whisper(word="yes"):
         return word.lower()+"..."
@@ -136,12 +181,44 @@ except NameError, e:
     print e
     #outputs : "name 'whisper' is not defined"*
 </pre></div>
+</td></tr></table>
 <h2 id="han-shu-yin-yong">函数引用</h2>
 <p>好了，到这里了，接下来是有意思的部分，我们刚才看到 函数是对象，然后:</p>
 <p>1.函数可以赋值给一个变量</p>
 <p>2.函数可以定义在另一个函数内部</p>
 <p>即，这也意味着一个函数可以返回另一个函数:-）,让我们来看另一段代码</p>
-<div class="monokai"><pre><span></span>def getTalk(type="shout"):
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32</pre></div></td><td class="code"><div class="monokai"><pre><span></span>def getTalk(type="shout"):
 
     # 定义函数
     def shout(word="yes"):
@@ -174,8 +251,16 @@ print talk()
 print getTalk("whisper")()
 #outputs : yes...
 </pre></div>
+</td></tr></table>
 <p>但是稍等，如果你可以返回一个函数，那么你也可以将函数作为参数传递</p>
-<div class="monokai"><pre><span></span>def doSomethingBefore(func):
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7
+8</pre></div></td><td class="code"><div class="monokai"><pre><span></span>def doSomethingBefore(func):
     print "I do something before then I call the function you gave me"
     print func()
 
@@ -184,11 +269,49 @@ doSomethingBefore(scream)
 #I do something before then I call the function you gave me
 #Yes!
 </pre></div>
+</td></tr></table>
 <p>好了，现在你已经了解要理解装饰器的每件事.</p>
 <p>装饰器就是封装器，可以让你在被装饰函数之前或之后执行代码，而不必修改函数本身</p>
 <h2 id="shou-gong-zhuang-shi-qi">手工装饰器</h2>
 <p>如何书写一个装饰器</p>
-<div class="monokai"><pre><span></span># 装饰器是一个以另一个函数为参数的函数
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38</pre></div></td><td class="code"><div class="monokai"><pre><span></span># 装饰器是一个以另一个函数为参数的函数
 def my_shiny_new_decorator(a_function_to_decorate):
 
     # 在这里，装饰器定义一个函数： 包装器.
@@ -227,9 +350,17 @@ a_stand_alone_function_decorated()
 #I am a stand alone function, don't you dare modify me
 #After the function runs
 </pre></div>
+</td></tr></table>
 <p>到这里，或许你想每次调用a_stand_alone_function都使用a_stand_alone_function_decorated替代之
 很简单，只需要将a_stand_alone_function用my_shiny_new_decorator装饰返回</p>
-<div class="monokai"><pre><span></span>a_stand_alone_function = my_shiny_new_decorator(a_stand_alone_function)
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7
+8</pre></div></td><td class="code"><div class="monokai"><pre><span></span>a_stand_alone_function = my_shiny_new_decorator(a_stand_alone_function)
 a_stand_alone_function()
 #outputs:
 #Before the function runs
@@ -238,9 +369,18 @@ a_stand_alone_function()
 
 # 这就是装饰器做的事情!
 </pre></div>
+</td></tr></table>
 <h2 id="zhuang-shi-qi-chan-shu">装饰器阐述</h2>
 <p>前面的例子，使用装饰器语法</p>
-<div class="monokai"><pre><span></span>@my_shiny_new_decorator
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9</pre></div></td><td class="code"><div class="monokai"><pre><span></span>@my_shiny_new_decorator
 def another_stand_alone_function():
     print "Leave me alone"
 
@@ -250,13 +390,43 @@ another_stand_alone_function()
 #Leave me alone
 #After the function runs
 </pre></div>
+</td></tr></table>
 <p>是的，就是这么简单. @decorator是下面代码的简写</p>
-<div class="monokai"><pre><span></span>nother_stand_alone_function = my_shiny_new_decorator(another_stand_alone_function)
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="monokai"><pre><span></span>nother_stand_alone_function = my_shiny_new_decorator(another_stand_alone_function)
 </pre></div>
+</td></tr></table>
 <p>装饰器只是 <a href="http://en.wikipedia.org/wiki/Decorator_pattern">装饰器模式</a>的python实现</p>
 <p>python代码中还存在其他几个经典的设计模式，以方便开发，例如迭代器iterators</p>
 <p>当然，你可以累加装饰器</p>
-<div class="monokai"><pre><span></span>def bread(func):
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29</pre></div></td><td class="code"><div class="monokai"><pre><span></span>def bread(func):
     def wrapper():
         print "<span class="err">&lt;</span>/''''''\&gt;"
         func()
@@ -286,8 +456,20 @@ sandwich()
 # ~salad~
 #<span class="err">&lt;</span>\______/&gt;
 </pre></div>
+</td></tr></table>
 <p>使用python装饰器语法</p>
-<div class="monokai"><pre><span></span>@bread
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12</pre></div></td><td class="code"><div class="monokai"><pre><span></span>@bread
 @ingredients
 def sandwich(food="--ham--"):
     print food
@@ -300,8 +482,20 @@ sandwich()
 # ~salad~
 #&lt;\______/&gt;
 </pre></div>
+</td></tr></table>
 <p>装饰器位置的顺序很重要</p>
-<div class="monokai"><pre><span></span>@ingredients
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12</pre></div></td><td class="code"><div class="monokai"><pre><span></span>@ingredients
 @bread
 def strange_sandwich(food="--ham--"):
     print food
@@ -314,8 +508,37 @@ def strange_sandwich(food="--ham--"):
 #&lt;\______/&gt;
 # ~salad~'
 </pre></div>
+</td></tr></table>
 <h2 id="zui-hou-hui-da-wen-ti">最后回答问题</h2>
-<div class="monokai"><pre><span></span># bold装饰器
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29</pre></div></td><td class="code"><div class="monokai"><pre><span></span># bold装饰器
 def makebold(fn):
     def wrapper():
         # 在前后加入标签
@@ -345,9 +568,27 @@ say = makebold(makeitalic(say))
 print say()
 #outputs: <span class="nt">&lt;b&gt;&lt;i&gt;</span>hello<span class="nt">&lt;/i&gt;&lt;/b&gt;</span>
 </pre></div>
+</td></tr></table>
 <p>好了，到这里你可以高兴地离开了，或者来看下一些装饰器高级的用法</p>
 <h3 id="xiang-zhuang-shi-qi-han-shu-chuan-di-can-shu">向装饰器函数传递参数</h3>
-<div class="monokai"><pre><span></span># 这不是黑魔法，你只需要让包装传递参数:
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18</pre></div></td><td class="code"><div class="monokai"><pre><span></span># 这不是黑魔法，你只需要让包装传递参数:
 
 def a_decorator_passing_arguments(function_to_decorate):
     def a_wrapper_accepting_arguments(arg1, arg2):
@@ -366,9 +607,27 @@ print_full_name("Peter", "Venkman")
 #I got args! Look: Peter Venkman
 #My name is Peter Venkman
 </pre></div>
+</td></tr></table>
 <h3 id="zhuang-shi-fang-fa">装饰方法</h3>
 <p>Python中对象的方法和函数是一样的，除了对象的方法首个参数是指向当前对象的引用(self)。这意味着你可以用同样的方法构建一个装饰器，只是必须考虑self</p>
-<div class="monokai"><pre><span></span><span class="s s-Atom">def</span> <span class="nf">method_friendly_decorator</span><span class="p">(</span><span class="s s-Atom">method_to_decorate</span><span class="p">)</span><span class="s s-Atom">:</span>
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18</pre></div></td><td class="code"><div class="monokai"><pre><span></span><span class="s s-Atom">def</span> <span class="nf">method_friendly_decorator</span><span class="p">(</span><span class="s s-Atom">method_to_decorate</span><span class="p">)</span><span class="s s-Atom">:</span>
     <span class="s s-Atom">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="s s-Atom">self</span><span class="p">,</span> <span class="s s-Atom">lie</span><span class="p">)</span><span class="s s-Atom">:</span>
         <span class="s s-Atom">lie</span> <span class="o">=</span> <span class="s s-Atom">lie</span> <span class="o">-</span> <span class="mi">3</span> <span class="s s-Atom">#</span> <span class="s s-Atom">very</span> <span class="s s-Atom">friendly</span><span class="p">,</span> <span class="s s-Atom">decrease</span> <span class="s s-Atom">age</span> <span class="s s-Atom">even</span> <span class="nf">more</span> <span class="o">:-</span><span class="p">)</span>
         <span class="s s-Atom">return</span> <span class="nf">method_to_decorate</span><span class="p">(</span><span class="s s-Atom">self</span><span class="p">,</span> <span class="s s-Atom">lie</span><span class="p">)</span>
@@ -387,12 +646,73 @@ print_full_name("Peter", "Venkman")
 <span class="s s-Atom">l</span><span class="p">.</span><span class="nf">sayYourAge</span><span class="p">(</span><span class="o">-</span><span class="mi">3</span><span class="p">)</span>
 <span class="c1">#outputs: I am 26, what did you think?</span>
 </pre></div>
+</td></tr></table>
 <p>当然，你可以构造一个更加通用的装饰器，可以作用在任何函数或对象方法上，而不必关系其参数
 使用</p>
-<div class="monokai"><pre><span></span>*args, **kwargs
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="monokai"><pre><span></span>*args, **kwargs
 </pre></div>
+</td></tr></table>
 <p>如下代码</p>
-<div class="monokai"><pre><span></span>def a_decorator_passing_arbitrary_arguments(function_to_decorate):
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60</pre></div></td><td class="code"><div class="monokai"><pre><span></span>def a_decorator_passing_arbitrary_arguments(function_to_decorate):
     # 包装函数可以接受任何参数
     def a_wrapper_accepting_arbitrary_arguments(*args, **kwargs):
         print "Do I have args?:"
@@ -453,11 +773,35 @@ m.sayYourAge()
 #{}
 #I am 28, what did you think?
 </pre></div>
+</td></tr></table>
 <h3 id="xiang-zhuang-shi-qi-chuan-di-can-shu">向装饰器传递参数</h3>
 <p>好了，现在你或许会想是否可以向装饰器本身传递参数</p>
 <p>装饰器必须使用函数作为参数，所以这看起来会有些复杂，你不能直接传递参数给装饰器本身</p>
 <p>在开始处理这个问题前，看一点提醒</p>
-<div class="monokai"><pre><span></span># 装饰器是普通的方法
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24</pre></div></td><td class="code"><div class="monokai"><pre><span></span># 装饰器是普通的方法
 def my_decorator(func):
     print "I am a ordinary function"
     def wrapper():
@@ -482,9 +826,53 @@ def lazy_function():
 
 #outputs: I am a ordinary function
 </pre></div>
+</td></tr></table>
 <p>上面两个形式本质上是相同的， "my_decorator" 被调用.所以当你使用"@my_decorator",告诉python一个函数被变量"my_decorator"标记
 这十分重要,因为你提供的标签直接指向装饰器...或者不是，继续</p>
-<div class="monokai"><pre><span></span># 声明一个用于创建装饰器的函数
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44</pre></div></td><td class="code"><div class="monokai"><pre><span></span># 声明一个用于创建装饰器的函数
 def decorator_maker():
 
     print "I make decorators! I am executed only once: "+\
@@ -529,8 +917,23 @@ decorated_function()
 #As the wrapper, I return the RESULT of the decorated function.
 #I am the decorated function.
 </pre></div>
+</td></tr></table>
 <p>我们跳过中间变量，做同样的事情</p>
-<div class="monokai"><pre><span></span>def decorated_function():
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15</pre></div></td><td class="code"><div class="monokai"><pre><span></span>def decorated_function():
     print "I am the decorated function."
 decorated_function = decorator_maker()(decorated_function)
 #outputs:
@@ -546,8 +949,23 @@ decorated_function()
 #As the wrapper, I return the RESULT of the decorated function.
 #I am the decorated function.
 </pre></div>
+</td></tr></table>
 <p>使用装饰器语法，更简短</p>
-<div class="monokai"><pre><span></span>@decorator_maker()
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15</pre></div></td><td class="code"><div class="monokai"><pre><span></span>@decorator_maker()
 def decorated_function():
     print "I am the decorated function."
 #outputs:
@@ -563,9 +981,48 @@ decorated_function()
 #As the wrapper, I return the RESULT of the decorated function.
 #I am the decorated function.
 </pre></div>
+</td></tr></table>
 <p>到这里，我们使用@调用一个函数</p>
 <p>回到问题，向装饰器本身传递参数，如果我们可以通过函数去创建装饰器，那么我们可以传递参数给这个函数，对么？</p>
-<div class="monokai"><pre><span></span>def decorator_maker_with_arguments(decorator_arg1, decorator_arg2):
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39</pre></div></td><td class="code"><div class="monokai"><pre><span></span>def decorator_maker_with_arguments(decorator_arg1, decorator_arg2):
 
     print "I make decorators! And I accept arguments:", decorator_arg1, decorator_arg2
 
@@ -605,8 +1062,26 @@ decorated_function_with_arguments("Rajesh", "Howard")
 #Then I can pass them to the decorated function
 #I am the decorated function and only knows about my arguments: Rajesh Howard
 </pre></div>
+</td></tr></table>
 <p>好了，that's it.参数可以设置为变量</p>
-<div class="monokai"><pre><span></span>c1 = "Penny"
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18</pre></div></td><td class="code"><div class="monokai"><pre><span></span>c1 = "Penny"
 c2 = "Leslie"
 
 @decorator_maker_with_arguments("Leonard", c1)
@@ -625,12 +1100,36 @@ decorated_function_with_arguments(c2, "Howard")
 #Then I can pass them to the decorated function
 #I am the decorated function and only knows about my arguments: Leslie Howard
 </pre></div>
+</td></tr></table>
 <p>你可以看到，你可以使用像其它函数一样使用这个方法向装饰器传递参数.如果你愿意你甚至可以使用 <em>arg </em>*kwargs.</p>
 <p>但是记住，装饰器仅在Python代码导入时被调用一次,之后你不能动态地改变参数.当你使用"import x",函数已经被装饰，所以你不能改变什么</p>
 <h3 id="lian-xi-yi-ge-zhuang-shi-zhuang-shi-qi-de-zhuang-shi-qi">练习：一个装饰装饰器的装饰器</h3>
 <p>作为奖励，我将展示创建可以处理任何参数的装饰器代码片段. 毕竟，为了接收参数，必须使用另一个函数来创建装饰器</p>
 <p>让我们来给装饰器写一个装饰器:</p>
-<div class="monokai"><pre><span></span># 装饰 装饰器 的装饰器 (好绕.....)
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24</pre></div></td><td class="code"><div class="monokai"><pre><span></span># 装饰 装饰器 的装饰器 (好绕.....)
 def decorator_with_args(decorator_to_enhance):
     """ 
     这个函数将作为装饰器使用
@@ -655,8 +1154,29 @@ def decorator_with_args(decorator_to_enhance):
 
     return decorator_maker
 </pre></div>
+</td></tr></table>
 <p>使用：</p>
-<div class="monokai"><pre><span></span># 你创建这个函数是作为一个装饰器，但是给它附加了一个装饰器
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21</pre></div></td><td class="code"><div class="monokai"><pre><span></span># 你创建这个函数是作为一个装饰器，但是给它附加了一个装饰器
 # 别忘了，函数签名是： "decorator(func, *args, **kwargs)"
 @decorator_with_args 
 def decorated_decorator(func, *args, **kwargs): 
@@ -678,6 +1198,7 @@ decorated_function("Universe and", "everything")
 
 # Whoooot!
 </pre></div>
+</td></tr></table>
 <p>我知道，到现在你一定会有这种感觉，就像你听一个人说“在理解递归之前，你必须首先了解递归”，但是现在，掌握这儿你有没有觉得很棒？</p>
 <h2 id="zhuang-shi-qi-shi-yong-zui-jia-shi-jian_1">装饰器使用最佳实践</h2>
 <ul>
@@ -687,7 +1208,45 @@ decorated_function("Universe and", "everything")
 <li>装饰器包装函数，所以很难debug</li>
 </ul>
 <p>Python2.5解决了最后一个问题，它提供functools模块，包含functools.wraps.这个函数会将被装饰函数的名称，模块，文档字符串拷贝给封装函数,有趣的是，functools.wraps是一个装饰器:-)</p>
-<div class="monokai"><pre><span></span><span class="c1"># 调试，打印函数的名字</span>
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39</pre></div></td><td class="code"><div class="monokai"><pre><span></span><span class="c1"># 调试，打印函数的名字</span>
 <span class="k">def</span> <span class="nf">foo</span><span class="p">():</span>
     <span class="k">print</span> <span class="s2">"foo"</span>
 
@@ -727,10 +1286,62 @@ decorated_function("Universe and", "everything")
 <span class="k">print</span> <span class="n">foo</span><span class="o">.</span><span class="n">__name__</span>
 <span class="c1">#outputs: foo</span>
 </pre></div>
+</td></tr></table>
 <h3 id="zhuang-shi-qi-wei-he-na-yao-you-yong">装饰器为何那么有用</h3>
 <p>现在的问题是，我们用装饰器来坐什么？看起来很酷很强大，但是如果有实践的例子会更好.好了，有1000种可能。经典的用法是，在函数的外部，扩展一个函数的行为（你不需要改变这个函数），或者，为了调试的目的（我们不修改的原因是这是临时的），你可以使用装饰器扩展一些函数,而不用在这些函数中书写相同的函数实现一样的功能</p>
 <p>DRY原则，例子：</p>
-<div class="monokai"><pre><span></span><span class="k">def</span> <span class="nf">benchmark</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52</pre></div></td><td class="code"><div class="monokai"><pre><span></span><span class="k">def</span> <span class="nf">benchmark</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
     <span class="sd">"""</span>
 <span class="sd">    装饰器打印一个函数的执行时间</span>
 <span class="sd">    """</span>
@@ -783,8 +1394,32 @@ decorated_function("Universe and", "everything")
 <span class="c1">#wrapper has been used: 2x</span>
 <span class="c1">#!amanaP :lanac a ,noep a ,stah eros ,raj a ,hsac ,oloR a ,tur a ,mapS ,snip ,eperc a ,)lemac a ro( niaga gab ananab a ,gat a ,nat a ,gab ananab a ,gag a ,inoracam ,elacrep ,epins ,spam ,arutaroloc a ,shajar ,soreh ,atsap ,eonac a ,nalp a ,nam A</span>
 </pre></div>
+</td></tr></table>
 <p>装饰器意味着，你可以用正确的方法实现几乎所有的事情，而不必重写他们</p>
-<div class="monokai"><pre><span></span><span class="nd">@counter</span>
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24</pre></div></td><td class="code"><div class="monokai"><pre><span></span><span class="nd">@counter</span>
 <span class="nd">@benchmark</span>
 <span class="nd">@logging</span>
 <span class="k">def</span> <span class="nf">get_random_futurama_quote</span><span class="p">():</span>
@@ -809,6 +1444,7 @@ decorated_function("Universe and", "everything")
 <span class="c1">#wrapper has been used: 2x</span>
 <span class="c1">#Curse you, merciful Poseidon!</span>
 </pre></div>
+</td></tr></table>
 <p>Python本身提供了一些装饰器：property,staticmethod,等等，</p>
 <p>Django使用装饰器去管理缓存和权限. Twisted to fake inlining asynchronous functions calls.用途广泛</p>
 <p>EDIT: 鉴于这个回答的完美，人们希望我去回答metaclass,我这样做了</p>

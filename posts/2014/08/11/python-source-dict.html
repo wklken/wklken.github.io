@@ -84,7 +84,15 @@
          <a href="https://github.com/wklken/Python-2.7.8/blob/master/Objects/dictobject.c">Objects/dictobject.c</a></p>
 <hr/>
 <h1 id="pydictobjectde-cun-chu-ce-lue">PyDictObject的存储策略</h1>
-<div class="monokai"><pre><span></span>1. 使用散列表进行存储
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9</pre></div></td><td class="code"><div class="monokai"><pre><span></span>1. 使用散列表进行存储
 
 2. 使用开放定址法处理冲突
 
@@ -94,21 +102,31 @@
 
     2.3 删除, 如果对象在探测链上, 不能直接删除, 否则会破坏整个结构(所以不是真的删)
 </pre></div>
+</td></tr></table>
 <p>关于 hash表的 <a href="http://zh.wikipedia.org/wiki/%E5%93%88%E5%B8%8C%E8%A1%A8">wiki</a></p>
 <hr/>
 <h1 id="ji-ben-jian-zhi-pydictentry">基本键值PyDictEntry</h1>
-<div class="monokai"><pre><span></span>typedef struct {
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="monokai"><pre><span></span>typedef struct {
     Py_ssize_t me_hash;
     PyObject *me_key;
     PyObject *me_value;
 } PyDictEntry;
 </pre></div>
+</td></tr></table>
 <p>说明</p>
-<div class="monokai"><pre><span></span>1. PyDictEntry 用于存储键值对信息
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="monokai"><pre><span></span>1. PyDictEntry 用于存储键值对信息
 
 2. Py_ssize_t me_hash
 存储了me_key计算得到的hash值, 不重复计算
 </pre></div>
+</td></tr></table>
 <p>结构</p>
 <p><img alt="PyDictEntry" src="/imgs/python-source/PyDictEntry.png"/></p>
 <p>PyDictEntry的三个状态(图片引自-Python源码剖析)</p>
@@ -116,7 +134,18 @@
 <hr/>
 <h1 id="pydictobjectding-yi">PyDictObject定义</h1>
 <p>定义</p>
-<div class="monokai"><pre><span></span>typedef struct _dictobject PyDictObject;
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12</pre></div></td><td class="code"><div class="monokai"><pre><span></span>typedef struct _dictobject PyDictObject;
 struct _dictobject {
     PyObject_HEAD
 
@@ -129,8 +158,30 @@ struct _dictobject {
     PyDictEntry ma_smalltable[PyDict_MINSIZE];
 };
 </pre></div>
+</td></tr></table>
 <p>说明</p>
-<div class="monokai"><pre><span></span>1. PyObject_HEAD
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22</pre></div></td><td class="code"><div class="monokai"><pre><span></span>1. PyObject_HEAD
 反而声明为定长对象, 因为ob_size在这里用不上, 使用ma_fill和ma_used计数
 
 2. Py_ssize_t ma_fill;
@@ -153,16 +204,96 @@ struct _dictobject {
 6. PyDictEntry ma_smalltable[PyDict_MINSIZE];
 小dict, 大小8, 小于8个键值对的字典会直接存放在这里, 超出后再从内存分配空间
 </pre></div>
+</td></tr></table>
 <p>结构</p>
 <p><img alt="PyDictObject" src="/imgs/python-source/PyDictObject.png"/></p>
 <p>结论</p>
-<div class="monokai"><pre><span></span>1. PyDictObject在生命周期内, 需要维护ma_fill/ma_used/ma_mask 三个计数值
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="monokai"><pre><span></span>1. PyDictObject在生命周期内, 需要维护ma_fill/ma_used/ma_mask 三个计数值
 
 2. 初始化创建是ma_smalltable, 超过大小后, 会使用外部分配的空间
 </pre></div>
+</td></tr></table>
 <h1 id="gou-zao-guo-cheng">构造过程</h1>
 <p>定义</p>
-<div class="monokai"><pre><span></span><span class="n">PyObject</span> *
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77</pre></div></td><td class="code"><div class="monokai"><pre><span></span><span class="n">PyObject</span> *
 <span class="n">PyDict_New</span>(<span class="nb">void</span>)
 {
     <span class="n">register</span> <span class="n">PyDictObject</span> *<span class="n">mp</span>;
@@ -240,8 +371,15 @@ struct _dictobject {
     <span class="k">return</span> (<span class="n">PyObject</span> *)<span class="n">mp</span>;
 }
 </pre></div>
+</td></tr></table>
 <p>简化步骤</p>
-<div class="monokai"><pre><span></span>1. 如果PyDictObject对象缓冲池有, 从里面直接取, 初始化
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7</pre></div></td><td class="code"><div class="monokai"><pre><span></span>1. 如果PyDictObject对象缓冲池有, 从里面直接取, 初始化
 
 2. 否则, 创建一个, 初始化
 
@@ -249,14 +387,46 @@ struct _dictobject {
 
 4. 返回
 </pre></div>
+</td></tr></table>
 <p>结论</p>
-<div class="monokai"><pre><span></span>1. 关注对象缓冲池
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="monokai"><pre><span></span>1. 关注对象缓冲池
 
 2. 关注lookdict_string
 </pre></div>
+</td></tr></table>
 <h1 id="xiao-hui-guo-cheng">销毁过程</h1>
 <p>方法定义</p>
-<div class="monokai"><pre><span></span>static void
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29</pre></div></td><td class="code"><div class="monokai"><pre><span></span>static void
 dict_dealloc(register PyDictObject *mp)
 {
     register PyDictEntry *ep;
@@ -286,32 +456,45 @@ dict_dealloc(register PyDictObject *mp)
     Py_TRASHCAN_SAFE_END(mp)
 }
 </pre></div>
+</td></tr></table>
 <hr/>
 <h1 id="pydictobjectdui-xiang-huan-chong-chi">PyDictObject对象缓冲池</h1>
 <p>定义</p>
-<div class="monokai"><pre><span></span><span class="cp">#ifndef PyDict_MAXFREELIST</span>
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6</pre></div></td><td class="code"><div class="monokai"><pre><span></span><span class="cp">#ifndef PyDict_MAXFREELIST</span>
 <span class="cp">#define PyDict_MAXFREELIST 80</span>
 <span class="cp">#endif</span>
 
 <span class="k">static</span> <span class="n">PyDictObject</span> <span class="o">*</span><span class="n">free_list</span><span class="p">[</span><span class="n">PyDict_MAXFREELIST</span><span class="p">];</span>
 <span class="k">static</span> <span class="kt">int</span> <span class="n">numfree</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
 </pre></div>
+</td></tr></table>
 <p>对象缓冲池的结构(跟PyListObject对象缓冲池结构基本一样)</p>
 <p><img alt="PyDictObjectPool" src="/imgs/python-source/PyDictObjectPool.png"/></p>
 <p>结论</p>
-<div class="monokai"><pre><span></span>1. 最多会缓存80个对象
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="monokai"><pre><span></span>1. 最多会缓存80个对象
 
 2. 只缓存 PyDictObject 本身, 其PyDictEntry全部会被回收
 
 3. 缓存对象进去, 旧有的值没有变化, 取出来用的时候初始化时才改变
 </pre></div>
+</td></tr></table>
 <hr/>
 <h1 id="dict-cao-zuo">Dict 操作</h1>
 <p>查找/插入/resize/删除, 下个版本补</p>
 <hr/>
 <p>changelog</p>
-<div class="monokai"><pre><span></span>2014-08-11 first version
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="monokai"><pre><span></span>2014-08-11 first version
 </pre></div>
+</td></tr></table>
     </section>
 
     <section id="copyright">

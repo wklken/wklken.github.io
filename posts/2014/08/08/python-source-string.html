@@ -85,7 +85,21 @@
 <p>源码位置 <a href="https://github.com/wklken/Python-2.7.8/blob/master/Include/stringobject.h">Include/stringobject.h</a> |
          <a href="https://github.com/wklken/Python-2.7.8/blob/master/Objects/stringobject.c">Objects/stringobject.c</a></p>
 <p>定义</p>
-<div class="monokai"><pre><span></span>typedef struct {
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15</pre></div></td><td class="code"><div class="monokai"><pre><span></span>typedef struct {
   PyObject_VAR_HEAD
   long ob_shash;
   int ob_sstate;
@@ -101,8 +115,21 @@
    */
 } PyStringObject;
 </pre></div>
+</td></tr></table>
 <p>说明</p>
-<div class="monokai"><pre><span></span>1. PyObject_VAR_HEAD
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13</pre></div></td><td class="code"><div class="monokai"><pre><span></span>1. PyObject_VAR_HEAD
 PyStringObject是变长对象, 比定长对象多了一个ob_size字段
 
 2. ob_shash
@@ -116,22 +143,109 @@ interned后面说
 4. char ob_sval[1]
 字符指针指向一段内存, char数组指针, 指向一个ob_size+1大小数组(c中字符串最后要多一个字符`\0`表字符串结束)
 </pre></div>
+</td></tr></table>
 <p>结构</p>
 <p><img alt="PyStringObject" src="/imgs/python-source/PyStringObject.png"/></p>
 <p>构造方法</p>
-<div class="monokai"><pre><span></span>PyAPI_FUNC(PyObject *) PyString_FromString(const char *);
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="monokai"><pre><span></span>PyAPI_FUNC(PyObject *) PyString_FromString(const char *);
 
 PyAPI_FUNC(PyObject *) PyString_FromStringAndSize(const char *, Py_ssize_t);
 </pre></div>
+</td></tr></table>
 <p>两个构造方法其实区别不大,</p>
-<div class="monokai"><pre><span></span>PyString_FromStringAndSize 参数可以为`NULL`, 无论是否为`NULL`, 都会分配`size+1`个字节空间.(不为NULL的话字符数组会进行拷贝)
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="monokai"><pre><span></span>PyString_FromStringAndSize 参数可以为`NULL`, 无论是否为`NULL`, 都会分配`size+1`个字节空间.(不为NULL的话字符数组会进行拷贝)
 
 PyString_FromString, 参数不能为`NULL`, 且必须是`\0`结束的字符数组, 会调用c 语言string.h模块的strlen()函数计算字符串长度, 分配空间, 并将整个字符数组拷贝到ob_sval指向的内存
 </pre></div>
+</td></tr></table>
 <p>我们关注<code>PyString_FromString</code>就行</p>
 <h1 id="chuang-jian-guo-cheng-pystring_fromstring">创建过程 PyString_FromString</h1>
 <p>定义</p>
-<div class="monokai"><pre><span></span><span class="c1">//默认未初始化, 均为NULL</span>
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81</pre></div></td><td class="code"><div class="monokai"><pre><span></span><span class="c1">//默认未初始化, 均为NULL</span>
 <span class="k">static</span> <span class="n">PyStringObject</span> <span class="o">*</span><span class="n">characters</span><span class="p">[</span><span class="n">UCHAR_MAX</span> <span class="o">+</span> <span class="mi">1</span><span class="p">];</span>
 <span class="k">static</span> <span class="n">PyStringObject</span> <span class="o">*</span><span class="n">nullstring</span><span class="p">;</span>
 
@@ -213,19 +327,34 @@ PyString_FromString, 参数不能为`NULL`, 且必须是`\0`结束的字符数�
     <span class="k">return</span> <span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="p">)</span> <span class="n">op</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
+</td></tr></table>
 <p>步骤简化</p>
-<div class="monokai"><pre><span></span>1. 计算长度
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="monokai"><pre><span></span>1. 计算长度
 2. 长度0, 空字符串, 是返回已定义好的nullstring
 3. 长度1, 字符, 返回字符缓冲池里面的
 4. 都不是, 分配内存, 初始化
 </pre></div>
+</td></tr></table>
 <p>结论</p>
-<div class="monokai"><pre><span></span>长度0/长度1, 会用到intern机制
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="monokai"><pre><span></span>长度0/长度1, 会用到intern机制
 注意, intern机制对长度&gt;1的字符串也适用
 </pre></div>
+</td></tr></table>
 <h1 id="internedji-zhi">interned机制</h1>
 <p>interned</p>
-<div class="monokai"><pre><span></span><span class="cm">/* This dictionary holds all interned strings.  Note that references to</span>
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9</pre></div></td><td class="code"><div class="monokai"><pre><span></span><span class="cm">/* This dictionary holds all interned strings.  Note that references to</span>
 <span class="cm">strings in this dictionary are *not* counted in the string's ob_refcnt.</span>
 <span class="cm">When the interned string reaches a refcnt of 0 the string deallocation</span>
 <span class="cm">function will delete the reference from this dictionary.</span>
@@ -235,8 +364,60 @@ PyString_FromString, 参数不能为`NULL`, 且必须是`\0`结束的字符数�
 <span class="cm">*/</span><span class="w"></span>
 static<span class="w"> </span>PyObject<span class="w"> </span><span class="o">*</span>interned<span class="err">;</span><span class="w"> </span><span class="o">//</span><span class="err">指针</span><span class="o">,</span><span class="w"> </span><span class="err">指向</span>PyDictObject<span class="w"></span>
 </pre></div>
+</td></tr></table>
 <p>interned定义</p>
-<div class="monokai"><pre><span></span><span class="nt">void</span>
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52</pre></div></td><td class="code"><div class="monokai"><pre><span></span><span class="nt">void</span>
 <span class="nt">PyString_InternInPlace</span><span class="o">(</span><span class="nt">PyObject</span> <span class="o">**</span><span class="nt">p</span><span class="o">)</span>
 <span class="p">{</span>
     <span class="n">register</span> <span class="n">PyStringObject</span> <span class="o">*</span><span class="n">s</span> <span class="o">=</span> <span class="p">(</span><span class="n">PyStringObject</span> <span class="o">*</span><span class="p">)(</span><span class="o">*</span><span class="n">p</span><span class="p">);</span>
@@ -289,8 +470,29 @@ static<span class="w"> </span>PyObject<span class="w"> </span><span class="o">*<
     <span class="nt">PyString_CHECK_INTERNED</span><span class="o">(</span><span class="nt">s</span><span class="o">)</span> <span class="o">=</span> <span class="nt">SSTATE_INTERNED_MORTAL</span><span class="o">;</span>
 <span class="err">}</span>
 </pre></div>
+</td></tr></table>
 <p>使用的地方</p>
-<div class="monokai"><pre><span></span>// 构造方法
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21</pre></div></td><td class="code"><div class="monokai"><pre><span></span>// 构造方法
 PyAPI_FUNC(PyObject *) PyString_FromString(const char *);
 
 PyAPI_FUNC(PyObject *) PyString_FromStringAndSize(const char *, Py_ssize_t);
@@ -312,8 +514,22 @@ PyString_InternFromString(const char *cp)
 void
 PyString_InternImmortal(PyObject **p)
 </pre></div>
+</td></tr></table>
 <p>示例</p>
-<div class="monokai"><pre><span></span>&gt;&gt;&gt; a = ''
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14</pre></div></td><td class="code"><div class="monokai"><pre><span></span>&gt;&gt;&gt; a = ''
 &gt;&gt;&gt; b = ''
 &gt;&gt;&gt; id(a) == id(b)
 True
@@ -328,23 +544,38 @@ True
 &gt;&gt;&gt; id(a) == id(b)
 True
 </pre></div>
+</td></tr></table>
 <p>python源代码自己也大量使用</p>
-<div class="monokai"><pre><span></span>dict_str = PyString_InternFromString("__dict__")
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="monokai"><pre><span></span>dict_str = PyString_InternFromString("__dict__")
 lenstr = PyString_InternFromString("__len__")
 s_true = PyString_InternFromString("true")
 empty_array = PyString_InternFromString("[]")
 </pre></div>
+</td></tr></table>
 <p>好处</p>
-<div class="monokai"><pre><span></span>一旦字符串被intern, 会被python保存到字典中, 整个python运行期间, 系统中有且仅有一个对象. 下次相同字符串再进入, 不会重复创建对象.
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="monokai"><pre><span></span>一旦字符串被intern, 会被python保存到字典中, 整个python运行期间, 系统中有且仅有一个对象. 下次相同字符串再进入, 不会重复创建对象.
 </pre></div>
+</td></tr></table>
 <h1 id="zi-fu-huan-chong-chi">字符缓冲池</h1>
 <p>定义</p>
-<div class="monokai"><pre><span></span>UCHAR_MAX 平台相关
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="monokai"><pre><span></span>UCHAR_MAX 平台相关
 
 static PyStringObject *characters[UCHAR_MAX + 1];
 </pre></div>
+</td></tr></table>
 <p>在上面<code>PyString_FromString</code>可以看到, 字符缓冲池在使用中初始化(存在直接返回, 不存在建一个, 放interned字典中, 初始化字符缓冲池对应位置)</p>
-<div class="monokai"><pre><span></span>PyObject *t = (PyObject *)op;
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7</pre></div></td><td class="code"><div class="monokai"><pre><span></span>PyObject *t = (PyObject *)op;
 // 走intern, 后面说
 PyString_InternInPlace(&amp;t);
 op = (PyStringObject *)t;
@@ -352,8 +583,36 @@ op = (PyStringObject *)t;
 // 初始化字符缓冲池对应位置
 characters[*str &amp; UCHAR_MAX] = op;
 </pre></div>
+</td></tr></table>
 <h1 id="zi-fu-chuan-xiao-hui-guo-cheng">字符串销毁过程</h1>
-<div class="monokai"><pre><span></span>static void
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28</pre></div></td><td class="code"><div class="monokai"><pre><span></span>static void
 string_dealloc(PyObject *op)
 {
     // 是否intern
@@ -382,22 +641,31 @@ string_dealloc(PyObject *op)
     Py_TYPE(op)-&gt;tp_free(op);
 }
 </pre></div>
+</td></tr></table>
 <h1 id="xing-neng-xiang-guan">性能相关</h1>
 <p><code>+</code>与 <code>join</code></p>
-<div class="monokai"><pre><span></span>'a' + 'b' + 'c'
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="monokai"><pre><span></span>'a' + 'b' + 'c'
 
 or
 
 ''.join(['a', 'b', 'c'])
 </pre></div>
+</td></tr></table>
 <p>可以查看<code>string_concat</code>方法和<code>string_join</code>方法的源代码</p>
-<div class="monokai"><pre><span></span>string_concat, 一次加=分配一次内存空间, 拷贝两次. N次链接, 需要N-1次内存分配.
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="monokai"><pre><span></span>string_concat, 一次加=分配一次内存空间, 拷贝两次. N次链接, 需要N-1次内存分配.
 string_join, 计算序列所有元素字符串总长度, 用PyString_FromStringAndSize((char*)NULL, sz)分配内存空间, 然后逐一拷贝. 一次内存操作.
 </pre></div>
+</td></tr></table>
 <hr/>
 <p>changelog</p>
-<div class="monokai"><pre><span></span>2014-08-08 first version
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="monokai"><pre><span></span>2014-08-08 first version
 </pre></div>
+</td></tr></table>
     </section>
 
     <section id="copyright">

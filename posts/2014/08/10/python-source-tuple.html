@@ -81,7 +81,15 @@
         <p>还差一篇......写完写简历&gt;_&lt;#</p>
 <hr/>
 <p>示例</p>
-<div class="monokai"><pre><span></span>&gt;&gt;&gt; a = ()
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9</pre></div></td><td class="code"><div class="monokai"><pre><span></span>&gt;&gt;&gt; a = ()
 &gt;&gt;&gt; b = ()
 &gt;&gt;&gt; id(a) == id(b)
 True
@@ -91,19 +99,32 @@ True
 &gt;&gt;&gt; id(a) == id(b)
 False
 </pre></div>
+</td></tr></table>
 <p>源码位置 <a href="https://github.com/wklken/Python-2.7.8/blob/master/Include/tupleobject.h">Include/tupleobject.h</a> |
          <a href="https://github.com/wklken/Python-2.7.8/blob/master/Objects/tupleobject.c">Objects/tupleobject.c</a></p>
 <hr/>
 <h1 id="jie-gou">结构</h1>
 <p>定义</p>
-<div class="monokai"><pre><span></span>typedef struct {
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="monokai"><pre><span></span>typedef struct {
     PyObject_VAR_HEAD
     PyObject *ob_item[1];
 
 } PyTupleObject;
 </pre></div>
+</td></tr></table>
 <p>说明</p>
-<div class="monokai"><pre><span></span>1. PyObject_VAR_HEAD
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7
+8</pre></div></td><td class="code"><div class="monokai"><pre><span></span>1. PyObject_VAR_HEAD
 PyTupleObject在底层是个变长对象(需要存储列表元素个数).
 虽然, 在python中, tuple是不可变对象
 
@@ -112,15 +133,101 @@ PyTupleObject在底层是个变长对象(需要存储列表元素个数).
 
 3.
 </pre></div>
+</td></tr></table>
 <p>结构</p>
 <p><img alt="PyTupleObject" src="/imgs/python-source/PyTupleObject.png"/></p>
 <p>构造方法</p>
-<div class="monokai"><pre><span></span>PyAPI_FUNC(PyObject *) PyTuple_New(Py_ssize_t size);
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="monokai"><pre><span></span>PyAPI_FUNC(PyObject *) PyTuple_New(Py_ssize_t size);
 </pre></div>
+</td></tr></table>
 <hr/>
 <h1 id="gou-zao">构造</h1>
 <p>看下构造方法定义</p>
-<div class="monokai"><pre><span></span><span class="n">PyObject</span> <span class="o">*</span>
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85</pre></div></td><td class="code"><div class="monokai"><pre><span></span><span class="n">PyObject</span> <span class="o">*</span>
 <span class="nf">PyTuple_New</span><span class="p">(</span><span class="k">register</span> <span class="n">Py_ssize_t</span> <span class="n">size</span><span class="p">)</span>
 <span class="p">{</span>
     <span class="k">register</span> <span class="n">PyTupleObject</span> <span class="o">*</span><span class="n">op</span><span class="p">;</span>
@@ -206,8 +313,15 @@ PyTupleObject在底层是个变长对象(需要存储列表元素个数).
     <span class="k">return</span> <span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="p">)</span> <span class="n">op</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
+</td></tr></table>
 <p>简化步骤</p>
-<div class="monokai"><pre><span></span>1. 如果size=0, 从free_list[0]取, 直接返回
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7</pre></div></td><td class="code"><div class="monokai"><pre><span></span>1. 如果size=0, 从free_list[0]取, 直接返回
 
 2. 否则, 确认free_list[size], 是否可用, 可用获取
 
@@ -215,10 +329,47 @@ PyTupleObject在底层是个变长对象(需要存储列表元素个数).
 
 4. 初始化, 返回
 </pre></div>
+</td></tr></table>
 <hr/>
 <h1 id="hui-shou">回收</h1>
 <p>定义</p>
-<div class="monokai"><pre><span></span>static void
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37</pre></div></td><td class="code"><div class="monokai"><pre><span></span>static void
 tupledealloc(register PyTupleObject *op)
 {
     register Py_ssize_t i;
@@ -256,17 +407,36 @@ done:
     Py_TRASHCAN_SAFE_END(op)
 }
 </pre></div>
+</td></tr></table>
 <p>简化流程</p>
-<div class="monokai"><pre><span></span>1. 回收ob_item每个元素
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="monokai"><pre><span></span>1. 回收ob_item每个元素
 
 2. 如果符合条件, 放入到free_list
 
 3. 否则, 回收
 </pre></div>
+</td></tr></table>
 <hr/>
 <h1 id="tupledui-xiang-huan-chong-chi">tuple对象缓冲池</h1>
 <p>定义</p>
-<div class="monokai"><pre><span></span><span class="cm">/* Speed optimization to avoid frequent malloc/free of small tuples */</span>
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14</pre></div></td><td class="code"><div class="monokai"><pre><span></span><span class="cm">/* Speed optimization to avoid frequent malloc/free of small tuples */</span>
 <span class="cp">#ifndef PyTuple_MAXSAVESIZE</span>
 <span class="cp">#define PyTuple_MAXSAVESIZE     20</span>
 <span class="cp">#endif</span>
@@ -281,8 +451,23 @@ done:
 <span class="k">static</span> <span class="kt">int</span> <span class="n">numfree</span><span class="p">[</span><span class="n">PyTuple_MAXSAVESIZE</span><span class="p">];</span>
 <span class="cp">#endif</span>
 </pre></div>
+</td></tr></table>
 <p>结论</p>
-<div class="monokai"><pre><span></span>1. 作用: 优化小tuple的mall/free
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15</pre></div></td><td class="code"><div class="monokai"><pre><span></span>1. 作用: 优化小tuple的mall/free
 
 2. PyTuple_MAXSAVESIZE = 20
 会被缓存的tuple长度阈值, 20, 长度&lt;20的, 才会走对象缓冲池逻辑
@@ -298,22 +483,45 @@ numfree, 一个计数数组, 存储free_list对应位置的单链表长度
 
 6. free_list[0], 指向空数组, 有且仅有一个
 </pre></div>
+</td></tr></table>
 <p>free_list的结构</p>
 <p><img alt="PyTupleObjectPool" src="/imgs/python-source/PyTupleObjectPool.png"/></p>
 <p>回头看回收跟对象缓冲池相关的逻辑</p>
 <p>条件:</p>
-<div class="monokai"><pre><span></span>if (len &lt; PyTuple_MAXSAVESIZE &amp;&amp;         // len &lt; 20
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="monokai"><pre><span></span>if (len &lt; PyTuple_MAXSAVESIZE &amp;&amp;         // len &lt; 20
     numfree[len] &lt; PyTuple_MAXFREELIST &amp;&amp; // numfree[len] &lt; 2000
     Py_TYPE(op) == &amp;PyTuple_Type) // 是tuple类型
 </pre></div>
+</td></tr></table>
 <p>操作</p>
-<div class="monokai"><pre><span></span>op-&gt;ob_item[0] = (PyObject *) free_list[len]; //ob_item指向free_list[len] 单链表头
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="monokai"><pre><span></span>op-&gt;ob_item[0] = (PyObject *) free_list[len]; //ob_item指向free_list[len] 单链表头
 numfree[len]++;  // len位置计数+1
 free_list[len] = op; // op变成单链表的头
 goto done; /* return */
 </pre></div>
+</td></tr></table>
 <p>即过程</p>
-<div class="monokai"><pre><span></span>1. 如果size=0, 直接从free_list[0]取
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16</pre></div></td><td class="code"><div class="monokai"><pre><span></span>1. 如果size=0, 直接从free_list[0]取
 
 2. 如果size!=0, 判断size&lt;20?
 
@@ -330,15 +538,20 @@ goto done; /* return */
 
 如果size&lt;20, 且free_list对应位置单链表长度没达到上限(2000), 将对象放入到单链表头
 </pre></div>
+</td></tr></table>
 <p>注意</p>
-<div class="monokai"><pre><span></span>1. 回收时, ob_item都会被回收, 只是本身对象缓存下来
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="monokai"><pre><span></span>1. 回收时, ob_item都会被回收, 只是本身对象缓存下来
 
 2. 这里free_list, 复用ob_item作为链表指针, 指向下一个位置(通用整数对象池也是复用指针的方式, 不过用的是ob_type)
 </pre></div>
+</td></tr></table>
 <hr/>
 <p>changelog</p>
-<div class="monokai"><pre><span></span>2014-08-10 first version
+<table class="monokaitable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="monokai"><pre><span></span>2014-08-10 first version
 </pre></div>
+</td></tr></table>
     </section>
 
     <section id="copyright">
