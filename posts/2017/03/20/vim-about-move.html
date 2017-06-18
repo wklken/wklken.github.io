@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--[if IE 8]> <html class="no-js lt-ie9" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
+
+<head>
+    <meta name="google-site-verification" content="SzE6WCs23qFevgBzRIuG9vcfLU0lW_Vd5hFT-cJOLBE" />
+    <title>vim 杂谈 - 关于移动</title>
+    <meta charset="utf-8" />
+    <meta name="description" content="">
+    <meta name="keywords" content="" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+        <link rel="shortcut icon" href="/favicon.ico"/>
+        <link rel="stylesheet" href="/theme/css/styles.css" media="all" />
+        <link rel="stylesheet" href="/theme/css/monokai.css" media="all" />
+        <link rel="stylesheet" href="/theme/css/tab.min.css" media="all" />
+        <link rel="stylesheet" href="/theme/css/jquery-ui.min.css" media="all" />
+
+        <link rel="stylesheet" href="/theme/css/font-awesome.min.css">
+        <!--
+        <link rel="stylesheet" href="http://apps.bdimg.com/libs/fontawesome/4.2.0/css/font-awesome.min.css">
+        -->
+        <!--[if IE 7]>
+            <link rel="stylesheet" href="/theme/css/font-awesome-ie7.min.css">
+        <![endif]-->
+
+        <link href="/" type="application/atom+xml" rel="alternate" title="wklken's blog ATOM Feed" />
+        <link href="/feed.xml" type="application/atom+xml" rel="alternate" title="wklken's blog RSS Feed" />
+
+</head>
+
+<body>
+    <div id="page" class="row">
+        <div class="large-9 large-centered columns">
+
+        <header id="header">
+            <div class="constraint">
+                <div class="o">
+                    <a href="/"><h1 class="banner">Wklken <span class="blue"> Building </span></h1></a>
+
+                <div class="social">
+                            <a href="https://github.com/wklken" target='_blank'><i class="icon-github-sign icon-2x"></i></a>
+                            <a href="http://weibo.com/wklken" target='_blank'><i class="icon-weibo icon-2x"></i></a>
+                            <a href="mailto:wklken@yeah.net"><i class="icon-envelope icon-2x"></i></a>
+                            <a href="http://www.wklken.me/feed.xml" target='_blank'><i class="icon-rss-sign icon-2x"></i></a>
+                </div>
+                <div class="nav">
+                            <a href="/">首页</a>
+                            <a href="/categories.html">分类</a>
+                            <a href="/archives.html">归档</a>
+                            <a href="/pages/projects.html">项目</a>
+                            <a href="/pages/links.html">友链</a>
+                            <a href="/pages/aboutme.html">关于</a>
+
+                </div>
+
+                </div>
+            </div>
+        </header><!-- /#banner -->
+
+        <section id="main">
+
+
+<article id="article">
+    <section id="header">
+        <!--
+        <div class="meta">2017年03月20日</div>
+        <h1 id="title"> vim 杂谈 - 关于移动 </h1>
+        -->
+        <div class="meta"> &nbsp; </div>
+        <h1> vim 杂谈 - 关于移动 </h1>
+    </section>
+
+        <section id="toc">
+            <div id="toc"><ul><li><a class="toc-href" href="#" title="vim 杂谈 - 关于移动">vim 杂谈 - 关于移动</a><ul><li><a class="toc-href" href="#hjkl" title="HJKL">HJKL</a></li><li><a class="toc-href" href="#you-hua-hjkl" title="优化HJKL">优化HJKL</a></li><li><a class="toc-href" href="#dan-ci-jian-yi-dong" title="单词间移动">单词间移动</a></li><li><a class="toc-href" href="#guan-yu-0he-yi-ji-hml-de-you-hua" title="关于 0和$, 以及 HML 的优化">关于 0和$, 以及 HML 的优化</a></li><li><a class="toc-href" href="#xing-nei-fftt" title="行内: fFtT">行内: fFtT</a></li><li><a class="toc-href" href="#wen-jian-guan-yu-ctrl-fbud" title="文件: 关于 ctrl + fbud">文件: 关于 ctrl + fbud</a></li><li><a class="toc-href" href="#wen-jian-tou-wei-he-mou-yi-xing" title="文件: 头尾和某一行">文件: 头尾和某一行</a></li><li><a class="toc-href" href="#fen-ping-yi-dong" title="分屏移动">分屏移动</a></li><li><a class="toc-href" href="#cha-jian-biao-ji-tiao-zhuan-zeng-qiang-vim-signature" title="插件: 标记跳转增强 vim-signature">插件: 标记跳转增强 vim-signature</a></li><li><a class="toc-href" href="#cha-jian-zhong-ji-tiao-zhuan-easymotion" title="插件: 终极跳转 easymotion">插件: 终极跳转 easymotion</a></li><li><a class="toc-href" href="#qi-ta" title="其他">其他</a></li></ul></li></ul></div>
+        </section>
+    <section id="content">
+        <p>这个专栏的主要目的, 是介绍后台开发, vim, python, 工具, 效率, 项目等等一些所思所想. 欢迎关注及交流.</p>
+<hr/>
+<p><a href="https://github.com/wklken/k-vim">k-vim</a> 这个项目, 虽然一年只更新一两次, 但是里面很多配置, 都是基于使用中的痛点, 以及 <code>符合自觉</code> 的原则进行的变更.</p>
+<p>整体而言, <a href="https://github.com/wklken/k-vim">k-vim</a> 虽然做成了一个开箱即用的配置, 但是很多使用者更想知道一些更具体的说明, 包含配置项, 配置原因等等.</p>
+<p>之前有个blog有提过一句</p>
+<blockquote>
+<p>Don't put anything in your .vimrc you don't understand!</p>
+</blockquote>
+<p>虽然我不是十分赞同(我更倾向于基于一个完备的配置再进行深入了解和 DIY, 毕竟从0打造成本略高).</p>
+<p>但是觉得有必要, 写一写, 谈一谈<code>vim</code>中的一些配置的原因.</p>
+<p>目测会成系列, 从前到后你也能个性化自己的完整配置. 也可以借鉴一些技巧和插件使用(总共会提及约<code>60+</code>插件)</p>
+<p>第一篇, 移动.</p>
+<h2 id="hjkl">HJKL</h2>
+<p>一谈到移动, 首先想到的是<code>hjkl</code>, 最基本的上下左右</p>
+<div class="monokai"><pre><span></span>h 左移
+l 右移
+
+k 上移
+j 下移 (记忆 jump)
+</pre></div>
+<p>当然, 左右只是字符间移动, 上下是行之间的移动</p>
+<h2 id="you-hua-hjkl">优化HJKL</h2>
+<p>首先, 为了防止自己<code>情不自禁</code>使用 <code>上下左右</code> 方向键, 可以禁用之.</p>
+<div class="monokai"><pre><span></span>" 关闭方向键, 强迫自己用 hjkl
+map &lt;Left&gt; &lt;Nop&gt;
+map &lt;Right&gt; &lt;Nop&gt;
+map &lt;Up&gt; &lt;Nop&gt;
+map &lt;Down&gt; &lt;Nop&gt;
+</pre></div>
+<p>其次, 当一行超长之后, <code>se wrap</code>, 一行就显示为多行(一个物理行 - 多个展示行), 如果是默认配置, 使用 <code>jk</code> 移动时, 将会是物理行维度的, 而直觉上应该在展示行维度跳转(视觉上), 所以加配置, 使得<code>jk</code>在展示行之间上下跳转</p>
+<div class="monokai"><pre><span></span>"Treat long lines as break lines (useful when moving around in them)
+"se swap之后，同物理行上直接跳
+nnoremap k gk
+nnoremap gk k
+nnoremap j gj
+nnoremap gj j
+</pre></div>
+<p>另外, 当上下移动时, 默认光标到顶/到底后, 再用<code>jk</code>时, 光标是贴着终端顶部或底部的, 需要配置, 保证光标距离顶部或底部一定行数, 这样显示视觉效果更好.</p>
+<div class="monokai"><pre><span></span>" 在上下移动光标时，光标的上方或下方至少会保留显示的行数
+set scrolloff=7
+</pre></div>
+<h2 id="dan-ci-jian-yi-dong">单词间移动</h2>
+<p><code>wbe</code>, 原先是<code>wWbBeE</code>, 大小写都是有各自含义的, 但是, 更懒的做法, 只用小写<code>wbe</code>, 毕竟, 使用大写<code>WBE</code>, 你还得多按一个<code>shift</code>键, 以及, 肌肉记忆下, 操作的一瞬间, 你很难将你想要的和<code>使用大写还是小写分别代表什么动作, 句子里哪个是标点</code>关联起来.</p>
+<p>所以, 直接无视大写吧</p>
+<div class="monokai"><pre><span></span>w 移到下一个单词 (记忆 next word)
+b 移动到单词开头 (记忆 back)
+e 移动到单词尾部
+</pre></div>
+<h2 id="guan-yu-0he-yi-ji-hml-de-you-hua">关于 0和$, 以及 HML 的优化</h2>
+<p><code>0</code>和<code>$</code>, 分别是</p>
+<div class="monokai"><pre><span></span>0 移动到行首
+$ 移动到行尾
+</pre></div>
+<p>而, <code>0</code>, 需要手指离开字母区, <code>$</code>更惨, 还得多按一个<code>shift</code>. 另外其实还有个<code>^</code>的, 实在按不着<code>&gt;_&lt;#</code></p>
+<p><code>HML</code> 是同屏间, 快速移动到屏幕<code>顶部</code>/<code>中间</code>/<code>底部</code>, 顶部和底部还好, 中间到底在哪? 具体哪一行, 这个是比较范的操作, 非精确操作(不能一次性移动到想要的位置), 所以我的结论是: 废掉</p>
+<p>将<code>H</code>映射成<code>移动到行首(最左边)</code>, 将<code>L</code>映射成<code>移动到行尾(最右边)</code>, 和原先<code>hjkl</code>意义同, 且在字母区. 更符合直觉</p>
+<div class="monokai"><pre><span></span>" Go to home and end using capitalized directions
+noremap H ^
+noremap L $
+</pre></div>
+<h2 id="xing-nei-fftt">行内: fFtT</h2>
+<p><code>f/F</code>, 同一行内向前/向后跳转, 而<code>t/T</code>同, 只是会调到目标位置的前面一个字符</p>
+<p>我的做法是, 忘掉<code>tT</code>, <code>fF</code>更符合直觉, 真正的<code>指哪到哪</code>, 而且<code>f=find</code>也好记</p>
+<div class="monokai"><pre><span></span>f  跳转到向前搜索的字母位置
+F  跳转到向后搜索的字母位置
+</pre></div>
+<p>在这里, 推荐一个插件(被动生效), 可以高亮显示目标字母: <a href="https://github.com/unblevable/quick-scope">quick-scope</a> A Vim plugin that highlights which characters to target for f, F and family. No mappings are needed.</p>
+<h2 id="wen-jian-guan-yu-ctrl-fbud">文件: 关于 ctrl + fbud</h2>
+<p><code>ctrl + f/b</code> 下翻/上翻一页,  而<code>ctrl + u/d</code> 下翻/上翻半页.</p>
+<p>我的做法是, 忘掉<code>ctrl + f/b</code>, 只用<code>ctrl + u/d</code></p>
+<p>我们经常做的操作是, 不停的上翻/下翻, 连续动作, 一整页太多, 看内容很容易思维上<code>断开</code>, 需要返回去重看, 而半页有一半的东西是连着的; 而对于使用<code>压掌大法</code>按<code>ctrl</code>的人来说,  按住<code>ctrl</code>再反复<code>fb</code>, 特别是 <code>b</code>, 特别难按, <code>fb</code>都在左边, 左手太累</p>
+<p>而<code>ud</code>, 可以将操作放到两手, 也方便(肌肉)记忆</p>
+<div class="monokai"><pre><span></span>ctrl + u 上翻半页(记忆 up)
+ctrl + d 下翻半页(记忆 down)
+</pre></div>
+<h2 id="wen-jian-tou-wei-he-mou-yi-xing">文件: 头尾和某一行</h2>
+<div class="monokai"><pre><span></span>gg  跳转到文件头
+G   跳转到文件尾
+
+:n  精确移动到第几行
+</pre></div>
+<p>记住这三个, 基本够了吧?</p>
+<h2 id="fen-ping-yi-dong">分屏移动</h2>
+<p><code>ctrl + w + hjkl</code> 是默认分分屏的快捷键, 去掉<code>w</code>更快些</p>
+<div class="monokai"><pre><span></span>" 分屏窗口移动, Smart way to move between windows
+map &lt;C-j&gt; &lt;C-W&gt;j
+map &lt;C-k&gt; &lt;C-W&gt;k
+map &lt;C-h&gt; &lt;C-W&gt;h
+map &lt;C-l&gt; &lt;C-W&gt;l
+</pre></div>
+<h2 id="cha-jian-biao-ji-tiao-zhuan-zeng-qiang-vim-signature">插件: 标记跳转增强 <code>vim-signature</code></h2>
+<p>默认, <code>m + 字母</code>, 可以在当前打一个标记, 然后 <code>反引号+字母</code> 可以跳转到标记行</p>
+<p>但是存在的缺点是: 标记不可见, 且反引号实在难按</p>
+<p>所以做了些增强</p>
+<p>安装这个插件: <a href="https://github.com/kshenoy/vim-signature">vim-signature</a></p>
+<p>具体安装/配置/演示: <a href="http://www.wklken.me/posts/2015/06/07/vim-plugin-signature.html">VIM插件: VIM-SIGNATURE(快速标记跳转)</a></p>
+<div class="monokai"><pre><span></span>" 交换 单引号/反引号, 使得可以快速使用 单引号 跳到marked位置
+nnoremap ' `
+nnoremap ` '
+</pre></div>
+<p>其常用的几个快捷键</p>
+<div class="monokai"><pre><span></span>" 显示marks - 方便自己进行标记和跳转
+" m[a-zA-Z] add mark
+" '[a-zA-Z] go to mark
+" m&lt;Space&gt;  del all marks
+" m/        list all marks
+" m.        add new mark just follow previous mark
+</pre></div>
+<p><img alt="" src="/imgs/vim/vim-about-move/14899311413274.gif"/></p>
+<h2 id="cha-jian-zhong-ji-tiao-zhuan-easymotion">插件: 终极跳转 easymotion</h2>
+<p>有一个插件, 对跳转做了深入的定制, 那就是: <a href="https://github.com/easymotion/vim-easymotion">vim-easymotion</a></p>
+<p>安装了之后, 简直想怎么跳就怎么跳. 作为一个必备插件, 大家有必要深入学习下用法, 跳转效率翻倍</p>
+<p>之前写的一篇博文介绍: <a href="http://www.wklken.me/posts/2015/06/07/vim-plugin-easymotion.html">VIM插件: EASYMOTION(快速跳转)</a></p>
+<ul>
+<li>用法1: 跳转到当前光标前后的位置(w/b)</li>
+<li>用法2: 搜索跳转(s)</li>
+<li>用法3: 行级跳转(jk)</li>
+<li>用法4: 行内跳转(hl)</li>
+<li>用法5: 重复上一次动作(.)</li>
+</ul>
+<p>具体配置及演示见博文</p>
+<h2 id="qi-ta">其他</h2>
+<p>vim中跳转的配置大抵这些就够用了.</p>
+<p>下一篇, 将介绍如何快速编辑. 后续还有搜索替换等等一系列内容</p>
+    </section>
+
+    <section id="copyright">
+        <div class="copyright">
+            版权声明：自由转载-非商用-非衍生-保持署名 | <a href="http://creativecommons.org/licenses/by-nc-nd/3.0/deed.zh" target="_blank" >Creative Commons BY-NC-ND 3.0</a>
+        </div>
+
+        <div class="donation">
+            <center>
+                <div style="width: 70%;">
+                    <img src="/imgs/life/donation_w.png" style=""/>
+                    <strong>
+                        <div style="text-align:center;">
+                            如果我的文章或项目对你有所帮助, 可以扫码进行小额捐赠<br>
+                            如果有主机需求, 可点下方vultr进入注册, 带小尾巴:)<br>
+                            如果要加广告位, 请邮件联系<br>
+                        </ol>
+                    </strong>
+                </div>
+            </center>
+
+        </div>
+    </section>
+
+
+    <section id="neighbors">
+        <div>
+                        <a class="left" href="http://www.wklken.me/posts/2016/12/04/refactoring-06.html">
+                            上一篇:  读书笔记-重构: 章11 处理概括关系
+                        </a>
+                        <a class="right" href="http://www.wklken.me/posts/2017/03/25/vim-about-edit.html">
+                            下一篇: vim 杂谈 - 关于快速编辑
+                        </a>
+        </div>
+    </section>
+
+    <section id="ad">
+        <!-- <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script> -->
+        <!-- [> blog_ad_003 <] -->
+        <!-- <ins class="adsbygoogle" -->
+            <!-- style="display:block" -->
+            <!-- data-ad-client="ca-pub-7635941258020589" -->
+            <!-- data-ad-slot="7030416955" -->
+            <!-- data-ad-format="auto"></ins> -->
+        <!-- <script> -->
+        <!-- (adsbygoogle = window.adsbygoogle || []).push({}); -->
+        <!-- </script> -->
+
+        <a href='http://www.vultr.com/?ref=6847203' target="_blank">
+        <img src="/imgs/ads/vultr.png"> </img>
+        </a>
+    </section>
+
+
+
+<section id="comments">
+        <div class="comments">
+            <div id="disqus_thread"></div>
+            <script type="text/javascript">
+                var disqus_identifier = "posts/2017/03/20/vim-about-move.html";
+                (function() {
+                var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                dsq.src = 'http://wklken.disqus.com/embed.js';
+                (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                })();
+            </script>
+            </div>
+</section>
+
+
+
+</article>
+        </section><!--end #main-->
+
+            <footer class="row">
+                <div class="large-12 columns">
+                    <p>
+                            Copyright © 2015 wklken <br>
+                            Hosted on <a href="http://www.vultr.com/?ref=6954153-3B"> vultr </a>. Powered by <a href="http://alexis.notmyidea.org/pelican/">pelican</a>. Social Icons by <a href="http://fortawesome.github.io/Font-Awesome/">Font-Awesome</a>.
+                            <!-- Hosted on <a href="http://www.vultr.com/?ref=6847203"> vultr </a> Also <a href="https://www.digitalocean.com/?refcode=8ee73f2c47ce"> DigitalOcean </a>. Powered by <a href="http://alexis.notmyidea.org/pelican/">pelican</a>. Social Icons by <a href="http://fortawesome.github.io/Font-Awesome/">Font-Awesome</a>. -->
+                    </p>
+                </div>
+            </footer>
+
+            </div>
+        </div>
+
+        <section id="extras" class="body">
+        </section><!-- /#extras -->
+
+
+
+<script src="http://apps.bdimg.com/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="http://apps.bdimg.com/libs/jquery-scrollUp/2.1.0/jquery.scrollUp.min.js"></script>
+<script src="http://apps.bdimg.com/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+<script>
+    $(function(){
+        $.scrollUp({
+              scrollText: '', // Text for element, can contain HTML
+            });
+    });
+</script>
+
+
+<script type="text/javascript">
+  /* var Swiftype = window.Swiftype || {}; */
+  /* Swiftype.searchSearchFields = { */
+    /* "page": ["title^10", "body"] */
+  /* }; */
+
+  /* (function(w,d,t,u,n,s,e){w['SwiftypeObject']=n;w[n]=w[n]||function(){ */
+  /* (w[n].q=w[n].q||[]).push(arguments);};s=d.createElement(t); */
+  /* e=d.getElementsByTagName(t)[0];s.async=1;s.src=u;e.parentNode.insertBefore(s,e); */
+  /* })(window,document,'script','//s.swiftypecdn.com/install/v1/st.js','_st'); */
+
+  /* _st('install','v6K-_DamCeHvwX6z3o2F'); */
+</script>
+
+
+
+    <script type="text/javascript">
+    var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+    document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+    </script>
+    <script type="text/javascript">
+    try {
+        var pageTracker = _gat._getTracker("UA-42275748-1");
+    pageTracker._trackPageview();
+    } catch(err) {}</script>
+
+
+
+
+<div id="share">
+<script>window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"1","bdMiniList":["mshare","tsina","weixin","douban","meilishuo","mogujie","youdao","sdo","mail","twi","copy","print"],"bdPic":"","bdStyle":"0","bdSize":"16"},"slide":{"type":"slide","bdImg":"5","bdPos":"right","bdTop":"96.5"}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];</script>
+</div>
+
+
+
+<script  src="http://www.wklken.me/theme/js/scroll-header.js" type="text/javascript"></script>
+
+
+
+
+</body>
+</html>
