@@ -1,5 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0"><channel><title>wklken's blog</title><link>http://www.wklken.me/</link><description></description><lastBuildDate>Sat, 17 Jun 2017 23:39:00 +0800</lastBuildDate><item><title>重构 - 读书笔记(Python示例)</title><link>http://www.wklken.me/posts/2017/06/17/refactoring-07.html</link><description>&lt;p&gt;去年十二月, 重读时, 输出了几篇博文, 主要几章重构技巧梳理 &lt;a href="http://www.wklken.me/posts/2016/12/03/refactoring-01.html"&gt;6&lt;/a&gt;/&lt;a href="http://www.wklken.me/posts/2016/12/03/refactoring-02.html"&gt;7&lt;/a&gt;/&lt;a href="http://www.wklken.me/posts/2016/12/03/refactoring-03.html"&gt;8&lt;/a&gt;/&lt;a href="http://www.wklken.me/posts/2016/12/04/refactoring-04.html"&gt;9&lt;/a&gt;/&lt;a href="http://www.wklken.me/posts/2016/12/04/refactoring-05.html"&gt;10&lt;/a&gt;/&lt;a href="http://www.wklken.me/posts/2016/12/04/refactoring-06.html"&gt;11&lt;/a&gt;, 这周重读时, 从另一个角度总结一下&lt;/p&gt;
+<rss version="2.0"><channel><title>wklken's blog</title><link>http://www.wklken.me/</link><description></description><lastBuildDate>Sat, 23 Sep 2017 00:00:00 +0800</lastBuildDate><item><title>k8s APIServer源码: go-restful框架</title><link>http://www.wklken.me/posts/2017/09/23/source-apiserver-01.html</link><description>&lt;p&gt;k8s的APIServer, 使用了&lt;a href="https://github.com/emicklei/go-restful"&gt;go-restful&lt;/a&gt;作为其处理框架, 注册资源并接收处理 HTTP 请求.&lt;/p&gt;
+&lt;p&gt;在阅读APIServer源码之前, 需先理解go-restful主要概念.&lt;/p&gt;
+&lt;h2 id="intro"&gt;intro&lt;/h2&gt;
+&lt;blockquote&gt;
+&lt;p&gt;package for building REST-style Web Services using Google Go&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;a href="https://github.com/emicklei/go-restful"&gt;go-restful github&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img alt="go-restfu" src="/imgs/k8s/go-restful.png"/&gt;&lt;/p&gt;
+&lt;h2 id="concepts"&gt;concepts&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Container: 一组WebService的集合, 目的: &lt;code&gt;Containers for WebServices on different HTTP endpoints.&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;WebService: Route的集合; 为一组Route定义统一的 root path / 请求类型 / 响应类型&lt;/li&gt;
+&lt;li&gt;Route: 定义method/ULR path/调用函数/文档/参数/  &lt;a href="https://github.com/emicklei/go-restful/blob/master/curly.go"&gt;curly&lt;/a&gt; route; 支持正则及动态谭树&lt;/li&gt;
+&lt;li&gt;Filter …&lt;/li&gt;&lt;/ul&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">wklken</dc:creator><pubDate>Sat, 23 Sep 2017 00:00:00 +0800</pubDate><guid isPermaLink="false">tag:www.wklken.me,2017-09-23:/posts/2017/09/23/source-apiserver-01.html</guid><category>paas</category></item><item><title>重构 - 读书笔记(Python示例)</title><link>http://www.wklken.me/posts/2017/06/17/refactoring-07.html</link><description>&lt;p&gt;去年十二月, 重读时, 输出了几篇博文, 主要几章重构技巧梳理 &lt;a href="http://www.wklken.me/posts/2016/12/03/refactoring-01.html"&gt;6&lt;/a&gt;/&lt;a href="http://www.wklken.me/posts/2016/12/03/refactoring-02.html"&gt;7&lt;/a&gt;/&lt;a href="http://www.wklken.me/posts/2016/12/03/refactoring-03.html"&gt;8&lt;/a&gt;/&lt;a href="http://www.wklken.me/posts/2016/12/04/refactoring-04.html"&gt;9&lt;/a&gt;/&lt;a href="http://www.wklken.me/posts/2016/12/04/refactoring-05.html"&gt;10&lt;/a&gt;/&lt;a href="http://www.wklken.me/posts/2016/12/04/refactoring-06.html"&gt;11&lt;/a&gt;, 这周重读时, 从另一个角度总结一下&lt;/p&gt;
 &lt;hr/&gt;
 &lt;p&gt;我们总是想着, 找个时间重构, 额, 其实, 重构更应该放在平时, 每一次去变更代码时处理. 毕竟, 所谓的重构契机有时候太过遥远; 而如果不做重构, 痛苦的是每时每刻维护代码的自己&lt;/p&gt;
 &lt;blockquote&gt;

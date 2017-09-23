@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>wklken's blog - paas</title><link href="http://www.wklken.me/" rel="alternate"></link><link href="http://www.wklken.me/feeds/paas.atom.xml" rel="self"></link><id>http://www.wklken.me/</id><updated>2017-09-23T00:00:00+08:00</updated><entry><title>k8s APIServer源码: go-restful框架</title><link href="http://www.wklken.me/posts/2017/09/23/source-apiserver-01.html" rel="alternate"></link><published>2017-09-23T00:00:00+08:00</published><updated>2017-09-23T00:00:00+08:00</updated><author><name>wklken</name></author><id>tag:www.wklken.me,2017-09-23:/posts/2017/09/23/source-apiserver-01.html</id><summary type="html">&lt;p&gt;k8s的APIServer, 使用了&lt;a href="https://github.com/emicklei/go-restful"&gt;go-restful&lt;/a&gt;作为其处理框架, 注册资源并接收处理 HTTP 请求.&lt;/p&gt;
+&lt;p&gt;在阅读APIServer源码之前, 需先理解go-restful主要概念.&lt;/p&gt;
+&lt;h2 id="intro"&gt;intro&lt;/h2&gt;
+&lt;blockquote&gt;
+&lt;p&gt;package for building REST-style Web Services using Google Go&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;a href="https://github.com/emicklei/go-restful"&gt;go-restful github&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img alt="go-restfu" src="/imgs/k8s/go-restful.png"/&gt;&lt;/p&gt;
+&lt;h2 id="concepts"&gt;concepts&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Container: 一组WebService的集合, 目的: &lt;code&gt;Containers for WebServices on different HTTP endpoints.&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;WebService: Route的集合; 为一组Route定义统一的 root path / 请求类型 / 响应类型&lt;/li&gt;
+&lt;li&gt;Route: 定义method/ULR path/调用函数/文档/参数/  &lt;a href="https://github.com/emicklei/go-restful/blob/master/curly.go"&gt;curly&lt;/a&gt; route; 支持正则及动态谭树&lt;/li&gt;
+&lt;li&gt;Filter …&lt;/li&gt;&lt;/ul&gt;</summary><content type="html">&lt;p&gt;k8s的APIServer, 使用了&lt;a href="https://github.com/emicklei/go-restful"&gt;go-restful&lt;/a&gt;作为其处理框架, 注册资源并接收处理 HTTP 请求.&lt;/p&gt;
+&lt;p&gt;在阅读APIServer源码之前, 需先理解go-restful主要概念.&lt;/p&gt;
+&lt;h2 id="intro"&gt;intro&lt;/h2&gt;
+&lt;blockquote&gt;
+&lt;p&gt;package for building REST-style Web Services using Google Go&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;a href="https://github.com/emicklei/go-restful"&gt;go-restful github&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img alt="go-restfu" src="/imgs/k8s/go-restful.png"/&gt;&lt;/p&gt;
+&lt;h2 id="concepts"&gt;concepts&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Container: 一组WebService的集合, 目的: &lt;code&gt;Containers for WebServices on different HTTP endpoints.&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;WebService: Route的集合; 为一组Route定义统一的 root path / 请求类型 / 响应类型&lt;/li&gt;
+&lt;li&gt;Route: 定义method/ULR path/调用函数/文档/参数/  &lt;a href="https://github.com/emicklei/go-restful/blob/master/curly.go"&gt;curly&lt;/a&gt; route; 支持正则及动态谭树&lt;/li&gt;
+&lt;li&gt;Filter: &lt;code&gt;Filters for intercepting the request → response flow on Service or Route level&lt;/code&gt;, 可以加&lt;code&gt;global / Webservice / Route&lt;/code&gt; 各自的filter&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="init-steps"&gt;init steps:&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;create container&lt;/li&gt;
+&lt;li&gt;create resource WebService&lt;/li&gt;
+&lt;li&gt;define route, path, filter and bind to route handler&lt;/li&gt;
+&lt;li&gt;add router to WebService&lt;/li&gt;
+&lt;li&gt;add WebService to container&lt;/li&gt;
+&lt;li&gt;new server with &lt;code&gt;Handler=container&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;start server&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="examples"&gt;examples&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;示例1: use default containers&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nx"&gt;ws&lt;/span&gt; &lt;span class="o"&gt;:=&lt;/span&gt; &lt;span class="nb"&gt;new&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;restful&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;WebService&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="nx"&gt;ws&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;
+    &lt;span class="nx"&gt;Path&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;"/users"&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;
+    &lt;span class="nx"&gt;Consumes&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;restful&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;MIME_XML&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;restful&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;MIME_JSON&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;
+    &lt;span class="nx"&gt;Produces&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;restful&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;MIME_JSON&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;restful&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;MIME_XML&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="nx"&gt;ws&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Route&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;ws&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;GET&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;"/{user-id}"&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="nx"&gt;To&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;u&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;findUser&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;
+    &lt;span class="nx"&gt;Doc&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;"get a user"&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;
+    &lt;span class="nx"&gt;Param&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;ws&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;PathParameter&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;"user-id"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;"identifier of the user"&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="nx"&gt;DataType&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;"string"&lt;/span&gt;&lt;span class="p"&gt;)).&lt;/span&gt;
+    &lt;span class="nx"&gt;Writes&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;User&lt;/span&gt;&lt;span class="p"&gt;{}))&lt;/span&gt;
+&lt;span class="o"&gt;...&lt;/span&gt;
+
+&lt;span class="kd"&gt;func&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;u&lt;/span&gt; &lt;span class="nx"&gt;UserResource&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="nx"&gt;findUser&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;request&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="nx"&gt;restful&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Request&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;response&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="nx"&gt;restful&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Response&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="nx"&gt;id&lt;/span&gt; &lt;span class="o"&gt;:=&lt;/span&gt; &lt;span class="nx"&gt;request&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;PathParameter&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;"user-id"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="o"&gt;...&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;示例2: 含多个container&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;// https://github.com/emicklei/go-restful/blob/master/examples/restful-multi-containers.go&lt;/span&gt;
+&lt;span class="c1"&gt;// GET http://localhost:8080/hello&lt;/span&gt;
+&lt;span class="c1"&gt;// GET http://localhost:8081/hello&lt;/span&gt;
+&lt;span class="kn"&gt;package&lt;/span&gt; &lt;span class="nx"&gt;main&lt;/span&gt;
+
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;
+    &lt;span class="s"&gt;"github.com/emicklei/go-restful"&lt;/span&gt;
+    &lt;span class="s"&gt;"io"&lt;/span&gt;
+    &lt;span class="s"&gt;"log"&lt;/span&gt;
+    &lt;span class="s"&gt;"net/http"&lt;/span&gt;
+&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="kd"&gt;func&lt;/span&gt; &lt;span class="nx"&gt;main&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="c1"&gt;// add to default container&lt;/span&gt;
+    &lt;span class="nx"&gt;ws&lt;/span&gt; &lt;span class="o"&gt;:=&lt;/span&gt; &lt;span class="nb"&gt;new&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;restful&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;WebService&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="nx"&gt;ws&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Route&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;ws&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;GET&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;"/hello"&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="nx"&gt;To&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;hello&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+    &lt;span class="nx"&gt;restful&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Add&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;ws&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="k"&gt;go&lt;/span&gt; &lt;span class="kd"&gt;func&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="nx"&gt;log&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Fatal&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;http&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;ListenAndServe&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;":8080"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="kc"&gt;nil&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+    &lt;span class="p"&gt;}()&lt;/span&gt;
+
+  &lt;span class="c1"&gt;// container 2&lt;/span&gt;
+    &lt;span class="nx"&gt;container2&lt;/span&gt; &lt;span class="o"&gt;:=&lt;/span&gt; &lt;span class="nx"&gt;restful&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;NewContainer&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+    &lt;span class="nx"&gt;ws2&lt;/span&gt; &lt;span class="o"&gt;:=&lt;/span&gt; &lt;span class="nb"&gt;new&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;restful&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;WebService&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="nx"&gt;ws2&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Route&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;ws2&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;GET&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;"/hello"&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="nx"&gt;To&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;hello2&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+    &lt;span class="nx"&gt;container2&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Add&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;ws2&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="nx"&gt;server&lt;/span&gt; &lt;span class="o"&gt;:=&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="nx"&gt;http&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Server&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="nx"&gt;Addr&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;":8081"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;Handler&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="nx"&gt;container2&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;
+    &lt;span class="nx"&gt;log&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Fatal&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;server&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;ListenAndServe&lt;/span&gt;&lt;span class="p"&gt;())&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="kd"&gt;func&lt;/span&gt; &lt;span class="nx"&gt;hello&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;req&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="nx"&gt;restful&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Request&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;resp&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="nx"&gt;restful&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Response&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="nx"&gt;io&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;WriteString&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;resp&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;"default world"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="kd"&gt;func&lt;/span&gt; &lt;span class="nx"&gt;hello2&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;req&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="nx"&gt;restful&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Request&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;resp&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="nx"&gt;restful&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Response&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="nx"&gt;io&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;WriteString&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;resp&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;"second world"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;示例3: 包含 filter&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class="monokai"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;// filter https://github.com/emicklei/go-restful/blob/master/examples/restful-filters.go&lt;/span&gt;
+&lt;span class="c1"&gt;// Global Filter&lt;/span&gt;
+&lt;span class="kd"&gt;func&lt;/span&gt; &lt;span class="nx"&gt;globalLogging&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;req&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="nx"&gt;restful&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Request&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;resp&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="nx"&gt;restful&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Response&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;chain&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="nx"&gt;restful&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;FilterChain&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="nx"&gt;log&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Printf&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;"[global-filter (logger)] %s,%s\n"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;req&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Request&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Method&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;req&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Request&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;URL&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="nx"&gt;chain&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;ProcessFilter&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;req&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;resp&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="kd"&gt;func&lt;/span&gt; &lt;span class="nx"&gt;main&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="c1"&gt;// install a global (=DefaultContainer) filter (processed before any webservice in the DefaultContainer)&lt;/span&gt;
+    &lt;span class="nx"&gt;restful&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Filter&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;globalLogging&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+    &lt;span class="nx"&gt;restful&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Add&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;NewUserService&lt;/span&gt;&lt;span class="p"&gt;())&lt;/span&gt;
+    &lt;span class="nx"&gt;log&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;"start listening on localhost:8080"&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="nx"&gt;log&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Fatal&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;http&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;ListenAndServe&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;":8080"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="kc"&gt;nil&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+
+&lt;span class="kd"&gt;func&lt;/span&gt; &lt;span class="nx"&gt;NewUserService&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="nx"&gt;restful&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;WebService&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="nx"&gt;ws&lt;/span&gt; &lt;span class="o"&gt;:=&lt;/span&gt; &lt;span class="nb"&gt;new&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;restful&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;WebService&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="nx"&gt;ws&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;
+        &lt;span class="nx"&gt;Path&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;"/users"&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;
+        &lt;span class="nx"&gt;Consumes&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;restful&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;MIME_XML&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;restful&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;MIME_JSON&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;
+        &lt;span class="nx"&gt;Produces&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;restful&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;MIME_JSON&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nx"&gt;restful&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;MIME_XML&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+    &lt;span class="c1"&gt;// install a webservice filter (processed before any route)&lt;/span&gt;
+    &lt;span class="nx"&gt;ws&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Filter&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;webserviceLogging&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="nx"&gt;Filter&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;measureTime&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+    &lt;span class="c1"&gt;// install a counter filter&lt;/span&gt;
+    &lt;span class="nx"&gt;ws&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Route&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;ws&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;GET&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;""&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="nx"&gt;Filter&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;NewCountFilter&lt;/span&gt;&lt;span class="p"&gt;().&lt;/span&gt;&lt;span class="nx"&gt;routeCounter&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="nx"&gt;To&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;getAllUsers&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+
+    &lt;span class="c1"&gt;// install 2 chained route filters (processed before calling findUser)&lt;/span&gt;
+    &lt;span class="nx"&gt;ws&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Route&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;ws&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;GET&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;"/{user-id}"&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="nx"&gt;Filter&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;routeLogging&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="nx"&gt;Filter&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;NewCountFilter&lt;/span&gt;&lt;span class="p"&gt;().&lt;/span&gt;&lt;span class="nx"&gt;routeCounter&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="nx"&gt;To&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;findUser&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="nx"&gt;ws&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;h1 id="reference_1"&gt;reference&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://github.com/emicklei/go-restful"&gt;go-restful github&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://ernestmicklei.com/2012/11/go-restful-api-design/"&gt;api design&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://github.com/emicklei/go-restful/tree/master/examples"&gt;code examples&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</content><category term="paas"></category></entry></feed>
