@@ -273,28 +273,28 @@ combinations_with_replacement('ABCD', 2)    AA AB AC AD BB BC BD CC CD DD
 <p>如果iterable在多次连续迭代中生成了同一项，则会定义一个组，如果将此函数应用一个分类列表，那么分组将定义该列表中的所有唯一项，key（如果已提供）是一个函数，应用于每一项，如果此函数存在返回值，该值将用于后续项而不是该项本身进行比较，此函数返回的迭代器生成元素(key, group)，其中key是分组的键值，group是迭代器，生成组成该组的所有项。</p>
 <p>即：按照keyfunc函数对序列每个元素执行后的结果分组(每个分组是一个迭代器), 返回这些分组的迭代器</p>
 <p>等价于</p>
-<div class="monokai"><pre><span></span><span class="k">class</span> <span class="n">groupby</span>(<span class="n">object</span>):
-    <span class="c c-Singleline"># [k for k, g in groupby('AAAABBBCCDAABBB')] --&gt; A B C D A B</span>
-    <span class="c c-Singleline"># [list(g) for k, g in groupby('AAAABBBCCD')] --&gt; AAAA BBB CC D</span>
-    <span class="n">def</span> <span class="n">__init__</span>(<span class="k">self</span>, <span class="n">iterable</span>, <span class="nb">key</span>=<span class="n">None</span>):
-        <span class="k">if</span> <span class="nb">key</span> <span class="k">is</span> <span class="n">None:</span>
-            <span class="nb">key</span> = <span class="n">lambda</span> <span class="o">x</span>: <span class="o">x</span>
-        <span class="k">self</span>.<span class="n">keyfunc</span> = <span class="nb">key</span>
-        <span class="k">self</span>.<span class="n">it</span> = <span class="n">iter</span>(<span class="n">iterable</span>)
-        <span class="k">self</span>.<span class="n">tgtkey</span> = <span class="k">self</span>.<span class="n">currkey</span> = <span class="k">self</span>.<span class="n">currvalue</span> = <span class="n">object</span>()
-    <span class="n">def</span> <span class="n">__iter__</span>(<span class="k">self</span>):
-        <span class="k">return</span> <span class="k">self</span>
-    <span class="n">def</span> <span class="k">next</span>(<span class="k">self</span>):
-        <span class="k">while</span> <span class="k">self</span>.<span class="n">currkey</span> == <span class="k">self</span>.<span class="n">tgtkey:</span>
-            <span class="k">self</span>.<span class="n">currvalue</span> = <span class="k">next</span>(<span class="k">self</span>.<span class="n">it</span>)    <span class="c c-Singleline"># Exit on StopIteration</span>
-            <span class="k">self</span>.<span class="n">currkey</span> = <span class="k">self</span>.<span class="n">keyfunc</span>(<span class="k">self</span>.<span class="n">currvalue</span>)
-        <span class="k">self</span>.<span class="n">tgtkey</span> = <span class="k">self</span>.<span class="n">currkey</span>
-        <span class="k">return</span> (<span class="k">self</span>.<span class="n">currkey</span>, <span class="k">self</span>.<span class="n">_grouper</span>(<span class="k">self</span>.<span class="n">tgtkey</span>))
-    <span class="n">def</span> <span class="n">_grouper</span>(<span class="k">self</span>, <span class="n">tgtkey</span>):
-        <span class="k">while</span> <span class="k">self</span>.<span class="n">currkey</span> == <span class="n">tgtkey:</span>
-            <span class="n">yield</span> <span class="k">self</span>.<span class="n">currvalue</span>
-            <span class="k">self</span>.<span class="n">currvalue</span> = <span class="k">next</span>(<span class="k">self</span>.<span class="n">it</span>)    <span class="c c-Singleline"># Exit on StopIteration</span>
-            <span class="k">self</span>.<span class="n">currkey</span> = <span class="k">self</span>.<span class="n">keyfunc</span>(<span class="k">self</span>.<span class="n">currvalue</span>)
+<div class="monokai"><pre><span></span><span class="kr">class</span> <span class="nx">groupby</span><span class="p">(</span><span class="nx">object</span><span class="p">)</span><span class="o">:</span>
+    <span class="err">#</span> <span class="p">[</span><span class="nx">k</span> <span class="k">for</span> <span class="nx">k</span><span class="p">,</span> <span class="nx">g</span> <span class="k">in</span> <span class="nx">groupby</span><span class="p">(</span><span class="s1">'AAAABBBCCDAABBB'</span><span class="p">)]</span> <span class="o">--&gt;</span> <span class="nx">A</span> <span class="nx">B</span> <span class="nx">C</span> <span class="nx">D</span> <span class="nx">A</span> <span class="nx">B</span>
+    <span class="err">#</span> <span class="p">[</span><span class="nx">list</span><span class="p">(</span><span class="nx">g</span><span class="p">)</span> <span class="k">for</span> <span class="nx">k</span><span class="p">,</span> <span class="nx">g</span> <span class="k">in</span> <span class="nx">groupby</span><span class="p">(</span><span class="s1">'AAAABBBCCD'</span><span class="p">)]</span> <span class="o">--&gt;</span> <span class="nx">AAAA</span> <span class="nx">BBB</span> <span class="nx">CC</span> <span class="nx">D</span>
+    <span class="nx">def</span> <span class="nx">__init__</span><span class="p">(</span><span class="nx">self</span><span class="p">,</span> <span class="nx">iterable</span><span class="p">,</span> <span class="nx">key</span><span class="o">=</span><span class="nx">None</span><span class="p">)</span><span class="o">:</span>
+        <span class="k">if</span> <span class="nx">key</span> <span class="nx">is</span> <span class="nx">None</span>:
+            <span class="kt">key</span> <span class="o">=</span> <span class="nx">lambda</span> <span class="nx">x</span>: <span class="kt">x</span>
+        <span class="nx">self</span><span class="p">.</span><span class="nx">keyfunc</span> <span class="o">=</span> <span class="nx">key</span>
+        <span class="nx">self</span><span class="p">.</span><span class="nx">it</span> <span class="o">=</span> <span class="nx">iter</span><span class="p">(</span><span class="nx">iterable</span><span class="p">)</span>
+        <span class="nx">self</span><span class="p">.</span><span class="nx">tgtkey</span> <span class="o">=</span> <span class="nx">self</span><span class="p">.</span><span class="nx">currkey</span> <span class="o">=</span> <span class="nx">self</span><span class="p">.</span><span class="nx">currvalue</span> <span class="o">=</span> <span class="nx">object</span><span class="p">()</span>
+    <span class="nx">def</span> <span class="nx">__iter__</span><span class="p">(</span><span class="nx">self</span><span class="p">)</span><span class="o">:</span>
+        <span class="k">return</span> <span class="nx">self</span>
+    <span class="nx">def</span> <span class="nx">next</span><span class="p">(</span><span class="nx">self</span><span class="p">)</span><span class="o">:</span>
+        <span class="k">while</span> <span class="nx">self</span><span class="p">.</span><span class="nx">currkey</span> <span class="o">==</span> <span class="nx">self.tgtkey</span>:
+            <span class="kt">self.currvalue</span> <span class="o">=</span> <span class="nx">next</span><span class="p">(</span><span class="nx">self</span><span class="p">.</span><span class="nx">it</span><span class="p">)</span>    <span class="err">#</span> <span class="nx">Exit</span> <span class="nx">on</span> <span class="nx">StopIteration</span>
+            <span class="nx">self</span><span class="p">.</span><span class="nx">currkey</span> <span class="o">=</span> <span class="nx">self</span><span class="p">.</span><span class="nx">keyfunc</span><span class="p">(</span><span class="nx">self</span><span class="p">.</span><span class="nx">currvalue</span><span class="p">)</span>
+        <span class="nx">self</span><span class="p">.</span><span class="nx">tgtkey</span> <span class="o">=</span> <span class="nx">self</span><span class="p">.</span><span class="nx">currkey</span>
+        <span class="k">return</span> <span class="p">(</span><span class="nx">self</span><span class="p">.</span><span class="nx">currkey</span><span class="p">,</span> <span class="nx">self</span><span class="p">.</span><span class="nx">_grouper</span><span class="p">(</span><span class="nx">self</span><span class="p">.</span><span class="nx">tgtkey</span><span class="p">))</span>
+    <span class="nx">def</span> <span class="nx">_grouper</span><span class="p">(</span><span class="nx">self</span><span class="p">,</span> <span class="nx">tgtkey</span><span class="p">)</span><span class="o">:</span>
+        <span class="k">while</span> <span class="nx">self</span><span class="p">.</span><span class="nx">currkey</span> <span class="o">==</span> <span class="nx">tgtkey</span>:
+            <span class="kt">yield</span> <span class="nx">self</span><span class="p">.</span><span class="nx">currvalue</span>
+            <span class="nx">self</span><span class="p">.</span><span class="nx">currvalue</span> <span class="o">=</span> <span class="nx">next</span><span class="p">(</span><span class="nx">self</span><span class="p">.</span><span class="nx">it</span><span class="p">)</span>    <span class="err">#</span> <span class="nx">Exit</span> <span class="nx">on</span> <span class="nx">StopIteration</span>
+            <span class="nx">self</span><span class="p">.</span><span class="nx">currkey</span> <span class="o">=</span> <span class="nx">self</span><span class="p">.</span><span class="nx">keyfunc</span><span class="p">(</span><span class="nx">self</span><span class="p">.</span><span class="nx">currvalue</span><span class="p">)</span>
 </pre></div>
 <p>应用</p>
 <div class="monokai"><pre><span></span><span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">groupby</span>
@@ -606,25 +606,25 @@ def izip(*iterables):
 </pre></div>
 <h3 id="itertoolsizip_longestiterables-fillvalue">itertools.izip_longest(*iterables[, fillvalue])</h3>
 <p>与izip()相同，但是迭代过程会持续到所有输入迭代变量iter1,iter2等都耗尽为止，如果没有使用fillvalue关键字参数指定不同的值，则使用None来填充已经使用的迭代变量的值。</p>
-<div class="monokai"><pre><span></span><span class="k">class</span> <span class="n">ZipExhausted</span>(<span class="nb">Exception</span>):
-    <span class="nb">pass</span>
+<div class="monokai"><pre><span></span><span class="kr">class</span> <span class="nx">ZipExhausted</span><span class="p">(</span><span class="nx">Exception</span><span class="p">)</span><span class="o">:</span>
+    <span class="nx">pass</span>
 
-<span class="n">def</span> <span class="n">izip_longest</span>(*<span class="n">args</span>, **<span class="n">kwds</span>):
-    <span class="c c-Singleline"># izip_longest('ABCD', 'xy', fillvalue='-') --&gt; Ax By C- D-</span>
-    <span class="n">fillvalue</span> = <span class="n">kwds</span>.<span class="n">get</span>(<span class="s">'fillvalue'</span>)
-    <span class="n">counter</span> = [<span class="n">len</span>(<span class="n">args</span>) - <span class="mi">1</span>]
-    <span class="n">def</span> <span class="n">sentinel</span>():
-        <span class="k">if</span> <span class="nb">not</span> <span class="n">counter</span>[<span class="mi">0</span>]:
-            <span class="n">raise</span> <span class="n">ZipExhausted</span>
-        <span class="n">counter</span>[<span class="mi">0</span>] -= <span class="mi">1</span>
-        <span class="n">yield</span> <span class="n">fillvalue</span>
-    <span class="n">fillers</span> = <span class="k">repeat</span>(<span class="n">fillvalue</span>)
-    <span class="n">iterators</span> = [<span class="n">chain</span>(<span class="n">it</span>, <span class="n">sentinel</span>(), <span class="n">fillers</span>) <span class="k">for</span> <span class="n">it</span> <span class="n">in</span> <span class="n">args</span>]
-    <span class="n">try:</span>
-        <span class="k">while</span> <span class="n">iterators:</span>
-            <span class="n">yield</span> <span class="n">tuple</span>(<span class="nb">map</span>(<span class="k">next</span>, <span class="n">iterators</span>))
-    <span class="n">except</span> <span class="n">ZipExhausted:</span>
-        <span class="nb">pass</span>
+<span class="nx">def</span> <span class="nx">izip_longest</span><span class="p">(</span><span class="o">*</span><span class="nx">args</span><span class="p">,</span> <span class="o">**</span><span class="nx">kwds</span><span class="p">)</span><span class="o">:</span>
+    <span class="err">#</span> <span class="nx">izip_longest</span><span class="p">(</span><span class="s1">'ABCD'</span><span class="p">,</span> <span class="s1">'xy'</span><span class="p">,</span> <span class="nx">fillvalue</span><span class="o">=</span><span class="s1">'-'</span><span class="p">)</span> <span class="o">--&gt;</span> <span class="nx">Ax</span> <span class="nx">By</span> <span class="nx">C</span><span class="o">-</span> <span class="nx">D</span><span class="o">-</span>
+    <span class="nx">fillvalue</span> <span class="o">=</span> <span class="nx">kwds</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">'fillvalue'</span><span class="p">)</span>
+    <span class="nx">counter</span> <span class="o">=</span> <span class="p">[</span><span class="nx">len</span><span class="p">(</span><span class="nx">args</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="nx">def</span> <span class="nx">sentinel</span><span class="p">()</span><span class="o">:</span>
+        <span class="k">if</span> <span class="nx">not</span> <span class="nx">counter</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">:</span>
+            <span class="nx">raise</span> <span class="nx">ZipExhausted</span>
+        <span class="nx">counter</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-=</span> <span class="mi">1</span>
+        <span class="nx">yield</span> <span class="nx">fillvalue</span>
+    <span class="nx">fillers</span> <span class="o">=</span> <span class="nx">repeat</span><span class="p">(</span><span class="nx">fillvalue</span><span class="p">)</span>
+    <span class="nx">iterators</span> <span class="o">=</span> <span class="p">[</span><span class="nx">chain</span><span class="p">(</span><span class="nx">it</span><span class="p">,</span> <span class="nx">sentinel</span><span class="p">(),</span> <span class="nx">fillers</span><span class="p">)</span> <span class="k">for</span> <span class="nx">it</span> <span class="k">in</span> <span class="nx">args</span><span class="p">]</span>
+    <span class="k">try</span><span class="o">:</span>
+        <span class="k">while</span> <span class="nx">iterators</span>:
+            <span class="kt">yield</span> <span class="nx">tuple</span><span class="p">(</span><span class="nx">map</span><span class="p">(</span><span class="nx">next</span><span class="p">,</span> <span class="nx">iterators</span><span class="p">))</span>
+    <span class="nx">except</span> <span class="nx">ZipExhausted</span>:
+        <span class="kt">pass</span>
 </pre></div>
 <h2 id="di-san-bu-fen_1">第三部分</h2>
 <h3 id="itertoolsproductiterables-repeat">itertools.product(*iterables[, repeat])</h3>

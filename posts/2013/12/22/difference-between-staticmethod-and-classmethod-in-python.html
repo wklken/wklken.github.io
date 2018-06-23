@@ -89,7 +89,7 @@
 <p>类中最常用到的方法是 实例方法(instance methods), 即，实例对象作为第一个参数传递给函数</p>
 <p>例如，下面是一个基本的实例方法</p>
 <div class="monokai"><pre><span></span><span class="k">class</span> <span class="nc">Kls</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
 
     <span class="k">def</span> <span class="nf">printd</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -114,57 +114,57 @@ seema
 </pre></div>
 <p>假如我们想仅实现类之间交互而不是通过实例？我们可以在类之外建立一个简单的函数来实现这个功能，但是将会使代码扩散到类之外，这个可能对未来代码维护带来问题。</p>
 <p>例如：</p>
-<div class="monokai"><pre><span></span>def get_no_of_instances(cls_obj):
-    return cls_obj.no_inst
+<div class="monokai"><pre><span></span><span class="nx">def</span> <span class="nx">get_no_of_instances</span><span class="p">(</span><span class="nx">cls_obj</span><span class="p">)</span><span class="o">:</span>
+    <span class="k">return</span> <span class="nx">cls_obj</span><span class="p">.</span><span class="nx">no_inst</span>
 
-class Kls(object):
-    no_inst = 0
+<span class="kr">class</span> <span class="nx">Kls</span><span class="p">(</span><span class="nx">object</span><span class="p">)</span><span class="o">:</span>
+    <span class="nx">no_inst</span> <span class="o">=</span> <span class="mi">0</span>
 
-    def __init__(self):
-        Kls.no_inst = Kls.no_inst + 1
+    <span class="nx">def</span> <span class="nx">__init__</span><span class="p">(</span><span class="nx">self</span><span class="p">)</span><span class="o">:</span>
+        <span class="nx">Kls</span><span class="p">.</span><span class="nx">no_inst</span> <span class="o">=</span> <span class="nx">Kls</span><span class="p">.</span><span class="nx">no_inst</span> <span class="o">+</span> <span class="mi">1</span>
 
-ik1 = Kls()
-ik2 = Kls()
+<span class="nx">ik1</span> <span class="o">=</span> <span class="nx">Kls</span><span class="p">()</span>
+<span class="nx">ik2</span> <span class="o">=</span> <span class="nx">Kls</span><span class="p">()</span>
 
-print(get_no_of_instances(Kls))
+<span class="nx">print</span><span class="p">(</span><span class="nx">get_no_of_instances</span><span class="p">(</span><span class="nx">Kls</span><span class="p">))</span>
 </pre></div>
 <p>结果:</p>
 <p>2</p>
 <h3 id="the-python-classmethod">The Python @classmethod</h3>
 <p>现在我们要做的是在类里创建一个函数，这个函数参数是类对象而不是实例对象.</p>
 <p>在上面那个实现中，如果要实现不获取实例,需要修改如下:</p>
-<div class="monokai"><pre><span></span>def iget_no_of_instance(ins_obj):
-    return ins_obj.__class__.no_inst
+<div class="monokai"><pre><span></span><span class="nx">def</span> <span class="nx">iget_no_of_instance</span><span class="p">(</span><span class="nx">ins_obj</span><span class="p">)</span><span class="o">:</span>
+    <span class="k">return</span> <span class="nx">ins_obj</span><span class="p">.</span><span class="nx">__class__</span><span class="p">.</span><span class="nx">no_inst</span>
 
-class Kls(object):
-    no_inst = 0
+<span class="kr">class</span> <span class="nx">Kls</span><span class="p">(</span><span class="nx">object</span><span class="p">)</span><span class="o">:</span>
+    <span class="nx">no_inst</span> <span class="o">=</span> <span class="mi">0</span>
 
-    def __init__(self):
-        Kls.no_inst = Kls.no_inst + 1
+    <span class="nx">def</span> <span class="nx">__init__</span><span class="p">(</span><span class="nx">self</span><span class="p">)</span><span class="o">:</span>
+        <span class="nx">Kls</span><span class="p">.</span><span class="nx">no_inst</span> <span class="o">=</span> <span class="nx">Kls</span><span class="p">.</span><span class="nx">no_inst</span> <span class="o">+</span> <span class="mi">1</span>
 
-ik1 = Kls()
-ik2 = Kls()
-print iget_no_of_instance(ik1)
+<span class="nx">ik1</span> <span class="o">=</span> <span class="nx">Kls</span><span class="p">()</span>
+<span class="nx">ik2</span> <span class="o">=</span> <span class="nx">Kls</span><span class="p">()</span>
+<span class="nx">print</span> <span class="nx">iget_no_of_instance</span><span class="p">(</span><span class="nx">ik1</span><span class="p">)</span>
 
-结果
-2
+<span class="err">结果</span>
+<span class="mi">2</span>
 </pre></div>
 <p>可以使用Python2.2引入的新特性，使用@classmethod在类代码中创建一个函数</p>
-<div class="monokai"><pre><span></span><span class="k">class</span> <span class="n">Kls</span>(<span class="n">object</span>):
-    <span class="n">no_inst</span> = <span class="mi">0</span>
+<div class="monokai"><pre><span></span><span class="kr">class</span> <span class="nx">Kls</span><span class="p">(</span><span class="nx">object</span><span class="p">)</span><span class="o">:</span>
+    <span class="nx">no_inst</span> <span class="o">=</span> <span class="mi">0</span>
 
-    <span class="n">def</span> <span class="n">__init__</span>(<span class="k">self</span>):
-        <span class="n">Kls</span>.<span class="n">no_inst</span> = <span class="n">Kls</span>.<span class="n">no_inst</span> + <span class="mi">1</span>
+    <span class="nx">def</span> <span class="nx">__init__</span><span class="p">(</span><span class="nx">self</span><span class="p">)</span><span class="o">:</span>
+        <span class="nx">Kls</span><span class="p">.</span><span class="nx">no_inst</span> <span class="o">=</span> <span class="nx">Kls</span><span class="p">.</span><span class="nx">no_inst</span> <span class="o">+</span> <span class="mi">1</span>
 
-    <span class="nv">@classmethod</span>
-    <span class="n">def</span> <span class="n">get_no_of_instance</span>(<span class="n">cls_obj</span>):
-        <span class="k">return</span> <span class="n">cls_obj</span>.<span class="n">no_inst</span>
+    <span class="kd">@classmethod</span>
+    <span class="nx">def</span> <span class="nx">get_no_of_instance</span><span class="p">(</span><span class="nx">cls_obj</span><span class="p">)</span><span class="o">:</span>
+        <span class="k">return</span> <span class="nx">cls_obj</span><span class="p">.</span><span class="nx">no_inst</span>
 
-<span class="n">ik1</span> = <span class="n">Kls</span>()
-<span class="n">ik2</span> = <span class="n">Kls</span>()
+<span class="nx">ik1</span> <span class="o">=</span> <span class="nx">Kls</span><span class="p">()</span>
+<span class="nx">ik2</span> <span class="o">=</span> <span class="nx">Kls</span><span class="p">()</span>
 
-<span class="nb">print</span> <span class="n">ik1</span>.<span class="n">get_no_of_instance</span>()
-<span class="nb">print</span> <span class="n">Kls</span>.<span class="n">get_no_of_instance</span>()
+<span class="nx">print</span> <span class="nx">ik1</span><span class="p">.</span><span class="nx">get_no_of_instance</span><span class="p">()</span>
+<span class="nx">print</span> <span class="nx">Kls</span><span class="p">.</span><span class="nx">get_no_of_instance</span><span class="p">()</span>
 </pre></div>
 <p>We get the following output:</p>
 <div class="monokai"><pre><span></span>2
@@ -174,75 +174,75 @@ print iget_no_of_instance(ik1)
 <p>通常，有很多情况下一些函数与类相关，但不需要任何类或实例变量就可以实现一些功能.</p>
 <p>比如设置环境变量，修改另一个类的属性等等.这种情况下，我们也可以使用一个函数，一样会将代码扩散到类之外（难以维护）</p>
 <p>下面是一个例子:</p>
-<div class="monokai"><pre><span></span>IND = 'ON'
+<div class="monokai"><pre><span></span><span class="nx">IND</span> <span class="o">=</span> <span class="s1">'ON'</span>
 
-def checkind():
-    return (IND == 'ON')
+<span class="nx">def</span> <span class="nx">checkind</span><span class="p">()</span><span class="o">:</span>
+    <span class="k">return</span> <span class="p">(</span><span class="nx">IND</span> <span class="o">==</span> <span class="s1">'ON'</span><span class="p">)</span>
 
-class Kls(object):
-    def __init__(self,data):
-        self.data = data
+<span class="kr">class</span> <span class="nx">Kls</span><span class="p">(</span><span class="nx">object</span><span class="p">)</span><span class="o">:</span>
+    <span class="nx">def</span> <span class="nx">__init__</span><span class="p">(</span><span class="nx">self</span><span class="p">,</span><span class="nx">data</span><span class="p">)</span><span class="o">:</span>
+        <span class="nx">self</span><span class="p">.</span><span class="nx">data</span> <span class="o">=</span> <span class="nx">data</span>
 
-    def do_reset(self):
-        if checkind():
-            print('Reset done for:', self.data)
+    <span class="nx">def</span> <span class="nx">do_reset</span><span class="p">(</span><span class="nx">self</span><span class="p">)</span><span class="o">:</span>
+        <span class="k">if</span> <span class="nx">checkind</span><span class="p">()</span><span class="o">:</span>
+            <span class="nx">print</span><span class="p">(</span><span class="s1">'Reset done for:'</span><span class="p">,</span> <span class="nx">self</span><span class="p">.</span><span class="nx">data</span><span class="p">)</span>
 
-    def set_db(self):
-        if checkind():
-            self.db = 'new db connection'
-            print('DB connection made for:',self.data)
+    <span class="nx">def</span> <span class="nx">set_db</span><span class="p">(</span><span class="nx">self</span><span class="p">)</span><span class="o">:</span>
+        <span class="k">if</span> <span class="nx">checkind</span><span class="p">()</span><span class="o">:</span>
+            <span class="nx">self</span><span class="p">.</span><span class="nx">db</span> <span class="o">=</span> <span class="s1">'new db connection'</span>
+            <span class="nx">print</span><span class="p">(</span><span class="s1">'DB connection made for:'</span><span class="p">,</span><span class="nx">self</span><span class="p">.</span><span class="nx">data</span><span class="p">)</span>
 
-ik1 = Kls(12)
-ik1.do_reset()
-ik1.set_db()
+<span class="nx">ik1</span> <span class="o">=</span> <span class="nx">Kls</span><span class="p">(</span><span class="mi">12</span><span class="p">)</span>
+<span class="nx">ik1</span><span class="p">.</span><span class="nx">do_reset</span><span class="p">()</span>
+<span class="nx">ik1</span><span class="p">.</span><span class="nx">set_db</span><span class="p">()</span>
 </pre></div>
 <p>结果:</p>
 <div class="monokai"><pre><span></span>Reset done for: 12
 DB connection made for: 12
 </pre></div>
 <p>现在我们使用@staticmethod, 我们可以将所有代码放到类中</p>
-<div class="monokai"><pre><span></span>IND = 'ON'
+<div class="monokai"><pre><span></span><span class="nx">IND</span> <span class="o">=</span> <span class="s1">'ON'</span>
 
-class Kls(object):
-    def __init__(self, data):
-        self.data = data
+<span class="kr">class</span> <span class="nx">Kls</span><span class="p">(</span><span class="nx">object</span><span class="p">)</span><span class="o">:</span>
+    <span class="nx">def</span> <span class="nx">__init__</span><span class="p">(</span><span class="nx">self</span><span class="p">,</span> <span class="nx">data</span><span class="p">)</span><span class="o">:</span>
+        <span class="nx">self</span><span class="p">.</span><span class="nx">data</span> <span class="o">=</span> <span class="nx">data</span>
 
-    @staticmethod
-    def checkind():
-        return (IND == 'ON')
+    <span class="kd">@staticmethod</span>
+    <span class="nx">def</span> <span class="nx">checkind</span><span class="p">()</span><span class="o">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="nx">IND</span> <span class="o">==</span> <span class="s1">'ON'</span><span class="p">)</span>
 
-    def do_reset(self):
-        if self.checkind():
-            print('Reset done for:', self.data)
+    <span class="nx">def</span> <span class="nx">do_reset</span><span class="p">(</span><span class="nx">self</span><span class="p">)</span><span class="o">:</span>
+        <span class="k">if</span> <span class="nx">self</span><span class="p">.</span><span class="nx">checkind</span><span class="p">()</span><span class="o">:</span>
+            <span class="nx">print</span><span class="p">(</span><span class="s1">'Reset done for:'</span><span class="p">,</span> <span class="nx">self</span><span class="p">.</span><span class="nx">data</span><span class="p">)</span>
 
-    def set_db(self):
-        if self.checkind():
-            self.db = 'New db connection'
-        print('DB connection made for: ', self.data)
+    <span class="nx">def</span> <span class="nx">set_db</span><span class="p">(</span><span class="nx">self</span><span class="p">)</span><span class="o">:</span>
+        <span class="k">if</span> <span class="nx">self</span><span class="p">.</span><span class="nx">checkind</span><span class="p">()</span><span class="o">:</span>
+            <span class="nx">self</span><span class="p">.</span><span class="nx">db</span> <span class="o">=</span> <span class="s1">'New db connection'</span>
+        <span class="nx">print</span><span class="p">(</span><span class="s1">'DB connection made for: '</span><span class="p">,</span> <span class="nx">self</span><span class="p">.</span><span class="nx">data</span><span class="p">)</span>
 
-ik1 = Kls(12)
-ik1.do_reset()
-ik1.set_db()
+<span class="nx">ik1</span> <span class="o">=</span> <span class="nx">Kls</span><span class="p">(</span><span class="mi">12</span><span class="p">)</span>
+<span class="nx">ik1</span><span class="p">.</span><span class="nx">do_reset</span><span class="p">()</span>
+<span class="nx">ik1</span><span class="p">.</span><span class="nx">set_db</span><span class="p">()</span>
 </pre></div>
 <p>得到的结果:</p>
 <div class="monokai"><pre><span></span>Reset done for: 12
 DB connection made for: 12
 </pre></div>
 <h3 id="how-staticmethod-and-classmethod-are-different">How @staticmethod and @classmethod are different</h3>
-<div class="monokai"><pre><span></span><span class="k">class</span> <span class="n">Kls</span>(<span class="n">object</span>):
-    <span class="n">def</span> <span class="n">__init__</span>(<span class="k">self</span>, <span class="n">data</span>):
-        <span class="k">self</span>.<span class="n">data</span> = <span class="n">data</span>
+<div class="monokai"><pre><span></span><span class="kr">class</span> <span class="nx">Kls</span><span class="p">(</span><span class="nx">object</span><span class="p">)</span><span class="o">:</span>
+    <span class="nx">def</span> <span class="nx">__init__</span><span class="p">(</span><span class="nx">self</span><span class="p">,</span> <span class="nx">data</span><span class="p">)</span><span class="o">:</span>
+        <span class="nx">self</span><span class="p">.</span><span class="nx">data</span> <span class="o">=</span> <span class="nx">data</span>
 
-    <span class="n">def</span> <span class="n">printd</span>(<span class="k">self</span>):
-        <span class="nb">print</span>(<span class="k">self</span>.<span class="n">data</span>)
+    <span class="nx">def</span> <span class="nx">printd</span><span class="p">(</span><span class="nx">self</span><span class="p">)</span><span class="o">:</span>
+        <span class="nx">print</span><span class="p">(</span><span class="nx">self</span><span class="p">.</span><span class="nx">data</span><span class="p">)</span>
 
-    <span class="nv">@staticmethod</span>
-    <span class="n">def</span> <span class="n">smethod</span>(*<span class="n">arg</span>):
-        <span class="nb">print</span>(<span class="s">'Static:'</span>, <span class="n">arg</span>)
+    <span class="kd">@staticmethod</span>
+    <span class="nx">def</span> <span class="nx">smethod</span><span class="p">(</span><span class="o">*</span><span class="nx">arg</span><span class="p">)</span><span class="o">:</span>
+        <span class="nx">print</span><span class="p">(</span><span class="s1">'Static:'</span><span class="p">,</span> <span class="nx">arg</span><span class="p">)</span>
 
-    <span class="nv">@classmethod</span>
-    <span class="n">def</span> <span class="n">cmethod</span>(*<span class="n">arg</span>):
-        <span class="nb">print</span>(<span class="s">'Class:'</span>, <span class="n">arg</span>)
+    <span class="kd">@classmethod</span>
+    <span class="nx">def</span> <span class="nx">cmethod</span><span class="p">(</span><span class="o">*</span><span class="nx">arg</span><span class="p">)</span><span class="o">:</span>
+        <span class="nx">print</span><span class="p">(</span><span class="s1">'Class:'</span><span class="p">,</span> <span class="nx">arg</span><span class="p">)</span>
 </pre></div>
 <p>调用</p>
 <div class="monokai"><pre><span></span>&gt;&gt;&gt; ik = Kls(23)

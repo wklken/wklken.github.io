@@ -128,94 +128,94 @@ SELECT 1 from dbname;
 <p>完整的logstash配置文件(具体使用可能需要根据自身日志格式做些小调整)
 注意, 里面的pattern <code>ALLWORD [\s\S]*</code></p>
 <div class="monokai"><pre><span></span><span class="nt">input</span> <span class="p">{</span>
-  <span class="n">file</span> <span class="err">{</span>
-    <span class="n">path</span> <span class="o">=&gt;</span> <span class="cp">[</span><span class="s2">"/data/mysqllog/20000/slow-query.log"</span><span class="cp">]</span>
-    <span class="n">sincedb_path</span> <span class="o">=&gt;</span> <span class="s2">"/data/LogNew/logstash/sincedb/mysql.sincedb"</span>
-    <span class="n">type</span> <span class="o">=&gt;</span> <span class="s2">"mysql-slow-log"</span>
-    <span class="n">add_field</span> <span class="o">=&gt;</span> <span class="cp">[</span><span class="s2">"env"</span><span class="p">,</span> <span class="s2">"PRODUCT"</span><span class="cp">]</span>
-    <span class="n">codec</span> <span class="o">=&gt;</span> <span class="n">multiline</span> <span class="err">{</span>
-      <span class="n">pattern</span> <span class="o">=&gt;</span> <span class="s2">"^# User@Host:"</span>
-      <span class="n">negate</span> <span class="o">=&gt;</span> <span class="n">true</span>
-      <span class="n">what</span> <span class="o">=&gt;</span> <span class="n">previous</span>
-      <span class="n">max_bytes</span> <span class="o">=&gt;</span> <span class="s2">"100kib"</span>
-      <span class="n">auto_flush_interval</span> <span class="o">=&gt;</span> <span class="m">5</span>
-    <span class="p">}</span>
-  <span class="err">}</span>
-<span class="err">}</span>
-<span class="nt">filter</span> <span class="p">{</span>
-  <span class="n">if</span> <span class="p">(</span><span class="s2">"multiline_codec_max_bytes_reached"</span> <span class="n">in</span> <span class="cp">[</span><span class="nb">tags</span><span class="cp">]</span><span class="p">)</span> <span class="err">{</span>
-      <span class="n">drop</span> <span class="err">{</span><span class="p">}</span>
-  <span class="err">}</span>
-  <span class="nt">grok</span> <span class="p">{</span>
-    <span class="err">#</span> <span class="n">User</span><span class="o">@</span><span class="n">Host</span><span class="o">:</span> <span class="n">logstash</span><span class="cp">[</span><span class="nx">logstash</span><span class="cp">]</span> <span class="o">@</span> <span class="n">localhost</span> <span class="cp">[</span><span class="mf">127.0.0.1</span><span class="cp">]</span>
-    <span class="err">#</span> <span class="n">User</span><span class="o">@</span><span class="n">Host</span><span class="o">:</span> <span class="n">logstash</span><span class="cp">[</span><span class="nx">logstash</span><span class="cp">]</span> <span class="o">@</span>  <span class="cp">[</span><span class="mf">127.0.0.1</span><span class="cp">]</span>
-    <span class="n">match</span> <span class="o">=&gt;</span> <span class="cp">[</span> <span class="s2">"message"</span><span class="p">,</span> <span class="s2">"^# User@Host: %{ALLWORD:user}\[%{ALLWAORD}\] @ %{ALLWORD:dbhost}? \[%{IP:ip}\]"</span> <span class="cp">]</span>
-  <span class="p">}</span>
-  <span class="nt">grok</span> <span class="p">{</span>
-    <span class="err">#</span> <span class="n">Query_time</span><span class="o">:</span> <span class="m">102</span><span class="o">.</span><span class="m">413328</span>  <span class="n">Lock_time</span><span class="o">:</span> <span class="m">0</span><span class="o">.</span><span class="m">000167</span> <span class="n">Rows_sent</span><span class="o">:</span> <span class="m">0</span>  <span class="n">Rows_examined</span><span class="o">:</span> <span class="m">1970</span>
-    <span class="n">match</span> <span class="o">=&gt;</span> <span class="cp">[</span> <span class="s2">"message"</span><span class="p">,</span> <span class="s2">"^# Query_time: %{NUMBER:duration:float}%{SPACE}Lock_time: %{NUMBER:lock_wait:float}%{SPACE}Rows_sent: %{NUMBER:results:int}%{SPACE}Rows_examined:%{SPACE}%{NUMBER:scanned:int}%{ALLWORD:sql}"</span><span class="cp">]</span>
-  <span class="p">}</span>
+  <span class="err">file</span> <span class="err">{</span>
+    <span class="err">path</span> <span class="err">=&gt;</span> <span class="cp">[</span><span class="s2">"/data/mysqllog/20000/slow-query.log"</span><span class="cp">]</span>
+    <span class="err">sincedb_path</span> <span class="err">=&gt;</span> <span class="err">"/data/LogNew/logstash/sincedb/mysql.sincedb"</span>
+    <span class="err">type</span> <span class="err">=&gt;</span> <span class="err">"mysql-slow-log"</span>
+    <span class="err">add_field</span> <span class="err">=&gt;</span> <span class="cp">[</span><span class="s2">"env"</span><span class="p">,</span> <span class="s2">"PRODUCT"</span><span class="cp">]</span>
+    <span class="err">codec</span> <span class="err">=&gt;</span> <span class="err">multiline</span> <span class="err">{</span>
+      <span class="err">pattern</span> <span class="err">=&gt;</span> <span class="err">"^#</span> <span class="err">User@</span><span class="n">Host</span><span class="p">:</span><span class="s2">"</span>
+<span class="s2">      negate =&gt; true</span>
+<span class="s2">      what =&gt; previous</span>
+<span class="s2">      max_bytes =&gt; "</span><span class="mi">100</span><span class="n">kib</span><span class="s2">"</span>
+<span class="s2">      auto_flush_interval =&gt; 5</span>
+<span class="s2">    }</span>
+<span class="s2">  }</span>
+<span class="s2">}</span>
+<span class="s2">filter {</span>
+<span class="s2">  if ("</span><span class="n">multiline_codec_max_bytes_reached</span><span class="s2">" in </span><span class="cp">[</span><span class="nb">tags</span><span class="cp">]</span><span class="s2">) {</span>
+<span class="s2">      drop {}</span>
+<span class="s2">  }</span>
+<span class="s2">  grok {</span>
+<span class="s2">    # User@Host: logstash</span><span class="cp">[</span><span class="nx">logstash</span><span class="cp">]</span><span class="s2"> @ localhost </span><span class="cp">[</span><span class="mf">127.0.0.1</span><span class="cp">]</span><span class="s2"></span>
+<span class="s2">    # User@Host: logstash</span><span class="cp">[</span><span class="nx">logstash</span><span class="cp">]</span><span class="s2"> @  </span><span class="cp">[</span><span class="mf">127.0.0.1</span><span class="cp">]</span><span class="s2"></span>
+<span class="s2">    match =&gt; </span><span class="cp">[</span> <span class="s2">"message"</span><span class="p">,</span> <span class="s2">"^# User@Host: %{ALLWORD:user}\[%{ALLWAORD}\] @ %{ALLWORD:dbhost}? \[%{IP:ip}\]"</span> <span class="cp">]</span><span class="s2"></span>
+<span class="s2">  }</span>
+<span class="s2">  grok {</span>
+<span class="s2">    # Query_time: 102.413328  Lock_time: 0.000167 Rows_sent: 0  Rows_examined: 1970</span>
+<span class="s2">    match =&gt; </span><span class="cp">[</span> <span class="s2">"message"</span><span class="p">,</span> <span class="s2">"^# Query_time: %{NUMBER:duration:float}%{SPACE}Lock_time: %{NUMBER:lock_wait:float}%{SPACE}Rows_sent: %{NUMBER:results:int}%{SPACE}Rows_examined:%{SPACE}%{NUMBER:scanned:int}%{ALLWORD:sql}"</span><span class="cp">]</span><span class="s2"></span>
+<span class="s2">  }</span>
 
-  <span class="err">#</span> <span class="nt">Capture</span> <span class="nt">the</span> <span class="nt">time</span> <span class="nt">the</span> <span class="nt">query</span> <span class="nt">happened</span>
-  <span class="nt">grok</span> <span class="p">{</span>
-    <span class="n">match</span> <span class="o">=&gt;</span> <span class="cp">[</span> <span class="s2">"message"</span><span class="p">,</span> <span class="s2">"^SET timestamp=%{NUMBER:timestamp};"</span> <span class="cp">]</span>
-  <span class="p">}</span>
-  <span class="err">#</span> <span class="nt">if</span> <span class="nt">codec</span> <span class="nt">multiline</span> <span class="nt">parse</span> <span class="nt">failure</span>
-  <span class="nt">if</span> <span class="o">(</span><span class="s2">"_grokparsefailure"</span> <span class="nt">in</span> <span class="cp">[</span><span class="nb">tags</span><span class="cp">]</span><span class="o">)</span> <span class="p">{</span>
-      <span class="n">drop</span> <span class="err">{</span><span class="p">}</span>
-  <span class="err">}</span>
-  <span class="nt">date</span> <span class="p">{</span>
-    <span class="n">match</span> <span class="o">=&gt;</span> <span class="cp">[</span> <span class="s2">"timestamp"</span><span class="p">,</span> <span class="s2">"UNIX"</span> <span class="cp">]</span>
-  <span class="p">}</span>
+<span class="s2">  # Capture the time the query happened</span>
+<span class="s2">  grok {</span>
+<span class="s2">    match =&gt; </span><span class="cp">[</span> <span class="s2">"message"</span><span class="p">,</span> <span class="s2">"^SET timestamp=%{NUMBER:timestamp};"</span> <span class="cp">]</span><span class="s2"></span>
+<span class="s2">  }</span>
+<span class="s2">  # if codec multiline parse failure</span>
+<span class="s2">  if ("</span><span class="n">_grokparsefailure</span><span class="s2">" in </span><span class="cp">[</span><span class="nb">tags</span><span class="cp">]</span><span class="s2">) {</span>
+<span class="s2">      drop {}</span>
+<span class="s2">  }</span>
+<span class="s2">  date {</span>
+<span class="s2">    match =&gt; </span><span class="cp">[</span> <span class="s2">"timestamp"</span><span class="p">,</span> <span class="s2">"UNIX"</span> <span class="cp">]</span><span class="s2"></span>
+<span class="s2">  }</span>
 
-  <span class="nt">mutate</span> <span class="p">{</span>
-    <span class="n">gsub</span> <span class="o">=&gt;</span> <span class="cp">[</span>
+<span class="s2">  mutate {</span>
+<span class="s2">    gsub =&gt; </span><span class="cp">[</span>
         <span class="s2">"sql"</span><span class="p">,</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">SET timestamp=\d+?;</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span> <span class="s2">""</span><span class="p">,</span>
         <span class="s2">"sql"</span><span class="p">,</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">use [a-zA-Z0-9\-\_]+?;"</span><span class="p">,</span> <span class="s2">""</span><span class="p">,</span>
         <span class="s2">"sql"</span><span class="p">,</span> <span class="s2">"</span><span class="se">\n</span><span class="s2"># Time: \d+\s+\d+:\d+:\d+"</span><span class="p">,</span> <span class="s2">""</span><span class="p">,</span>
         <span class="s2">"sql"</span><span class="p">,</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">/usr/local/mysql/bin/mysqld.+$"</span><span class="p">,</span> <span class="s2">""</span><span class="p">,</span>
         <span class="s2">"sql"</span><span class="p">,</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">Tcp port:.+$"</span><span class="p">,</span> <span class="s2">""</span><span class="p">,</span>
         <span class="s2">"sql"</span><span class="p">,</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">Time .+$"</span><span class="p">,</span> <span class="s2">""</span>
-    <span class="cp">]</span>
-  <span class="p">}</span>
+    <span class="cp">]</span><span class="s2"></span>
+<span class="s2">  }</span>
 
 
 
-  <span class="err">#</span> <span class="nt">calculate</span> <span class="nt">unique</span> <span class="nt">hash</span>
-  <span class="nt">mutate</span> <span class="p">{</span>
-    <span class="n">add_field</span> <span class="o">=&gt;</span> <span class="err">{</span><span class="s2">"sql_for_hash"</span> <span class="o">=&gt;</span> <span class="s2">"%{sql}"</span><span class="p">}</span>
-  <span class="err">}</span>
-  <span class="nt">mutate</span> <span class="p">{</span>
-    <span class="n">gsub</span> <span class="o">=&gt;</span> <span class="cp">[</span>
+<span class="s2">  # calculate unique hash</span>
+<span class="s2">  mutate {</span>
+<span class="s2">    add_field =&gt; {"</span><span class="n">sql_for_hash</span><span class="s2">" =&gt; "</span><span class="o">%</span><span class="err">{</span><span class="n">sql</span><span class="p">}</span><span class="s2">"}</span>
+<span class="s2">  }</span>
+<span class="s2">  mutate {</span>
+<span class="s2">    gsub =&gt; </span><span class="cp">[</span>
         <span class="s2">"sql_for_hash"</span><span class="p">,</span> <span class="s2">"'.+?'"</span><span class="p">,</span> <span class="s2">""</span><span class="p">,</span>
         <span class="s2">"sql_for_hash"</span><span class="p">,</span> <span class="s2">"-?\d*\.{0,1}\d+"</span><span class="p">,</span> <span class="s2">""</span>
-    <span class="cp">]</span>
-  <span class="p">}</span>
-  <span class="nt">checksum</span> <span class="p">{</span>
-    <span class="n">algorithm</span> <span class="o">=&gt;</span> <span class="s2">"md5"</span>
-    <span class="n">keys</span> <span class="o">=&gt;</span> <span class="cp">[</span><span class="s2">"sql_for_hash"</span><span class="cp">]</span>
-  <span class="p">}</span>
+    <span class="cp">]</span><span class="s2"></span>
+<span class="s2">  }</span>
+<span class="s2">  checksum {</span>
+<span class="s2">    algorithm =&gt; "</span><span class="nt">md5</span><span class="s2">"</span>
+<span class="s2">    keys =&gt; </span><span class="cp">[</span><span class="s2">"sql_for_hash"</span><span class="cp">]</span><span class="s2"></span>
+<span class="s2">  }</span>
 
-  <span class="err">#</span> <span class="nt">Drop</span> <span class="nt">the</span> <span class="nt">captured</span> <span class="nt">timestamp</span> <span class="nt">field</span> <span class="nt">since</span> <span class="nt">it</span> <span class="nt">has</span> <span class="nt">been</span> <span class="nt">moved</span> <span class="nt">to</span> <span class="nt">the</span> <span class="nt">time</span> <span class="nt">of</span> <span class="nt">the</span> <span class="nt">event</span>
-  <span class="nt">mutate</span> <span class="p">{</span>
-    <span class="err">#</span> <span class="n">TODO</span><span class="o">:</span> <span class="n">remove</span> <span class="n">the</span> <span class="n">message</span> <span class="n">field</span>
-    <span class="n">remove_field</span> <span class="o">=&gt;</span> <span class="cp">[</span><span class="s2">"timestamp"</span><span class="p">,</span> <span class="s2">"message"</span><span class="p">,</span> <span class="s2">"sql_for_hash"</span><span class="cp">]</span>
-  <span class="p">}</span>
-<span class="err">}</span>
-<span class="nt">output</span> <span class="p">{</span>
-    <span class="m">#stdout</span><span class="err">{</span>
-    <span class="err">#</span>    <span class="n">codec</span> <span class="o">=&gt;</span> <span class="n">rubydebug</span>
-    <span class="err">#</span><span class="p">}</span>
-    <span class="nn">#if</span> <span class="o">(</span><span class="s2">"_grokparsefailure"</span> <span class="nt">not</span> <span class="nt">in</span> <span class="cp">[</span><span class="nb">tags</span><span class="cp">]</span><span class="o">)</span> <span class="p">{</span>
-    <span class="err">#</span>    <span class="n">stdout</span><span class="err">{</span>
-    <span class="err">#</span>        <span class="n">codec</span> <span class="o">=&gt;</span> <span class="n">rubydebug</span>
-    <span class="err">#</span>    <span class="p">}</span>
-    <span class="err">#}</span>
-    <span class="nt">if</span> <span class="o">(</span><span class="s2">"_grokparsefailure"</span> <span class="nt">not</span> <span class="nt">in</span> <span class="cp">[</span><span class="nb">tags</span><span class="cp">]</span><span class="o">)</span> <span class="p">{</span>
-        <span class="n">elasticsearch</span> <span class="err">{</span>
-          <span class="n">hosts</span> <span class="o">=&gt;</span> <span class="cp">[</span><span class="s2">"192.168.1.1:9200"</span><span class="cp">]</span>
-          <span class="n">index</span> <span class="o">=&gt;</span> <span class="s2">"logstash-slowlog"</span>
-        <span class="p">}</span>
+<span class="s2">  # Drop the captured timestamp field since it has been moved to the time of the event</span>
+<span class="s2">  mutate {</span>
+<span class="s2">    # TODO: remove the message field</span>
+<span class="s2">    remove_field =&gt; </span><span class="cp">[</span><span class="s2">"timestamp"</span><span class="p">,</span> <span class="s2">"message"</span><span class="p">,</span> <span class="s2">"sql_for_hash"</span><span class="cp">]</span><span class="s2"></span>
+<span class="s2">  }</span>
+<span class="s2">}</span>
+<span class="s2">output {</span>
+<span class="s2">    #stdout{</span>
+<span class="s2">    #    codec =&gt; rubydebug</span>
+<span class="s2">    #}</span>
+<span class="s2">    #if ("</span><span class="nt">_grokparsefailure</span><span class="s2">" not in </span><span class="cp">[</span><span class="nb">tags</span><span class="cp">]</span><span class="s2">) {</span>
+<span class="s2">    #    stdout{</span>
+<span class="s2">    #        codec =&gt; rubydebug</span>
+<span class="s2">    #    }</span>
+<span class="s2">    #}</span>
+<span class="s2">    if ("</span><span class="nt">_grokparsefailure</span><span class="s2">" not in </span><span class="cp">[</span><span class="nb">tags</span><span class="cp">]</span><span class="s2">) {</span>
+<span class="s2">        elasticsearch {</span>
+<span class="s2">          hosts =&gt; </span><span class="cp">[</span><span class="s2">"192.168.1.1:9200"</span><span class="cp">]</span><span class="s2"></span>
+<span class="s2">          index =&gt; "</span><span class="nt">logstash-slowlog</span><span class="err">"</span>
+        <span class="err">}</span>
     <span class="err">}</span>
 <span class="err">}</span>
 </pre></div>

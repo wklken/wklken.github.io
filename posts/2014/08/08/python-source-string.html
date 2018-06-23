@@ -232,52 +232,52 @@ PyString_FromString, 参数不能为`NULL`, 且必须是`\0`结束的字符数�
 
 <span class="cm">Another way to look at this is that to say that the actual reference</span>
 <span class="cm">count of a string is:  s-&gt;ob_refcnt + (s-&gt;ob_sstate?2:0)</span>
-<span class="cm">*/</span><span class="w"></span>
-static<span class="w"> </span>PyObject<span class="w"> </span><span class="o">*</span>interned<span class="err">;</span><span class="w"> </span><span class="o">//</span><span class="err">指针</span><span class="o">,</span><span class="w"> </span><span class="err">指向</span>PyDictObject<span class="w"></span>
+<span class="cm">*/</span>
+<span class="kr">static</span> <span class="nx">PyObject</span> <span class="o">*</span><span class="nx">interned</span><span class="p">;</span> <span class="c1">//指针, 指向PyDictObject</span>
 </pre></div>
 <p>interned定义</p>
 <div class="monokai"><pre><span></span><span class="nt">void</span>
 <span class="nt">PyString_InternInPlace</span><span class="o">(</span><span class="nt">PyObject</span> <span class="o">**</span><span class="nt">p</span><span class="o">)</span>
 <span class="p">{</span>
-    <span class="n">register</span> <span class="n">PyStringObject</span> <span class="o">*</span><span class="n">s</span> <span class="o">=</span> <span class="p">(</span><span class="n">PyStringObject</span> <span class="o">*</span><span class="p">)(</span><span class="o">*</span><span class="n">p</span><span class="p">);</span>
+    <span class="err">register</span> <span class="err">PyStringObject</span> <span class="err">*s</span> <span class="err">=</span> <span class="err">(PyStringObject</span> <span class="err">*)(*p)</span><span class="p">;</span>
 
-    <span class="n">PyObject</span> <span class="o">*</span><span class="n">t</span><span class="p">;</span>
+    <span class="err">PyObject</span> <span class="err">*t</span><span class="p">;</span>
 
-    <span class="o">//</span> <span class="err">检查值使用在</span><span class="n">PyStringObject</span><span class="err">上</span><span class="o">,</span> <span class="err">派生类不适用</span>
-    <span class="n">if</span> <span class="p">(</span><span class="n">s</span> <span class="o">==</span> <span class="n">NULL</span> <span class="o">||</span> <span class="o">!</span><span class="n">PyString_Check</span><span class="p">(</span><span class="n">s</span><span class="p">))</span>
-        <span class="n">Py_FatalError</span><span class="p">(</span><span class="s2">"PyString_InternInPlace: strings only please!"</span><span class="p">);</span>
+    <span class="err">//</span> <span class="err">检查值使用在PyStringObject上,</span> <span class="err">派生类不适用</span>
+    <span class="err">if</span> <span class="err">(s</span> <span class="err">==</span> <span class="err">NULL</span> <span class="err">||</span> <span class="err">!PyString_Check(s))</span>
+        <span class="err">Py_FatalError("</span><span class="n">PyString_InternInPlace</span><span class="p">:</span> <span class="n">strings</span> <span class="n">only</span> <span class="n">please</span><span class="o">!</span><span class="err">"</span><span class="p">);</span>
     <span class="c">/* If it's a string subclass, we don't really know what putting it in the interned dict might do. */</span>
 
-    <span class="o">//</span> <span class="err">不是字符串类型</span><span class="o">,</span> <span class="err">返回</span>
-    <span class="n">if</span> <span class="p">(</span><span class="o">!</span><span class="n">PyString_CheckExact</span><span class="p">(</span><span class="n">s</span><span class="p">))</span>
-        <span class="n">return</span><span class="p">;</span>
-    <span class="o">//</span> <span class="err">本身已经</span><span class="n">intern</span><span class="err">了</span><span class="p">(</span><span class="err">标志位</span><span class="n">ob_sstate</span><span class="p">)</span><span class="o">,</span> <span class="err">不重复进行</span><span class="o">,</span> <span class="err">返回</span>
-    <span class="n">if</span> <span class="p">(</span><span class="n">PyString_CHECK_INTERNED</span><span class="p">(</span><span class="n">s</span><span class="p">))</span>
-        <span class="n">return</span><span class="p">;</span>
+    <span class="err">//</span> <span class="err">不是字符串类型,</span> <span class="err">返回</span>
+    <span class="err">if</span> <span class="err">(!PyString_CheckExact(s))</span>
+        <span class="err">return</span><span class="p">;</span>
+    <span class="err">//</span> <span class="err">本身已经intern了(标志位ob_sstate),</span> <span class="err">不重复进行,</span> <span class="err">返回</span>
+    <span class="err">if</span> <span class="err">(PyString_CHECK_INTERNED(s))</span>
+        <span class="err">return</span><span class="p">;</span>
 
-    <span class="o">//</span> <span class="err">未初始化字典</span><span class="o">,</span> <span class="err">初始化之</span>
-    <span class="n">if</span> <span class="p">(</span><span class="n">interned</span> <span class="o">==</span> <span class="n">NULL</span><span class="p">)</span> <span class="err">{</span>
-        <span class="o">//</span> <span class="err">注意这里</span>
-        <span class="n">interned</span> <span class="o">=</span> <span class="n">PyDict_New</span><span class="p">();</span>
-        <span class="n">if</span> <span class="p">(</span><span class="n">interned</span> <span class="o">==</span> <span class="n">NULL</span><span class="p">)</span> <span class="err">{</span>
-            <span class="n">PyErr_Clear</span><span class="p">();</span> <span class="c">/* Don't leave an exception */</span>
-            <span class="n">return</span><span class="p">;</span>
+    <span class="err">//</span> <span class="err">未初始化字典,</span> <span class="err">初始化之</span>
+    <span class="err">if</span> <span class="err">(interned</span> <span class="err">==</span> <span class="err">NULL)</span> <span class="err">{</span>
+        <span class="err">//</span> <span class="err">注意这里</span>
+        <span class="err">interned</span> <span class="err">=</span> <span class="err">PyDict_New()</span><span class="p">;</span>
+        <span class="err">if</span> <span class="err">(interned</span> <span class="err">==</span> <span class="err">NULL)</span> <span class="err">{</span>
+            <span class="err">PyErr_Clear()</span><span class="p">;</span> <span class="c">/* Don't leave an exception */</span>
+            <span class="err">return</span><span class="p">;</span>
         <span class="p">}</span>
     <span class="err">}</span>
 
     <span class="o">//</span> <span class="err">在</span><span class="nt">interned</span><span class="err">字典中已存在</span><span class="o">,</span> <span class="err">修改</span><span class="o">,</span> <span class="err">返回</span><span class="nt">intern</span><span class="err">独享</span>
     <span class="nt">t</span> <span class="o">=</span> <span class="nt">PyDict_GetItem</span><span class="o">(</span><span class="nt">interned</span><span class="o">,</span> <span class="o">(</span><span class="nt">PyObject</span> <span class="o">*)</span><span class="nt">s</span><span class="o">);</span>
     <span class="nt">if</span> <span class="o">(</span><span class="nt">t</span><span class="o">)</span> <span class="p">{</span>
-        <span class="n">Py_INCREF</span><span class="p">(</span><span class="n">t</span><span class="p">);</span>
-        <span class="n">Py_DECREF</span><span class="p">(</span><span class="o">*</span><span class="n">p</span><span class="p">);</span>
-        <span class="o">*</span><span class="n">p</span> <span class="o">=</span> <span class="n">t</span><span class="p">;</span>
-        <span class="n">return</span><span class="p">;</span>
+        <span class="err">Py_INCREF(t)</span><span class="p">;</span>
+        <span class="err">Py_DECREF(*p)</span><span class="p">;</span>
+        <span class="err">*p</span> <span class="err">=</span> <span class="err">t</span><span class="p">;</span>
+        <span class="err">return</span><span class="p">;</span>
     <span class="p">}</span>
 
     <span class="o">//</span> <span class="err">在</span><span class="nt">interned</span><span class="err">字典中不存在</span><span class="o">,</span> <span class="err">放进去</span>
     <span class="nt">if</span> <span class="o">(</span><span class="nt">PyDict_SetItem</span><span class="o">(</span><span class="nt">interned</span><span class="o">,</span> <span class="o">(</span><span class="nt">PyObject</span> <span class="o">*)</span><span class="nt">s</span><span class="o">,</span> <span class="o">(</span><span class="nt">PyObject</span> <span class="o">*)</span><span class="nt">s</span><span class="o">)</span> <span class="o">&lt;</span> <span class="nt">0</span><span class="o">)</span> <span class="p">{</span>
-        <span class="n">PyErr_Clear</span><span class="p">();</span>
-        <span class="n">return</span><span class="p">;</span>
+        <span class="err">PyErr_Clear()</span><span class="p">;</span>
+        <span class="err">return</span><span class="p">;</span>
     <span class="p">}</span>
 
     <span class="o">//</span> <span class="err">加入</span><span class="nt">interned</span><span class="err">字典</span><span class="o">(</span><span class="nt">key-value</span><span class="o">),</span> <span class="err">会导致</span><span class="nt">refcnt</span><span class="o">+</span><span class="nt">2</span><span class="o">,</span> <span class="err">去掉</span><span class="o">,</span> <span class="err">保证当外部没有引用时</span><span class="o">,</span> <span class="nt">refcnt</span><span class="o">=</span><span class="nt">0</span><span class="o">,</span> <span class="err">可以进行回收处理</span><span class="o">,</span> <span class="o">(</span><span class="err">不</span><span class="nt">-2</span><span class="o">,</span> <span class="nt">refcnt</span><span class="err">永远</span><span class="o">&gt;=</span><span class="nt">2</span><span class="o">)</span>
