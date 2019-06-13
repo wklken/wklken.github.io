@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<meta name="theme-color" content="#494f5c">
+	<meta name="msapplication-TileColor" content="#494f5c">
+
+<meta itemprop="name" content="Python模板-Jinja2">
+<meta itemprop="description" content="Jinja2的一些使用摘要 Jinja2作为flask的默认页面模板，感觉蛮强大的，可适用于各种模板类相关的项目 特别是模板继承，写页面很舒服 资">
+
+
+<meta itemprop="datePublished" content="2013-12-21T08:00:00&#43;08:00" />
+<meta itemprop="dateModified" content="2013-12-21T08:00:00&#43;08:00" />
+<meta itemprop="wordCount" content="1584">
+
+
+
+<meta itemprop="keywords" content="python," />
+<meta property="og:title" content="Python模板-Jinja2" />
+<meta property="og:description" content="Jinja2的一些使用摘要 Jinja2作为flask的默认页面模板，感觉蛮强大的，可适用于各种模板类相关的项目 特别是模板继承，写页面很舒服 资" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://wklken.me/posts/2013/12/21/python-template-jinja2.html" />
+<meta property="article:published_time" content="2013-12-21T08:00:00&#43;08:00"/>
+<meta property="article:modified_time" content="2013-12-21T08:00:00&#43;08:00"/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Python模板-Jinja2"/>
+<meta name="twitter:description" content="Jinja2的一些使用摘要 Jinja2作为flask的默认页面模板，感觉蛮强大的，可适用于各种模板类相关的项目 特别是模板继承，写页面很舒服 资"/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>Python模板-Jinja2</title>
+	<link rel="stylesheet" href="http://wklken.me/css/style.min.31706917653d2b9e8410abd431f30ec4359a88a94fc87a63654779d87329edec.css" integrity="sha256-MXBpF2U9K56EEKvUMfMOxDWaiKlPyHpjZUd52HMp7ew=">
+	
+	<link rel="stylesheet" href="http://wklken.me/css/custom.css">
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp faster">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="http://wklken.me">WKLKEN BUILDING</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					<a href="http://wklken.me/posts.html">Posts</a>
+					<a href="http://wklken.me/about.html">About</a>
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<button id="toc-btn" class="hdr-btn desktop-only-ib" title="Table of Contents"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3" y2="6"></line><line x1="3" y1="12" x2="3" y2="12"></line><line x1="3" y1="18" x2="3" y2="18"></line></svg></button><span class="hdr-social hide-in-mobile"><a href="https://github.com/wklken" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-github"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a><a href="wklken@gmail.com" target="_blank" rel="noopener me" title="Email"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-mail"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="http://wklken.me/posts.html">Posts</a></li>
+			<li><a href="http://wklken.me/about.html">About</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>Dec 21, 2013</span></div>
+				<h1>Python模板-Jinja2</h1>
+			</header>
+			<div class="content">
+				
+
+<p><img src="/imgs/python/jinja.png" alt="jinja" /></p>
+
+<p>Jinja2的一些使用摘要</p>
+
+<p>Jinja2作为flask的默认页面模板，感觉蛮强大的，可适用于各种模板类相关的项目</p>
+
+<p>特别是模板继承，写页面很舒服</p>
+
+<hr />
+
+<h3 id="资源">资源<a href="#资源" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<p>文档 <a href="http://jinja.pocoo.org/docs/">http://jinja.pocoo.org/docs/</a></p>
+
+<h3 id="安装">安装<a href="#安装" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<pre><code>sudo easy_install jinja2
+sudo pip install jinja2
+</code></pre>
+
+<h3 id="终端版helloworld">终端版helloworld<a href="#终端版helloworld" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<pre><code>&gt;&gt;&gt; from jinja2 import Template
+&gt;&gt;&gt; template = Template('Hello {{ name }}!')
+&gt;&gt;&gt; template.render(name='World')
+u'Hello World!'
+</code></pre>
+
+<h3 id="和">{%和{{<a href="#和" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<pre><code>&lt;body&gt;
+    &lt;ul id=&quot;navigation&quot;&gt;
+    {% for item in navigation %}
+        &lt;li&gt;&lt;a href=&quot;{{ item.href }}&quot;&gt;{{ item.caption }}&lt;/a&gt;&lt;/li&gt;
+    {% endfor %}
+    &lt;/ul&gt;
+
+    &lt;h1&gt;My Webpage&lt;/h1&gt;
+    {{ a_variable }}
+&lt;/body&gt;
+</code></pre>
+
+<p>{% 用于执行语句</p>
+
+<p>{{ 输出语句结果到模板</p>
+
+<p>{{}}中的运算</p>
+
+<pre><code>{{ 1 + 1 }}
+{{ 3 - 2 }}
+{{ 1 / 2 }} is {{ 0.5 }}.
+{{ 20 // 7 }} is 2
+{{ 11 % 7 }} is 4
+{{ 2 * 2 }} would return 4
+{{ '=' * 80 }}
+{{ 2**3 }}
+</code></pre>
+
+<h3 id="变量">变量<a href="#变量" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<pre><code>变量输出 - 获取属性的方法，都可以
+{{ foo.bar }}
+# 查属性 - 查子元素 - 没有报错
+
+{{ foo['bar'] }}
+# 查子元素 - 查属性 - 没有报错
+
+变量赋值
+{% set navigation = [('index.html', 'Index'), ('about.html', 'About')] %}
+{% set key, value = call_something() %}
+
+
+# set and use it later
+{% set mybool = [False] %}
+{% set _ = mybool.append(not mybool.pop()) %}
+</code></pre>
+
+<h3 id="注释">注释<a href="#注释" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<pre><code>{# note: disabled template because we no longer use this
+    {% for user in users %}
+        ...
+    {% endfor %}
+#}
+</code></pre>
+
+<h3 id="空格控制">空格控制<a href="#空格控制" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<pre><code>&lt;div&gt;
+    {% if True %}
+        yay
+    {% endif %}
+&lt;/div&gt;
+</code></pre>
+
+<p>默认，会执行 trim_blocks and lstrip_blocks</p>
+
+<p>移除空格</p>
+
+<pre><code>{% for item in seq -%}
+    {{ item }}
+{%- endfor %}
+
+seq = 1 to 9
+得到 123456789
+</code></pre>
+
+<h3 id="escaping">Escaping<a href="#escaping" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<p>简单的</p>
+
+<pre><code>{{ '{{' }}
+</code></pre>
+
+<p>块</p>
+
+<pre><code>{% raw %}
+    &lt;ul&gt;
+    {% for item in seq %}
+        &lt;li&gt;{{ item }}&lt;/li&gt;
+    {% endfor %}
+    &lt;/ul&gt;
+{% endraw %}
+</code></pre>
+
+<h3 id="if分支判断">if分支判断<a href="#if分支判断" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<pre><code>{% if loop.index is divisibleby 3 %}
+{% if loop.index is divisibleby(3) %}
+
+
+{% if kenny.sick %}
+    Kenny is sick.
+{% elif kenny.dead %}
+    You killed Kenny!  You bastard!!!
+{% else %}
+    Kenny looks okay --- so far
+{% endif %}
+</code></pre>
+
+<p>可用的条件操作符</p>
+
+<pre><code>==  Compares two objects for equality.
+!=  Compares two objects for inequality.
+&gt;   true if the left hand side is greater than the right hand side.
+&gt;=  true if the left hand side is greater or equal to the right hand side.
+&lt;   true if the left hand side is lower than the right hand side.
+&lt;=  true if the left hand side is lower or equal to the right hand side.
+</code></pre>
+
+<p>逻辑连接符</p>
+
+<pre><code>and     Return true if the left and the right operand is true.
+or      Return true if the left or the right operand is true.
+not     negate a statement (see below).
+(expr)  group an expression.
+</code></pre>
+
+<p>内置测试列表 <a href="http://jinja.pocoo.org/docs/templates/#builtin-tests">http://jinja.pocoo.org/docs/templates/#builtin-tests</a></p>
+
+<pre><code>callable(object)
+defined(value)
+        {% if variable is defined %}
+            value of variable: {{ variable }}
+        {% else %}
+            variable is not defined
+        {% endif %}
+divisibleby(value, num)
+escaped(value)
+even(value)
+iterable(value)
+lower(value)
+mapping(value)
+none(value)
+number(value)
+odd(value)
+sameas(value, other)
+    {% if foo.attribute is sameas false %}
+        the foo attribute really is the `False` singleton
+    {% endif %}
+sequence(value)
+string(value)
+undefined(value)
+upper(value)
+</code></pre>
+
+<h3 id="for循环">for循环<a href="#for循环" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<pre><code>&lt;h1&gt;Members&lt;/h1&gt;
+&lt;ul&gt;
+{% for user in users %}
+&lt;li&gt;{{ user.username|e }}&lt;/li&gt;
+{% endfor %}
+&lt;/ul&gt;
+
+&lt;ul&gt;
+{% for user in users %}
+    &lt;li&gt;{{ user.username|e }}&lt;/li&gt;
+{% else %}
+    &lt;li&gt;&lt;em&gt;no users found&lt;/em&gt;&lt;/li&gt;
+{% endfor %}
+&lt;/ul&gt;
+</code></pre>
+
+<p>循环体中可用变量</p>
+
+<pre><code>Variable        Description
+loop.index      The current iteration of the loop. (1 indexed)
+loop.index0     The current iteration of the loop. (0 indexed)
+loop.revindex   The number of iterations from the end of the loop (1 indexed)
+loop.revindex0  The number of iterations from the end of the loop (0 indexed)
+loop.first      True if first iteration.
+loop.last       True if last iteration.
+loop.length     The number of items in the sequence.
+loop.cycle      A helper function to cycle between a list of sequences. See the explanation below.
+loop.depth      Indicates how deep in deep in a recursive loop the rendering currently is. Starts at level 1
+loop.depth0     Indicates how deep in deep in a recursive loop the rendering currently is. Starts at level 0
+</code></pre>
+
+<h3 id="filters">filters<a href="#filters" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<pre><code>{{ name|striptags|title }}
+</code></pre>
+
+<p>一系列方法
+内置filter列表 <a href="http://jinja.pocoo.org/docs/templates/#builtin-filters">http://jinja.pocoo.org/docs/templates/#builtin-filters</a></p>
+
+<pre><code>abs(number)
+attr(obj, name)   foo|attr(&quot;bar&quot;) works like foo[&quot;bar&quot;]
+                  just that always an attribute is returned and items are not looked up
+batch(value, linecount, fill_with=None)
+capitalize(s)
+center(value, width=80)
+default(value, default_value=u'', boolean=False)
+                {{ my_variable|default('my_variable is not defined') }}
+                {{ ''|default('the string was empty', true) }} 当变量false是，用default替换
+dictsort(value, case_sensitive=False, by='key')
+escape(s)
+filesizeformat(value, binary=False)
+first(seq)  Return the first item
+float(value, default=0.0)
+forceescape(value) Enforce HTML escaping
+format(value, *args, **kwargs)
+                {{ &quot;%s - %s&quot;|format(&quot;Hello?&quot;, &quot;Foo!&quot;) }}
+groupby(value, attribute)
+indent(s, width=4, indentfirst=False)
+                {{ mytext|indent(2, true) }}
+int(value, default=0)
+join(value, d=u'', attribute=None)
+                {{ [1, 2, 3]|join('|') }}
+last(seq)
+length(object)
+list(value)
+lower(s)
+map()
+        {{ users|map(attribute='username')|join(', ') }}
+pprint(value, verbose=False)
+random(seq)
+reject() Filters a sequence of objects by appying a test
+        {{ numbers|reject(&quot;odd&quot;) }}
+rejectattr()
+        {{ users|rejectattr(&quot;is_active&quot;) }}
+        {{ users|rejectattr(&quot;email&quot;, &quot;none&quot;) }}
+replace(s, old, new, count=None)
+        {{ &quot;aaaaargh&quot;|replace(&quot;a&quot;, &quot;d'oh, &quot;, 2) }}
+reverse(value)
+round(value, precision=0, method='common')
+        {{ 42.55|round }} 43
+        {{ 42.55|round(1, 'floor') }} 42.5
+safe(value)
+        automatic escaping enabled this variable will not be escaped
+select()
+        {{ numbers|select(&quot;odd&quot;) }}
+selectattr()
+        {{ users|selectattr(&quot;is_active&quot;) }}
+        {{ users|selectattr(&quot;email&quot;, &quot;none&quot;) }}
+slice(value, slices, fill_with=None)
+sort(value, reverse=False, case_sensitive=False, attribute=None)
+        {% for item in iterable|sort %}
+        {% for item in iterable|sort(attribute='date') %}
+
+string(object)
+        x|string()
+striptags(value)
+sum(iterable, attribute=None, start=0)
+        Total: {{ items|sum(attribute='price') }}
+title(s)
+trim(value)
+truncate(s, length=255, killwords=False, end='...')
+        {{ &quot;foo bar&quot;|truncate(5) }}   &quot;foo ...&quot;
+        {{ &quot;foo bar&quot;|truncate(5, True) }}   &quot;foo b...&quot;
+upper(s)
+urlencode(value)
+urlize(value, trim_url_limit=None, nofollow=False)
+wordcount(s)
+wordwrap(s, width=79, break_long_words=True, wrapstring=None)
+xmlattr(d, autospace=True)
+</code></pre>
+
+<h3 id="macros宏">Macros宏<a href="#macros宏" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<p>创建</p>
+
+<pre><code>{% macro input(name, value='', type='text', size=20) -%}
+    &lt;input type=&quot;{{ type }}&quot; name=&quot;{{ name }}&quot; value=&quot;{{
+        value|e }}&quot; size=&quot;{{ size }}&quot;&gt;
+{%- endmacro %}
+</code></pre>
+
+<p>使用</p>
+
+<pre><code>&lt;p&gt;{{ input('username') }}&lt;/p&gt;
+&lt;p&gt;{{ input('password', type='password') }}&lt;/p&gt;
+</code></pre>
+
+<p>可以在其他模板使用，需要import</p>
+
+<p>定义</p>
+
+<pre><code>{% macro input(name, value='', type='text') -%}
+    &lt;input type=&quot;{{ type }}&quot; value=&quot;{{ value|e }}&quot; name=&quot;{{ name }}&quot;&gt;
+{%- endmacro %}
+
+{%- macro textarea(name, value='', rows=10, cols=40) -%}
+    &lt;textarea name=&quot;{{ name }}&quot; rows=&quot;{{ rows }}&quot; cols=&quot;{{ cols
+        }}&quot;&gt;{{ value|e }}&lt;/textarea&gt;
+{%- endmacro %}
+</code></pre>
+
+<p>使用</p>
+
+<pre><code>{% import 'forms.html' as forms %}
+&lt;dl&gt;
+    &lt;dt&gt;Username&lt;/dt&gt;
+    &lt;dd&gt;{{ forms.input('username') }}&lt;/dd&gt;
+    &lt;dt&gt;Password&lt;/dt&gt;
+    &lt;dd&gt;{{ forms.input('password', type='password') }}&lt;/dd&gt;
+&lt;/dl&gt;
+&lt;p&gt;{{ forms.textarea('comment') }}&lt;/p&gt;
+</code></pre>
+
+<p>或者是</p>
+
+<pre><code>{% from 'forms.html' import input as input_field, textarea %}
+</code></pre>
+
+<p>宏与宏之间的交互</p>
+
+<pre><code>{% macro render_dialog(title, class='dialog') -%}
+    &lt;div class=&quot;{{ class }}&quot;&gt;
+        &lt;h2&gt;{{ title }}&lt;/h2&gt;
+        &lt;div class=&quot;contents&quot;&gt;
+            {{ caller() }}
+        &lt;/div&gt;
+    &lt;/div&gt;
+{%- endmacro %}
+
+{% call render_dialog('Hello World') %}
+    This is a simple dialog rendered by using a macro and
+    a call block.
+{% endcall %}
+</code></pre>
+
+<h3 id="模板继承">模板继承<a href="#模板继承" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<p>父模板</p>
+
+<pre><code>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.01//EN&quot;&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;html xmlns=&quot;http://www.w3.org/1999/xhtml&quot;&gt;
+&lt;head&gt;
+    {% block head %}
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;style.css&quot; /&gt;
+    &lt;title&gt;{% block title %}{% endblock %} - My Webpage&lt;/title&gt;
+    {% endblock %}
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;div id=&quot;content&quot;&gt;{% block content %}{% endblock %}&lt;/div&gt;
+    &lt;div id=&quot;footer&quot;&gt;
+        {% block footer %}
+        &amp;copy; Copyright 2008 by &lt;a href=&quot;http://domain.invalid/&quot;&gt;you&lt;/a&gt;.
+        {% endblock %}
+    &lt;/div&gt;
+&lt;/body&gt;
+</code></pre>
+
+<p>子模板</p>
+
+<pre><code>{% extends &quot;base.html&quot; %}
+{% block title %}Index{% endblock %}
+{% block head %}
+    {{ super() }}
+    &lt;style type=&quot;text/css&quot;&gt;
+        .important { color: #336699; }
+    &lt;/style&gt;
+{% endblock %}
+{% block content %}
+    &lt;h1&gt;Index&lt;/h1&gt;
+    &lt;p class=&quot;important&quot;&gt;
+    Welcome on my awesome homepage.
+    &lt;/p&gt;
+{% endblock %}
+</code></pre>
+
+<p>注意，可以有更好的可读性</p>
+
+<pre><code>{% block sidebar %}
+    {% block inner_sidebar %}
+        ...
+    {% endblock inner_sidebar %}
+{% endblock sidebar %}
+</code></pre>
+
+<h3 id="模板包含include">模板包含include<a href="#模板包含include" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<pre><code>{% include 'header.html' %}
+    Body
+{% include 'footer.html' %}
+
+#jinja2.2
+{% include &quot;sidebar.html&quot; ignore missing %}
+{% include &quot;sidebar.html&quot; ignore missing with context %}
+{% include &quot;sidebar.html&quot; ignore missing without context %}
+</code></pre>
+
+<h3 id="其他">其他<a href="#其他" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<p>1.一些列表方法</p>
+
+<p><a href="http://jinja.pocoo.org/docs/templates/#list-of-global-functions">http://jinja.pocoo.org/docs/templates/#list-of-global-functions</a></p>
+
+<p>2.其他操作符</p>
+
+<pre><code>in      Perform sequence / mapping containment test. Returns true if the left operand is contained in the right. {{ 1 in [1, 2, 3] }} would for example return true.
+is      Performs a test.
+|       Applies a filter.
+~       Converts all operands into strings and concatenates them. {{ &quot;Hello &quot; ~ name ~ &quot;!&quot; }} would return (assuming name is 'John') Hello John!.
+()      Call a callable: {{ post.render() }}. Inside of the parentheses you can use positional arguments and keyword arguments like in python: {{ post.render(user, full=true) }}.
+. / []  Get an attribute of an object. (See Variables)
+</code></pre>
+
+<p>3.range, 可以正常使用range</p>
+
+<pre><code>{% for n in range(n) %}
+    {{n}}
+{% endfor %}
+</code></pre>
+
+<hr />
+
+<p>The end. 未完待续</p>
+
+<p>wklken</p>
+
+<p><a href="http://www.wklken.me">http://www.wklken.me</a></p>
+
+<p>2013-12-21</p>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p>
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg><span class="tag"><a href="http://wklken.me/tags/python.html">python</a></span>
+				</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>1584 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2013-12-21 08:00 &#43;0800</p>
+			</footer>
+		</article>
+		<aside id="toc">
+			<div class="toc-title">Table of Contents</div>
+			<nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#资源">资源</a></li>
+<li><a href="#安装">安装</a></li>
+<li><a href="#终端版helloworld">终端版helloworld</a></li>
+<li><a href="#和">{%和{{</a></li>
+<li><a href="#变量">变量</a></li>
+<li><a href="#注释">注释</a></li>
+<li><a href="#空格控制">空格控制</a></li>
+<li><a href="#escaping">Escaping</a></li>
+<li><a href="#if分支判断">if分支判断</a></li>
+<li><a href="#for循环">for循环</a></li>
+<li><a href="#filters">filters</a></li>
+<li><a href="#macros宏">Macros宏</a></li>
+<li><a href="#模板继承">模板继承</a></li>
+<li><a href="#模板包含include">模板包含include</a></li>
+<li><a href="#其他">其他</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+		</aside>
+		<div class="post-nav thin">
+			<a class="next-post" href="http://wklken.me/posts/2013/12/21/python-jd.html">
+				<span class="post-nav-label"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>&nbsp;Newer</span><br><span>Python招聘需求与技能体系</span>
+			</a>
+			<a class="prev-post" href="http://wklken.me/posts/2013/12/21/how-to-use-args-and-kwargs-in-python.html">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>[翻译]Python中如何使用*args和**kwargs</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+<div id="disqus_thread"></div>
+<script type="application/javascript">
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "wklken" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2019 <a href="http://wklken.me">wklken</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="http://wklken.me/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+	<script src="http://wklken.me/js/main.min.784417f5847151f848c339cf0acb13a06cbb648b1483435a28ed4556c4ead69b.js" integrity="sha256-eEQX9YRxUfhIwznPCssToGy7ZIsUg0NaKO1FVsTq1ps="></script>
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-42275748-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+</body>
+
+</html>

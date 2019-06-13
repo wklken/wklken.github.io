@@ -1,0 +1,1237 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<meta name="theme-color" content="#494f5c">
+	<meta name="msapplication-TileColor" content="#494f5c">
+
+<meta itemprop="name" content="Python-进阶-itertools模块小结">
+<meta itemprop="description" content="这货很强大, 必须掌握 文档 链接 pymotw 链接 基本是基于文档的翻译和补充，相当于翻译了 itertools用于高效循环的迭代函数集合 组成 总体，整体了解 无限">
+
+
+<meta itemprop="datePublished" content="2013-08-20T08:00:00&#43;08:00" />
+<meta itemprop="dateModified" content="2013-08-20T08:00:00&#43;08:00" />
+<meta itemprop="wordCount" content="5943">
+
+
+
+<meta itemprop="keywords" content="python," />
+<meta property="og:title" content="Python-进阶-itertools模块小结" />
+<meta property="og:description" content="这货很强大, 必须掌握 文档 链接 pymotw 链接 基本是基于文档的翻译和补充，相当于翻译了 itertools用于高效循环的迭代函数集合 组成 总体，整体了解 无限" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://wklken.me/posts/2013/08/20/python-extra-itertools.html" />
+<meta property="article:published_time" content="2013-08-20T08:00:00&#43;08:00"/>
+<meta property="article:modified_time" content="2013-08-20T08:00:00&#43;08:00"/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Python-进阶-itertools模块小结"/>
+<meta name="twitter:description" content="这货很强大, 必须掌握 文档 链接 pymotw 链接 基本是基于文档的翻译和补充，相当于翻译了 itertools用于高效循环的迭代函数集合 组成 总体，整体了解 无限"/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>Python-进阶-itertools模块小结</title>
+	<link rel="stylesheet" href="http://wklken.me/css/style.min.31706917653d2b9e8410abd431f30ec4359a88a94fc87a63654779d87329edec.css" integrity="sha256-MXBpF2U9K56EEKvUMfMOxDWaiKlPyHpjZUd52HMp7ew=">
+	
+	<link rel="stylesheet" href="http://wklken.me/css/custom.css">
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp faster">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="http://wklken.me">WKLKEN BUILDING</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					<a href="http://wklken.me/posts.html">Posts</a>
+					<a href="http://wklken.me/about.html">About</a>
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<button id="toc-btn" class="hdr-btn desktop-only-ib" title="Table of Contents"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3" y2="6"></line><line x1="3" y1="12" x2="3" y2="12"></line><line x1="3" y1="18" x2="3" y2="18"></line></svg></button><span class="hdr-social hide-in-mobile"><a href="https://github.com/wklken" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-github"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a><a href="wklken@gmail.com" target="_blank" rel="noopener me" title="Email"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-mail"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="http://wklken.me/posts.html">Posts</a></li>
+			<li><a href="http://wklken.me/about.html">About</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>Aug 20, 2013</span></div>
+				<h1>Python-进阶-itertools模块小结</h1>
+			</header>
+			<div class="content">
+				
+
+<p>这货很强大, 必须掌握</p>
+
+<p>文档 <a href="http://docs.python.org/2/library/itertools.html">链接</a></p>
+
+<p>pymotw <a href="http://pymotw.com/2/itertools/">链接</a></p>
+
+<p>基本是基于文档的翻译和补充，相当于翻译了</p>
+
+<p>itertools用于高效循环的迭代函数集合</p>
+
+<h2 id="组成">组成<a href="#组成" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p>总体，整体了解</p>
+
+<p>无限迭代器</p>
+
+<pre><code>迭代器         参数         结果                                                例子
+count()     start, [step]   start, start+step, start+2*step, ...                count(10) --&gt; 10 11 12 13 14 ...
+cycle()     p               p0, p1, ... plast, p0, p1, ...                      cycle('ABCD') --&gt; A B C D A B C D ...
+repeat()    elem [,n]       elem, elem, elem, ... endlessly or up to n times    repeat(10, 3) --&gt; 10 10 10
+</code></pre>
+
+<p>处理输入序列迭代器</p>
+
+<pre><code>迭代器          参数            结果                                        例子
+chain()     p, q, ...           p0, p1, ... plast, q0, q1, ...              chain('ABC', 'DEF') --&gt; A B C D E F
+compress()  data, selectors     (d[0] if s[0]), (d[1] if s[1]), ...         compress('ABCDEF', [1,0,1,0,1,1]) --&gt; A C E F
+dropwhile() pred, seq           seq[n], seq[n+1], starting when pred fails  dropwhile(lambda x: x&lt;5, [1,4,6,4,1]) --&gt; 6 4 1
+groupby()   iterable[, keyfunc] sub-iterators grouped by value of keyfunc(v)
+ifilter()   pred, seq           elements of seq where pred(elem) is True    ifilter(lambda x: x%2, range(10)) --&gt; 1 3 5 7 9
+ifilterfalse()  pred, seq       elements of seq where pred(elem) is False   ifilterfalse(lambda x: x%2, range(10)) --&gt; 0 2 4 6 8
+islice()    seq, [start,] stop [, step] elements from seq[start:stop:step]  islice('ABCDEFG', 2, None) --&gt; C D E F G
+imap()      func, p, q, ...     func(p0, q0), func(p1, q1), ...             imap(pow, (2,3,10), (5,2,3)) --&gt; 32 9 1000
+starmap()   func, seq           func(*seq[0]), func(*seq[1]), ...           starmap(pow, [(2,5), (3,2), (10,3)]) --&gt; 32 9 1000
+tee()       it, n               it1, it2 , ... itn splits one iterator into n
+takewhile() pred, seq           seq[0], seq[1], until pred fails            takewhile(lambda x: x&lt;5, [1,4,6,4,1]) --&gt; 1 4
+izip()      p, q, ...           (p[0], q[0]), (p[1], q[1]), ...             izip('ABCD', 'xy') --&gt; Ax By
+izip_longest()  p, q, ...       (p[0], q[0]), (p[1], q[1]), ...             izip_longest('ABCD', 'xy', fillvalue='-') --&gt; Ax By C- D-
+</code></pre>
+
+<p>组合生成器</p>
+
+<pre><code>迭代器          参数                        结果
+product()       p, q, ... [repeat=1]        cartesian product, equivalent to a nested for-loop
+permutations()  p[, r]                      r-length tuples, all possible orderings, no repeated elements
+combinations()  p, r                        r-length tuples, in sorted order, no repeated elements
+combinations_with_replacement() p, r        r-length tuples, in sorted order, with repeated elements
+product('ABCD', repeat=2)                   AA AB AC AD BA BB BC BD CA CB CC CD DA DB DC DD
+permutations('ABCD', 2)                     AB AC AD BA BC BD CA CB CD DA DB DC
+combinations('ABCD', 2)                     AB AC AD BC BD CD
+combinations_with_replacement('ABCD', 2)    AA AB AC AD BB BC BD CC CD DD
+</code></pre>
+
+<h2 id="第一部分">第一部分<a href="#第一部分" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<h3 id="itertools-count-start-0-step-1">itertools.count(start=0, step=1)<a href="#itertools-count-start-0-step-1" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<p>创建一个迭代器，生成从n开始的连续整数，如果忽略n，则从0开始计算（注意：此迭代器不支持长整数）</p>
+
+<p>如果超出了sys.maxint，计数器将溢出并继续从-sys.maxint-1开始计算。</p>
+
+<p>定义</p>
+
+<pre><code>def count(start=0, step=1):
+    # count(10) --&gt; 10 11 12 13 14 ...
+    # count(2.5, 0.5) -&gt; 2.5 3.0 3.5 ...
+    n = start
+    while True:
+        yield n
+        n += step
+
+等同于(start + step * i for i in count())
+</code></pre>
+
+<p>使用</p>
+
+<pre><code>from itertools import *
+
+for i in izip(count(1), ['a', 'b', 'c']):
+    print i
+
+(1, 'a')
+(2, 'b')
+(3, 'c')
+</code></pre>
+
+<h3 id="itertools-cycle-iterable">itertools.cycle(iterable)<a href="#itertools-cycle-iterable" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<p>创建一个迭代器，对iterable中的元素反复执行循环操作，内部会生成iterable中的元素的一个副本，此副本用于返回循环中的重复项。</p>
+
+<p>定义</p>
+
+<pre><code>def cycle(iterable):
+    # cycle('ABCD') --&gt; A B C D A B C D A B C D ...
+    saved = []
+    for element in iterable:
+        yield element
+        saved.append(element)
+    while saved:
+        for element in saved:
+            yield element
+</code></pre>
+
+<p>使用</p>
+
+<pre><code>from itertools import *
+
+i = 0
+for item in cycle(['a', 'b', 'c']):
+    i += 1
+    if i == 10:
+        break
+    print (i, item)
+
+(1, 'a')
+(2, 'b')
+(3, 'c')
+(4, 'a')
+(5, 'b')
+(6, 'c')
+(7, 'a')
+(8, 'b')
+(9, 'c')
+</code></pre>
+
+<h3 id="itertools-repeat-object-times">itertools.repeat(object[, times])<a href="#itertools-repeat-object-times" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<p>创建一个迭代器，重复生成object，times（如果已提供）指定重复计数，如果未提供times，将无止尽返回该对象。</p>
+
+<p>定义</p>
+
+<pre><code>def repeat(object, times=None):
+    # repeat(10, 3) --&gt; 10 10 10
+    if times is None:
+        while True:
+            yield object
+    else:
+        for i in xrange(times):
+            yield object
+</code></pre>
+
+<p>使用</p>
+
+<pre><code>from itertools import *
+
+for i in repeat('over-and-over', 5):
+    print i
+
+over-and-over
+over-and-over
+over-and-over
+over-and-over
+over-and-over
+</code></pre>
+
+<h2 id="第二部分">第二部分<a href="#第二部分" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<h3 id="itertools-chain-iterables">itertools.chain(*iterables)<a href="#itertools-chain-iterables" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<p>将多个迭代器作为参数, 但只返回单个迭代器, 它产生所有参数迭代器的内容, 就好像他们是来自于一个单一的序列.</p>
+
+<pre><code>def chain(*iterables):
+    # chain('ABC', 'DEF') --&gt; A B C D E F
+    for it in iterables:
+        for element in it:
+            yield element
+</code></pre>
+
+<p>使用</p>
+
+<pre><code>from itertools import *
+
+for i in chain([1, 2, 3], ['a', 'b', 'c']):
+    print i
+1
+2
+3
+a
+b
+c
+
+
+from itertools import chain, imap
+def flatmap(f, items):
+    return chain.from_iterable(imap(f, items))
+&gt;&gt;&gt; list(flatmap(os.listdir, dirs))
+&gt;&gt;&gt; ['settings.py', 'wsgi.py', 'templates', 'app.py',
+     'templates', 'index.html, 'config.json']
+</code></pre>
+
+<h3 id="itertools-compress-data-selectors">itertools.compress(data, selectors)<a href="#itertools-compress-data-selectors" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<p>提供一个选择列表，对原始数据进行筛选</p>
+
+<pre><code>def compress(data, selectors):
+    # compress('ABCDEF', [1,0,1,0,1,1]) --&gt; A C E F
+    return (d for d, s in izip(data, selectors) if s)
+</code></pre>
+
+<h3 id="itertools-dropwhile-predicate-iterable">itertools.dropwhile(predicate, iterable)<a href="#itertools-dropwhile-predicate-iterable" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<p>创建一个迭代器，只要函数predicate(item)为True，就丢弃iterable中的项，如果predicate返回False，就会生成iterable中的项和所有后续项。</p>
+
+<p>即：在条件为false之后的第一次, 返回迭代器中剩下来的项.</p>
+
+<pre><code>def dropwhile(predicate, iterable):
+    # dropwhile(lambda x: x&lt;5, [1,4,6,4,1]) --&gt; 6 4 1
+    iterable = iter(iterable)
+    for x in iterable:
+        if not predicate(x):
+            yield x
+            break
+    for x in iterable:
+        yield x
+</code></pre>
+
+<p>使用</p>
+
+<pre><code>from itertools import *
+
+def should_drop(x):
+    print 'Testing:', x
+    return (x&lt;1)
+
+for i in dropwhile(should_drop, [ -1, 0, 1, 2, 3, 4, 1, -2 ]):
+    print 'Yielding:', i
+
+Testing: -1
+Testing: 0
+Testing: 1
+Yielding: 1
+Yielding: 2
+Yielding: 3
+Yielding: 4
+Yielding: 1
+Yielding: -2
+</code></pre>
+
+<h3 id="itertools-groupby-iterable-key">itertools.groupby(iterable[, key])<a href="#itertools-groupby-iterable-key" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<p>返回一个产生按照key进行分组后的值集合的迭代器.</p>
+
+<p>如果iterable在多次连续迭代中生成了同一项，则会定义一个组，如果将此函数应用一个分类列表，那么分组将定义该列表中的所有唯一项，key（如果已提供）是一个函数，应用于每一项，如果此函数存在返回值，该值将用于后续项而不是该项本身进行比较，此函数返回的迭代器生成元素(key, group)，其中key是分组的键值，group是迭代器，生成组成该组的所有项。</p>
+
+<p>即：按照keyfunc函数对序列每个元素执行后的结果分组(每个分组是一个迭代器), 返回这些分组的迭代器</p>
+
+<p>等价于</p>
+
+<pre><code>class groupby(object):
+    # [k for k, g in groupby('AAAABBBCCDAABBB')] --&gt; A B C D A B
+    # [list(g) for k, g in groupby('AAAABBBCCD')] --&gt; AAAA BBB CC D
+    def __init__(self, iterable, key=None):
+        if key is None:
+            key = lambda x: x
+        self.keyfunc = key
+        self.it = iter(iterable)
+        self.tgtkey = self.currkey = self.currvalue = object()
+    def __iter__(self):
+        return self
+    def next(self):
+        while self.currkey == self.tgtkey:
+            self.currvalue = next(self.it)    # Exit on StopIteration
+            self.currkey = self.keyfunc(self.currvalue)
+        self.tgtkey = self.currkey
+        return (self.currkey, self._grouper(self.tgtkey))
+    def _grouper(self, tgtkey):
+        while self.currkey == tgtkey:
+            yield self.currvalue
+            self.currvalue = next(self.it)    # Exit on StopIteration
+            self.currkey = self.keyfunc(self.currvalue)
+</code></pre>
+
+<p>应用</p>
+
+<pre><code>from itertools import groupby
+qs = [{'date' : 1},{'date' : 2}]
+[(name, list(group)) for name, group in itertools.groupby(qs, lambda p:p['date'])]
+
+Out[77]: [(1, [{'date': 1}]), (2, [{'date': 2}])]
+
+
+&gt;&gt;&gt; from itertools import *
+&gt;&gt;&gt; a = ['aa', 'ab', 'abc', 'bcd', 'abcde']
+&gt;&gt;&gt; for i, k in groupby(a, len):
+...     print i, list(k)
+...
+2 ['aa', 'ab']
+3 ['abc', 'bcd']
+5 ['abcde']
+</code></pre>
+
+<p>另一个例子</p>
+
+<pre><code>from itertools import *
+from operator import itemgetter
+
+d = dict(a=1, b=2, c=1, d=2, e=1, f=2, g=3)
+di = sorted(d.iteritems(), key=itemgetter(1))
+for k, g in groupby(di, key=itemgetter(1)):
+    print k, map(itemgetter(0), g)
+
+
+1 ['a', 'c', 'e']
+2 ['b', 'd', 'f']
+3 ['g']
+</code></pre>
+
+<h3 id="itertools-ifilter-predicate-iterable">itertools.ifilter(predicate, iterable)<a href="#itertools-ifilter-predicate-iterable" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<p>返回的是迭代器类似于针对列表的内置函数 filter() , 它只包括当测试函数返回true时的项. 它不同于 dropwhile()</p>
+
+<p>创建一个迭代器，仅生成iterable中predicate(item)为True的项，如果predicate为None，将返回iterable中所有计算为True的项</p>
+
+<p>对函数func执行返回真的元素的迭代器</p>
+
+<pre><code>def ifilter(predicate, iterable):
+    # ifilter(lambda x: x%2, range(10)) --&gt; 1 3 5 7 9
+    if predicate is None:
+        predicate = bool
+    for x in iterable:
+        if predicate(x):
+            yield x
+</code></pre>
+
+<p>使用</p>
+
+<pre><code>from itertools import *
+
+def check_item(x):
+    print 'Testing:', x
+    return (x&lt;1)
+
+for i in ifilter(check_item, [ -1, 0, 1, 2, 3, 4, 1, -2 ]):
+    print 'Yielding:', i
+
+Testing: -1
+Yielding: -1
+Testing: 0
+Yielding: 0
+Testing: 1
+Testing: 2
+Testing: 3
+Testing: 4
+Testing: 1
+Testing: -2
+Yielding: -2
+</code></pre>
+
+<h3 id="itertools-ifilterfalse-predicate-iterable">itertools.ifilterfalse(predicate, iterable)<a href="#itertools-ifilterfalse-predicate-iterable" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<p>和ifilter(函数相反 ， 返回一个包含那些测试函数返回false的项的迭代器)</p>
+
+<p>创建一个迭代器，仅生成iterable中predicate(item)为False的项，如果predicate为None，则返回iterable中所有计算为False的项
+对函数func执行返回假的元素的迭代器</p>
+
+<pre><code>def ifilterfalse(predicate, iterable):
+    # ifilterfalse(lambda x: x%2, range(10)) --&gt; 0 2 4 6 8
+    if predicate is None:
+        predicate = bool
+    for x in iterable:
+        if not predicate(x):
+            yield x
+</code></pre>
+
+<p>使用</p>
+
+<pre><code>from itertools import *
+
+def check_item(x):
+    print 'Testing:', x
+    return (x&lt;1)
+
+for i in ifilterfalse(check_item, [ -1, 0, 1, 2, 3, 4, 1, -2 ]):
+    print 'Yielding:', i
+
+Testing: -1
+Testing: 0
+Testing: 1
+Yielding: 1
+Testing: 2
+Yielding: 2
+Testing: 3
+Yielding: 3
+Testing: 4
+Yielding: 4
+Testing: 1
+Yielding: 1
+Testing: -2
+</code></pre>
+
+<h3 id="itertools-islice-iterable-stop">itertools.islice(iterable, stop)<a href="#itertools-islice-iterable-stop" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<p>itertools.islice(iterable, start, stop[, step])</p>
+
+<p>返回的迭代器是返回了输入迭代器根据索引来选取的项</p>
+
+<p>创建一个迭代器，生成项的方式类似于切片返回值： iterable[start : stop : step]，将跳过前start个项，迭代在stop所指定的位置停止，step指定用于跳过项的步幅。
+与切片不同，负值不会用于任何start，stop和step，
+如果省略了start，迭代将从0开始，如果省略了step，步幅将采用1.</p>
+
+<p>返回序列seq的从start开始到stop结束的步长为step的元素的迭代器</p>
+
+<pre><code>def islice(iterable, *args):
+    # islice('ABCDEFG', 2) --&gt; A B
+    # islice('ABCDEFG', 2, 4) --&gt; C D
+    # islice('ABCDEFG', 2, None) --&gt; C D E F G
+    # islice('ABCDEFG', 0, None, 2) --&gt; A C E G
+    s = slice(*args)
+    it = iter(xrange(s.start or 0, s.stop or sys.maxint, s.step or 1))
+    nexti = next(it)
+    for i, element in enumerate(iterable):
+        if i == nexti:
+            yield element
+            nexti = next(it)
+</code></pre>
+
+<p>使用</p>
+
+<pre><code>from itertools import *
+
+print 'Stop at 5:'
+for i in islice(count(), 5):
+    print i
+
+print 'Start at 5, Stop at 10:'
+for i in islice(count(), 5, 10):
+    print i
+
+print 'By tens to 100:'
+for i in islice(count(), 0, 100, 10):
+    print i
+
+Stop at 5:
+0
+1
+2
+3
+4
+Start at 5, Stop at 10:
+5
+6
+7
+8
+9
+By tens to 100:
+0
+10
+20
+30
+40
+50
+60
+70
+80
+90
+</code></pre>
+
+<h3 id="itertools-imap-function-iterables">itertools.imap(function, *iterables)<a href="#itertools-imap-function-iterables" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<p>创建一个迭代器，生成项function(i1, i2, &hellip;, iN)，其中i1，i2&hellip;iN分别来自迭代器iter1，iter2 &hellip; iterN，如果function为None，则返回(i1, i2, &hellip;, iN)形式的元组，只要提供的一个迭代器不再生成值，迭代就会停止。</p>
+
+<p>即：返回一个迭代器, 它是调用了一个其值在输入迭代器上的函数, 返回结果. 它类似于内置函数 map() , 只是前者在任意输入迭代器结束后就停止(而不是插入None值来补全所有的输入).</p>
+
+<p>返回序列每个元素被func执行后返回值的序列的迭代器</p>
+
+<pre><code>def imap(function, *iterables):
+    # imap(pow, (2,3,10), (5,2,3)) --&gt; 32 9 1000
+    iterables = map(iter, iterables)
+    while True:
+        args = [next(it) for it in iterables]
+        if function is None:
+            yield tuple(args)
+        else:
+            yield function(*args)
+</code></pre>
+
+<p>使用</p>
+
+<pre><code>from itertools import *
+
+print 'Doubles:'
+for i in imap(lambda x:2*x, xrange(5)):
+    print i
+
+print 'Multiples:'
+for i in imap(lambda x,y:(x, y, x*y), xrange(5), xrange(5,10)):
+    print '%d * %d = %d' % i
+
+Doubles:
+0
+2
+4
+6
+8
+Multiples:
+0 * 5 = 0
+1 * 6 = 6
+2 * 7 = 14
+3 * 8 = 24
+4 * 9 = 36
+</code></pre>
+
+<h3 id="itertools-starmap-function-iterable">itertools.starmap(function, iterable)<a href="#itertools-starmap-function-iterable" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<p>创建一个迭代器，生成值func(*item),其中item来自iterable，只有当iterable生成的项适用于这种调用函数的方式时，此函数才有效。</p>
+
+<p>对序列seq的每个元素作为func的参数列表执行, 返回执行结果的迭代器</p>
+
+<pre><code>def starmap(function, iterable):
+    # starmap(pow, [(2,5), (3,2), (10,3)]) --&gt; 32 9 1000
+    for args in iterable:
+        yield function(*args)
+</code></pre>
+
+<p>使用</p>
+
+<pre><code>from itertools import *
+
+values = [(0, 5), (1, 6), (2, 7), (3, 8), (4, 9)]
+for i in starmap(lambda x,y:(x, y, x*y), values):
+    print '%d * %d = %d' % i
+
+0 * 5 = 0
+1 * 6 = 6
+2 * 7 = 14
+3 * 8 = 24
+4 * 9 = 36
+</code></pre>
+
+<h3 id="itertools-tee-iterable-n-2">itertools.tee(iterable[, n=2])<a href="#itertools-tee-iterable-n-2" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<p>返回一些基于单个原始输入的独立迭代器(默认为2). 它和Unix上的tee工具有点语义相似, 也就是说它们都重复读取输入设备中的值并将值写入到一个命名文件和标准输出中</p>
+
+<p>从iterable创建n个独立的迭代器，创建的迭代器以n元组的形式返回，n的默认值为2，此函数适用于任何可迭代的对象，但是，为了克隆原始迭代器，生成的项会被缓存，并在所有新创建的迭代器中使用，一定要注意，不要在调用tee()之后使用原始迭代器iterable，否则缓存机制可能无法正确工作。</p>
+
+<p>把一个迭代器分为n个迭代器, 返回一个元组.默认是两个</p>
+
+<pre><code>def tee(iterable, n=2):
+    it = iter(iterable)
+    deques = [collections.deque() for i in range(n)]
+    def gen(mydeque):
+        while True:
+            if not mydeque:             # when the local deque is empty
+                newval = next(it)       # fetch a new value and
+                for d in deques:        # load it to all the deques
+                    d.append(newval)
+            yield mydeque.popleft()
+    return tuple(gen(d) for d in deques)
+</code></pre>
+
+<p>使用</p>
+
+<pre><code>from itertools import *
+
+r = islice(count(), 5)
+i1, i2 = tee(r)
+
+for i in i1:
+    print 'i1:', i
+for i in i2:
+    print 'i2:', i
+
+i1: 0
+i1: 1
+i1: 2
+i1: 3
+i1: 4
+i2: 0
+i2: 1
+i2: 2
+i2: 3
+i2: 4
+</code></pre>
+
+<h3 id="itertools-takewhile-predicate-iterable">itertools.takewhile(predicate, iterable)<a href="#itertools-takewhile-predicate-iterable" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<p>和dropwhile相反</p>
+
+<p>创建一个迭代器，生成iterable中predicate(item)为True的项，只要predicate计算为False，迭代就会立即停止。</p>
+
+<p>即：从序列的头开始, 直到执行函数func失败.</p>
+
+<pre><code>def takewhile(predicate, iterable):
+    # takewhile(lambda x: x&lt;5, [1,4,6,4,1]) --&gt; 1 4
+    for x in iterable:
+        if predicate(x):
+            yield x
+        else:
+            break
+</code></pre>
+
+<p>使用</p>
+
+<pre><code>from itertools import *
+
+def should_take(x):
+    print 'Testing:', x
+    return (x&lt;2)
+
+for i in takewhile(should_take, [ -1, 0, 1, 2, 3, 4, 1, -2 ]):
+    print 'Yielding:', i
+
+Testing: -1
+Yielding: -1
+Testing: 0
+Yielding: 0
+Testing: 1
+Yielding: 1
+Testing: 2
+</code></pre>
+
+<h3 id="itertools-izip-iterables">itertools.izip(*iterables)<a href="#itertools-izip-iterables" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<p>返回一个合并了多个迭代器为一个元组的迭代器. 它类似于内置函数zip(), 只是它返回的是一个迭代器而不是一个列表</p>
+
+<p>创建一个迭代器，生成元组(i1, i2, &hellip; iN)，其中i1，i2 &hellip; iN 分别来自迭代器iter1，iter2 &hellip; iterN，只要提供的某个迭代器不再生成值，迭代就会停止，此函数生成的值与内置的zip()函数相同。</p>
+
+<pre><code>izip(iter1, iter2, ... iterN):
+返回:(it1[0],it2 [0], it3[0], ..), (it1[1], it2[1], it3[1], ..)...
+
+def izip(*iterables):
+    # izip('ABCD', 'xy') --&gt; Ax By
+    iterators = map(iter, iterables)
+    while iterators:
+        yield tuple(map(next, iterators))
+</code></pre>
+
+<p>使用</p>
+
+<pre><code>from itertools import *
+
+for i in izip([1, 2, 3], ['a', 'b', 'c']):
+    print i
+(1, 'a')
+(2, 'b')
+(3, 'c')
+</code></pre>
+
+<h3 id="itertools-izip-longest-iterables-fillvalue">itertools.izip_longest(*iterables[, fillvalue])<a href="#itertools-izip-longest-iterables-fillvalue" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<p>与izip()相同，但是迭代过程会持续到所有输入迭代变量iter1,iter2等都耗尽为止，如果没有使用fillvalue关键字参数指定不同的值，则使用None来填充已经使用的迭代变量的值。</p>
+
+<pre><code>class ZipExhausted(Exception):
+    pass
+
+def izip_longest(*args, **kwds):
+    # izip_longest('ABCD', 'xy', fillvalue='-') --&gt; Ax By C- D-
+    fillvalue = kwds.get('fillvalue')
+    counter = [len(args) - 1]
+    def sentinel():
+        if not counter[0]:
+            raise ZipExhausted
+        counter[0] -= 1
+        yield fillvalue
+    fillers = repeat(fillvalue)
+    iterators = [chain(it, sentinel(), fillers) for it in args]
+    try:
+        while iterators:
+            yield tuple(map(next, iterators))
+    except ZipExhausted:
+        pass
+</code></pre>
+
+<h2 id="第三部分">第三部分<a href="#第三部分" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<h3 id="itertools-product-iterables-repeat">itertools.product(*iterables[, repeat])<a href="#itertools-product-iterables-repeat" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<p>笛卡尔积</p>
+
+<p>创建一个迭代器，生成表示item1，item2等中的项目的笛卡尔积的元组，repeat是一个关键字参数，指定重复生成序列的次数。</p>
+
+<pre><code>def product(*args, **kwds):
+    # product('ABCD', 'xy') --&gt; Ax Ay Bx By Cx Cy Dx Dy
+    # product(range(2), repeat=3) --&gt; 000 001 010 011 100 101 110 111
+    pools = map(tuple, args) * kwds.get('repeat', 1)
+    result = [[]]
+    for pool in pools:
+        result = [x+[y] for x in result for y in pool]
+    for prod in result:
+        yield tuple(prod)
+</code></pre>
+
+<p>例子</p>
+
+<pre><code>import itertools
+a = (1, 2, 3)
+b = ('A', 'B', 'C')
+c = itertools.product(a,b)
+for elem in c:
+    print elem
+
+(1, 'A')
+(1, 'B')
+(1, 'C')
+(2, 'A')
+(2, 'B')
+(2, 'C')
+(3, 'A')
+(3, 'B')
+(3, 'C')
+</code></pre>
+
+<h3 id="itertools-permutations-iterable-r">itertools.permutations(iterable[, r])<a href="#itertools-permutations-iterable-r" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<p>排列</p>
+
+<p>创建一个迭代器，返回iterable中所有长度为r的项目序列，如果省略了r，那么序列的长度与iterable中的项目数量相同：
+返回p中任意取r个元素做排列的元组的迭代器</p>
+
+<pre><code>def permutations(iterable, r=None):
+    # permutations('ABCD', 2) --&gt; AB AC AD BA BC BD CA CB CD DA DB DC
+    # permutations(range(3)) --&gt; 012 021 102 120 201 210
+    pool = tuple(iterable)
+    n = len(pool)
+    r = n if r is None else r
+    if r &gt; n:
+        return
+    indices = range(n)
+    cycles = range(n, n-r, -1)
+    yield tuple(pool[i] for i in indices[:r])
+    while n:
+        for i in reversed(range(r)):
+            cycles[i] -= 1
+            if cycles[i] == 0:
+                indices[i:] = indices[i+1:] + indices[i:i+1]
+                cycles[i] = n - i
+            else:
+                j = cycles[i]
+                indices[i], indices[-j] = indices[-j], indices[i]
+                yield tuple(pool[i] for i in indices[:r])
+                break
+        else:
+            return
+也可以用product实现
+
+def permutations(iterable, r=None):
+    pool = tuple(iterable)
+    n = len(pool)
+    r = n if r is None else r
+    for indices in product(range(n), repeat=r):
+        if len(set(indices)) == r:
+            yield tuple(pool[i] for i in indices)
+</code></pre>
+
+<h3 id="itertools-combinations-iterable-r">itertools.combinations(iterable, r)<a href="#itertools-combinations-iterable-r" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<p>创建一个迭代器，返回iterable中所有长度为r的子序列，返回的子序列中的项按输入iterable中的顺序排序 (不带重复)</p>
+
+<pre><code>def combinations(iterable, r):
+    # combinations('ABCD', 2) --&gt; AB AC AD BC BD CD
+    # combinations(range(4), 3) --&gt; 012 013 023 123
+    pool = tuple(iterable)
+    n = len(pool)
+    if r &gt; n:
+        return
+    indices = range(r)
+    yield tuple(pool[i] for i in indices)
+    while True:
+        for i in reversed(range(r)):
+            if indices[i] != i + n - r:
+                break
+        else:
+            return
+        indices[i] += 1
+        for j in range(i+1, r):
+            indices[j] = indices[j-1] + 1
+        yield tuple(pool[i] for i in indices)
+
+#或者
+def combinations(iterable, r):
+    pool = tuple(iterable)
+    n = len(pool)
+    for indices in permutations(range(n), r):
+        if sorted(indices) == list(indices):
+            yield tuple(pool[i] for i in indices)
+</code></pre>
+
+<h3 id="itertools-combinations-with-replacement-iterable-r">itertools.combinations_with_replacement(iterable, r)<a href="#itertools-combinations-with-replacement-iterable-r" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<p>创建一个迭代器，返回iterable中所有长度为r的子序列，返回的子序列中的项按输入iterable中的顺序排序 (带重复)</p>
+
+<pre><code>def combinations_with_replacement(iterable, r):
+    # combinations_with_replacement('ABC', 2) --&gt; AA AB AC BB BC CC
+    pool = tuple(iterable)
+    n = len(pool)
+    if not n and r:
+        return
+    indices = [0] * r
+    yield tuple(pool[i] for i in indices)
+    while True:
+        for i in reversed(range(r)):
+            if indices[i] != n - 1:
+                break
+        else:
+            return
+        indices[i:] = [indices[i] + 1] * (r - i)
+        yield tuple(pool[i] for i in indices)
+或者
+def combinations_with_replacement(iterable, r):
+    pool = tuple(iterable)
+    n = len(pool)
+    for indices in product(range(n), repeat=r):
+        if sorted(indices) == list(indices):
+            yield tuple(pool[i] for i in indices)
+</code></pre>
+
+<h2 id="第四部分">第四部分<a href="#第四部分" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<h3 id="扩展">扩展<a href="#扩展" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<p>使用现有扩展功能</p>
+
+<pre><code>def take(n, iterable):
+    &quot;Return first n items of the iterable as a list&quot;
+    return list(islice(iterable, n))
+
+def tabulate(function, start=0):
+    &quot;Return function(0), function(1), ...&quot;
+    return imap(function, count(start))
+
+def consume(iterator, n):
+    &quot;Advance the iterator n-steps ahead. If n is none, consume entirely.&quot;
+    # Use functions that consume iterators at C speed.
+    if n is None:
+        # feed the entire iterator into a zero-length deque
+        collections.deque(iterator, maxlen=0)
+    else:
+        # advance to the empty slice starting at position n
+        next(islice(iterator, n, n), None)
+
+def nth(iterable, n, default=None):
+    &quot;Returns the nth item or a default value&quot;
+    return next(islice(iterable, n, None), default)
+
+def quantify(iterable, pred=bool):
+    &quot;Count how many times the predicate is true&quot;
+    return sum(imap(pred, iterable))
+
+def padnone(iterable):
+    &quot;&quot;&quot;Returns the sequence elements and then returns None indefinitely.
+
+    Useful for emulating the behavior of the built-in map() function.
+    &quot;&quot;&quot;
+    return chain(iterable, repeat(None))
+
+def ncycles(iterable, n):
+    &quot;Returns the sequence elements n times&quot;
+    return chain.from_iterable(repeat(tuple(iterable), n))
+
+def dotproduct(vec1, vec2):
+    return sum(imap(operator.mul, vec1, vec2))
+
+def flatten(listOfLists):
+    &quot;Flatten one level of nesting&quot;
+    return chain.from_iterable(listOfLists)
+
+def repeatfunc(func, times=None, *args):
+    &quot;&quot;&quot;Repeat calls to func with specified arguments.
+
+    Example:  repeatfunc(random.random)
+    &quot;&quot;&quot;
+    if times is None:
+        return starmap(func, repeat(args))
+    return starmap(func, repeat(args, times))
+
+def pairwise(iterable):
+    &quot;s -&gt; (s0,s1), (s1,s2), (s2, s3), ...&quot;
+    a, b = tee(iterable)
+    next(b, None)
+    return izip(a, b)
+
+def grouper(iterable, n, fillvalue=None):
+    &quot;Collect data into fixed-length chunks or blocks&quot;
+    # grouper('ABCDEFG', 3, 'x') --&gt; ABC DEF Gxx
+    args = [iter(iterable)] * n
+    return izip_longest(fillvalue=fillvalue, *args)
+
+def roundrobin(*iterables):
+    &quot;roundrobin('ABC', 'D', 'EF') --&gt; A D E B F C&quot;
+    # Recipe credited to George Sakkis
+    pending = len(iterables)
+    nexts = cycle(iter(it).next for it in iterables)
+    while pending:
+        try:
+            for next in nexts:
+                yield next()
+        except StopIteration:
+            pending -= 1
+            nexts = cycle(islice(nexts, pending))
+
+def powerset(iterable):
+    &quot;powerset([1,2,3]) --&gt; () (1,) (2,) (3,) (1,2) (1,3) (2,3) (1,2,3)&quot;
+    s = list(iterable)
+    return chain.from_iterable(combinations(s, r) for r in range(len(s)+1))
+
+def unique_everseen(iterable, key=None):
+    &quot;List unique elements, preserving order. Remember all elements ever seen.&quot;
+    # unique_everseen('AAAABBBCCDAABBB') --&gt; A B C D
+    # unique_everseen('ABBCcAD', str.lower) --&gt; A B C D
+    seen = set()
+    seen_add = seen.add
+    if key is None:
+        for element in ifilterfalse(seen.__contains__, iterable):
+            seen_add(element)
+            yield element
+    else:
+        for element in iterable:
+            k = key(element)
+            if k not in seen:
+                seen_add(k)
+                yield element
+
+def unique_justseen(iterable, key=None):
+    &quot;List unique elements, preserving order. Remember only the element just seen.&quot;
+    # unique_justseen('AAAABBBCCDAABBB') --&gt; A B C D A B
+    # unique_justseen('ABBCcAD', str.lower) --&gt; A B C A D
+    return imap(next, imap(itemgetter(1), groupby(iterable, key)))
+
+def iter_except(func, exception, first=None):
+    &quot;&quot;&quot; Call a function repeatedly until an exception is raised.
+
+    Converts a call-until-exception interface to an iterator interface.
+    Like __builtin__.iter(func, sentinel) but uses an exception instead
+    of a sentinel to end the loop.
+
+    Examples:
+        bsddbiter = iter_except(db.next, bsddb.error, db.first)
+        heapiter = iter_except(functools.partial(heappop, h), IndexError)
+        dictiter = iter_except(d.popitem, KeyError)
+        dequeiter = iter_except(d.popleft, IndexError)
+        queueiter = iter_except(q.get_nowait, Queue.Empty)
+        setiter = iter_except(s.pop, KeyError)
+
+    &quot;&quot;&quot;
+    try:
+        if first is not None:
+            yield first()
+        while 1:
+            yield func()
+    except exception:
+        pass
+
+def random_product(*args, **kwds):
+    &quot;Random selection from itertools.product(*args, **kwds)&quot;
+    pools = map(tuple, args) * kwds.get('repeat', 1)
+    return tuple(random.choice(pool) for pool in pools)
+
+def random_permutation(iterable, r=None):
+    &quot;Random selection from itertools.permutations(iterable, r)&quot;
+    pool = tuple(iterable)
+    r = len(pool) if r is None else r
+    return tuple(random.sample(pool, r))
+
+def random_combination(iterable, r):
+    &quot;Random selection from itertools.combinations(iterable, r)&quot;
+    pool = tuple(iterable)
+    n = len(pool)
+    indices = sorted(random.sample(xrange(n), r))
+    return tuple(pool[i] for i in indices)
+
+def random_combination_with_replacement(iterable, r):
+    &quot;Random selection from itertools.combinations_with_replacement(iterable, r)&quot;
+    pool = tuple(iterable)
+    n = len(pool)
+    indices = sorted(random.randrange(n) for i in xrange(r))
+    return tuple(pool[i] for i in indices)
+
+def tee_lookahead(t, i):
+    &quot;&quot;&quot;Inspect the i-th upcomping value from a tee object
+    while leaving the tee object at its current position.
+
+    Raise an IndexError if the underlying iterator doesn't
+    have enough values.
+
+    &quot;&quot;&quot;
+    for value in islice(t.__copy__(), i, None):
+        return value
+    raise IndexError(i)
+</code></pre>
+
+<h3 id="自定义扩展">自定义扩展<a href="#自定义扩展" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<p>将序列按大小切分,更好的性能</p>
+
+<pre><code>from itertools import chain, islice
+def chunks(iterable, size, format=iter):
+    it = iter(iterable)
+    while True:
+        yield format(chain((it.next(),), islice(it, size - 1)))
+
+&gt;&gt;&gt; l = [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;, &quot;d&quot;, &quot;e&quot;, &quot;f&quot;, &quot;g&quot;]
+&gt;&gt;&gt; for chunk in chunks(l, 3, tuple):...
+        print chunk...
+(&quot;a&quot;, &quot;b&quot;, &quot;c&quot;)
+(&quot;d&quot;, &quot;e&quot;, &quot;f&quot;)
+(&quot;g&quot;,)
+</code></pre>
+
+<h3 id="补充">补充<a href="#补充" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<p>迭代工具，你最好的朋友</p>
+
+<p>迭代工具模块包含了操做指定的函数用于操作迭代器。想复制一个迭代器出来？链接两个迭代器？以one liner（这里的one-liner只需一行代码能搞定的任务)用内嵌的列表组合一组值？不使用list创建Map/Zip？···，你要做的就是 import itertools，举个例子吧：</p>
+
+<p>四匹马赛跑到达终点排名的所有可能性：</p>
+
+<pre><code>&gt;&gt;&gt; horses = [1, 2, 3, 4]
+&gt;&gt;&gt; races = itertools.permutations(horses)
+&gt;&gt;&gt; print(races)
+&lt;itertools.permutations object at 0xb754f1dc]]&gt;
+&gt;&gt;&gt; print(list(itertools.permutations(horses)))
+[(1, 2, 3, 4),
+ (1, 2, 4, 3),
+ (1, 3, 2, 4),
+ (1, 3, 4, 2),
+ (1, 4, 2, 3),
+ (1, 4, 3, 2),
+ (2, 1, 3, 4),
+ (2, 1, 4, 3),
+ (2, 3, 1, 4),
+ (2, 3, 4, 1),
+ (2, 4, 1, 3),
+ (2, 4, 3, 1),
+ (3, 1, 2, 4),
+ (3, 1, 4, 2),
+ (3, 2, 1, 4),
+ (3, 2, 4, 1),
+ (3, 4, 1, 2),
+ (3, 4, 2, 1),
+ (4, 1, 2, 3),
+ (4, 1, 3, 2),
+ (4, 2, 1, 3),
+ (4, 2, 3, 1),
+ (4, 3, 1, 2),
+ (4, 3, 2, 1)]
+</code></pre>
+
+<p>理解迭代的内部机制：
+迭代(iteration）就是对可迭代对象（iterables，实现了<strong>iter</strong>()方法）和迭代器（iterators，实现了<strong>next</strong>()方法）的一个操作过程。可迭代对象是任何可返回一个迭代器的对象，迭代器是应用在迭代对象中迭代的对象，换一种方式说的话就是：iterable对象的<strong>iter</strong>()方法可以返回iterator对象，iterator通过调用next()方法获取其中的每一个值(译者注)，读者可以结合Java API中的 Iterable接口和Iterator接口进行类比。</p>
+
+<hr />
+
+<p>wklken</p>
+
+<p>2013-11-30</p>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p>
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg><span class="tag"><a href="http://wklken.me/tags/python.html">python</a></span>
+				</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>5943 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2013-08-20 08:00 &#43;0800</p>
+			</footer>
+		</article>
+		<aside id="toc">
+			<div class="toc-title">Table of Contents</div>
+			<nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#组成">组成</a></li>
+<li><a href="#第一部分">第一部分</a>
+<ul>
+<li><a href="#itertools-count-start-0-step-1">itertools.count(start=0, step=1)</a></li>
+<li><a href="#itertools-cycle-iterable">itertools.cycle(iterable)</a></li>
+<li><a href="#itertools-repeat-object-times">itertools.repeat(object[, times])</a></li>
+</ul></li>
+<li><a href="#第二部分">第二部分</a>
+<ul>
+<li><a href="#itertools-chain-iterables">itertools.chain(*iterables)</a></li>
+<li><a href="#itertools-compress-data-selectors">itertools.compress(data, selectors)</a></li>
+<li><a href="#itertools-dropwhile-predicate-iterable">itertools.dropwhile(predicate, iterable)</a></li>
+<li><a href="#itertools-groupby-iterable-key">itertools.groupby(iterable[, key])</a></li>
+<li><a href="#itertools-ifilter-predicate-iterable">itertools.ifilter(predicate, iterable)</a></li>
+<li><a href="#itertools-ifilterfalse-predicate-iterable">itertools.ifilterfalse(predicate, iterable)</a></li>
+<li><a href="#itertools-islice-iterable-stop">itertools.islice(iterable, stop)</a></li>
+<li><a href="#itertools-imap-function-iterables">itertools.imap(function, *iterables)</a></li>
+<li><a href="#itertools-starmap-function-iterable">itertools.starmap(function, iterable)</a></li>
+<li><a href="#itertools-tee-iterable-n-2">itertools.tee(iterable[, n=2])</a></li>
+<li><a href="#itertools-takewhile-predicate-iterable">itertools.takewhile(predicate, iterable)</a></li>
+<li><a href="#itertools-izip-iterables">itertools.izip(*iterables)</a></li>
+<li><a href="#itertools-izip-longest-iterables-fillvalue">itertools.izip_longest(*iterables[, fillvalue])</a></li>
+</ul></li>
+<li><a href="#第三部分">第三部分</a>
+<ul>
+<li><a href="#itertools-product-iterables-repeat">itertools.product(*iterables[, repeat])</a></li>
+<li><a href="#itertools-permutations-iterable-r">itertools.permutations(iterable[, r])</a></li>
+<li><a href="#itertools-combinations-iterable-r">itertools.combinations(iterable, r)</a></li>
+<li><a href="#itertools-combinations-with-replacement-iterable-r">itertools.combinations_with_replacement(iterable, r)</a></li>
+</ul></li>
+<li><a href="#第四部分">第四部分</a>
+<ul>
+<li><a href="#扩展">扩展</a></li>
+<li><a href="#自定义扩展">自定义扩展</a></li>
+<li><a href="#补充">补充</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+		</aside>
+		<div class="post-nav thin">
+			<a class="next-post" href="http://wklken.me/posts/2013/08/27/python-sources.html">
+				<span class="post-nav-label"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>&nbsp;Newer</span><br><span>Python资源入口汇总</span>
+			</a>
+			<a class="prev-post" href="http://wklken.me/posts/2013/08/18/python-extra-functools.html">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>Python-进阶-functools模块小结</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+<div id="disqus_thread"></div>
+<script type="application/javascript">
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "wklken" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2019 <a href="http://wklken.me">wklken</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="http://wklken.me/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+	<script src="http://wklken.me/js/main.min.784417f5847151f848c339cf0acb13a06cbb648b1483435a28ed4556c4ead69b.js" integrity="sha256-eEQX9YRxUfhIwznPCssToGy7ZIsUg0NaKO1FVsTq1ps="></script>
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-42275748-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+</body>
+
+</html>

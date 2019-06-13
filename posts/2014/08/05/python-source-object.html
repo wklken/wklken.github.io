@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<meta name="theme-color" content="#494f5c">
+	<meta name="msapplication-TileColor" content="#494f5c">
+
+<meta itemprop="name" content="Python 源码阅读 - 对象">
+<meta itemprop="description" content="结束休息期, 开始准备面试事宜了, 发现要准备的东西好多(╯‵□′)╯︵┻━┻, 顺手整理下Python源码阅读笔记(力争在写完前找到工作) 参考内">
+
+
+<meta itemprop="datePublished" content="2014-08-05T17:32:00&#43;08:00" />
+<meta itemprop="dateModified" content="2014-08-05T17:32:00&#43;08:00" />
+<meta itemprop="wordCount" content="830">
+
+
+
+<meta itemprop="keywords" content="python," />
+<meta property="og:title" content="Python 源码阅读 - 对象" />
+<meta property="og:description" content="结束休息期, 开始准备面试事宜了, 发现要准备的东西好多(╯‵□′)╯︵┻━┻, 顺手整理下Python源码阅读笔记(力争在写完前找到工作) 参考内" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://wklken.me/posts/2014/08/05/python-source-object.html" />
+<meta property="article:published_time" content="2014-08-05T17:32:00&#43;08:00"/>
+<meta property="article:modified_time" content="2014-08-05T17:32:00&#43;08:00"/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Python 源码阅读 - 对象"/>
+<meta name="twitter:description" content="结束休息期, 开始准备面试事宜了, 发现要准备的东西好多(╯‵□′)╯︵┻━┻, 顺手整理下Python源码阅读笔记(力争在写完前找到工作) 参考内"/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>Python 源码阅读 - 对象</title>
+	<link rel="stylesheet" href="http://wklken.me/css/style.min.31706917653d2b9e8410abd431f30ec4359a88a94fc87a63654779d87329edec.css" integrity="sha256-MXBpF2U9K56EEKvUMfMOxDWaiKlPyHpjZUd52HMp7ew=">
+	
+	<link rel="stylesheet" href="http://wklken.me/css/custom.css">
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp faster">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="http://wklken.me">WKLKEN BUILDING</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					<a href="http://wklken.me/posts.html">Posts</a>
+					<a href="http://wklken.me/about.html">About</a>
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<button id="toc-btn" class="hdr-btn desktop-only-ib" title="Table of Contents"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3" y2="6"></line><line x1="3" y1="12" x2="3" y2="12"></line><line x1="3" y1="18" x2="3" y2="18"></line></svg></button><span class="hdr-social hide-in-mobile"><a href="https://github.com/wklken" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-github"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a><a href="wklken@gmail.com" target="_blank" rel="noopener me" title="Email"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-mail"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="http://wklken.me/posts.html">Posts</a></li>
+			<li><a href="http://wklken.me/about.html">About</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>Aug 5, 2014</span></div>
+				<h1>Python 源码阅读 - 对象</h1>
+			</header>
+			<div class="content">
+				
+
+<p>结束休息期, 开始准备面试事宜了, 发现要准备的东西好多(╯‵□′)╯︵┻━┻,  顺手整理下Python源码阅读笔记(力争在写完前找到工作)</p>
+
+<p>参考内容: Python源码 + <code>&lt;&lt;Python源码剖析&gt;&gt;</code></p>
+
+<p>用<code>源代码+说明+图解</code>的方式, 尽量说明白吧, 有一份注释在github上</p>
+
+<p>内容:</p>
+
+<pre><code>-&gt; 对象/类型
+-&gt; 各种内建类型对象及机制
+-&gt; 虚拟机相关(编译及执行)
+-&gt; 内存管理/动态加载/多线程等
+</code></pre>
+
+<p>PS: 画图的话google doc很好用</p>
+
+<p>好的, 第一篇开始</p>
+
+<hr />
+
+<blockquote>
+<p>一切皆为对象</p>
+</blockquote>
+
+<p>对象, 在C语言是如何实现的?</p>
+
+<p>Python中对象分为两类: 定长(int等), 非定长(list/dict等)</p>
+
+<p>所有对象都有一些相同的东西, 源码中定义为<code>PyObject</code>和<code>PyVarObject</code>, 两个定义都有一个共同的头部定义<code>PyObject_HEAD</code>(其实PyVarObject有自己的头部定义<code>PyObject_VAR_HEAD</code>, 但其实际上用的也是<code>PyObject_HEAD</code>).</p>
+
+<p>源码位置: <a href="https://github.com/wklken/Python-2.7.8/blob/master/Include/object.h">Include/object.h</a></p>
+
+<h3 id="pyobject-head">PyObject_HEAD<a href="#pyobject-head" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<p>Python 内部, 每个对象拥有相同的头部.</p>
+
+<p>定义</p>
+
+<pre><code>/* PyObject_HEAD defines the initial segment of every PyObject. */
+#define PyObject_HEAD                   \
+    _PyObject_HEAD_EXTRA                \
+    Py_ssize_t ob_refcnt;               \
+    struct _typeobject *ob_type;
+</code></pre>
+
+<p>说明</p>
+
+<pre><code>1. _PyObject_HEAD_EXTRA
+先忽略, 双向链表结构, 后面垃圾回收再说
+
+2. Py_ssize_t ob_refcnt
+Py_ssize_t在编译时确定, 整型
+ob_refcnt, 引用计数, 跟Python的内存管理机制相关(基于引用计数的垃圾回收)
+
+3. struct _typeobject *ob_type
+*ob_type 指向类型对象的指针(指向_typeobject结构体)
+决定了这个对象的类型!
+</code></pre>
+
+<h3 id="pyobject">PyObject<a href="#pyobject" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<p>定义</p>
+
+<pre><code> typedef struct _object {
+     PyObject_HEAD
+ } PyObject;
+</code></pre>
+
+<p>说明</p>
+
+<pre><code> 1. 依赖关系
+ PyObject -&gt; PyObject_HEAD
+</code></pre>
+
+<p>结构</p>
+
+<p><img src="/imgs/python-source/PyObject.png" alt="PyObject" /></p>
+
+<h3 id="pyvarobject">PyVarObject<a href="#pyvarobject" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<p>定义</p>
+
+<pre><code>typedef struct {
+    PyObject_VAR_HEAD
+} PyVarObject;
+
+#define PyObject_VAR_HEAD               \
+  PyObject_HEAD                       \
+  Py_ssize_t ob_size; /* Number of items in variable part */
+</code></pre>
+
+<p>说明</p>
+
+<pre><code> 1. 依赖关系
+ PyVarObject -&gt; PyObject_VAR_HEAD -&gt; PyObject_HEAD
+
+ 2.Py_ssize_t ob_size
+ ob_size, 变长对象容纳的元素个数
+</code></pre>
+
+<p>结构</p>
+
+<p><img src="/imgs/python-source/PyVarObject.png" alt="PyVarObject" /></p>
+
+<h3 id="代码关系">代码关系<a href="#代码关系" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<p><img src="/imgs/python-source/PyObjectCode.png" alt="PyObjectCode" /></p>
+
+<h3 id="几个方法">几个方法<a href="#几个方法" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<p>跟对象相关的方法</p>
+
+<pre><code>#define Py_REFCNT(ob)           (((PyObject*)(ob))-&gt;ob_refcnt)
+读取引用计数
+
+#define Py_TYPE(ob)             (((PyObject*)(ob))-&gt;ob_type)
+获取对象类型
+
+#define Py_SIZE(ob)             (((PyVarObject*)(ob))-&gt;ob_size)
+读取元素个数(len)
+</code></pre>
+
+<p>跟引用计数相关的方法</p>
+
+<pre><code>Py_INCREF(op)  增加对象引用计数
+
+Py_DECREF(op)  减少对象引用计数, 如果计数位0, 调用_Py_Dealloc
+
+_Py_Dealloc(op) 调用对应类型的 tp_dealloc 方法(每种类型回收行为不一样的, 各种缓存池机制, 后面看)
+</code></pre>
+
+<h3 id="其他">其他<a href="#其他" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<p>几个参数涉及</p>
+
+<pre><code>ob_refcnt 引用计数, 与内存管理/垃圾回收相关
+ob_type   类型, 涉及Python的类型系统
+</code></pre>
+
+<hr />
+
+<p>changelog:</p>
+
+<pre><code>2013-08-05 first version
+</code></pre>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p>
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg><span class="tag"><a href="http://wklken.me/tags/python.html">python</a></span>
+				</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>830 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2014-08-05 17:32 &#43;0800</p>
+			</footer>
+		</article>
+		<aside id="toc">
+			<div class="toc-title">Table of Contents</div>
+			<nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#pyobject-head">PyObject_HEAD</a></li>
+<li><a href="#pyobject">PyObject</a></li>
+<li><a href="#pyvarobject">PyVarObject</a></li>
+<li><a href="#代码关系">代码关系</a></li>
+<li><a href="#几个方法">几个方法</a></li>
+<li><a href="#其他">其他</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+		</aside>
+		<div class="post-nav thin">
+			<a class="next-post" href="http://wklken.me/posts/2014/08/05/python-source-type.html">
+				<span class="post-nav-label"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>&nbsp;Newer</span><br><span>Python 源码阅读 - 类型</span>
+			</a>
+			<a class="prev-post" href="http://wklken.me/posts/2014/07/26/python-tech-stack.html">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>Python后端相关技术/工具栈</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+<div id="disqus_thread"></div>
+<script type="application/javascript">
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "wklken" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2019 <a href="http://wklken.me">wklken</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="http://wklken.me/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+	<script src="http://wklken.me/js/main.min.784417f5847151f848c339cf0acb13a06cbb648b1483435a28ed4556c4ead69b.js" integrity="sha256-eEQX9YRxUfhIwznPCssToGy7ZIsUg0NaKO1FVsTq1ps="></script>
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-42275748-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+</body>
+
+</html>

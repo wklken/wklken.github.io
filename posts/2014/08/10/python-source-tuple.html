@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<meta name="theme-color" content="#494f5c">
+	<meta name="msapplication-TileColor" content="#494f5c">
+
+<meta itemprop="name" content="Python 源码阅读 - tuple">
+<meta itemprop="description" content="还差一篇&hellip;&hellip;写完写简历&gt;_&lt;# 示例 &gt;&gt;&gt; a = () &gt;&gt;&gt; b = () &gt;&gt;&gt; id(a) == id(b) True &gt;&gt;&gt; a = (1, ) &gt;&gt;&gt; b = (1, ) &gt;&gt;&gt; id(a) == id(b) False 源码位置 Include/tupleobject.h">
+
+
+<meta itemprop="datePublished" content="2014-08-10T17:10:00&#43;08:00" />
+<meta itemprop="dateModified" content="2014-08-10T17:10:00&#43;08:00" />
+<meta itemprop="wordCount" content="1408">
+
+
+
+<meta itemprop="keywords" content="python," />
+<meta property="og:title" content="Python 源码阅读 - tuple" />
+<meta property="og:description" content="还差一篇&hellip;&hellip;写完写简历&gt;_&lt;# 示例 &gt;&gt;&gt; a = () &gt;&gt;&gt; b = () &gt;&gt;&gt; id(a) == id(b) True &gt;&gt;&gt; a = (1, ) &gt;&gt;&gt; b = (1, ) &gt;&gt;&gt; id(a) == id(b) False 源码位置 Include/tupleobject.h" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://wklken.me/posts/2014/08/10/python-source-tuple.html" />
+<meta property="article:published_time" content="2014-08-10T17:10:00&#43;08:00"/>
+<meta property="article:modified_time" content="2014-08-10T17:10:00&#43;08:00"/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Python 源码阅读 - tuple"/>
+<meta name="twitter:description" content="还差一篇&hellip;&hellip;写完写简历&gt;_&lt;# 示例 &gt;&gt;&gt; a = () &gt;&gt;&gt; b = () &gt;&gt;&gt; id(a) == id(b) True &gt;&gt;&gt; a = (1, ) &gt;&gt;&gt; b = (1, ) &gt;&gt;&gt; id(a) == id(b) False 源码位置 Include/tupleobject.h"/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>Python 源码阅读 - tuple</title>
+	<link rel="stylesheet" href="http://wklken.me/css/style.min.31706917653d2b9e8410abd431f30ec4359a88a94fc87a63654779d87329edec.css" integrity="sha256-MXBpF2U9K56EEKvUMfMOxDWaiKlPyHpjZUd52HMp7ew=">
+	
+	<link rel="stylesheet" href="http://wklken.me/css/custom.css">
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp faster">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="http://wklken.me">WKLKEN BUILDING</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					<a href="http://wklken.me/posts.html">Posts</a>
+					<a href="http://wklken.me/about.html">About</a>
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<button id="toc-btn" class="hdr-btn desktop-only-ib" title="Table of Contents"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3" y2="6"></line><line x1="3" y1="12" x2="3" y2="12"></line><line x1="3" y1="18" x2="3" y2="18"></line></svg></button><span class="hdr-social hide-in-mobile"><a href="https://github.com/wklken" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-github"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a><a href="wklken@gmail.com" target="_blank" rel="noopener me" title="Email"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-mail"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="http://wklken.me/posts.html">Posts</a></li>
+			<li><a href="http://wklken.me/about.html">About</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>Aug 10, 2014</span></div>
+				<h1>Python 源码阅读 - tuple</h1>
+			</header>
+			<div class="content">
+				
+
+<p>还差一篇&hellip;&hellip;写完写简历&gt;_&lt;#</p>
+
+<hr />
+
+<p>示例</p>
+
+<pre><code>&gt;&gt;&gt; a = ()
+&gt;&gt;&gt; b = ()
+&gt;&gt;&gt; id(a) == id(b)
+True
+
+&gt;&gt;&gt; a = (1, )
+&gt;&gt;&gt; b = (1, )
+&gt;&gt;&gt; id(a) == id(b)
+False
+</code></pre>
+
+<p>源码位置 <a href="https://github.com/wklken/Python-2.7.8/blob/master/Include/tupleobject.h">Include/tupleobject.h</a> |
+         <a href="https://github.com/wklken/Python-2.7.8/blob/master/Objects/tupleobject.c">Objects/tupleobject.c</a></p>
+
+<hr />
+
+<h1 id="结构">结构<a href="#结构" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+
+<p>定义</p>
+
+<pre><code>typedef struct {
+    PyObject_VAR_HEAD
+    PyObject *ob_item[1];
+
+} PyTupleObject;
+</code></pre>
+
+<p>说明</p>
+
+<pre><code>1. PyObject_VAR_HEAD
+PyTupleObject在底层是个变长对象(需要存储列表元素个数).
+虽然, 在python中, tuple是不可变对象
+
+2. PyObject *ob_item[1];
+指向存储元素的数组
+
+3.
+</code></pre>
+
+<p>结构</p>
+
+<p><img src="/imgs/python-source/PyTupleObject.png" alt="PyTupleObject" /></p>
+
+<p>构造方法</p>
+
+<pre><code>PyAPI_FUNC(PyObject *) PyTuple_New(Py_ssize_t size);
+</code></pre>
+
+<hr />
+
+<h1 id="构造">构造<a href="#构造" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+
+<p>看下构造方法定义</p>
+
+<pre><code>PyObject *
+PyTuple_New(register Py_ssize_t size)
+{
+    register PyTupleObject *op;
+    Py_ssize_t i;
+
+    // 大小为负数, return
+    if (size &lt; 0) {
+        PyErr_BadInternalCall();
+        return NULL;
+    }
+
+    // 如果大小=0, 空元组, 直接取free_list第一个返回
+#if PyTuple_MAXSAVESIZE &gt; 0
+    if (size == 0 &amp;&amp; free_list[0]) {
+        op = free_list[0];
+        Py_INCREF(op);
+
+#ifdef COUNT_ALLOCS
+        tuple_zero_allocs++;
+#endif
+
+        return (PyObject *) op;
+    }
+
+    // 如果free_list可分配, 从free_list取一个
+    if (size &lt; PyTuple_MAXSAVESIZE &amp;&amp; (op = free_list[size]) != NULL) {
+        // 上面  op = free_list[size] 取得单链表头
+        // free_list指向单链表下一个元素, 对应位置阈值--
+        free_list[size] = (PyTupleObject *) op-&gt;ob_item[0];
+        numfree[size]--;
+
+#ifdef COUNT_ALLOCS
+        fast_tuple_allocs++;
+#endif
+
+      // 初始化 ob_size和ob_type
+      /* Inline PyObject_InitVar */
+#ifdef Py_TRACE_REFS
+        Py_SIZE(op) = size;
+        Py_TYPE(op) = &amp;PyTuple_Type;
+#endif
+        _Py_NewReference((PyObject *)op);
+    }
+    else
+#endif   // free_list不可用
+    {
+        // 计算空间
+        Py_ssize_t nbytes = size * sizeof(PyObject *);
+        /* Check for overflow */
+        if (nbytes / sizeof(PyObject *) != (size_t)size ||
+            (nbytes &gt; PY_SSIZE_T_MAX - sizeof(PyTupleObject) - sizeof(PyObject *)))
+        {
+            return PyErr_NoMemory();
+        }
+
+        // 分配内存
+        op = PyObject_GC_NewVar(PyTupleObject, &amp;PyTuple_Type, size);
+        if (op == NULL)
+            return NULL;
+    }
+
+    // 初始化ob_item每个元素
+    for (i=0; i &lt; size; i++)
+        op-&gt;ob_item[i] = NULL;
+
+    // 第一次分配空数组, 将其放入free_list第一个位置
+#if PyTuple_MAXSAVESIZE &gt; 0
+    if (size == 0) {
+        free_list[0] = op;
+        ++numfree[0];
+        Py_INCREF(op);          /* extra INCREF so that this is never freed */
+    }
+#endif
+
+
+#ifdef SHOW_TRACK_COUNT
+    count_tracked++;
+#endif
+
+    _PyObject_GC_TRACK(op);
+
+    // 返回
+    return (PyObject *) op;
+}
+</code></pre>
+
+<p>简化步骤</p>
+
+<pre><code>1. 如果size=0, 从free_list[0]取, 直接返回
+
+2. 否则, 确认free_list[size], 是否可用, 可用获取
+
+3. 否则, 从内存分配新的空间
+
+4. 初始化, 返回
+</code></pre>
+
+<hr />
+
+<h1 id="回收">回收<a href="#回收" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+
+<p>定义</p>
+
+<pre><code>static void
+tupledealloc(register PyTupleObject *op)
+{
+    register Py_ssize_t i;
+    // 获取元素个数
+    register Py_ssize_t len =  Py_SIZE(op);
+
+    PyObject_GC_UnTrack(op);
+    Py_TRASHCAN_SAFE_BEGIN(op)
+
+
+    if (len &gt; 0) {
+        i = len;
+        // 遍历, 析构每个元素
+        while (--i &gt;= 0)
+            Py_XDECREF(op-&gt;ob_item[i]);
+
+         // 与对象缓冲池相关
+#if PyTuple_MAXSAVESIZE &gt; 0
+        if (len &lt; PyTuple_MAXSAVESIZE &amp;&amp;
+            numfree[len] &lt; PyTuple_MAXFREELIST &amp;&amp;
+            Py_TYPE(op) == &amp;PyTuple_Type)
+        {
+            op-&gt;ob_item[0] = (PyObject *) free_list[len];
+            numfree[len]++;
+            free_list[len] = op;
+            goto done; /* return */
+        }
+#endif
+
+    }
+    // 调用回收
+    Py_TYPE(op)-&gt;tp_free((PyObject *)op);
+
+done:
+    Py_TRASHCAN_SAFE_END(op)
+}
+</code></pre>
+
+<p>简化流程</p>
+
+<pre><code>1. 回收ob_item每个元素
+
+2. 如果符合条件, 放入到free_list
+
+3. 否则, 回收
+</code></pre>
+
+<hr />
+
+<h1 id="tuple对象缓冲池">tuple对象缓冲池<a href="#tuple对象缓冲池" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+
+<p>定义</p>
+
+<pre><code>/* Speed optimization to avoid frequent malloc/free of small tuples */
+#ifndef PyTuple_MAXSAVESIZE
+#define PyTuple_MAXSAVESIZE     20
+#endif
+
+#ifndef PyTuple_MAXFREELIST
+#define PyTuple_MAXFREELIST  2000
+#endif
+
+#if PyTuple_MAXSAVESIZE &gt; 0
+
+static PyTupleObject *free_list[PyTuple_MAXSAVESIZE];
+static int numfree[PyTuple_MAXSAVESIZE];
+#endif
+</code></pre>
+
+<p>结论</p>
+
+<pre><code>1. 作用: 优化小tuple的mall/free
+
+2. PyTuple_MAXSAVESIZE = 20
+会被缓存的tuple长度阈值, 20, 长度&lt;20的, 才会走对象缓冲池逻辑
+
+3. PyTuple_MAXFREELIST  2000
+每种size的tuple最多会被缓存2000个
+
+4. PyTupleObject *free_list[PyTuple_MAXSAVESIZE]
+free_list, 指针数组, 每个位置, 存储了指向一个单链表头的地址
+
+5. numfree[PyTuple_MAXSAVESIZE]
+numfree, 一个计数数组, 存储free_list对应位置的单链表长度
+
+6. free_list[0], 指向空数组, 有且仅有一个
+</code></pre>
+
+<p>free_list的结构</p>
+
+<p><img src="/imgs/python-source/PyTupleObjectPool.png" alt="PyTupleObjectPool" /></p>
+
+<p>回头看回收跟对象缓冲池相关的逻辑</p>
+
+<p>条件:</p>
+
+<pre><code>if (len &lt; PyTuple_MAXSAVESIZE &amp;&amp;         // len &lt; 20
+    numfree[len] &lt; PyTuple_MAXFREELIST &amp;&amp; // numfree[len] &lt; 2000
+    Py_TYPE(op) == &amp;PyTuple_Type) // 是tuple类型
+</code></pre>
+
+<p>操作</p>
+
+<pre><code>op-&gt;ob_item[0] = (PyObject *) free_list[len]; //ob_item指向free_list[len] 单链表头
+numfree[len]++;  // len位置计数+1
+free_list[len] = op; // op变成单链表的头
+goto done; /* return */
+</code></pre>
+
+<p>即过程</p>
+
+<pre><code>1. 如果size=0, 直接从free_list[0]取
+
+2. 如果size!=0, 判断size&lt;20?
+
+3.1 size &lt; 20, 从free_list对应size位置的单链表, 取头部第一个位置
+
+3.2 size &lt; 20, free_list对应size位置还没有可用对象的话, 走内存分配逻辑
+
+4 size &gt; 20  走内存分配逻辑
+
+
+------------------
+
+回收时
+
+如果size&lt;20, 且free_list对应位置单链表长度没达到上限(2000), 将对象放入到单链表头
+</code></pre>
+
+<p>注意</p>
+
+<pre><code>1. 回收时, ob_item都会被回收, 只是本身对象缓存下来
+
+2. 这里free_list, 复用ob_item作为链表指针, 指向下一个位置(通用整数对象池也是复用指针的方式, 不过用的是ob_type)
+</code></pre>
+
+<hr />
+
+<p>changelog</p>
+
+<pre><code>2014-08-10 first version
+</code></pre>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p>
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg><span class="tag"><a href="http://wklken.me/tags/python.html">python</a></span>
+				</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>1408 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2014-08-10 17:10 &#43;0800</p>
+			</footer>
+		</article>
+		<aside id="toc">
+			<div class="toc-title">Table of Contents</div>
+			<nav id="TableOfContents">
+<ul>
+<li><a href="#结构">结构</a></li>
+<li><a href="#构造">构造</a></li>
+<li><a href="#回收">回收</a></li>
+<li><a href="#tuple对象缓冲池">tuple对象缓冲池</a></li>
+</ul>
+</nav>
+		</aside>
+		<div class="post-nav thin">
+			<a class="next-post" href="http://wklken.me/posts/2014/08/11/python-source-dict.html">
+				<span class="post-nav-label"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>&nbsp;Newer</span><br><span>Python 源码阅读 - dict</span>
+			</a>
+			<a class="prev-post" href="http://wklken.me/posts/2014/08/10/python-source-list.html">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>Python 源码阅读 - list</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+<div id="disqus_thread"></div>
+<script type="application/javascript">
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "wklken" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2019 <a href="http://wklken.me">wklken</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="http://wklken.me/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+	<script src="http://wklken.me/js/main.min.784417f5847151f848c339cf0acb13a06cbb648b1483435a28ed4556c4ead69b.js" integrity="sha256-eEQX9YRxUfhIwznPCssToGy7ZIsUg0NaKO1FVsTq1ps="></script>
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-42275748-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+</body>
+
+</html>

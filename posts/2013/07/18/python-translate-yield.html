@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<meta name="theme-color" content="#494f5c">
+	<meta name="msapplication-TileColor" content="#494f5c">
+
+<meta itemprop="name" content="[翻译]Python中yield的解释">
+<meta itemprop="description" content="翻译 来源于stackoverflow问答，原文链接 Here SN上面看到的，顺手翻译下，第一次翻译，好多地方翻的不是很好 :) 问题: Python中yie">
+
+
+<meta itemprop="datePublished" content="2013-07-18T08:00:00&#43;08:00" />
+<meta itemprop="dateModified" content="2013-07-18T08:00:00&#43;08:00" />
+<meta itemprop="wordCount" content="2464">
+
+
+
+<meta itemprop="keywords" content="python,translation," />
+<meta property="og:title" content="[翻译]Python中yield的解释" />
+<meta property="og:description" content="翻译 来源于stackoverflow问答，原文链接 Here SN上面看到的，顺手翻译下，第一次翻译，好多地方翻的不是很好 :) 问题: Python中yie" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://wklken.me/posts/2013/07/18/python-translate-yield.html" />
+<meta property="article:published_time" content="2013-07-18T08:00:00&#43;08:00"/>
+<meta property="article:modified_time" content="2013-07-18T08:00:00&#43;08:00"/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="[翻译]Python中yield的解释"/>
+<meta name="twitter:description" content="翻译 来源于stackoverflow问答，原文链接 Here SN上面看到的，顺手翻译下，第一次翻译，好多地方翻的不是很好 :) 问题: Python中yie"/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>[翻译]Python中yield的解释</title>
+	<link rel="stylesheet" href="http://wklken.me/css/style.min.31706917653d2b9e8410abd431f30ec4359a88a94fc87a63654779d87329edec.css" integrity="sha256-MXBpF2U9K56EEKvUMfMOxDWaiKlPyHpjZUd52HMp7ew=">
+	
+	<link rel="stylesheet" href="http://wklken.me/css/custom.css">
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp faster">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="http://wklken.me">WKLKEN BUILDING</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					<a href="http://wklken.me/posts.html">Posts</a>
+					<a href="http://wklken.me/about.html">About</a>
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<button id="toc-btn" class="hdr-btn desktop-only-ib" title="Table of Contents"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3" y2="6"></line><line x1="3" y1="12" x2="3" y2="12"></line><line x1="3" y1="18" x2="3" y2="18"></line></svg></button><span class="hdr-social hide-in-mobile"><a href="https://github.com/wklken" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-github"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a><a href="wklken@gmail.com" target="_blank" rel="noopener me" title="Email"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-mail"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="http://wklken.me/posts.html">Posts</a></li>
+			<li><a href="http://wklken.me/about.html">About</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>Jul 18, 2013</span></div>
+				<h1>[翻译]Python中yield的解释</h1>
+			</header>
+			<div class="content">
+				
+
+<p>翻译</p>
+
+<p>来源于stackoverflow问答，原文链接 <a href="http://stackoverflow.com/questions/231767/the-python-yield-keyword-explained">Here</a></p>
+
+<p>SN上面看到的，顺手翻译下，第一次翻译，好多地方翻的不是很好 :)</p>
+
+<hr />
+
+<p>问题:</p>
+
+<pre><code>Python中yield关键字的作用是什么？它做了什么？
+</code></pre>
+
+<p>例如，我想理解以下代码</p>
+
+<pre><code>def node._get_child_candidates(self, distance, min_dist, max_dist):
+    if self._leftchild and distance - max_dist &lt; self._median:
+        yield self._leftchild
+    if self._rightchild and distance + max_dist &gt;= self._median:
+        yield self._rightchild
+</code></pre>
+
+<p>下面是调用者</p>
+
+<pre><code>result, candidates = list(), [self]
+while candidates:
+    node = candidates.pop()
+    distance = node._get_dist(obj)
+    if distance &lt;= max_dist and distance &gt;= min_dist:
+        result.extend(node._values)
+    candidates.extend(node._get_child_candidates(distance, min_dist, max_dist))
+return result
+</code></pre>
+
+<p>在_get_child_candidates这个函数被调用时发生了什么？返回了一个列表？还是只返回了一个元素？然后又再次被调用？什么时候调用结束？</p>
+
+<p>这段代码的来源 Jochen Schulz (jrschulz), who made a great Python library for metric spaces. 完整源码链接: <a href="http://well-adjusted.de/~jrschulz/mspace/">here</a></p>
+
+<hr />
+
+<p>要了解yield的作用，你必须先明白什么是生成器，在此之前，你需要了解什么是可迭代对象（可迭代序列）</p>
+
+<h2 id="迭代">迭代<a href="#迭代" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p>你可以创建一个列表，然后逐一遍历，这就是迭代</p>
+
+<pre><code>&gt;&gt;&gt; mylist = [1, 2, 3]
+&gt;&gt;&gt; for i in mylist:
+...    print(i)
+1
+2
+3
+</code></pre>
+
+<p>mylist是可迭代的对象，当你使用列表解析时，你创建一个列表,即一个可迭代对象</p>
+
+<pre><code>&gt;&gt;&gt; mylist = [x*x for x in range(3)]
+&gt;&gt;&gt; for i in mylist:
+...    print(i)
+0
+1
+4
+</code></pre>
+
+<p>任何你可用 &ldquo;for&hellip; in&hellip;&rdquo; 处理的都是可迭代对象：列表，字符串，文件&hellip;.
+这些迭代对象非常便捷，因为你可以尽可能多地获取你想要的东西</p>
+
+<p>但，当你有大量数据并把所有值放到内存时，这种处理方式可能不总是你想要的
+(but you store all the values in memory and it&rsquo;s not always what you want when you have a lot of values.)</p>
+
+<h2 id="生成器">生成器<a href="#生成器" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p>生成器是迭代器，但你只能遍历它一次(iterate over them once)
+因为生成器并没有将所有值放入内存中，而是实时地生成这些值</p>
+
+<pre><code>&gt;&gt;&gt; mygenerator = (x*x for x in range(3))
+&gt;&gt;&gt; for i in mygenerator:
+...    print(i)
+0
+1
+4
+</code></pre>
+
+<p>这和使用列表解析地唯一区别在于使用()替代了原来的[]</p>
+
+<p>注意，你不能执行for i in mygenerator第二次，因为每个生成器只能被使用一次: 计算0，并不保留结果和状态，接着计算1，然后计算4，逐一生成</p>
+
+<h2 id="yield">yield<a href="#yield" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p>yield是一个关键词，类似return, 不同之处在于，yield返回的是一个生成器</p>
+
+<pre><code>&gt;&gt;&gt; def createGenerator():
+...    mylist = range(3)
+...    for i in mylist:
+...        yield i*i
+...
+&gt;&gt;&gt; mygenerator = createGenerator() # create a generator
+&gt;&gt;&gt; print(mygenerator) # mygenerator is an object!
+&lt;generator object createGenerator at 0xb7555c34&gt;
+&gt;&gt;&gt; for i in mygenerator:
+...     print(i)
+0
+1
+4
+</code></pre>
+
+<p>这个例子并没有什么实际作用,仅说明当你知道你的函数将产生大量仅被读取一次的数据时,使用生成器将是十分有效的做法</p>
+
+<p>要掌握yield,你必须明白 - 当你调用这个函数，函数中你书写的代码并没有执行。这个函数仅仅返回一个生成器对象</p>
+
+<p>这有些狡猾 :-)</p>
+
+<p>然后，在每次for循环使用生成器时,都会执行你的代码</p>
+
+<p>然后，是比较困难的部分：</p>
+
+<p>第一次函数将会从头运行，直到遇到yield，然后将返回循环的首个值. 然后，每次调用，都会执行函数中的循环一次，返回下一个值，直到没有值可以返回</p>
+
+<p>当循环结束，或者不满足&rdquo;if/else&rdquo;条件，导致函数运行但不命中yield关键字，此时生成器被认为是空的</p>
+
+<h3 id="问题代码的解释">问题代码的解释<a href="#问题代码的解释" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<p>生成器:</p>
+
+<pre><code># 这你你创建了node的能返回生成器的函数
+def node._get_child_candidates(self, distance, min_dist, max_dist):
+
+# 这里的代码你每次使用生成器对象都会调用
+
+# 如果node节点存在左子节点,且距离没问题，返回该节点
+if self._leftchild and distance - max_dist &lt; self._median:
+                yield self._leftchild
+
+# 同理，返回右子节点
+if self._rightchild and distance + max_dist &gt;= self._median:
+                yield self._rightchild
+
+# 如果函数运行到这里，生成器空，该节点不存在左右节点
+</code></pre>
+
+<p>调用者:</p>
+
+<pre><code># 创建一个空列表，一个包含当前候选对象引用的列表
+result, candidates = list(), [self]
+
+# 当前候选非空，循环(开始时仅有一个元素)
+while candidates:
+
+    # 从候选列表取出最后一个元素作为当前节点
+    node = candidates.pop()
+
+    # 获取obj和当前节点距离
+    distance = node._get_dist(obj)
+
+    # 如果距离满足条件，将节点值加入结果列表
+    if distance &lt;= max_dist and distance &gt;= min_dist:
+        result.extend(node._values)
+
+    # 获取节点的子节点，加入到候选列表，回到循环开始, 这里使用了生成器
+    candidates.extend(node._get_child_candidates(distance, min_dist, max_dist))
+    # 注意这里extend会反复调用获取到所有生成器返回值
+
+return result
+</code></pre>
+
+<p>这段代码包含几个灵活的部分:</p>
+
+<p>1.这个循环遍读取历候选列表,但过程中，候选列表不断扩展:-)</p>
+
+<p>这是一种遍历嵌套数据的简明方法，虽然有些危险，你或许会陷入死循环中</p>
+
+<p>在这个例子中， candidates.extend(node._get_child_candidates(distance, min_dist, max_dist)) 读取了生成器产生的所有值, 同时while循环产生新的生成器对象加入到列表，因为每个对象作用在不同节点上，所以每个生成器都将生成不同的值</p>
+
+<p>2.列表方法extend() 接收一个生成器，生成器的所有值被添加到列表中</p>
+
+<p>通常，我们传一个列表作为参数:</p>
+
+<pre><code>&gt;&gt;&gt; a = [1, 2]
+&gt;&gt;&gt; b = [3, 4]
+&gt;&gt;&gt; a.extend(b)
+&gt;&gt;&gt; print(a)
+[1, 2, 3, 4]
+</code></pre>
+
+<p>但是，在代码中，这个函数接受到一个生成器</p>
+
+<p>这样的做法好处是:</p>
+
+<p>1.你不需要重复读这些值</p>
+
+<p>2.你可能有海量的子节点，但是不希望将所有节点放入内存</p>
+
+<p>并且，可以这么传递生成器作为参数的原因是，Python不关心参数是一个方法还是一个列表</p>
+
+<p>Python接收可迭代对象，对于字符串，列表，元组还有生成器，都适用!</p>
+
+<p>这就是所谓的“鸭子类型”(duck typing), 这也是Python如此酷的原因之一, 但这是另一个问题了，对于这个问题&hellip;&hellip;</p>
+
+<p>你可以在这里完成阅读，或者读一点点生成器的进阶用法:</p>
+
+<p>####控制一个生成器的消耗</p>
+
+<pre><code>&gt;&gt;&gt; class Bank(): # let's create a bank, building ATMs
+...    crisis = False
+...    def create_atm(self):
+...        while not self.crisis:
+...            yield &quot;$100&quot;
+&gt;&gt;&gt; hsbc = Bank() # when everything's ok the ATM gives you as much as you want
+&gt;&gt;&gt; corner_street_atm = hsbc.create_atm()
+&gt;&gt;&gt; print(corner_street_atm.next())
+$100
+&gt;&gt;&gt; print(corner_street_atm.next())
+$100
+&gt;&gt;&gt; print([corner_street_atm.next() for cash in range(5)])
+['$100', '$100', '$100', '$100', '$100']
+&gt;&gt;&gt; hsbc.crisis = True # crisis is coming, no more money!
+&gt;&gt;&gt; print(corner_street_atm.next())
+&lt;type 'exceptions.StopIteration'&gt;
+&gt;&gt;&gt; wall_street_atm = hsbc.create_atm() # it's even true for new ATMs
+&gt;&gt;&gt; print(wall_street_atm.next())
+&lt;type 'exceptions.StopIteration'&gt;
+&gt;&gt;&gt; hsbc.crisis = False # trouble is, even post-crisis the ATM remains empty
+&gt;&gt;&gt; print(corner_street_atm.next())
+&lt;type 'exceptions.StopIteration'&gt;
+&gt;&gt;&gt; brand_new_atm = hsbc.create_atm() # build a new one to get back in business
+&gt;&gt;&gt; for cash in brand_new_atm:
+...    print cash
+$100
+$100
+$100
+$100
+$100
+$100
+$100
+$100
+$100
+...
+</code></pre>
+
+<p>这在很多场景都非常有用，例如控制资源的获取</p>
+
+<h2 id="itertools">Itertools<a href="#itertools" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p>一个很好的工具</p>
+
+<p>itertools模块包含很多处理可迭代对象的具体方法. 例如</p>
+
+<p>复制一个生成器？连接两个生成器？一行将嵌套列表中值分组？不使用另一个列表进行Map/Zip?
+(Ever wish to duplicate a generator? Chain two generators? Group values in a nested list with a one liner? Map / Zip without creating another list?)</p>
+
+<p>只需要使用itertools模块</p>
+
+<p>一个例子，4匹马赛跑的可能抵达顺序</p>
+
+<pre><code>&gt;&gt;&gt; horses = [1, 2, 3, 4]
+&gt;&gt;&gt; races = itertools.permutations(horses)
+&gt;&gt;&gt; print(races)
+&lt;itertools.permutations object at 0xb754f1dc&gt;
+&gt;&gt;&gt; print(list(itertools.permutations(horses)))
+[(1, 2, 3, 4),
+(1, 2, 4, 3),
+(1, 3, 2, 4),
+(1, 3, 4, 2),
+(1, 4, 2, 3),
+(1, 4, 3, 2),
+(2, 1, 3, 4),
+(2, 1, 4, 3),
+(2, 3, 1, 4),
+(2, 3, 4, 1),
+(2, 4, 1, 3),
+(2, 4, 3, 1),
+(3, 1, 2, 4),
+(3, 1, 4, 2),
+(3, 2, 1, 4),
+(3, 2, 4, 1),
+(3, 4, 1, 2),
+(3, 4, 2, 1),
+(4, 1, 2, 3),
+(4, 1, 3, 2),
+(4, 2, 1, 3),
+(4, 2, 3, 1),
+(4, 3, 1, 2),
+(4, 3, 2, 1)]
+</code></pre>
+
+<h2 id="了解迭代器的内部机制">了解迭代器的内部机制<a href="#了解迭代器的内部机制" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p>迭代过程包含可迭代对象(实现<strong>iter</strong>()方法) 和迭代器(实现<strong>next</strong>()方法)</p>
+
+<p>你可以获取一个迭代器的任何对象都是可迭代对象，迭代器可以让你迭代遍历一个可迭代对象(Iterators are objects that let you iterate on iterables.) [好拗口:]</p>
+
+<p>更多关于这个问题的 <a href="http://effbot.org/zone/python-for-statement.htm">how does the for loop work</a></p>
+
+<p>如果你喜欢这个回答，你也许会喜欢我关于 <a href="http://stackoverflow.com/questions/739654/how-can-i-make-a-chain-of-function-decorators-in-python#1594484">decorators</a> 和 <a href="http://stackoverflow.com/questions/100003/what-is-a-metaclass-in-python/6581949#6581949">metaclasses</a> 的解释</p>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p>
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg><span class="tag"><a href="http://wklken.me/tags/pythontranslation.html">python,translation</a></span>
+				</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>2464 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2013-07-18 08:00 &#43;0800</p>
+			</footer>
+		</article>
+		<aside id="toc">
+			<div class="toc-title">Table of Contents</div>
+			<nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#迭代">迭代</a></li>
+<li><a href="#生成器">生成器</a></li>
+<li><a href="#yield">yield</a>
+<ul>
+<li><a href="#问题代码的解释">问题代码的解释</a></li>
+</ul></li>
+<li><a href="#itertools">Itertools</a></li>
+<li><a href="#了解迭代器的内部机制">了解迭代器的内部机制</a></li>
+</ul></li>
+</ul>
+</nav>
+		</aside>
+		<div class="post-nav thin">
+			<a class="next-post" href="http://wklken.me/posts/2013/07/19/python-translate-decorator.html">
+				<span class="post-nav-label"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>&nbsp;Newer</span><br><span>[翻译]理解python中的装饰器</span>
+			</a>
+			<a class="prev-post" href="http://wklken.me/posts/2013/07/04/note-of-linux-shell-scripting-cookbook.html">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>Linux Shell脚本攻略笔记[速查]</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+<div id="disqus_thread"></div>
+<script type="application/javascript">
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "wklken" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2019 <a href="http://wklken.me">wklken</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="http://wklken.me/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+	<script src="http://wklken.me/js/main.min.784417f5847151f848c339cf0acb13a06cbb648b1483435a28ed4556c4ead69b.js" integrity="sha256-eEQX9YRxUfhIwznPCssToGy7ZIsUg0NaKO1FVsTq1ps="></script>
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-42275748-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+</body>
+
+</html>

@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<meta name="theme-color" content="#494f5c">
+	<meta name="msapplication-TileColor" content="#494f5c">
+
+<meta itemprop="name" content="Python源码阅读-闭包的实现">
+<meta itemprop="description" content="闭包 e.g. def add(x): def do_add(value): return x &#43; value return do_add add_5 = add(5) print add_5(1) # 6 print add_5(2) # 7 需要回答, 什么是闭包, CPython底层是如何实现的? PyCodeObject typedef struct { PyObject_HEAD int co_argcount; /* #arguments, except *args */ int co_nlocals; /* #local variables */ int">
+
+
+<meta itemprop="datePublished" content="2015-09-04T08:00:00&#43;08:00" />
+<meta itemprop="dateModified" content="2015-09-04T08:00:00&#43;08:00" />
+<meta itemprop="wordCount" content="2950">
+
+
+
+<meta itemprop="keywords" content="python," />
+<meta property="og:title" content="Python源码阅读-闭包的实现" />
+<meta property="og:description" content="闭包 e.g. def add(x): def do_add(value): return x &#43; value return do_add add_5 = add(5) print add_5(1) # 6 print add_5(2) # 7 需要回答, 什么是闭包, CPython底层是如何实现的? PyCodeObject typedef struct { PyObject_HEAD int co_argcount; /* #arguments, except *args */ int co_nlocals; /* #local variables */ int" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://wklken.me/posts/2015/09/04/python-source-closure.html" />
+<meta property="article:published_time" content="2015-09-04T08:00:00&#43;08:00"/>
+<meta property="article:modified_time" content="2015-09-04T08:00:00&#43;08:00"/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Python源码阅读-闭包的实现"/>
+<meta name="twitter:description" content="闭包 e.g. def add(x): def do_add(value): return x &#43; value return do_add add_5 = add(5) print add_5(1) # 6 print add_5(2) # 7 需要回答, 什么是闭包, CPython底层是如何实现的? PyCodeObject typedef struct { PyObject_HEAD int co_argcount; /* #arguments, except *args */ int co_nlocals; /* #local variables */ int"/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>Python源码阅读-闭包的实现</title>
+	<link rel="stylesheet" href="http://wklken.me/css/style.min.31706917653d2b9e8410abd431f30ec4359a88a94fc87a63654779d87329edec.css" integrity="sha256-MXBpF2U9K56EEKvUMfMOxDWaiKlPyHpjZUd52HMp7ew=">
+	
+	<link rel="stylesheet" href="http://wklken.me/css/custom.css">
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp faster">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="http://wklken.me">WKLKEN BUILDING</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					<a href="http://wklken.me/posts.html">Posts</a>
+					<a href="http://wklken.me/about.html">About</a>
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<button id="toc-btn" class="hdr-btn desktop-only-ib" title="Table of Contents"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3" y2="6"></line><line x1="3" y1="12" x2="3" y2="12"></line><line x1="3" y1="18" x2="3" y2="18"></line></svg></button><span class="hdr-social hide-in-mobile"><a href="https://github.com/wklken" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-github"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a><a href="wklken@gmail.com" target="_blank" rel="noopener me" title="Email"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-mail"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="http://wklken.me/posts.html">Posts</a></li>
+			<li><a href="http://wklken.me/about.html">About</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>Sep 4, 2015</span></div>
+				<h1>Python源码阅读-闭包的实现</h1>
+			</header>
+			<div class="content">
+				
+
+<h3 id="闭包">闭包<a href="#闭包" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<p>e.g.</p>
+<div class="highlight"><pre class="chroma"><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">do_add</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">x</span> <span class="o">+</span> <span class="n">value</span>
+    <span class="k">return</span> <span class="n">do_add</span>
+
+<span class="n">add_5</span> <span class="o">=</span> <span class="n">add</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<span class="k">print</span> <span class="n">add_5</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># 6</span>
+<span class="k">print</span> <span class="n">add_5</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>  <span class="c1"># 7</span></code></pre></div>
+<p>需要回答, 什么是闭包, CPython底层是如何实现的?</p>
+
+<h3 id="pycodeobject">PyCodeObject<a href="#pycodeobject" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">PyObject_HEAD</span>
+    <span class="kt">int</span> <span class="n">co_argcount</span><span class="p">;</span>		<span class="cm">/* #arguments, except *args */</span>
+    <span class="kt">int</span> <span class="n">co_nlocals</span><span class="p">;</span>		    <span class="cm">/* #local variables */</span>
+    <span class="kt">int</span> <span class="n">co_stacksize</span><span class="p">;</span>		<span class="cm">/* #entries needed for evaluation stack */</span>
+    <span class="kt">int</span> <span class="n">co_flags</span><span class="p">;</span>		    <span class="cm">/* CO_..., see below */</span>
+    <span class="n">PyObject</span> <span class="o">*</span><span class="n">co_code</span><span class="p">;</span>		<span class="cm">/* instruction opcodes */</span>
+    <span class="n">PyObject</span> <span class="o">*</span><span class="n">co_consts</span><span class="p">;</span>	<span class="cm">/* list (constants used) */</span>
+    <span class="n">PyObject</span> <span class="o">*</span><span class="n">co_names</span><span class="p">;</span>		<span class="cm">/* list of strings (names used) */</span>
+    <span class="n">PyObject</span> <span class="o">*</span><span class="n">co_varnames</span><span class="p">;</span>	<span class="cm">/* tuple of strings (local variable names) */</span>
+
+    <span class="c1">// 保存使用了的外层作用域中的变量名集合 (编译时就知道的! 被嵌套的时候有用)
+</span><span class="c1"></span>    <span class="n">PyObject</span> <span class="o">*</span><span class="n">co_freevars</span><span class="p">;</span>	<span class="cm">/* tuple of strings (free variable names) */</span>
+    <span class="c1">// 保存嵌套作用域中使用的变量名集合, (编译时就知道的! 包含嵌套函数时有用)
+</span><span class="c1"></span>    <span class="n">PyObject</span> <span class="o">*</span><span class="n">co_cellvars</span><span class="p">;</span>      <span class="cm">/* tuple of strings (cell variable names) */</span>
+
+
+    <span class="cm">/* The rest doesn&#39;t count for hash/cmp */</span>
+    <span class="n">PyObject</span> <span class="o">*</span><span class="n">co_filename</span><span class="p">;</span>	<span class="cm">/* string (where it was loaded from) */</span>
+    <span class="n">PyObject</span> <span class="o">*</span><span class="n">co_name</span><span class="p">;</span>		<span class="cm">/* string (name, for reference) */</span>
+    <span class="kt">int</span> <span class="n">co_firstlineno</span><span class="p">;</span>		<span class="cm">/* first source line number */</span>
+    <span class="n">PyObject</span> <span class="o">*</span><span class="n">co_lnotab</span><span class="p">;</span>	<span class="cm">/* string (encoding addr&lt;-&gt;lineno mapping) See
+</span><span class="cm">				   Objects/lnotab_notes.txt for details. */</span>
+    <span class="kt">void</span> <span class="o">*</span><span class="n">co_zombieframe</span><span class="p">;</span>     <span class="cm">/* for optimization only (see frameobject.c) */</span>
+    <span class="n">PyObject</span> <span class="o">*</span><span class="n">co_weakreflist</span><span class="p">;</span>   <span class="cm">/* to support weakrefs to code objects */</span>
+<span class="p">}</span> <span class="n">PyCodeObject</span><span class="p">;</span></code></pre></div>
+<p>我们关注两个, <code>co_freevars</code> 和 <code>co_cellvars</code></p>
+
+<pre><code>co_freevars, 保存使用了的外层作用域中的变量名集合 (编译时就知道的! 被嵌套的时候有用)
+
+co_cellvars, 保存嵌套作用域中使用的变量名集合, (编译时就知道的! 包含嵌套函数时有用)
+</code></pre>
+
+<p>对于我们上面的那个示例, <code>add</code>是外层函数, <code>do_add</code>是嵌套函数, 我们可以通过<code>func_code</code>打印看看</p>
+<div class="highlight"><pre class="chroma"><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>    <span class="c1"># 外层函数</span>
+    <span class="c1"># 外层函数, 没有使用了外层作用域变量, 被嵌套函数使用了&#39;x&#39;</span>
+    <span class="k">print</span> <span class="n">add</span><span class="o">.</span><span class="n">func_code</span><span class="o">.</span><span class="n">co_freevars</span>    <span class="c1"># ()</span>
+    <span class="k">print</span> <span class="n">add</span><span class="o">.</span><span class="n">func_code</span><span class="o">.</span><span class="n">co_cellvars</span>    <span class="c1"># (&#39;x&#39;,)</span>
+
+    <span class="k">def</span> <span class="nf">do_add</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>  <span class="c1"># 嵌套函数</span>
+        <span class="k">return</span> <span class="n">x</span> <span class="o">+</span> <span class="n">value</span>
+
+    <span class="c1"># 内层函数, 使用了外层作用域便令&#39;x&#39;, 没有嵌套函数故嵌套作用域变量名集合空</span>
+    <span class="k">print</span> <span class="n">do_add</span><span class="o">.</span><span class="n">func_code</span><span class="o">.</span><span class="n">co_freevars</span> <span class="c1"># (&#39;x&#39;,)</span>
+    <span class="k">print</span> <span class="n">do_add</span><span class="o">.</span><span class="n">func_code</span><span class="o">.</span><span class="n">co_cellvars</span> <span class="c1"># ()</span>
+    <span class="k">return</span> <span class="n">do_add</span></code></pre></div>
+<p>此时图示</p>
+
+<p><img src="/imgs/python-source/python-closure.png" alt="closure" /></p>
+
+<p>这时候, 只是记录了使用到的变量名, 标记下是否使用了外层的/被内层使用的变量</p>
+
+<p>具体的值是在运行时确定的, 例如</p>
+<div class="highlight"><pre class="chroma"><code class="language-python" data-lang="python"><span class="n">add</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span></code></pre></div>
+<p>此时<code>x=5</code>, 这个是在<code>add</code>的名字空间里面的, 那么, <code>x=5</code>是怎么传递到嵌套函数内? 嵌套函数又是如何知晓<code>x</code>的值?</p>
+
+<p>记住这两个问题, 然后我们首先来看一个新的数据结构</p>
+
+<h3 id="pycellobject">PyCellObject<a href="#pycellobject" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c">  <span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="n">PyObject_HEAD</span>
+    <span class="n">PyObject</span> <span class="o">*</span><span class="n">ob_ref</span><span class="p">;</span>   <span class="cm">/* Content of the cell or NULL when empty */</span> <span class="o">=&gt;</span> <span class="err">指向一个</span><span class="n">PyObject</span>
+  <span class="p">}</span> <span class="n">PyCellObject</span><span class="p">;</span>
+
+
+  <span class="n">PyObject</span> <span class="o">*</span>
+  <span class="nf">PyCell_New</span><span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="n">obj</span><span class="p">)</span>
+  <span class="p">{</span>
+      <span class="n">PyCellObject</span> <span class="o">*</span><span class="n">op</span><span class="p">;</span>
+
+      <span class="n">op</span> <span class="o">=</span> <span class="p">(</span><span class="n">PyCellObject</span> <span class="o">*</span><span class="p">)</span><span class="n">PyObject_GC_New</span><span class="p">(</span><span class="n">PyCellObject</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">PyCell_Type</span><span class="p">);</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">op</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span>
+          <span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span>
+      <span class="n">op</span><span class="o">-&gt;</span><span class="n">ob_ref</span> <span class="o">=</span> <span class="n">obj</span><span class="p">;</span>  <span class="c1">//建立关系
+</span><span class="c1"></span>      <span class="n">Py_XINCREF</span><span class="p">(</span><span class="n">obj</span><span class="p">);</span>
+
+      <span class="n">_PyObject_GC_TRACK</span><span class="p">(</span><span class="n">op</span><span class="p">);</span>
+      <span class="k">return</span> <span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="p">)</span><span class="n">op</span><span class="p">;</span>
+  <span class="p">}</span></code></pre></div>
+<p>这是个很简单的基本对象, 有一个<code>ob_ref</code>指向另一个<code>PyObject</code>, 仅此而已</p>
+
+<p>图示</p>
+
+<p><img src="/imgs/python-source/python-closure2.png" alt="closure" /></p>
+
+<p>作用呢?</p>
+
+<h3 id="值的确认与传递过程">值的确认与传递过程<a href="#值的确认与传递过程" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<p>调用</p>
+<div class="highlight"><pre class="chroma"><code class="language-python" data-lang="python"><span class="n">add</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span></code></pre></div>
+<p>此时, 开始调用函数</p>
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="n">CALL_FUNCTION</span>
+
+<span class="o">=&gt;</span> <span class="n">x</span> <span class="o">=</span> <span class="n">call_function</span><span class="p">(</span><span class="o">&amp;</span><span class="n">sp</span><span class="p">,</span> <span class="n">oparg</span><span class="p">);</span>
+
+<span class="o">=&gt;</span> <span class="n">x</span> <span class="o">=</span> <span class="n">fast_function</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">pp_stack</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">na</span><span class="p">,</span> <span class="n">nk</span><span class="p">);</span>
+
+      <span class="k">return</span> <span class="nf">PyEval_EvalCodeEx</span><span class="p">(</span><span class="n">co</span><span class="p">,</span> <span class="n">globals</span><span class="p">,</span>
+                               <span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="p">)</span><span class="nb">NULL</span><span class="p">,</span> <span class="p">(</span><span class="o">*</span><span class="n">pp_stack</span><span class="p">)</span><span class="o">-</span><span class="n">n</span><span class="p">,</span> <span class="n">na</span><span class="p">,</span>
+                               <span class="p">(</span><span class="o">*</span><span class="n">pp_stack</span><span class="p">)</span><span class="o">-</span><span class="mi">2</span><span class="o">*</span><span class="n">nk</span><span class="p">,</span> <span class="n">nk</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">nd</span><span class="p">,</span>
+                               <span class="n">PyFunction_GET_CLOSURE</span><span class="p">(</span><span class="n">func</span><span class="p">));</span>
+
+<span class="o">=&gt;</span>
+
+<span class="n">PyEval_EvalCodeEx</span>
+
+<span class="n">add</span><span class="p">(</span><span class="mi">5</span><span class="p">),</span> <span class="err">此时其</span><span class="n">co_cellvars</span> <span class="o">=</span> <span class="p">(</span><span class="sc">&#39;x&#39;</span><span class="p">,)</span> <span class="err">非空</span><span class="p">,</span> <span class="err">将会执行的逻辑代码</span>
+
+
+      <span class="cm">/* Allocate and initialize storage for cell vars, and copy free
+</span><span class="cm">         vars into frame.  This isn&#39;t too efficient right now. */</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">PyTuple_GET_SIZE</span><span class="p">(</span><span class="n">co</span><span class="o">-&gt;</span><span class="n">co_cellvars</span><span class="p">))</span> <span class="p">{</span>
+          <span class="kt">int</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">nargs</span><span class="p">,</span> <span class="n">found</span><span class="p">;</span>
+          <span class="kt">char</span> <span class="o">*</span><span class="n">cellname</span><span class="p">,</span> <span class="o">*</span><span class="n">argname</span><span class="p">;</span>
+          <span class="n">PyObject</span> <span class="o">*</span><span class="n">c</span><span class="p">;</span>
+
+          <span class="n">nargs</span> <span class="o">=</span> <span class="n">co</span><span class="o">-&gt;</span><span class="n">co_argcount</span><span class="p">;</span>
+          <span class="k">if</span> <span class="p">(</span><span class="n">co</span><span class="o">-&gt;</span><span class="n">co_flags</span> <span class="o">&amp;</span> <span class="n">CO_VARARGS</span><span class="p">)</span>
+              <span class="n">nargs</span><span class="o">++</span><span class="p">;</span>
+          <span class="k">if</span> <span class="p">(</span><span class="n">co</span><span class="o">-&gt;</span><span class="n">co_flags</span> <span class="o">&amp;</span> <span class="n">CO_VARKEYWORDS</span><span class="p">)</span>
+              <span class="n">nargs</span><span class="o">++</span><span class="p">;</span>
+
+          <span class="cm">/* Initialize each cell var, taking into account
+</span><span class="cm">             cell vars that are initialized from arguments.
+</span><span class="cm">
+</span><span class="cm">             Should arrange for the compiler to put cellvars
+</span><span class="cm">             that are arguments at the beginning of the cellvars
+</span><span class="cm">             list so that we can march over it more efficiently?
+</span><span class="cm">          */</span>
+
+          <span class="c1">// for 循环遍历 co_cellvars = (&#39;x&#39;, ), i = 0
+</span><span class="c1"></span>          <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">PyTuple_GET_SIZE</span><span class="p">(</span><span class="n">co</span><span class="o">-&gt;</span><span class="n">co_cellvars</span><span class="p">);</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+
+              <span class="c1">// cellname = &#39;x&#39;
+</span><span class="c1"></span>              <span class="n">cellname</span> <span class="o">=</span> <span class="n">PyString_AS_STRING</span><span class="p">(</span>
+                  <span class="n">PyTuple_GET_ITEM</span><span class="p">(</span><span class="n">co</span><span class="o">-&gt;</span><span class="n">co_cellvars</span><span class="p">,</span> <span class="n">i</span><span class="p">));</span>
+              <span class="n">found</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+              <span class="c1">// 遍历函数的参数变量, narg=1, j=0
+</span><span class="c1"></span>              <span class="k">for</span> <span class="p">(</span><span class="n">j</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">nargs</span><span class="p">;</span> <span class="n">j</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+
+                  <span class="c1">// 访问当前名字空间
+</span><span class="c1"></span>                  <span class="n">argname</span> <span class="o">=</span> <span class="n">PyString_AS_STRING</span><span class="p">(</span>
+                      <span class="n">PyTuple_GET_ITEM</span><span class="p">(</span><span class="n">co</span><span class="o">-&gt;</span><span class="n">co_varnames</span><span class="p">,</span> <span class="n">j</span><span class="p">));</span>
+
+                  <span class="c1">// 匹配上了
+</span><span class="c1"></span>                  <span class="k">if</span> <span class="p">(</span><span class="n">strcmp</span><span class="p">(</span><span class="n">cellname</span><span class="p">,</span> <span class="n">argname</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+
+                      <span class="c1">// new 一个 PyCellObject, ob_ref指向变量的PyObject
+</span><span class="c1"></span>                      <span class="n">c</span> <span class="o">=</span> <span class="n">PyCell_New</span><span class="p">(</span><span class="n">GETLOCAL</span><span class="p">(</span><span class="n">j</span><span class="p">));</span>
+                      <span class="k">if</span> <span class="p">(</span><span class="n">c</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span>
+                          <span class="k">goto</span> <span class="n">fail</span><span class="p">;</span>
+
+                      <span class="c1">// #define GETLOCAL(i)     (fastlocals[i])
+</span><span class="c1"></span>                      <span class="c1">// fastlocals = f-&gt;f_localsplus;
+</span><span class="c1"></span>                      <span class="c1">// 即 f-&gt;f_localsplus[co-&gt;co_nlocals + i] = c, 相当于放到下一层freevars变量
+</span><span class="c1"></span>                      <span class="n">GETLOCAL</span><span class="p">(</span><span class="n">co</span><span class="o">-&gt;</span><span class="n">co_nlocals</span> <span class="o">+</span> <span class="n">i</span><span class="p">)</span> <span class="o">=</span> <span class="n">c</span><span class="p">;</span>
+                      <span class="n">found</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+                      <span class="k">break</span><span class="p">;</span>
+                  <span class="p">}</span>
+              <span class="p">}</span>
+
+              <span class="c1">// 没有匹配, 给个指向NULL的PyCellObject, 先New一个对象占位
+</span><span class="c1"></span>              <span class="k">if</span> <span class="p">(</span><span class="n">found</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+                  <span class="n">c</span> <span class="o">=</span> <span class="n">PyCell_New</span><span class="p">(</span><span class="nb">NULL</span><span class="p">);</span>
+                  <span class="k">if</span> <span class="p">(</span><span class="n">c</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span>
+                      <span class="k">goto</span> <span class="n">fail</span><span class="p">;</span>
+                  <span class="n">SETLOCAL</span><span class="p">(</span><span class="n">co</span><span class="o">-&gt;</span><span class="n">co_nlocals</span> <span class="o">+</span> <span class="n">i</span><span class="p">,</span> <span class="n">c</span><span class="p">);</span> <span class="c1">//注意内存地址
+</span><span class="c1"></span>              <span class="p">}</span>
+          <span class="p">}</span>
+      <span class="p">}</span></code></pre></div>
+<p>逻辑即, 如果发现当前函数<code>co_cellvars</code>非空, 即表示存在被内层函数调用的变量, 那么遍历这个<code>co_cellvars</code>集合, 拿到集合中每个变量名在当前名字空间中的值, 然后放到当前函数的<code>f-&gt;f_localsplus</code>中.</p>
+
+<p>这里, 我们可以知道<code>x=5</code>被放进去了</p>
+
+<p>为什么放到<code>f-&gt;f_localsplus</code>中呢?</p>
+
+<h3 id="看看pyframeobject">看看PyFrameObject<a href="#看看pyframeobject" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="k">typedef</span> <span class="k">struct</span> <span class="n">_frame</span> <span class="p">{</span>
+    <span class="n">PyObject_VAR_HEAD</span>
+    <span class="k">struct</span> <span class="n">_frame</span> <span class="o">*</span><span class="n">f_back</span><span class="p">;</span>	<span class="cm">/* previous frame, or NULL */</span>
+    <span class="n">PyCodeObject</span> <span class="o">*</span><span class="n">f_code</span><span class="p">;</span>	<span class="cm">/* code segment */</span>
+    <span class="n">PyObject</span> <span class="o">*</span><span class="n">f_builtins</span><span class="p">;</span>	<span class="cm">/* builtin symbol table (PyDictObject) */</span>
+    <span class="n">PyObject</span> <span class="o">*</span><span class="n">f_globals</span><span class="p">;</span>	<span class="cm">/* global symbol table (PyDictObject) */</span>
+    <span class="n">PyObject</span> <span class="o">*</span><span class="n">f_locals</span><span class="p">;</span>		<span class="cm">/* local symbol table (any mapping) */</span>
+    <span class="n">PyObject</span> <span class="o">**</span><span class="n">f_valuestack</span><span class="p">;</span>	<span class="cm">/* points after the last local */</span>
+    <span class="cm">/* Next free slot in f_valuestack.  Frame creation sets to f_valuestack.
+</span><span class="cm">       Frame evaluation usually NULLs it, but a frame that yields sets it
+</span><span class="cm">       to the current stack top. */</span>
+    <span class="n">PyObject</span> <span class="o">**</span><span class="n">f_stacktop</span><span class="p">;</span>
+    <span class="n">PyObject</span> <span class="o">*</span><span class="n">f_trace</span><span class="p">;</span>		<span class="cm">/* Trace function */</span>
+
+    <span class="cm">/* If an exception is raised in this frame, the next three are used to
+</span><span class="cm">     * record the exception info (if any) originally in the thread state.  See
+</span><span class="cm">     * comments before set_exc_info() -- it&#39;s not obvious.
+</span><span class="cm">     * Invariant:  if _type is NULL, then so are _value and _traceback.
+</span><span class="cm">     * Desired invariant:  all three are NULL, or all three are non-NULL.  That
+</span><span class="cm">     * one isn&#39;t currently true, but &#34;should be&#34;.
+</span><span class="cm">     */</span>
+    <span class="n">PyObject</span> <span class="o">*</span><span class="n">f_exc_type</span><span class="p">,</span> <span class="o">*</span><span class="n">f_exc_value</span><span class="p">,</span> <span class="o">*</span><span class="n">f_exc_traceback</span><span class="p">;</span>
+
+    <span class="n">PyThreadState</span> <span class="o">*</span><span class="n">f_tstate</span><span class="p">;</span>
+    <span class="kt">int</span> <span class="n">f_lasti</span><span class="p">;</span>		<span class="cm">/* Last instruction if called */</span>
+    <span class="cm">/* Call PyFrame_GetLineNumber() instead of reading this field
+</span><span class="cm">       directly.  As of 2.3 f_lineno is only valid when tracing is
+</span><span class="cm">       active (i.e. when f_trace is set).  At other times we use
+</span><span class="cm">       PyCode_Addr2Line to calculate the line from the current
+</span><span class="cm">       bytecode index. */</span>
+    <span class="kt">int</span> <span class="n">f_lineno</span><span class="p">;</span>		<span class="cm">/* Current line number */</span>
+    <span class="kt">int</span> <span class="n">f_iblock</span><span class="p">;</span>		<span class="cm">/* index in f_blockstack */</span>
+    <span class="n">PyTryBlock</span> <span class="n">f_blockstack</span><span class="p">[</span><span class="n">CO_MAXBLOCKS</span><span class="p">];</span> <span class="cm">/* for try and loop blocks */</span>
+    <span class="n">PyObject</span> <span class="o">*</span><span class="n">f_localsplus</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>	<span class="cm">/* locals+stack, dynamically sized */</span>
+<span class="p">}</span> <span class="n">PyFrameObject</span><span class="p">;</span></code></pre></div>
+<p>注意<code>f_localsplus</code></p>
+
+<pre><code>f_localsplus为一个PyObject的指针数组，大小为1。
+
+c语言中, 当申请一个大小超过sizeof(PyFrameObject)的结构体对象时，超过的部分就自动分配给f_localsplus
+</code></pre>
+
+<p>创建过程</p>
+
+<p>在<code>call_function</code>的时候, <code>new</code>了一个PyFrameObject</p>
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="n">f</span> <span class="o">=</span> <span class="n">PyFrame_New</span><span class="p">(</span><span class="n">tstate</span><span class="p">,</span> <span class="n">co</span><span class="p">,</span> <span class="n">globals</span><span class="p">,</span> <span class="n">locals</span><span class="p">);</span>
+
+<span class="o">=&gt;</span>
+
+<span class="n">PyFrameObject</span> <span class="o">*</span>
+<span class="n">PyFrame_New</span><span class="p">(</span><span class="n">PyThreadState</span> <span class="o">*</span><span class="n">tstate</span><span class="p">,</span> <span class="n">PyCodeObject</span> <span class="o">*</span><span class="n">code</span><span class="p">,</span> <span class="n">PyObject</span> <span class="o">*</span><span class="n">globals</span><span class="p">,</span>
+            <span class="n">PyObject</span> <span class="o">*</span><span class="n">locals</span><span class="p">)</span>
+<span class="p">{</span>
+        <span class="n">Py_ssize_t</span> <span class="n">extras</span><span class="p">,</span> <span class="n">ncells</span><span class="p">,</span> <span class="n">nfrees</span><span class="p">;</span>
+        <span class="n">ncells</span> <span class="o">=</span> <span class="n">PyTuple_GET_SIZE</span><span class="p">(</span><span class="n">code</span><span class="o">-&gt;</span><span class="n">co_cellvars</span><span class="p">);</span>
+        <span class="n">nfrees</span> <span class="o">=</span> <span class="n">PyTuple_GET_SIZE</span><span class="p">(</span><span class="n">code</span><span class="o">-&gt;</span><span class="n">co_freevars</span><span class="p">);</span>
+        <span class="n">extras</span> <span class="o">=</span> <span class="n">code</span><span class="o">-&gt;</span><span class="n">co_stacksize</span> <span class="o">+</span> <span class="n">code</span><span class="o">-&gt;</span><span class="n">co_nlocals</span> <span class="o">+</span> <span class="n">ncells</span> <span class="o">+</span>
+            <span class="n">nfrees</span><span class="p">;</span>
+
+<span class="o">=&gt;</span>
+
+<span class="n">f</span> <span class="o">=</span> <span class="n">PyObject_GC_NewVar</span><span class="p">(</span><span class="n">PyFrameObject</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">PyFrame_Type</span><span class="p">,</span> <span class="n">extras</span><span class="p">);</span></code></pre></div>
+<p>即</p>
+
+<pre><code>f_localsplus =&gt; 局部变量 + cell对象 + free对象 + 运行时栈
+</code></pre>
+
+<p>原因: 因为函数中的局部变量总是固定不变的, 在编译时就能确定局部变量使用的内存空间的位置, 也能确定访问局部变量的字节码应该如何访问内存, 有了这些信息, Python就能借助静态的方法实现局部变量, 而不是动态查找PyDictObject, 提高执行效率</p>
+
+<p><img src="/imgs/python-source/python-closure3.png" alt="closure" /></p>
+
+<h3 id="示例函数的f-localsplus">示例函数的f_localsplus<a href="#示例函数的f-localsplus" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<p>看一下上面赋值用的宏定义</p>
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c">  <span class="n">fastlocals</span> <span class="o">=</span> <span class="n">f</span><span class="o">-&gt;</span><span class="n">f_localsplus</span><span class="p">;</span>
+  <span class="cp">#define GETLOCAL(i)     (fastlocals[i])
+</span><span class="cp"></span>  <span class="cp">#define SETLOCAL(i, value)      do { PyObject *tmp = GETLOCAL(i); \
+</span><span class="cp"></span>                                       <span class="n">GETLOCAL</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">=</span> <span class="n">value</span><span class="p">;</span> \
+                                       <span class="n">Py_XDECREF</span><span class="p">(</span><span class="n">tmp</span><span class="p">);</span> <span class="p">}</span> <span class="k">while</span> <span class="p">(</span><span class="mi">0</span><span class="p">)</span></code></pre></div>
+<p>最终得到</p>
+
+<p><img src="/imgs/python-source/python-closure4.png" alt="closure" /></p>
+
+<p>接下去呢? <code>CALL_FUNCTION</code>最后怎么处理将cell传入嵌套函数?</p>
+
+<h3 id="传递">传递<a href="#传递" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<p><code>CALL_FUNCTION</code> 完成<code>new</code>一个<code>PyFrameObject</code>之后,</p>
+
+<p>最终执行这个frame</p>
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="n">retval</span> <span class="o">=</span> <span class="n">PyEval_EvalFrameEx</span><span class="p">(</span><span class="n">f</span><span class="p">,</span><span class="mi">0</span><span class="p">);</span></code></pre></div>
+<p>PyEval_EvalFrameEx</p>
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c">  <span class="n">PyObject</span> <span class="o">*</span>
+  <span class="nf">PyEval_EvalFrameEx</span><span class="p">(</span><span class="n">PyFrameObject</span> <span class="o">*</span><span class="n">f</span><span class="p">,</span> <span class="kt">int</span> <span class="n">throwflag</span><span class="p">)</span>
+  <span class="p">{</span>
+
+    <span class="n">fastlocals</span> <span class="o">=</span> <span class="n">f</span><span class="o">-&gt;</span><span class="n">f_localsplus</span><span class="p">;</span>
+    <span class="n">freevars</span> <span class="o">=</span> <span class="n">f</span><span class="o">-&gt;</span><span class="n">f_localsplus</span> <span class="o">+</span> <span class="n">co</span><span class="o">-&gt;</span><span class="n">co_nlocals</span><span class="p">;</span>
+
+
+<span class="o">=&gt;</span> <span class="err">此时涉及</span><span class="n">op_code的执行了</span></code></pre></div>
+<p>查看一下dis的结果</p>
+<div class="highlight"><pre class="chroma"><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">do_add</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">x</span> <span class="o">+</span> <span class="n">value</span>
+    <span class="k">return</span> <span class="n">do_add</span>
+
+  <span class="mi">5</span>           <span class="mi">0</span> <span class="n">LOAD_CLOSURE</span>             <span class="mi">0</span> <span class="p">(</span><span class="n">x</span><span class="p">)</span>
+              <span class="mi">3</span> <span class="n">BUILD_TUPLE</span>              <span class="mi">1</span>
+              <span class="mi">6</span> <span class="n">LOAD_CONST</span>               <span class="mi">1</span> <span class="p">(</span><span class="o">&lt;</span><span class="n">code</span> <span class="nb">object</span> <span class="n">do_add</span> <span class="n">at</span> <span class="mh">0x10c9cec30</span><span class="p">,</span> <span class="nb">file</span> <span class="s2">&#34;a.py&#34;</span><span class="p">,</span> <span class="n">line</span> <span class="mi">5</span><span class="o">&gt;</span><span class="p">)</span>
+              <span class="mi">9</span> <span class="n">MAKE_CLOSURE</span>             <span class="mi">0</span>
+             <span class="mi">12</span> <span class="n">STORE_FAST</span>               <span class="mi">1</span> <span class="p">(</span><span class="n">do_add</span><span class="p">)</span>
+
+  <span class="mi">7</span>          <span class="mi">15</span> <span class="n">LOAD_FAST</span>                <span class="mi">1</span> <span class="p">(</span><span class="n">do_add</span><span class="p">)</span>
+             <span class="mi">18</span> <span class="n">RETURN_VALUE</span></code></pre></div>
+<p>首先<code>LOAD_CLOSURE 0</code></p>
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c">          <span class="k">case</span> <span class="nl">LOAD_CLOSURE</span><span class="p">:</span>
+              <span class="n">x</span> <span class="o">=</span> <span class="n">freevars</span><span class="p">[</span><span class="n">oparg</span><span class="p">];</span>
+              <span class="n">Py_INCREF</span><span class="p">(</span><span class="n">x</span><span class="p">);</span>
+              <span class="n">PUSH</span><span class="p">(</span><span class="n">x</span><span class="p">);</span>
+              <span class="k">if</span> <span class="p">(</span><span class="n">x</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">)</span> <span class="k">continue</span><span class="p">;</span>
+              <span class="k">break</span><span class="p">;</span>
+
+<span class="err">入栈</span><span class="p">,</span> <span class="err">此时得到一个</span><span class="n">PyCellObject</span><span class="p">,</span> <span class="err">指向</span><span class="mi">2</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="sc">&#39;x&#39;</span>
+
+<span class="n">LOAD_CLOSURE</span> <span class="err">在编译时会根据嵌套函数中</span> <span class="n">co_freevars</span><span class="p">,</span> <span class="err">决定了取得参数位置和个数</span></code></pre></div>
+<p>然后, <code>BUILD_TUPLE</code>, 将cell对象打包成tuple, 得到<code>('x', )</code></p>
+
+<p>然后, 开始, 载入嵌套函数<code>do_add</code>, 入栈</p>
+
+<p>调用<code>MAKE_CLOSURE</code></p>
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c">          <span class="k">case</span> <span class="nl">MAKE_CLOSURE</span><span class="p">:</span>
+          <span class="p">{</span>
+              <span class="n">v</span> <span class="o">=</span> <span class="n">POP</span><span class="p">();</span> <span class="cm">/* code object */</span>  <span class="c1">// do_add函数
+</span><span class="c1"></span>              <span class="n">x</span> <span class="o">=</span> <span class="n">PyFunction_New</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">f</span><span class="o">-&gt;</span><span class="n">f_globals</span><span class="p">);</span> <span class="c1">//绑定global名字空间
+</span><span class="c1"></span>              <span class="c1">// 到这里, 得到一个PyFunctionObject
+</span><span class="c1"></span>
+              <span class="n">Py_DECREF</span><span class="p">(</span><span class="n">v</span><span class="p">);</span>
+              <span class="k">if</span> <span class="p">(</span><span class="n">x</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>
+                  <span class="n">v</span> <span class="o">=</span> <span class="n">POP</span><span class="p">();</span>   <span class="c1">// 得到tuple, (&#39;x&#39;, )
+</span><span class="c1"></span>
+                  <span class="c1">// 注意这里
+</span><span class="c1"></span>                  <span class="k">if</span> <span class="p">(</span><span class="n">PyFunction_SetClosure</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+                      <span class="cm">/* Can&#39;t happen unless bytecode is corrupt. */</span>
+                      <span class="n">why</span> <span class="o">=</span> <span class="n">WHY_EXCEPTION</span><span class="p">;</span>
+                  <span class="p">}</span>
+                  <span class="n">Py_DECREF</span><span class="p">(</span><span class="n">v</span><span class="p">);</span>
+              <span class="p">}</span>
+              <span class="p">......</span>
+          <span class="p">}</span></code></pre></div>
+<p>来关注一下 <code>PyFunction_SetClosure</code></p>
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="kt">int</span>
+<span class="nf">PyFunction_SetClosure</span><span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="n">op</span><span class="p">,</span> <span class="n">PyObject</span> <span class="o">*</span><span class="n">closure</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="p">...</span>
+    <span class="n">Py_XDECREF</span><span class="p">(((</span><span class="n">PyFunctionObject</span> <span class="o">*</span><span class="p">)</span> <span class="n">op</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">func_closure</span><span class="p">);</span>
+    <span class="p">((</span><span class="n">PyFunctionObject</span> <span class="o">*</span><span class="p">)</span> <span class="n">op</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">func_closure</span> <span class="o">=</span> <span class="n">closure</span><span class="p">;</span>  <span class="c1">// 注意这里
+</span><span class="c1"></span>    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span></code></pre></div>
+<p>即<code>do_add</code>的 <code>PyFunctionObject</code>的<code>func_closure</code>指向一个tuple</p>
+
+<p>注意: 这时候, 外层变量已经固定下来了!!!!!!</p>
+
+<h3 id="然后-在嵌套函数被调用的时候">然后, 在嵌套函数被调用的时候<a href="#然后-在嵌套函数被调用的时候" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="n">CALL_FUNCTION</span>
+
+<span class="o">=&gt;</span>
+
+<span class="n">x</span> <span class="o">=</span> <span class="n">call_function</span><span class="p">(</span><span class="o">&amp;</span><span class="n">sp</span><span class="p">,</span> <span class="n">oparg</span><span class="p">);</span>
+
+<span class="o">=&gt;</span>
+
+<span class="n">x</span> <span class="o">=</span> <span class="n">fast_function</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">pp_stack</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">na</span><span class="p">,</span> <span class="n">nk</span><span class="p">);</span>
+
+<span class="o">=&gt;</span>
+
+      <span class="k">return</span> <span class="n">PyEval_EvalCodeEx</span><span class="p">(</span><span class="n">co</span><span class="p">,</span> <span class="n">globals</span><span class="p">,</span>
+                               <span class="p">(</span><span class="n">PyObject</span> <span class="o">*</span><span class="p">)</span><span class="nb">NULL</span><span class="p">,</span> <span class="p">(</span><span class="o">*</span><span class="n">pp_stack</span><span class="p">)</span><span class="o">-</span><span class="n">n</span><span class="p">,</span> <span class="n">na</span><span class="p">,</span>
+                               <span class="p">(</span><span class="o">*</span><span class="n">pp_stack</span><span class="p">)</span><span class="o">-</span><span class="mi">2</span><span class="o">*</span><span class="n">nk</span><span class="p">,</span> <span class="n">nk</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">nd</span><span class="p">,</span>
+                               <span class="n">PyFunction_GET_CLOSURE</span><span class="p">(</span><span class="n">func</span><span class="p">));</span></code></pre></div>
+<p>看下<code>PyFunction_GET_CLOSURE</code></p>
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c">  <span class="cp">#define PyFunction_GET_CLOSURE(func) \
+</span><span class="cp"></span>      <span class="p">(((</span><span class="n">PyFunctionObject</span> <span class="o">*</span><span class="p">)</span><span class="n">func</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">func_closure</span><span class="p">)</span></code></pre></div>
+<p>然后, 进入 <code>PyEval_EvalCodeEx</code>, 注意这里的<code>closure</code>参数即上一步取出来的<code>func_closure</code>, 即外层函数传进来的tuple</p>
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c">  <span class="n">PyObject</span> <span class="o">*</span>
+  <span class="nf">PyEval_EvalCodeEx</span><span class="p">(</span><span class="n">PyCodeObject</span> <span class="o">*</span><span class="n">co</span><span class="p">,</span> <span class="n">PyObject</span> <span class="o">*</span><span class="n">globals</span><span class="p">,</span> <span class="n">PyObject</span> <span class="o">*</span><span class="n">locals</span><span class="p">,</span>
+             <span class="n">PyObject</span> <span class="o">**</span><span class="n">args</span><span class="p">,</span> <span class="kt">int</span> <span class="n">argcount</span><span class="p">,</span> <span class="n">PyObject</span> <span class="o">**</span><span class="n">kws</span><span class="p">,</span> <span class="kt">int</span> <span class="n">kwcount</span><span class="p">,</span>
+             <span class="n">PyObject</span> <span class="o">**</span><span class="n">defs</span><span class="p">,</span> <span class="kt">int</span> <span class="n">defcount</span><span class="p">,</span> <span class="n">PyObject</span> <span class="o">*</span><span class="n">closure</span><span class="p">)</span>
+<span class="p">{</span>
+      <span class="p">......</span>
+      <span class="c1">//  嵌套函数do_add, 使用到了外层函数的变量, 所以co-&gt;co_freevars非空, 这里得到 (&#39;x&#39;, )
+</span><span class="c1"></span>      <span class="k">if</span> <span class="p">(</span><span class="n">PyTuple_GET_SIZE</span><span class="p">(</span><span class="n">co</span><span class="o">-&gt;</span><span class="n">co_freevars</span><span class="p">))</span> <span class="p">{</span>
+          <span class="kt">int</span> <span class="n">i</span><span class="p">;</span>
+          <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">PyTuple_GET_SIZE</span><span class="p">(</span><span class="n">co</span><span class="o">-&gt;</span><span class="n">co_freevars</span><span class="p">);</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+              <span class="c1">// 顺序是一致的
+</span><span class="c1"></span>              <span class="n">PyObject</span> <span class="o">*</span><span class="n">o</span> <span class="o">=</span> <span class="n">PyTuple_GET_ITEM</span><span class="p">(</span><span class="n">closure</span><span class="p">,</span> <span class="n">i</span><span class="p">);</span>
+              <span class="n">Py_INCREF</span><span class="p">(</span><span class="n">o</span><span class="p">);</span>
+              <span class="c1">// 放到freevars里面, 编译时已经确定了顺序
+</span><span class="c1"></span>              <span class="c1">// 在上一步多LOAD_CLOSURE =&gt; tuple 已经保证了顺序
+</span><span class="c1"></span>              <span class="n">freevars</span><span class="p">[</span><span class="n">PyTuple_GET_SIZE</span><span class="p">(</span><span class="n">co</span><span class="o">-&gt;</span><span class="n">co_cellvars</span><span class="p">)</span> <span class="o">+</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">o</span><span class="p">;</span>
+          <span class="p">}</span>
+      <span class="p">}</span>
+      <span class="p">......</span></code></pre></div>
+<h3 id="最后-再来看一个闭包的dis">最后, 再来看一个闭包的dis<a href="#最后-再来看一个闭包的dis" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<p>注意<code>BUILD_TUPLE</code></p>
+<div class="highlight"><pre class="chroma"><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">do_add</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">x</span> <span class="o">+</span> <span class="n">value</span>
+
+    <span class="k">def</span> <span class="nf">do_add2</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">y</span> <span class="o">+</span> <span class="n">value</span>
+
+    <span class="k">def</span> <span class="nf">do_add3</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">+</span> <span class="n">value</span>
+
+    <span class="k">return</span> <span class="n">do_add</span></code></pre></div>
+<p>dis结果</p>
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"> <span class="mi">18</span>           <span class="mi">0</span> <span class="n">LOAD_CLOSURE</span>             <span class="mi">0</span> <span class="p">(</span><span class="n">x</span><span class="p">)</span>
+              <span class="mi">3</span> <span class="n">BUILD_TUPLE</span>              <span class="mi">1</span>
+              <span class="mi">6</span> <span class="n">LOAD_CONST</span>               <span class="mi">1</span> <span class="p">(</span><span class="o">&lt;</span><span class="n">code</span> <span class="n">object</span> <span class="n">do_add</span> <span class="n">at</span> <span class="mh">0x10560dc30</span><span class="p">,</span> <span class="n">file</span> <span class="s">&#34;a.py&#34;</span><span class="p">,</span> <span class="n">line</span> <span class="mi">18</span><span class="o">&gt;</span><span class="p">)</span>
+              <span class="mi">9</span> <span class="n">MAKE_CLOSURE</span>             <span class="mi">0</span>
+             <span class="mi">12</span> <span class="n">STORE_FAST</span>               <span class="mi">2</span> <span class="p">(</span><span class="n">do_add</span><span class="p">)</span>
+
+ <span class="mi">21</span>          <span class="mi">15</span> <span class="n">LOAD_CLOSURE</span>             <span class="mi">1</span> <span class="p">(</span><span class="n">y</span><span class="p">)</span>
+             <span class="mi">18</span> <span class="n">BUILD_TUPLE</span>              <span class="mi">1</span>
+             <span class="mi">21</span> <span class="n">LOAD_CONST</span>               <span class="mi">2</span> <span class="p">(</span><span class="o">&lt;</span><span class="n">code</span> <span class="n">object</span> <span class="n">do_add2</span> <span class="n">at</span> <span class="mh">0x10560d8b0</span><span class="p">,</span> <span class="n">file</span> <span class="s">&#34;a.py&#34;</span><span class="p">,</span> <span class="n">line</span> <span class="mi">21</span><span class="o">&gt;</span><span class="p">)</span>
+             <span class="mi">24</span> <span class="n">MAKE_CLOSURE</span>             <span class="mi">0</span>
+             <span class="mi">27</span> <span class="n">STORE_FAST</span>               <span class="mi">3</span> <span class="p">(</span><span class="n">do_add2</span><span class="p">)</span>
+
+ <span class="mi">24</span>          <span class="mi">30</span> <span class="n">LOAD_CLOSURE</span>             <span class="mi">0</span> <span class="p">(</span><span class="n">x</span><span class="p">)</span>
+             <span class="mi">33</span> <span class="n">LOAD_CLOSURE</span>             <span class="mi">1</span> <span class="p">(</span><span class="n">y</span><span class="p">)</span>
+             <span class="mi">36</span> <span class="n">BUILD_TUPLE</span>              <span class="mi">2</span>
+             <span class="mi">39</span> <span class="n">LOAD_CONST</span>               <span class="mi">3</span> <span class="p">(</span><span class="o">&lt;</span><span class="n">code</span> <span class="n">object</span> <span class="n">do_add3</span> <span class="n">at</span> <span class="mh">0x10560e3b0</span><span class="p">,</span> <span class="n">file</span> <span class="s">&#34;a.py&#34;</span><span class="p">,</span> <span class="n">line</span> <span class="mi">24</span><span class="o">&gt;</span><span class="p">)</span>
+             <span class="mi">42</span> <span class="n">MAKE_CLOSURE</span>             <span class="mi">0</span>
+             <span class="mi">45</span> <span class="n">STORE_FAST</span>               <span class="mi">4</span> <span class="p">(</span><span class="n">do_add3</span><span class="p">)</span>
+
+ <span class="mi">32</span>          <span class="mi">48</span> <span class="n">LOAD_FAST</span>                <span class="mi">2</span> <span class="p">(</span><span class="n">do_add</span><span class="p">)</span>
+             <span class="mi">51</span> <span class="n">RETURN_VALUE</span></code></pre></div>
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p>
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg><span class="tag"><a href="http://wklken.me/tags/python.html">python</a></span>
+				</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>2950 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2015-09-04 08:00 &#43;0800</p>
+			</footer>
+		</article>
+		<aside id="toc">
+			<div class="toc-title">Table of Contents</div>
+			<nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#闭包">闭包</a></li>
+<li><a href="#pycodeobject">PyCodeObject</a></li>
+<li><a href="#pycellobject">PyCellObject</a></li>
+<li><a href="#值的确认与传递过程">值的确认与传递过程</a></li>
+<li><a href="#看看pyframeobject">看看PyFrameObject</a></li>
+<li><a href="#示例函数的f-localsplus">示例函数的f_localsplus</a></li>
+<li><a href="#传递">传递</a></li>
+<li><a href="#然后-在嵌套函数被调用的时候">然后, 在嵌套函数被调用的时候</a></li>
+<li><a href="#最后-再来看一个闭包的dis">最后, 再来看一个闭包的dis</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+		</aside>
+		<div class="post-nav thin">
+			<a class="next-post" href="http://wklken.me/posts/2015/09/23/apue-note-chapter-1.html">
+				<span class="post-nav-label"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>&nbsp;Newer</span><br><span>APUE笔记-第一章 UNIX基础知识</span>
+			</a>
+			<a class="prev-post" href="http://wklken.me/posts/2015/08/29/python-source-memory-2.html">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>Python源码阅读-内存管理机制(二)</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+<div id="disqus_thread"></div>
+<script type="application/javascript">
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "wklken" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2019 <a href="http://wklken.me">wklken</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="http://wklken.me/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+	<script src="http://wklken.me/js/main.min.784417f5847151f848c339cf0acb13a06cbb648b1483435a28ed4556c4ead69b.js" integrity="sha256-eEQX9YRxUfhIwznPCssToGy7ZIsUg0NaKO1FVsTq1ps="></script>
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-42275748-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+</body>
+
+</html>

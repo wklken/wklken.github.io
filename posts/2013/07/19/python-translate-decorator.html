@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<meta name="theme-color" content="#494f5c">
+	<meta name="msapplication-TileColor" content="#494f5c">
+
+<meta itemprop="name" content="[翻译]理解python中的装饰器">
+<meta itemprop="description" content="有人翻译过了，很多转载，暂时没找到原文，各个地方的排版不一样，排版（代码格式），代码注解等都不怎么好 练练手，顺手一翻吧，权当加深理解 来源st">
+
+
+<meta itemprop="datePublished" content="2013-07-19T08:00:00&#43;08:00" />
+<meta itemprop="dateModified" content="2013-07-19T08:00:00&#43;08:00" />
+<meta itemprop="wordCount" content="5191">
+
+
+
+<meta itemprop="keywords" content="python,translation," />
+<meta property="og:title" content="[翻译]理解python中的装饰器" />
+<meta property="og:description" content="有人翻译过了，很多转载，暂时没找到原文，各个地方的排版不一样，排版（代码格式），代码注解等都不怎么好 练练手，顺手一翻吧，权当加深理解 来源st" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://wklken.me/posts/2013/07/19/python-translate-decorator.html" />
+<meta property="article:published_time" content="2013-07-19T08:00:00&#43;08:00"/>
+<meta property="article:modified_time" content="2013-07-19T08:00:00&#43;08:00"/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="[翻译]理解python中的装饰器"/>
+<meta name="twitter:description" content="有人翻译过了，很多转载，暂时没找到原文，各个地方的排版不一样，排版（代码格式），代码注解等都不怎么好 练练手，顺手一翻吧，权当加深理解 来源st"/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>[翻译]理解python中的装饰器</title>
+	<link rel="stylesheet" href="http://wklken.me/css/style.min.31706917653d2b9e8410abd431f30ec4359a88a94fc87a63654779d87329edec.css" integrity="sha256-MXBpF2U9K56EEKvUMfMOxDWaiKlPyHpjZUd52HMp7ew=">
+	
+	<link rel="stylesheet" href="http://wklken.me/css/custom.css">
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp faster">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="http://wklken.me">WKLKEN BUILDING</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					<a href="http://wklken.me/posts.html">Posts</a>
+					<a href="http://wklken.me/about.html">About</a>
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<button id="toc-btn" class="hdr-btn desktop-only-ib" title="Table of Contents"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3" y2="6"></line><line x1="3" y1="12" x2="3" y2="12"></line><line x1="3" y1="18" x2="3" y2="18"></line></svg></button><span class="hdr-social hide-in-mobile"><a href="https://github.com/wklken" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-github"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a><a href="wklken@gmail.com" target="_blank" rel="noopener me" title="Email"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-mail"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="http://wklken.me/posts.html">Posts</a></li>
+			<li><a href="http://wklken.me/about.html">About</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>Jul 19, 2013</span></div>
+				<h1>[翻译]理解python中的装饰器</h1>
+			</header>
+			<div class="content">
+				
+
+<p>有人翻译过了，很多转载，暂时没找到原文，各个地方的排版不一样，排版（代码格式），代码注解等都不怎么好</p>
+
+<p>练练手，顺手一翻吧，权当加深理解</p>
+
+<p>来源stackoverflow上的问题  <a href="http://stackoverflow.com/questions/739654/how-can-i-make-a-chain-of-function-decorators-in-python/1594484#1594484">链接</a></p>
+
+<p>很长哦(应该是巨长&hellip;分了三次搞完)，要有耐心看完</p>
+
+<hr />
+
+<h2 id="python的函数是对象">python的函数是对象<a href="#python的函数是对象" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p>要理解装饰器，首先，你必须明白，在python中，函数是对象. 这很重要.</p>
+
+<p>简单例子来理解为什么</p>
+
+<pre><code>def shout(word=&quot;yes&quot;):
+    return word.capitalize()+&quot;!&quot;
+
+print shout()
+# outputs : 'Yes!'
+
+# 作为一个对象，你可以讲函数赋值给另一个对象
+scream = shout
+
+# 注意到这里我们并没有使用括号：我们不是调用函数，而是将函数'shout'赋给变量'scream'
+# 这意味着，你可以通过'scream'调用'shout'
+
+print scream()
+# outputs : 'Yes!'
+
+# 不仅如此，你可以删除老的名称'shout'，但是通过'scream'依旧可以访问原有函数
+
+del shout
+try:
+    print shout()
+except NameError, e:
+    print e
+    #outputs: &quot;name 'shout' is not defined&quot;
+
+print scream()
+# outputs: 'Yes!'
+</code></pre>
+
+<p>好了，记住这点，我们将会很快用到它.</p>
+
+<p>Python函数另一个有趣的特性是，函数可以被定义在另一个函数里面</p>
+
+<pre><code>def talk():
+    # 你可以定义一个函数
+    def whisper(word=&quot;yes&quot;):
+        return word.lower()+&quot;...&quot;
+
+    # ... 并且立刻调用
+    print whisper()
+
+# 每次当你调用&quot;talk&quot;, 都会定义&quot;whisper&quot;
+# 并且在&quot;talk&quot;中被调用
+talk()
+# outputs:
+# &quot;yes...&quot;
+
+#但是在&quot;talk&quot;外部，函数&quot;whisper&quot;不存在！
+try:
+    print whisper()
+except NameError, e:
+    print e
+    #outputs : &quot;name 'whisper' is not defined&quot;*
+</code></pre>
+
+<h2 id="函数引用">函数引用<a href="#函数引用" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p>好了，到这里了，接下来是有意思的部分，我们刚才看到 函数是对象，然后:</p>
+
+<p>1.函数可以赋值给一个变量</p>
+
+<p>2.函数可以定义在另一个函数内部</p>
+
+<p>即，这也意味着一个函数可以返回另一个函数:-）,让我们来看另一段代码</p>
+
+<pre><code>def getTalk(type=&quot;shout&quot;):
+
+    # 定义函数
+    def shout(word=&quot;yes&quot;):
+        return word.capitalize()+&quot;!&quot;
+
+    def whisper(word=&quot;yes&quot;) :
+        return word.lower()+&quot;...&quot;;
+
+    # 返回函数
+    if type == &quot;shout&quot;:
+        # 没有使用&quot;()&quot;, 并不是要调用函数，而是要返回函数对象
+        return shout
+    else:
+        return whisper
+
+# 如何使用？
+
+# 将函数返回值赋值给一个变量
+talk = getTalk()
+
+# 我们可以打印下这个函数对象
+print talk
+#outputs : &lt;function shout at 0xb7ea817c&gt;
+
+# 这个对象是函数的返回值
+print talk()
+#outputs : Yes!
+
+# 不仅如此，你还可以直接使用之
+print getTalk(&quot;whisper&quot;)()
+#outputs : yes...
+</code></pre>
+
+<p>但是稍等，如果你可以返回一个函数，那么你也可以将函数作为参数传递</p>
+
+<pre><code>def doSomethingBefore(func):
+    print &quot;I do something before then I call the function you gave me&quot;
+    print func()
+
+doSomethingBefore(scream)
+#outputs:
+#I do something before then I call the function you gave me
+#Yes!
+</code></pre>
+
+<p>好了，现在你已经了解要理解装饰器的每件事.</p>
+
+<p>装饰器就是封装器，可以让你在被装饰函数之前或之后执行代码，而不必修改函数本身</p>
+
+<h2 id="手工装饰器">手工装饰器<a href="#手工装饰器" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p>如何书写一个装饰器</p>
+
+<pre><code># 装饰器是一个以另一个函数为参数的函数
+def my_shiny_new_decorator(a_function_to_decorate):
+
+    # 在这里，装饰器定义一个函数： 包装器.
+    # 这个函数将原始函数进行包装，以达到在原始函数之前、之后执行代码的目的
+    def the_wrapper_around_the_original_function():
+
+        # 将你要在原始函数之前执行的代码放到这里
+        print &quot;Before the function runs&quot;
+
+        # 调用原始函数(需要带括号)
+        a_function_to_decorate()
+
+        # 将你要在原始函数之后执行的代码放到这里
+        print &quot;After the function runs&quot;
+
+    # 代码到这里，函数‘a_function_to_decorate’还没有被执行
+    # 我们将返回刚才创建的这个包装函数
+    # 这个函数包含原始函数及要执行的附加代码，并且可以被使用
+    return the_wrapper_around_the_original_function
+
+# 创建一个函数
+def a_stand_alone_function():
+    print &quot;I am a stand alone function, don't you dare modify me&quot;
+
+a_stand_alone_function()
+#outputs: I am a stand alone function, don't you dare modify me
+
+# 好了，在这里你可以装饰这个函数，扩展其行为
+# 将函数传递给装饰器，装饰器将动态地将其包装在任何你想执行的代码中，然后返回一个新的函数
+a_stand_alone_function_decorated = my_shiny_new_decorator(a_stand_alone_function)
+
+# 调用新函数，可以看到装饰器的效果
+a_stand_alone_function_decorated()
+#outputs:
+#Before the function runs
+#I am a stand alone function, don't you dare modify me
+#After the function runs
+</code></pre>
+
+<p>到这里，或许你想每次调用a_stand_alone_function都使用a_stand_alone_function_decorated替代之
+很简单，只需要将a_stand_alone_function用my_shiny_new_decorator装饰返回</p>
+
+<pre><code>a_stand_alone_function = my_shiny_new_decorator(a_stand_alone_function)
+a_stand_alone_function()
+#outputs:
+#Before the function runs
+#I am a stand alone function, don't you dare modify me
+#After the function runs
+
+# 这就是装饰器做的事情!
+</code></pre>
+
+<h2 id="装饰器阐述">装饰器阐述<a href="#装饰器阐述" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p>前面的例子，使用装饰器语法</p>
+
+<pre><code>@my_shiny_new_decorator
+def another_stand_alone_function():
+    print &quot;Leave me alone&quot;
+
+another_stand_alone_function()
+#outputs:
+#Before the function runs
+#Leave me alone
+#After the function runs
+</code></pre>
+
+<p>是的，就是这么简单. @decorator是下面代码的简写</p>
+
+<pre><code>nother_stand_alone_function = my_shiny_new_decorator(another_stand_alone_function)
+</code></pre>
+
+<p>装饰器只是 <a href="http://en.wikipedia.org/wiki/Decorator_pattern">装饰器模式</a>的python实现</p>
+
+<p>python代码中还存在其他几个经典的设计模式，以方便开发，例如迭代器iterators</p>
+
+<p>当然，你可以累加装饰器</p>
+
+<pre><code>def bread(func):
+    def wrapper():
+        print &quot;&lt;/''''''\&gt;&quot;
+        func()
+        print &quot;&lt;\______/&gt;&quot;
+    return wrapper
+
+def ingredients(func):
+    def wrapper():
+        print &quot;#tomatoes#&quot;
+        func()
+        print &quot;~salad~&quot;
+    return wrapper
+
+def sandwich(food=&quot;--ham--&quot;):
+    print food
+
+sandwich()
+#outputs: --ham--
+
+#累加两个装饰器
+sandwich = bread(ingredients(sandwich))
+sandwich()
+#outputs:
+#&lt;/''''''\&gt;
+# #tomatoes#
+# --ham--
+# ~salad~
+#&lt;\______/&gt;
+</code></pre>
+
+<p>使用python装饰器语法</p>
+
+<pre><code>@bread
+@ingredients
+def sandwich(food=&quot;--ham--&quot;):
+    print food
+
+sandwich()
+#outputs:
+#&lt;/''''''\&gt;
+# #tomatoes#
+# --ham--
+# ~salad~
+#&lt;\______/&gt;
+</code></pre>
+
+<p>装饰器位置的顺序很重要</p>
+
+<pre><code>@ingredients
+@bread
+def strange_sandwich(food=&quot;--ham--&quot;):
+    print food
+
+    strange_sandwich()
+#outputs:
+##tomatoes#
+#&lt;/''''\&gt;
+# --ham--
+#&lt;\______/&gt;
+# ~salad~'
+</code></pre>
+
+<h2 id="最后回答问题">最后回答问题<a href="#最后回答问题" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<pre><code># bold装饰器
+def makebold(fn):
+    def wrapper():
+        # 在前后加入标签
+        return &quot;&lt;b&gt;&quot; + fn() + &quot;&lt;/b&gt;&quot;
+    return wrapper
+
+# italic装饰器
+def makeitalic(fn):
+    def wrapper():
+        # 加入标签
+        return &quot;&lt;i&gt;&quot; + fn() + &quot;&lt;/i&gt;&quot;
+    return wrapper
+
+@makebold
+@makeitalic
+def say():
+    return &quot;hello&quot;
+
+print say()
+#outputs: &lt;b&gt;&lt;i&gt;hello&lt;/i&gt;&lt;/b&gt;
+
+# 等价的代码
+def say():
+    return &quot;hello&quot;
+say = makebold(makeitalic(say))
+
+print say()
+#outputs: &lt;b&gt;&lt;i&gt;hello&lt;/i&gt;&lt;/b&gt;
+</code></pre>
+
+<p>好了，到这里你可以高兴地离开了，或者来看下一些装饰器高级的用法</p>
+
+<h3 id="向装饰器函数传递参数">向装饰器函数传递参数<a href="#向装饰器函数传递参数" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<pre><code># 这不是黑魔法，你只需要让包装传递参数:
+
+def a_decorator_passing_arguments(function_to_decorate):
+    def a_wrapper_accepting_arguments(arg1, arg2):
+            print &quot;I got args! Look:&quot;, arg1, arg2
+            function_to_decorate(arg1, arg2)
+    return a_wrapper_accepting_arguments
+
+# 当你调用装饰器返回的函数，实际上是调用包装函数，所以给包装函数传递参数即可将参数传给装饰器函数
+
+@a_decorator_passing_arguments
+def print_full_name(first_name, last_name):
+    print &quot;My name is&quot;, first_name, last_name
+
+print_full_name(&quot;Peter&quot;, &quot;Venkman&quot;)
+# outputs:
+#I got args! Look: Peter Venkman
+#My name is Peter Venkman
+</code></pre>
+
+<h3 id="装饰方法">装饰方法<a href="#装饰方法" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<p>Python中对象的方法和函数是一样的，除了对象的方法首个参数是指向当前对象的引用(self)。这意味着你可以用同样的方法构建一个装饰器，只是必须考虑self</p>
+
+<pre><code>def method_friendly_decorator(method_to_decorate):
+    def wrapper(self, lie):
+        lie = lie - 3 # very friendly, decrease age even more :-)
+        return method_to_decorate(self, lie)
+    return wrapper
+
+class Lucy(object):
+
+    def __init__(self):
+        self.age = 32
+
+    @method_friendly_decorator
+    def sayYourAge(self, lie):
+        print &quot;I am %s, what did you think?&quot; % (self.age + lie)
+
+l = Lucy()
+l.sayYourAge(-3)
+#outputs: I am 26, what did you think?
+</code></pre>
+
+<p>当然，你可以构造一个更加通用的装饰器，可以作用在任何函数或对象方法上，而不必关系其参数
+使用</p>
+
+<pre><code>*args, **kwargs
+</code></pre>
+
+<p>如下代码</p>
+
+<pre><code>def a_decorator_passing_arbitrary_arguments(function_to_decorate):
+    # 包装函数可以接受任何参数
+    def a_wrapper_accepting_arbitrary_arguments(*args, **kwargs):
+        print &quot;Do I have args?:&quot;
+        print args
+        print kwargs
+        # 然后你可以解开参数， *args，**kwargs
+        # 如果你对此不是很熟悉，可以参考 http://www.saltycrane.com/blog/2008/01/how-to-use-args-and-kwargs-in-python/
+        function_to_decorate(*args, **kwargs)
+    return a_wrapper_accepting_arbitrary_arguments
+
+@a_decorator_passing_arbitrary_arguments
+def function_with_no_argument():
+    print &quot;Python is cool, no argument here.&quot;
+
+function_with_no_argument()
+#outputs
+#Do I have args?:
+#()
+#{}
+#Python is cool, no argument here.
+
+@a_decorator_passing_arbitrary_arguments
+def function_with_arguments(a, b, c):
+    print a, b, c
+
+function_with_arguments(1,2,3)
+#outputs
+#Do I have args?:
+#(1, 2, 3)
+#{}
+#1 2 3
+
+@a_decorator_passing_arbitrary_arguments
+def function_with_named_arguments(a, b, c, platypus=&quot;Why not ?&quot;):
+    print &quot;Do %s, %s and %s like platypus? %s&quot; %\
+    (a, b, c, platypus)
+
+function_with_named_arguments(&quot;Bill&quot;, &quot;Linus&quot;, &quot;Steve&quot;, platypus=&quot;Indeed!&quot;)
+#outputs
+#Do I have args ? :
+#('Bill', 'Linus', 'Steve')
+#{'platypus': 'Indeed!'}
+#Do Bill, Linus and Steve like platypus? Indeed!
+
+class Mary(object):
+    def __init__(self):
+        self.age = 31
+
+    @a_decorator_passing_arbitrary_arguments
+    def sayYourAge(self, lie=-3): # You can now add a default value
+        print &quot;I am %s, what did you think ?&quot; % (self.age + lie)
+
+m = Mary()
+m.sayYourAge()
+#outputs
+# Do I have args?:
+#(&lt;__main__.Mary object at 0xb7d303ac&gt;,)
+#{}
+#I am 28, what did you think?
+</code></pre>
+
+<h3 id="向装饰器传递参数">向装饰器传递参数<a href="#向装饰器传递参数" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<p>好了，现在你或许会想是否可以向装饰器本身传递参数</p>
+
+<p>装饰器必须使用函数作为参数，所以这看起来会有些复杂，你不能直接传递参数给装饰器本身</p>
+
+<p>在开始处理这个问题前，看一点提醒</p>
+
+<pre><code># 装饰器是普通的方法
+def my_decorator(func):
+    print &quot;I am a ordinary function&quot;
+    def wrapper():
+        print &quot;I am function returned by the decorator&quot;
+        func()
+    return wrapper
+
+# 所以，你可以不通过@调用它
+
+def lazy_function():
+    print &quot;zzzzzzzz&quot;
+
+decorated_function = my_decorator(lazy_function)
+#outputs: I am a ordinary function
+
+# It outputs &quot;I am a ordinary function&quot;, because that's just what you do:
+
+# 调用一个函数，没有什么特别
+@my_decorator
+def lazy_function():
+    print &quot;zzzzzzzz&quot;
+
+#outputs: I am a ordinary function
+</code></pre>
+
+<p>上面两个形式本质上是相同的， &ldquo;my_decorator&rdquo; 被调用.所以当你使用&rdquo;@my_decorator&rdquo;,告诉python一个函数被变量&rdquo;my_decorator&rdquo;标记
+这十分重要,因为你提供的标签直接指向装饰器&hellip;或者不是，继续</p>
+
+<pre><code># 声明一个用于创建装饰器的函数
+def decorator_maker():
+
+    print &quot;I make decorators! I am executed only once: &quot;+\
+          &quot;when you make me create a decorator.&quot;
+
+    def my_decorator(func):
+        print &quot;I am a decorator! I am executed only when you decorate a function.&quot;
+
+        def wrapped():
+            print (&quot;I am the wrapper around the decorated function. &quot;
+                  &quot;I am called when you call the decorated function. &quot;
+                  &quot;As the wrapper, I return the RESULT of the decorated function.&quot;)
+            return func()
+
+        print &quot;As the decorator, I return the wrapped function.&quot;
+        return wrapped
+
+    print &quot;As a decorator maker, I return a decorator&quot;
+    return my_decorator
+
+# Let's create a decorator. It's just a new function after all.
+# 创建一个装饰器，本质上只是一个函数
+new_decorator = decorator_maker()
+#outputs:
+#I make decorators! I am executed only once: when you make me create a decorator.
+#As a decorator maker, I return a decorator
+
+# 使用装饰器装饰函数
+
+def decorated_function():
+    print &quot;I am the decorated function.&quot;
+
+decorated_function = new_decorator(decorated_function)
+#outputs:
+#I am a decorator! I am executed only when you decorate a function.
+#As the decorator, I return the wrapped function
+
+# 调用被装饰函数
+decorated_function()
+#outputs:
+#I am the wrapper around the decorated function. I am called when you call the decorated function.
+#As the wrapper, I return the RESULT of the decorated function.
+#I am the decorated function.
+</code></pre>
+
+<p>我们跳过中间变量，做同样的事情</p>
+
+<pre><code>def decorated_function():
+    print &quot;I am the decorated function.&quot;
+decorated_function = decorator_maker()(decorated_function)
+#outputs:
+#I make decorators! I am executed only once: when you make me create a decorator.
+#As a decorator maker, I return a decorator
+#I am a decorator! I am executed only when you decorate a function.
+#As the decorator, I return the wrapped function.
+
+# 最后:
+decorated_function()    
+#outputs:
+#I am the wrapper around the decorated function. I am called when you call the decorated function.
+#As the wrapper, I return the RESULT of the decorated function.
+#I am the decorated function.
+</code></pre>
+
+<p>使用装饰器语法，更简短</p>
+
+<pre><code>@decorator_maker()
+def decorated_function():
+    print &quot;I am the decorated function.&quot;
+#outputs:
+#I make decorators! I am executed only once: when you make me create a decorator.
+#As a decorator maker, I return a decorator
+#I am a decorator! I am executed only when you decorate a function.
+#As the decorator, I return the wrapped function.
+
+#最终: 
+decorated_function()    
+#outputs:
+#I am the wrapper around the decorated function. I am called when you call the decorated function.
+#As the wrapper, I return the RESULT of the decorated function.
+#I am the decorated function.
+</code></pre>
+
+<p>到这里，我们使用@调用一个函数</p>
+
+<p>回到问题，向装饰器本身传递参数，如果我们可以通过函数去创建装饰器，那么我们可以传递参数给这个函数，对么？</p>
+
+<pre><code>def decorator_maker_with_arguments(decorator_arg1, decorator_arg2):
+
+    print &quot;I make decorators! And I accept arguments:&quot;, decorator_arg1, decorator_arg2
+
+    def my_decorator(func):
+        # 这里能传递参数的能力，是闭包的特性
+        # 更多闭包的内容，参考 http://stackoverflow.com/questions/13857/can-you-explain-closures-as-they-relate-to-python
+        print &quot;I am the decorator. Somehow you passed me arguments:&quot;, decorator_arg1, decorator_arg2
+
+        # 不要搞混了装饰器参数和函数参数
+        def wrapped(function_arg1, function_arg2) :
+            print (&quot;I am the wrapper around the decorated function.\n&quot;
+                  &quot;I can access all the variables\n&quot;
+                  &quot;\t- from the decorator: {0} {1}\n&quot;
+                  &quot;\t- from the function call: {2} {3}\n&quot;
+                  &quot;Then I can pass them to the decorated function&quot;
+                  .format(decorator_arg1, decorator_arg2,
+                          function_arg1, function_arg2))
+            return func(function_arg1, function_arg2)
+
+        return wrapped
+
+    return my_decorator
+
+@decorator_maker_with_arguments(&quot;Leonard&quot;, &quot;Sheldon&quot;)
+def decorated_function_with_arguments(function_arg1, function_arg2):
+    print (&quot;I am the decorated function and only knows about my arguments: {0}&quot;
+           &quot; {1}&quot;.format(function_arg1, function_arg2))
+
+decorated_function_with_arguments(&quot;Rajesh&quot;, &quot;Howard&quot;)
+#outputs:
+#I make decorators! And I accept arguments: Leonard Sheldon
+#I am the decorator. Somehow you passed me arguments: Leonard Sheldon
+#I am the wrapper around the decorated function. 
+#I can access all the variables 
+#   - from the decorator: Leonard Sheldon 
+#   - from the function call: Rajesh Howard 
+#Then I can pass them to the decorated function
+#I am the decorated function and only knows about my arguments: Rajesh Howard
+</code></pre>
+
+<p>好了，that&rsquo;s it.参数可以设置为变量</p>
+
+<pre><code>c1 = &quot;Penny&quot;
+c2 = &quot;Leslie&quot;
+
+@decorator_maker_with_arguments(&quot;Leonard&quot;, c1)
+def decorated_function_with_arguments(function_arg1, function_arg2):
+    print (&quot;I am the decorated function and only knows about my arguments:&quot;
+           &quot; {0} {1}&quot;.format(function_arg1, function_arg2))
+
+decorated_function_with_arguments(c2, &quot;Howard&quot;)
+#outputs:
+#I make decorators! And I accept arguments: Leonard Penny
+#I am the decorator. Somehow you passed me arguments: Leonard Penny
+#I am the wrapper around the decorated function. 
+#I can access all the variables 
+#   - from the decorator: Leonard Penny 
+#   - from the function call: Leslie Howard 
+#Then I can pass them to the decorated function
+#I am the decorated function and only knows about my arguments: Leslie Howard
+</code></pre>
+
+<p>你可以看到，你可以使用像其它函数一样使用这个方法向装饰器传递参数.如果你愿意你甚至可以使用 *arg **kwargs.</p>
+
+<p>但是记住，装饰器仅在Python代码导入时被调用一次,之后你不能动态地改变参数.当你使用&rdquo;import x&rdquo;,函数已经被装饰，所以你不能改变什么</p>
+
+<h3 id="练习-一个装饰装饰器的装饰器">练习：一个装饰装饰器的装饰器<a href="#练习-一个装饰装饰器的装饰器" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<p>作为奖励，我将展示创建可以处理任何参数的装饰器代码片段. 毕竟，为了接收参数，必须使用另一个函数来创建装饰器</p>
+
+<p>让我们来给装饰器写一个装饰器:</p>
+
+<pre><code># 装饰 装饰器 的装饰器 (好绕.....)
+def decorator_with_args(decorator_to_enhance):
+    &quot;&quot;&quot; 
+    这个函数将作为装饰器使用
+    它必须装饰另一个函数
+    它将允许任何接收任意数量参数的装饰器
+    方便你每次查询如何实现
+    &quot;&quot;&quot;
+
+    # 同样的技巧传递参数
+    def decorator_maker(*args, **kwargs):
+
+        # 创建一个只接收函数的装饰器
+        # 但是这里保存了从创建者传递过来的的参数
+        def decorator_wrapper(func):
+
+            # 我们返回原始装饰器的结果
+            # 这是一个普通的函数，返回值是另一个函数
+            # 陷阱：装饰器必须有这个特殊的签名，否则不会生效
+            return decorator_to_enhance(func, *args, **kwargs)
+
+        return decorator_wrapper
+
+    return decorator_maker
+</code></pre>
+
+<p>使用：</p>
+
+<pre><code># 你创建这个函数是作为一个装饰器，但是给它附加了一个装饰器
+# 别忘了，函数签名是： &quot;decorator(func, *args, **kwargs)&quot;
+@decorator_with_args 
+def decorated_decorator(func, *args, **kwargs): 
+    def wrapper(function_arg1, function_arg2):
+        print &quot;Decorated with&quot;, args, kwargs
+        return func(function_arg1, function_arg2)
+    return wrapper
+
+# 然后，使用这个装饰器(your brand new decorated decorator)
+
+@decorated_decorator(42, 404, 1024)
+def decorated_function(function_arg1, function_arg2):
+    print &quot;Hello&quot;, function_arg1, function_arg2
+
+decorated_function(&quot;Universe and&quot;, &quot;everything&quot;)
+#outputs:
+#Decorated with (42, 404, 1024) {}
+#Hello Universe and everything
+
+# Whoooot!
+</code></pre>
+
+<p>我知道，到现在你一定会有这种感觉，就像你听一个人说“在理解递归之前，你必须首先了解递归”，但是现在，掌握这儿你有没有觉得很棒？</p>
+
+<h2 id="装饰器使用最佳实践">装饰器使用最佳实践<a href="#装饰器使用最佳实践" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<ul>
+<li>这是Python2.4的新特性，所以确保你的代码在2.4及之上的版本运行</li>
+<li>装饰器降低了函数调用的性能，记住这点</li>
+<li>You can not un-decorate a function. There are hacks to create decorators that can be removed but nobody uses them. So once a function is decorated, it&rsquo;s done. For all the code.</li>
+<li>装饰器包装函数，所以很难debug</li>
+</ul>
+
+<p>Python2.5解决了最后一个问题，它提供functools模块，包含functools.wraps.这个函数会将被装饰函数的名称，模块，文档字符串拷贝给封装函数,有趣的是，functools.wraps是一个装饰器:-)</p>
+
+<pre><code># 调试，打印函数的名字
+def foo():
+    print &quot;foo&quot;
+
+print foo.__name__
+#outputs: foo
+
+# 但当你使用装饰器，这一切变得混乱
+def bar(func):
+    def wrapper():
+        print &quot;bar&quot;
+        return func()
+    return wrapper
+
+@bar
+def foo():
+    print &quot;foo&quot;
+
+print foo.__name__
+#outputs: wrapper
+
+# &quot;functools&quot; 可以改变这点
+import functools
+
+def bar(func):
+    # 我们所说的 &quot;wrapper&quot;, 封装 &quot;func&quot;
+    @functools.wraps(func)
+    def wrapper():
+        print &quot;bar&quot;
+        return func()
+    return wrapper
+
+@bar
+def foo():
+    print &quot;foo&quot;
+
+# 得到的是原始的名称, 而不是封装器的名称
+print foo.__name__
+#outputs: foo
+</code></pre>
+
+<h3 id="装饰器为何那么有用">装饰器为何那么有用<a href="#装饰器为何那么有用" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<p>现在的问题是，我们用装饰器来坐什么？看起来很酷很强大，但是如果有实践的例子会更好.好了，有1000种可能。经典的用法是，在函数的外部，扩展一个函数的行为（你不需要改变这个函数），或者，为了调试的目的（我们不修改的原因是这是临时的），你可以使用装饰器扩展一些函数,而不用在这些函数中书写相同的函数实现一样的功能</p>
+
+<p>DRY原则，例子：</p>
+
+<pre><code>def benchmark(func):
+    &quot;&quot;&quot;
+    装饰器打印一个函数的执行时间
+    &quot;&quot;&quot;
+    import time
+    def wrapper(*args, **kwargs):
+        t = time.clock()
+        res = func(*args, **kwargs)
+        print func.__name__, time.clock()-t
+        return res
+    return wrapper
+
+def logging(func):
+    &quot;&quot;&quot;
+    装饰器记录函数日志
+    &quot;&quot;&quot;
+    def wrapper(*args, **kwargs):
+        res = func(*args, **kwargs)
+        print func.__name__, args, kwargs
+        return res
+    return wrapper
+
+def counter(func):
+    &quot;&quot;&quot;
+    记录并打印一个函数的执行次数
+    &quot;&quot;&quot;
+    def wrapper(*args, **kwargs):
+        wrapper.count = wrapper.count + 1
+        res = func(*args, **kwargs)
+        print &quot;{0} has been used: {1}x&quot;.format(func.__name__, wrapper.count)
+        return res
+    wrapper.count = 0
+    return wrapper
+
+@counter
+@benchmark
+@logging
+def reverse_string(string):
+    return str(reversed(string))
+
+print reverse_string(&quot;Able was I ere I saw Elba&quot;)
+print reverse_string(&quot;A man, a plan, a canoe, pasta, heros, rajahs, a coloratura, maps, snipe, percale, macaroni, a gag, a banana bag, a tan, a tag, a banana bag again (or a camel), a crepe, pins, Spam, a rut, a Rolo, cash, a jar, sore hats, a peon, a canal: Panama!&quot;)
+
+#outputs:
+#reverse_string ('Able was I ere I saw Elba',) {}
+#wrapper 0.0
+#wrapper has been used: 1x
+#ablE was I ere I saw elbA
+#reverse_string ('A man, a plan, a canoe, pasta, heros, rajahs, a coloratura, maps, snipe, percale, macaroni, a gag, a banana bag, a tan, a tag, a banana bag again (or a camel), a crepe, pins, Spam, a rut, a Rolo, cash, a jar, sore hats, a peon, a canal: Panama!',) {}
+#wrapper 0.0
+#wrapper has been used: 2x
+#!amanaP :lanac a ,noep a ,stah eros ,raj a ,hsac ,oloR a ,tur a ,mapS ,snip ,eperc a ,)lemac a ro( niaga gab ananab a ,gat a ,nat a ,gab ananab a ,gag a ,inoracam ,elacrep ,epins ,spam ,arutaroloc a ,shajar ,soreh ,atsap ,eonac a ,nalp a ,nam A
+</code></pre>
+
+<p>装饰器意味着，你可以用正确的方法实现几乎所有的事情，而不必重写他们</p>
+
+<pre><code>@counter
+@benchmark
+@logging
+def get_random_futurama_quote():
+    import httplib
+    conn = httplib.HTTPConnection(&quot;slashdot.org:80&quot;)
+    conn.request(&quot;HEAD&quot;, &quot;/index.html&quot;)
+    for key, value in conn.getresponse().getheaders():
+        if key.startswith(&quot;x-b&quot;) or key.startswith(&quot;x-f&quot;):
+            return value
+    return &quot;No, I'm ... doesn't!&quot;
+
+print get_random_futurama_quote()
+print get_random_futurama_quote()
+
+#outputs:
+#get_random_futurama_quote () {}
+#wrapper 0.02
+#wrapper has been used: 1x
+#The laws of science be a harsh mistress.
+#get_random_futurama_quote () {}
+#wrapper 0.01
+#wrapper has been used: 2x
+#Curse you, merciful Poseidon!
+</code></pre>
+
+<p>Python本身提供了一些装饰器：property,staticmethod,等等，</p>
+
+<p>Django使用装饰器去管理缓存和权限. Twisted to fake inlining asynchronous functions calls.用途广泛</p>
+
+<p>EDIT: 鉴于这个回答的完美，人们希望我去回答metaclass,我这样做了</p>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p>
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg><span class="tag"><a href="http://wklken.me/tags/pythontranslation.html">python,translation</a></span>
+				</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>5191 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2013-07-19 08:00 &#43;0800</p>
+			</footer>
+		</article>
+		<aside id="toc">
+			<div class="toc-title">Table of Contents</div>
+			<nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#python的函数是对象">python的函数是对象</a></li>
+<li><a href="#函数引用">函数引用</a></li>
+<li><a href="#手工装饰器">手工装饰器</a></li>
+<li><a href="#装饰器阐述">装饰器阐述</a></li>
+<li><a href="#最后回答问题">最后回答问题</a>
+<ul>
+<li><a href="#向装饰器函数传递参数">向装饰器函数传递参数</a></li>
+<li><a href="#装饰方法">装饰方法</a></li>
+<li><a href="#向装饰器传递参数">向装饰器传递参数</a></li>
+<li><a href="#练习-一个装饰装饰器的装饰器">练习：一个装饰装饰器的装饰器</a></li>
+</ul></li>
+<li><a href="#装饰器使用最佳实践">装饰器使用最佳实践</a>
+<ul>
+<li><a href="#装饰器为何那么有用">装饰器为何那么有用</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+		</aside>
+		<div class="post-nav thin">
+			<a class="next-post" href="http://wklken.me/posts/2013/07/20/python-stackoverflow-vote-top.html">
+				<span class="post-nav-label"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>&nbsp;Newer</span><br><span>[翻译整理]stackoverflow python 百问</span>
+			</a>
+			<a class="prev-post" href="http://wklken.me/posts/2013/07/18/python-translate-yield.html">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>[翻译]Python中yield的解释</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+<div id="disqus_thread"></div>
+<script type="application/javascript">
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "wklken" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2019 <a href="http://wklken.me">wklken</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="http://wklken.me/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+	<script src="http://wklken.me/js/main.min.784417f5847151f848c339cf0acb13a06cbb648b1483435a28ed4556c4ead69b.js" integrity="sha256-eEQX9YRxUfhIwznPCssToGy7ZIsUg0NaKO1FVsTq1ps="></script>
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-42275748-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+</body>
+
+</html>

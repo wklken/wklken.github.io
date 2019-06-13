@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<meta name="theme-color" content="#494f5c">
+	<meta name="msapplication-TileColor" content="#494f5c">
+
+<meta itemprop="name" content="如何进行shell脚本正确性测试">
+<meta itemprop="description" content="在实际工作中，需要对shell脚本进行正确性测试。 如何用最快最有效的方式进行测试？ 很多开发的习惯是，二话不说，写完/拿到，就跑一把，看看输入">
+
+
+<meta itemprop="datePublished" content="2012-09-15T08:00:00&#43;08:00" />
+<meta itemprop="dateModified" content="2012-09-15T08:00:00&#43;08:00" />
+<meta itemprop="wordCount" content="1072">
+
+
+
+<meta itemprop="keywords" content="python,shell," />
+<meta property="og:title" content="如何进行shell脚本正确性测试" />
+<meta property="og:description" content="在实际工作中，需要对shell脚本进行正确性测试。 如何用最快最有效的方式进行测试？ 很多开发的习惯是，二话不说，写完/拿到，就跑一把，看看输入" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://wklken.me/posts/2012/09/15/how-to-test-shell.html" />
+<meta property="article:published_time" content="2012-09-15T08:00:00&#43;08:00"/>
+<meta property="article:modified_time" content="2012-09-15T08:00:00&#43;08:00"/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="如何进行shell脚本正确性测试"/>
+<meta name="twitter:description" content="在实际工作中，需要对shell脚本进行正确性测试。 如何用最快最有效的方式进行测试？ 很多开发的习惯是，二话不说，写完/拿到，就跑一把，看看输入"/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>如何进行shell脚本正确性测试</title>
+	<link rel="stylesheet" href="http://wklken.me/css/style.min.31706917653d2b9e8410abd431f30ec4359a88a94fc87a63654779d87329edec.css" integrity="sha256-MXBpF2U9K56EEKvUMfMOxDWaiKlPyHpjZUd52HMp7ew=">
+	
+	<link rel="stylesheet" href="http://wklken.me/css/custom.css">
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp faster">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="http://wklken.me">WKLKEN BUILDING</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					<a href="http://wklken.me/posts.html">Posts</a>
+					<a href="http://wklken.me/about.html">About</a>
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<button id="toc-btn" class="hdr-btn desktop-only-ib" title="Table of Contents"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3" y2="6"></line><line x1="3" y1="12" x2="3" y2="12"></line><line x1="3" y1="18" x2="3" y2="18"></line></svg></button><span class="hdr-social hide-in-mobile"><a href="https://github.com/wklken" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-github"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a><a href="wklken@gmail.com" target="_blank" rel="noopener me" title="Email"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-mail"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="http://wklken.me/posts.html">Posts</a></li>
+			<li><a href="http://wklken.me/about.html">About</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>Sep 15, 2012</span></div>
+				<h1>如何进行shell脚本正确性测试</h1>
+			</header>
+			<div class="content">
+				<p>在实际工作中，需要对shell脚本进行正确性测试。</p>
+
+<p>如何用最快最有效的方式进行测试？</p>
+
+<p>很多开发的习惯是，二话不说，写完/拿到，就跑一把，看看输入，输出，想要的操作是否完成，也就过了。</p>
+
+<p>其实这是十分不严谨的，若是未经过QA，风险还是相当大的。</p>
+
+<p>以下即shell脚本测试流程，仅供参考</p>
+
+<p>1.代码走读：</p>
+
+<p>写完，或者拿到一个shell脚本，不必急于运行，虽然实践是检验整理的唯一标准，但是，在读代码这个过程中，可以规避很多低级的bug.</p>
+
+<p>读什么？</p>
+
+<pre><code>A.代码逻辑，这个脚本用来做什么，主要分为多少步，分别做了什么事情？
+  用于检查是否有遗漏逻辑，或有悖于需求。
+B.具体语法，变量，判断语句
+  语法方面的东西，变量是否定义，判断语句逻辑是否正确，是否考虑各种异常，错误是否退出，返回正确状态值等。
+</code></pre>
+
+<p>2.语法检测：</p>
+
+<p>shell的语法还是相当让人无语的，很多很容易疏忽遗漏的地方</p>
+
+<p>命令格式：</p>
+
+<pre><code>sh -n ***.sh
+</code></pre>
+
+<p>若是没有异常输出，证明脚本没有明显的语法问题。</p>
+
+<p><img src="https://github.com/wklken/gallery/blob/master/shell_test/shell_test_1.jpg?raw=true" alt="运行结果" /></p>
+
+<p>3.运行跟踪：</p>
+
+<p>实践是检验整理的唯一标准，跑一把。</p>
+
+<p>不过，可不是直接运行然后去看最终结果，这样会遗漏掉很多中间过程。</p>
+
+<p>命令格式:</p>
+
+<pre><code>sh -vx ***.sh
+</code></pre>
+
+<p>得到效果如下:</p>
+
+<p><img src="https://github.com/wklken/gallery/blob/master/shell_test/shell_test_2.jpg?raw=true" alt="运行结果" /></p>
+
+<p>我们可以看到</p>
+
+<p>每行代码原始命令（无+的）:[这是-v的效果]</p>
+
+<p>代码执行时的情况（带+），包括运算结果，逻辑判断结果，变量赋值等等[-x的效果]</p>
+
+<p>而我们所要关注的就是这些信息，主要是变量值和逻辑判断结果。</p>
+
+<p>4.覆盖分支：</p>
+
+<p>直接跑，只能覆盖到主体流程，对于其他控制流分支的代码是无法覆盖到的。</p>
+
+<p>对于关键性的，重点的逻辑，我们需要制造条件，使运行脚本可以进入对应分支</p>
+
+<p>5.其他：</p>
+
+<pre><code>A.关于bashdb:
+  可以尝试下，但是感觉投入产出比不高
+B.关于单元测试：
+  实际工作中，由于项目压力比较大，单元测试的成本还是相当高的，所以目前为止没有。
+</code></pre>
+
+<p>6.有没有更好的方式?</p>
+
+<p>好吧，单步跟踪，脚本短的还好，日志信息不会太多，要是多了，存在调用其他脚本等等&hellip;..</p>
+
+<p>日志量达到几千行，这是很轻易的事情。</p>
+
+<p>跟踪过的童鞋有同感，展现不够友好，惨白惨白一片，一千行下来，看的眼花。</p>
+
+<p>很容易遗漏（LZ被坑了好多回，你看，或不看&hellip;&hellip;错误信息明明就在那里，就是视而不见）</p>
+
+<p>So.进行了一层优化，对日志进行处理，使用正则，标注我关心的信息</p>
+
+<p>效果图对比：</p>
+
+<p><img src="https://github.com/wklken/gallery/blob/master/shell_test/shell_test_3.jpg?raw=true" alt="原始图" /></p>
+
+<p><img src="https://github.com/wklken/gallery/blob/master/shell_test/shell_test_4.jpg?raw=true" alt="扩展图" /></p>
+
+<p>脚本是用python实现的，位置:<a href="https://github.com/wklken/pytools/tree/master/shell">https://github.com/wklken/pytools/tree/master/shell</a></p>
+
+<p>思想是：执行，抓到所有日志，用正则进行匹配，打上颜色，然后输出</p>
+
+<p>好了，就这些</p>
+
+<p>工具的实现是为了提高效率，节约时间。</p>
+
+<p>The end!</p>
+
+<p>wklken</p>
+
+<p>Gighub: <a href="https://github.com/wklken">https://github.com/wklken</a></p>
+
+<p>Blog: <a href="http://wklken.me">http://wklken.me</a></p>
+
+<p>2012-09-15</p>
+
+<p>转载请注明出处，谢谢！</p>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p>
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg><span class="tag"><a href="http://wklken.me/tags/pythonshell.html">python,shell</a></span>
+				</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>1072 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2012-09-15 08:00 &#43;0800</p>
+			</footer>
+		</article>
+		<aside id="toc">
+			<div class="toc-title">Table of Contents</div>
+			
+		</aside>
+		<div class="post-nav thin">
+			<a class="next-post" href="http://wklken.me/posts/2012/10/27/python-base-decorator.html">
+				<span class="post-nav-label"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>&nbsp;Newer</span><br><span>Python-进阶-装饰器小结</span>
+			</a>
+			<a class="prev-post" href="http://wklken.me/posts/2012/09/02/python-email-smtplib.html">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>Python通用邮件发送[smtplib]</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+<div id="disqus_thread"></div>
+<script type="application/javascript">
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "wklken" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2019 <a href="http://wklken.me">wklken</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="http://wklken.me/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+	<script src="http://wklken.me/js/main.min.784417f5847151f848c339cf0acb13a06cbb648b1483435a28ed4556c4ead69b.js" integrity="sha256-eEQX9YRxUfhIwznPCssToGy7ZIsUg0NaKO1FVsTq1ps="></script>
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-42275748-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+</body>
+
+</html>

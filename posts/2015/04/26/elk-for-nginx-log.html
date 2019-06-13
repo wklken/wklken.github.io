@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<meta name="theme-color" content="#494f5c">
+	<meta name="msapplication-TileColor" content="#494f5c">
+
+<meta itemprop="name" content="Logstash&#43;ElasticSearch&#43;Kibana处理nginx访问日志">
+<meta itemprop="description" content="ELK似乎是当前最为流行的日志收集-存储-分析的全套解决方案. 去年年初, 公司里已经在用, 当时自己还山寨了一个统计系统(postgresql-">
+
+
+<meta itemprop="datePublished" content="2015-04-26T08:00:00&#43;08:00" />
+<meta itemprop="dateModified" content="2015-04-26T08:00:00&#43;08:00" />
+<meta itemprop="wordCount" content="1764">
+
+
+
+<meta itemprop="keywords" content="system," />
+<meta property="og:title" content="Logstash&#43;ElasticSearch&#43;Kibana处理nginx访问日志" />
+<meta property="og:description" content="ELK似乎是当前最为流行的日志收集-存储-分析的全套解决方案. 去年年初, 公司里已经在用, 当时自己还山寨了一个统计系统(postgresql-" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://wklken.me/posts/2015/04/26/elk-for-nginx-log.html" />
+<meta property="article:published_time" content="2015-04-26T08:00:00&#43;08:00"/>
+<meta property="article:modified_time" content="2015-04-26T08:00:00&#43;08:00"/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Logstash&#43;ElasticSearch&#43;Kibana处理nginx访问日志"/>
+<meta name="twitter:description" content="ELK似乎是当前最为流行的日志收集-存储-分析的全套解决方案. 去年年初, 公司里已经在用, 当时自己还山寨了一个统计系统(postgresql-"/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>Logstash&#43;ElasticSearch&#43;Kibana处理nginx访问日志</title>
+	<link rel="stylesheet" href="http://wklken.me/css/style.min.31706917653d2b9e8410abd431f30ec4359a88a94fc87a63654779d87329edec.css" integrity="sha256-MXBpF2U9K56EEKvUMfMOxDWaiKlPyHpjZUd52HMp7ew=">
+	
+	<link rel="stylesheet" href="http://wklken.me/css/custom.css">
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp faster">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="http://wklken.me">WKLKEN BUILDING</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					<a href="http://wklken.me/posts.html">Posts</a>
+					<a href="http://wklken.me/about.html">About</a>
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<button id="toc-btn" class="hdr-btn desktop-only-ib" title="Table of Contents"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3" y2="6"></line><line x1="3" y1="12" x2="3" y2="12"></line><line x1="3" y1="18" x2="3" y2="18"></line></svg></button><span class="hdr-social hide-in-mobile"><a href="https://github.com/wklken" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-github"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a><a href="wklken@gmail.com" target="_blank" rel="noopener me" title="Email"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-mail"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="http://wklken.me/posts.html">Posts</a></li>
+			<li><a href="http://wklken.me/about.html">About</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>Apr 26, 2015</span></div>
+				<h1>Logstash&#43;ElasticSearch&#43;Kibana处理nginx访问日志</h1>
+			</header>
+			<div class="content">
+				
+
+<p><code>ELK</code>似乎是当前最为流行的日志收集-存储-分析的全套解决方案.</p>
+
+<p>去年年初, 公司里已经在用, 当时自己还<code>山寨</code>了一个统计系统(postgresql-echarts, 日志无结构化, json形式存储到postgresql, 构建统一前端配置生成, 调用统一查询接口, <a href="http://www.wklken.me/posts/2014/11/16/unit-statistics-system.html">具体细节</a>), 已经过了一年有余.</p>
+
+<p>一年刚好, 发生了很多事, 那套系统不知现在如何了.</p>
+
+<p>在新的公司, 一切都得从0到1, 近期开始关注日志/数据上报/统计, 以及后续的数据挖掘等.</p>
+
+<hr />
+
+<p>搭建, 测试并上线了一套简单的系统, 初期将所有服务器的nginx日志, 以及搜索日志进行处理.</p>
+
+<p><img src="/imgs/system/elk.png" alt="elk" /></p>
+
+<p>下面主要介绍对nginx日志进行处理的过程, 不是针对<code>elk</code>的介绍, 所有涉及ip的地方都改成<code>127.0.0.1</code>了, 根据自己环境进行修改</p>
+
+<h3 id="1-nginx日志-logstash-shipper-redis">1. nginx日志 -&gt; logstash shipper -&gt; redis<a href="#1-nginx日志-logstash-shipper-redis" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<p>在<code>centos</code>使用<code>yum</code>安装<code>nginx</code>后, 默认<code>/etc/nginx/nginx.conf</code>中的日志格式定义为:</p>
+<div class="highlight"><pre class="chroma"><code class="language-nginx" data-lang="nginx"><span class="k">log_format</span>  <span class="s">main</span>  <span class="s">&#39;</span><span class="nv">$remote_addr</span> <span class="s">-</span> <span class="nv">$remote_user</span> <span class="s">[</span><span class="nv">$time_local]</span> <span class="s">&#34;</span><span class="nv">$request&#34;</span> <span class="s">&#39;</span>
+                  <span class="s">&#39;</span><span class="nv">$status</span> <span class="nv">$body_bytes_sent</span> <span class="s">&#34;</span><span class="nv">$http_referer&#34;</span> <span class="s">&#39;</span>
+                  <span class="s">&#39;&#34;</span><span class="nv">$http_user_agent&#34;</span> <span class="s">&#34;</span><span class="nv">$http_x_forwarded_for&#34;&#39;</span><span class="p">;</span></code></pre></div>
+<p>然后在具体<code>server</code>配置中使用</p>
+
+<pre><code>access_log /data/logs/nginx/{PROJECT_NAME}_access.log main;
+</code></pre>
+
+<p>此时, 我们需要做的是, 将<code>access log</code>通过<code>logstash shipper</code>读取, 转<code>json</code>, 发送到<code>redis</code>, 由后续的<code>logstash indexer</code>进行处理</p>
+
+<p>步骤</p>
+
+<p>1.在日志所在机器部署<code>logstash</code></p>
+
+<p>2.在<code>logstash</code>安装目录下的<code>patterns</code>中加入一个文件<code>nginx</code></p>
+
+<p>内容(与上面的<code>log_format</code>相对应)</p>
+
+<pre><code>NGUSERNAME [a-zA-Z\.\@\-\+_%]+
+NGUSER %{NGUSERNAME}
+NGINXACCESS %{IPORHOST:clientip} - %{NOTSPACE:remote_user} \[%{HTTPDATE:timestamp}\] \&quot;(?:%{WORD:verb} %{NOTSPACE:request}(?: HTTP/%{NUMBER:httpversion})?|%{DATA:rawrequest})\&quot; %{NUMBER:response} (?:%{NUMBER:bytes}|-) %{QS:referrer} %{QS:agent} %{NOTSPACE:http_x_forwarded_for}
+</code></pre>
+
+<p>3.增加一个<code>logstash</code>配置文件: <code>logstash-project-access-log.conf</code></p>
+
+<p>注意, input的file, filter的grok, output的redis-key</p>
+
+<pre><code>    input {
+    file {
+        path =&gt; [ &quot;/data/logs/nginx/xxxx_access.log&quot; ]
+        start_position =&gt; &quot;beginning&quot;
+    }
+    }
+
+    filter {
+    mutate { replace =&gt; { &quot;type&quot; =&gt; &quot;nginx_access&quot; } }
+    grok {
+        match =&gt; { &quot;message&quot; =&gt; &quot;%{NGINXACCESS}&quot; }
+    }
+    date {
+        match =&gt; [ &quot;timestamp&quot; , &quot;dd/MMM/YYYY:HH:mm:ss Z&quot; ]
+    }
+    geoip {
+        source =&gt; &quot;clientip&quot;
+    }
+    }
+
+
+    output {
+    redis { host =&gt; &quot;127.0.0.1&quot; data_type =&gt; &quot;list&quot; key =&gt; &quot;logstash:xxxx:access_log&quot; }
+    }
+</code></pre>
+
+<p>4.使用<code>supervisor</code>启动<code>shipper</code>.</p>
+
+<pre><code>    [program:logstash_xxxx_shipper]
+    command=/var/shell/logstash/bin/logstash -f /var/shell/logstash/configs/nginx-xxxx-shipper.conf
+    numprocs=1
+    autostart=true
+    autorestart=true
+    log_stdout=true
+    log_stderr=true
+    logfile=/data/logs/logstash/logstash_xxxx_access.log
+</code></pre>
+
+<h3 id="2-redis-logstash-indexer-elasticsearch">2. redis -&gt; logstash indexer -&gt; elasticsearch<a href="#2-redis-logstash-indexer-elasticsearch" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<p>注意, input的redis为上一步redis配置, key要对应, output的elasticsearch配置, <code>index</code>指定了最终es中存储对应的index, 加日期, 方便对日志进行定期删除</p>
+
+<pre><code>input {
+redis {
+    host =&gt; &quot;127.0.0.1&quot;
+    port =&gt; &quot;6379&quot;
+    key =&gt; &quot;logstash:xxxx:access_log&quot;
+    data_type =&gt; &quot;list&quot;
+    codec  =&gt; &quot;json&quot;
+    type =&gt; &quot;logstash-arthas-access&quot;
+    tags =&gt; [&quot;arthas&quot;]
+}
+}
+
+output {
+elasticsearch {
+    host =&gt; &quot;127.0.0.1&quot;
+    index =&gt; &quot;logstash-arthas-access-%{+YYYY.MM.dd}&quot;
+}
+}
+</code></pre>
+
+<h3 id="3-elasticsearch-kibana">3. elasticsearch -&gt; kibana<a href="#3-elasticsearch-kibana" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<p>剩下的其实没什么了, 启动<code>kibana</code>后, 配置好指向的<code>es</code>, 就可以在<code>kibana</code>中查看到实时的日志数据</p>
+
+<p>demo环境截图</p>
+
+<p><img src="/imgs/system/kibana-nginx.png" alt="kibana-nginx" /></p>
+
+<p><code>kibana</code>中, 支持各种统计, 着实让人惊艳了一把.</p>
+
+<p>除了基本的nginx日志, 还需要在各类url入口, 加入平台, 渠道等信息, 这样通过nginx访问日志, 可以统计到更多的信息</p>
+
+<p>当然, 如果需要一些更为精确/特殊的统计, 需要自行进行数据上报的工作.</p>
+
+<hr />
+
+<h2 id="后续">后续<a href="#后续" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<ol>
+<li>更多的类型的日志聚合, 包括各类访问日志, 统计上报日志等, 日志落地成文件, 永久留存, 转入es中, 只留存三个月</li>
+<li>如何对各类数据进行拆分/汇总</li>
+<li>ELK整体部署/运维/扩容等, 包括数据清理</li>
+<li>基于ES日志的业务自定义统计后台(kibana无法满足一些具体业务的统计需求)</li>
+<li>为什么不使用<code>logstash forwarder</code>, 因为目前日志组成等较为简单, 简单处理 , 后续需要用到时再考虑</li>
+</ol>
+
+<hr />
+
+<h1 id="其他">其他<a href="#其他" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+
+<h2 id="1-关于-logformat-和对应-grok-的配置">1. 关于<code>logformat</code>和对应<code>grok</code>的配置<a href="#1-关于-logformat-和对应-grok-的配置" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p><code>grok</code>是<code>logstash</code>的一个插件,  <a href="http://logstash.net/docs/1.4.2/filters/grok">文档</a></p>
+
+<blockquote>
+<p>Grok is currently the best way in logstash to parse crappy unstructured log data into something structured and queryable</p>
+</blockquote>
+
+<p>所以, 我们在处理<code>nginx</code>日志时, 需要根据具体<code>logformat</code>定义对应的<code>grok</code>表达式</p>
+
+<p>除了上面例子中用的那套,  另一份</p>
+
+<p>logformat</p>
+
+<pre><code>  log_format logstash '$http_host '
+                      '$remote_addr [$time_local] '
+                      '&quot;$request&quot; $status $body_bytes_sent '
+                      '&quot;$http_referer&quot; &quot;$http_user_agent&quot; '
+                      '$request_time '
+                      '$upstream_response_time';
+</code></pre>
+
+<p>patterns/nginx</p>
+
+<pre><code>NGUSERNAME [a-zA-Z\.\@\-\+_%]+
+NGUSER %{NGUSERNAME}
+NGINXACCESS %{IPORHOST:http_host} %{IPORHOST:clientip} \[%{HTTPDATE:timestamp}\] \&quot;(?:%{WORD:verb} %{NOTSPACE:request}(?: HTTP/%{NUMBER:httpversion})?|%{DATA:rawrequest})\&quot; %{NUMBER:response} (?:%{NUMBER:bytes}|-) %{QS:referrer} %{QS:agent} %{NUMBER:request_time:float} %{NUMBER:upstream_time:float}
+</code></pre>
+
+<p>如果想自行定义, 可以使用 <a href="https://grokdebug.herokuapp.com/">grokdebug</a>, 将要解析的日志和配置的正则放入, 可以查看最终得到的结构化数据</p>
+
+<h2 id="2-elasticsearch插件">2. elasticsearch插件<a href="#2-elasticsearch插件" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p>初期只安装了一个 <a href="https://github.com/lmenezes/elasticsearch-kopf">kopf</a>, web界面查看</p>
+
+<h2 id="3-supervisor">3. supervisor<a href="#3-supervisor" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p>建议使用<code>supervisor</code>对<code>elk</code>进行管理,(ps. 不要用yum自带的, 版本太旧好多坑, 浪费1小时&hellip;&hellip;使用pip install安装最新版本即可)</p>
+
+<p>配置示例<code>elk.conf</code></p>
+
+<pre><code>[program:elasticsearch]
+command=/var/shell/elk/elasticsearch/bin/elasticsearch
+numprocs=1
+autostart=true
+autorestart=true
+
+[program:kibana]
+command=/var/shell/elk/kibana/bin/kibana
+numprocs=1
+autostart=true
+autorestart=true
+
+[program:logstash_arthas]
+command=/var/shell/elk/logstash/bin/logstash -f /var/shell/elk/logstash/config/xxxx_access.conf
+numprocs=1
+autostart=true
+autorestart=true
+log_stdout=true
+log_stderr=true
+logfile=/data/logs/elk/logstash/logstash_arthas_access.log
+</code></pre>
+
+<h2 id="4-logstash坑">4. logstash坑<a href="#4-logstash坑" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<pre><code>start_position =&gt; &quot;beginning&quot;
+</code></pre>
+
+<p>logstash, 会记录一份文件读到的位置, 在$HOME/.sincedb_xxxxx 如果要让logstash重新读取文件, 删除之即可, 重启<code>shipper</code>.</p>
+
+<p>但是你可能发现es中重复记录了, 这是因为, 在<code>output</code>中, 没有定义存储到es时使用的<code>document_id</code>, es全部当成新纪录存入, 导致数据重复</p>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p>
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg><span class="tag"><a href="http://wklken.me/tags/system.html">system</a></span>
+				</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>1764 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2015-04-26 08:00 &#43;0800</p>
+			</footer>
+		</article>
+		<aside id="toc">
+			<div class="toc-title">Table of Contents</div>
+			<nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#1-nginx日志-logstash-shipper-redis">1. nginx日志 -&gt; logstash shipper -&gt; redis</a></li>
+<li><a href="#2-redis-logstash-indexer-elasticsearch">2. redis -&gt; logstash indexer -&gt; elasticsearch</a></li>
+<li><a href="#3-elasticsearch-kibana">3. elasticsearch -&gt; kibana</a></li>
+</ul></li>
+<li><a href="#后续">后续</a></li>
+</ul></li>
+<li><a href="#其他">其他</a>
+<ul>
+<li><a href="#1-关于-logformat-和对应-grok-的配置">1. 关于<code>logformat</code>和对应<code>grok</code>的配置</a></li>
+<li><a href="#2-elasticsearch插件">2. elasticsearch插件</a></li>
+<li><a href="#3-supervisor">3. supervisor</a></li>
+<li><a href="#4-logstash坑">4. logstash坑</a></li>
+</ul></li>
+</ul>
+</nav>
+		</aside>
+		<div class="post-nav thin">
+			<a class="next-post" href="http://wklken.me/posts/2015/05/02/about-knowledge-manage-tools.html">
+				<span class="post-nav-label"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>&nbsp;Newer</span><br><span>关于知识管理工具的思考</span>
+			</a>
+			<a class="prev-post" href="http://wklken.me/posts/2015/03/18/summary-10-2014.html">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>2014, 在变化与坚持中前进</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+<div id="disqus_thread"></div>
+<script type="application/javascript">
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "wklken" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2019 <a href="http://wklken.me">wklken</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="http://wklken.me/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+	<script src="http://wklken.me/js/main.min.784417f5847151f848c339cf0acb13a06cbb648b1483435a28ed4556c4ead69b.js" integrity="sha256-eEQX9YRxUfhIwznPCssToGy7ZIsUg0NaKO1FVsTq1ps="></script>
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-42275748-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+</body>
+
+</html>

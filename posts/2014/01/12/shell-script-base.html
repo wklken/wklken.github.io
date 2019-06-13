@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<meta name="theme-color" content="#494f5c">
+	<meta name="msapplication-TileColor" content="#494f5c">
+
+<meta itemprop="name" content="如何书写shell脚本">
+<meta itemprop="description" content="关于Linux基础命令，可以查看另一篇博文 Linux Shell脚本攻略笔记 以下内容，主要是，了解书写shell脚本所需要的大部分知识,主要内容来自于">
+
+
+<meta itemprop="datePublished" content="2014-01-12T08:00:00&#43;08:00" />
+<meta itemprop="dateModified" content="2014-01-12T08:00:00&#43;08:00" />
+<meta itemprop="wordCount" content="3192">
+
+
+
+<meta itemprop="keywords" content="linux," />
+<meta property="og:title" content="如何书写shell脚本" />
+<meta property="og:description" content="关于Linux基础命令，可以查看另一篇博文 Linux Shell脚本攻略笔记 以下内容，主要是，了解书写shell脚本所需要的大部分知识,主要内容来自于" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://wklken.me/posts/2014/01/12/shell-script-base.html" />
+<meta property="article:published_time" content="2014-01-12T08:00:00&#43;08:00"/>
+<meta property="article:modified_time" content="2014-01-12T08:00:00&#43;08:00"/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="如何书写shell脚本"/>
+<meta name="twitter:description" content="关于Linux基础命令，可以查看另一篇博文 Linux Shell脚本攻略笔记 以下内容，主要是，了解书写shell脚本所需要的大部分知识,主要内容来自于"/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>如何书写shell脚本</title>
+	<link rel="stylesheet" href="http://wklken.me/css/style.min.31706917653d2b9e8410abd431f30ec4359a88a94fc87a63654779d87329edec.css" integrity="sha256-MXBpF2U9K56EEKvUMfMOxDWaiKlPyHpjZUd52HMp7ew=">
+	
+	<link rel="stylesheet" href="http://wklken.me/css/custom.css">
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp faster">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="http://wklken.me">WKLKEN BUILDING</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					<a href="http://wklken.me/posts.html">Posts</a>
+					<a href="http://wklken.me/about.html">About</a>
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<button id="toc-btn" class="hdr-btn desktop-only-ib" title="Table of Contents"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3" y2="6"></line><line x1="3" y1="12" x2="3" y2="12"></line><line x1="3" y1="18" x2="3" y2="18"></line></svg></button><span class="hdr-social hide-in-mobile"><a href="https://github.com/wklken" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-github"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a><a href="wklken@gmail.com" target="_blank" rel="noopener me" title="Email"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-mail"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="http://wklken.me/posts.html">Posts</a></li>
+			<li><a href="http://wklken.me/about.html">About</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>Jan 12, 2014</span></div>
+				<h1>如何书写shell脚本</h1>
+			</header>
+			<div class="content">
+				
+
+<p>关于Linux基础命令，可以查看另一篇博文 <a href="http://wklken.me/posts/2013/07/04/note-of-linux-shell-scripting-cookbook.html">Linux Shell脚本攻略笔记</a></p>
+
+<p>以下内容，主要是，了解书写shell脚本所需要的大部分知识,主要内容来自于书籍和网络</p>
+
+<p>目的是，能快速书写出需要的shell脚本</p>
+
+<p>开始</p>
+
+<p>version 0.1 2014-01-12 基本内容, 完成度30%</p>
+
+<hr />
+
+<p>资源</p>
+
+<p><a href="http://google-styleguide.googlecode.com/svn/trunk/shell.xml">google shell style guide</a></p>
+
+<p><a href="http://wklken.me/posts/2013/07/04/note-of-linux-shell-scripting-cookbook.html">Linux Shell脚本攻略笔记</a></p>
+
+<p><a href="http://blog.jobbole.com/48717/">Linux Shell编程实战技巧</a></p>
+
+<p><a href="http://kodango.com/bash-pitfalls-part-1">Bash编程易犯的错误 1234</a></p>
+
+<p><a href="http://blog.jobbole.com/16604/">关于shell脚本编程的10个最佳实践</a></p>
+
+<p><a href="http://bash.cumulonim.biz/BashPitfalls.html">Bash Pitfalls</a></p>
+
+<hr />
+
+<h2 id="第一部分-一些概念">第一部分 一些概念<a href="#第一部分-一些概念" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p>标准IO</p>
+
+<pre><code>文件描述符
+0 标准输入 默认键盘
+1 标准输出 默认终端
+2 标准错误 默认终端
+</code></pre>
+
+<p>重定向</p>
+
+<pre><code>&gt; 输出重定向
+&gt;&gt; 追加到输出重定向
+&lt; 输入重定向
+&lt;&lt; 追加到输入重定向
+
+ls -l &gt; /tmp/a
+
+cmd &gt;/dev/null 2&gt;&amp;1 #输出到垃圾桶
+</code></pre>
+
+<p>管道</p>
+
+<pre><code>前后连接两个命令
+
+ls -l | grep test
+</code></pre>
+
+<p>引号</p>
+
+<pre><code>双引号：可以除了字符$`\外地任何字符或字符串
+单引号：忽略任何引用值，将引号里的所有字符作为一个字符串 $var 不能被解析
+反引号：设置系统命令输出到变量
+</code></pre>
+
+<p>shell脚本识别三种基本命令：内建命令，shell函数和外部命令</p>
+
+<p>基本的命令查找:shell会沿着查找路径$PATH来寻找命令</p>
+
+<pre><code>echo $PATH
+
+可以在.profile文件中修改
+export PATH=$PATH:$HOME/bin
+</code></pre>
+
+<p>and/or</p>
+
+<pre><code>expression1 &amp;&amp; expression2 &amp;&amp; expression3
+只有前面一条命令执行成功，才执行下一条
+expression1执行成功，才执行expression2
+串联的
+
+expression1 || expression2 || expression3
+执行命令，直到有一条成功为止
+</code></pre>
+
+<hr />
+
+<h2 id="第二部分-shell脚本">第二部分 shell脚本<a href="#第二部分-shell脚本" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p>首行声明使用bash(声明脚本执行解释器)</p>
+
+<pre><code>#!/bin/bash
+
+# do something
+
+exit 0/n
+</code></pre>
+
+<p>运行</p>
+
+<pre><code>sh xx.sh
+bash xx.sh #大部分情况下两个一样，某些命令只有bash有，只能用这个
+
+or
+
+chmod u+x xx.sh
+./xx.sh
+</code></pre>
+
+<p>调试</p>
+
+<pre><code>#查看运行时，每个命令回显，执行之后回显
+sh -x xx.sh
+
+#执行之前回显
+sh -v xx.sh
+
+#检查语法错误，不执行
+sh -n xx.sh
+
+#如果使用了未定义的变量，给出错误信息
+sh -u xx.sh
+
+#调试部分脚本
+echo &quot;Hello $USER,&quot;
+set -x
+echo &quot;Today is $(date %Y-%m-%d)&quot;
+set +x
+</code></pre>
+
+<p>判断执行结果</p>
+
+<pre><code>N=$?  #0 &lt;= N &lt;= 255
+
+0 无错误，正常执行结束
+非0 异常
+    1-125命令不成功退出
+    126命令成功，但文件无法执行
+    127命令找不到
+    &gt;128命令因收到信号而死亡
+</code></pre>
+
+<p>获取目录名和文件名</p>
+
+<pre><code># To find base directory
+APP_ROOT=`dirname &quot;$0&quot;`
+
+# To find the file name
+filename=`basename &quot;$filepath&quot;`
+
+# To find the file name without extension
+filename=`basename &quot;$filepath&quot; .html`
+
+e.g.
+BASEDIR=$(dirname $0)
+cd $BASEDIR
+CURRENT_DIR=`pwd`
+</code></pre>
+
+<p>日期</p>
+
+<pre><code>TODAY=`date +%Y%m%d`
+DAY_1_AGO=`date -d &quot;$TODAY 1 days ago&quot; +%Y%m%d`
+
+常用接受日期/使用默认日期处理
+
+if [ -n &quot;$1&quot; ]
+then
+    TODAY=&quot;$1&quot;
+else
+    TODAY=`date +%Y%m%d`
+fi
+</code></pre>
+
+<p>crontab调度</p>
+
+<pre><code>查看
+crontab -l
+编辑
+crontab -e
+
+格式
+* * * * * command_path
+
+字段      含义     范围
+1        分钟         0-59
+2        小时         0-23
+3        日期         1-31
+4        月份         1-12
+5        星期几，0=周日   0-6
+6        具体命令,可以是调用脚本
+
+*任意时刻
+n1,n2  分割，n1和n2
+*/n  每隔n单位
+n1-n2   时段，一个时段内
+
+0 */2 * * * sh run.sh     每隔两小时
+20 7 * * * sh run.sh 每天7:20
+0 1,5 * * * sh run.sh 每天1点和5点
+* * * * * sh run.sh 每分钟执行一次
+</code></pre>
+
+<hr />
+
+<h2 id="第三部分-变量">第三部分 变量<a href="#第三部分-变量" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<h4 id="1-变量赋值">1.变量赋值<a href="#1-变量赋值" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
+
+<pre><code>varname=&quot;value&quot;
+varname=`expression`
+
+注意，等号两边必须不能包含空格
+</code></pre>
+
+<h4 id="2-分类">2.分类<a href="#2-分类" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
+
+<pre><code>四种变量：环境变量、本地变量、位置变量、特定变量参数
+
+环境变量可作用于所有子进程
+本地变量在用户现在的shell 生命期的脚本中使用，仅存在于当前进程
+位置变量：作为程序参数
+特定变量：特殊作用
+</code></pre>
+
+<h4 id="3-环境变量">3.环境变量<a href="#3-环境变量" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
+
+<pre><code>设置
+MYVAR=&quot;test&quot;
+expirt MYVAR
+or
+export MYVAR=&quot;test&quot;
+
+只读
+MYVAR=&quot;test&quot;
+readonly MYVAR
+or
+readonly MYVAR=&quot;test&quot;
+
+显示
+export -p
+env #查看所有环境变量
+$MYVAR #获取
+
+消除
+unset MYVAR
+</code></pre>
+
+<h4 id="4-本地变量">4.本地变量<a href="#4-本地变量" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
+
+<pre><code>设置
+LOCAL_VAR=&quot;test&quot;
+or
+LOCAL_VAR=&quot;test&quot;
+readonly LOCAL_VAR #设置只读
+
+还可以使用declare命令定义
+</code></pre>
+
+<h4 id="5-位置变量">5.位置变量<a href="#5-位置变量" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
+
+<pre><code>$0 脚本名称
+$# 传递到脚本参数个数
+$$ shell脚本运行当前进程ID
+$? 退出状态
+$N N&gt;=1，第n个参数
+</code></pre>
+
+<h4 id="6-字符串处理">6.字符串处理<a href="#6-字符串处理" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
+
+<p>长度</p>
+
+<pre><code>${#VARIABLE_NAME} 可以给出字符串的长度。
+
+if [ ${#authy_api_key} != 32 ]
+then
+    return $FAIL
+fi
+</code></pre>
+
+<p>拼接字符串</p>
+
+<pre><code>echo &quot;$x$y&quot;
+</code></pre>
+
+<p>字符串切片</p>
+
+<pre><code>${变量名:起始:长度}得到子字符串
+
+$ test='I love china'
+$ echo ${test:5}
+e china
+$ echo ${test:5:10}
+e china
+
+str=&quot;hello world&quot;
+echo ${str:6}  # ${var:offset:length}
+</code></pre>
+
+<p>字符串替换</p>
+
+<pre><code>${变量/查找/替换值} 一个“/”表示替换第一个，”//”表示替换所有,当查找中出现了：”/”请加转义符”\/”表示
+echo ${str/foo/bar} #首个
+echo ${str//foo/bar} #所有
+</code></pre>
+
+<p>正则匹配</p>
+
+<pre><code>if [[ $str =~ [0-9]+\.[0-9]+ ]]
+</code></pre>
+
+<h4 id="7-数值处理">7.数值处理<a href="#7-数值处理" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
+
+<p>自增</p>
+
+<pre><code>a=1
+a=`expr a + 1`
+
+or
+
+a=1
+let a++
+let a+=2
+</code></pre>
+
+<p>let</p>
+
+<pre><code>no1=4
+no2=5
+let result=no1+no2
+</code></pre>
+
+<p>expr</p>
+
+<pre><code>result=`expr 3 + 4`
+result=$(expr $no1 + 5)
+</code></pre>
+
+<p>其他</p>
+
+<pre><code>result=$[ no1 + no2 ]
+result=$[ $no + 5 ]
+
+result=$(( no1 + 5 ))
+</code></pre>
+
+<p>浮点数</p>
+
+<pre><code>echo &quot;4 * 0.56&quot; | bc
+设定精度
+echo &quot;scale=2;3/8&quot; | bc
+进制转换
+echo &quot;obase=2;100&quot; | bc
+平方
+echo &quot;sqrt(100)&quot; | bc
+</code></pre>
+
+<p>数组和map</p>
+
+<hr />
+
+<h2 id="第四部分-控制流">第四部分 控制流<a href="#第四部分-控制流" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<h4 id="1-条件测试">1.条件测试<a href="#1-条件测试" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
+
+<p>语法</p>
+
+<pre><code>test condition
+[ condition ] #注意两边加空格
+
+$? #获取判断结果，0表示condition=true
+</code></pre>
+
+<p>条件测试中的逻辑</p>
+
+<pre><code>-a 与
+-o 或
+!  非
+&amp;&amp;
+||
+
+if [ -n &quot;$str&quot; -a -f &quot;$file&quot; ]
+if [ -n &quot;$str&quot; ] &amp;&amp; [ -f &quot;$file&quot; ]
+</code></pre>
+
+<p>字符串测试</p>
+
+<pre><code>=   两字符串相等
+!=  两字符串不等
+-z  空串 [zero]
+-n  非空串 [nozero]
+
+[ -z &quot;$EDITOR&quot; ]
+[ &quot;$EDITOR&quot; = &quot;vi&quot; ]
+</code></pre>
+
+<p>数值测试</p>
+
+<pre><code>-eq  数值相等（equal）
+-ne  不等（not equal）
+-gt  A&gt;B（greater than）
+-lt  A&lt;B（less than）
+-le  A&lt;=B（less、equal）
+-ge  A&gt;=B（greater、equal）
+
+N=130
+[ &quot;$N&quot; -eq 130 ]
+</code></pre>
+
+<p>文件测试</p>
+
+<pre><code>-d目录
+-f 普通文件（Regular file）
+
+-e 文件存在
+-z 文件长度=0
+-s 文件长度大于0，非空
+
+-b 块专用文件
+-c 字符专用文件
+-L 符号链接
+
+-r Readable（文件、目录可读）
+-w Writable（文件、目录可写）
+-x Executable（文件可执行、目录可浏览）
+
+-g 如果文件的set-group-id位被设置则结果为真
+-u 文件有suid位设置
+</code></pre>
+
+<h4 id="2-分支if-else-case">2.分支if-else/case<a href="#2-分支if-else-case" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
+
+<p>if-else语法</p>
+
+<pre><code>if condition1
+then
+    //do thing a
+elif condition2
+then
+    //do thing b
+else
+    //do thing c
+fi
+
+or
+
+if condition; then
+# do something
+fi
+</code></pre>
+
+<p>case语法</p>
+
+<pre><code>case $VAR in
+    1)
+        echo &quot;abc&quot;
+        ;;
+    2|3|4)
+        echo &quot;def&quot;
+        ;;
+    *)
+        echo &quot;last&quot;
+        ;;
+esac
+</code></pre>
+
+<h4 id="3-循环for-while-until">3.循环for/while/until<a href="#3-循环for-while-until" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
+
+<p>for语法</p>
+
+<pre><code>for VARIABLE in 1 2 3 4 5 .. N
+do
+    //commands
+done
+
+for OUTPUT in $(Linux-Or-Unix-Command-Here)
+do
+    //commands on $OUTPUT
+done
+
+#bash
+for (( EXP1; EXP2; EXP3 ))
+do
+    //commands
+done
+
+例子
+
+for i in 1 2 3 4 5; do
+    echo $i
+done
+
+for i in `seq 1 5`; do
+    echo $i
+done
+
+#!/bin/bash
+echo &quot;Bash version&quot;
+for i in $(seq 1 2 20)
+do
+   echo &quot;Welcome $i times&quot;
+done
+
+for i in {1..5}; do
+    echo $i
+done
+
+#!/bin/bash
+echo &quot;Bash version&quot;
+for i in {0..10..2}
+do
+    echo &quot;Welcome $i times&quot;
+done
+
+for ((i=1; i&lt;=10; i++)); do
+    echo $i
+done
+
+#无限循环
+#!/bin/bash
+for (( ; ; ))
+do
+   echo &quot;infinite loops [ hit CTRL+C to stop]&quot;
+done
+</code></pre>
+
+<p>while</p>
+
+<pre><code>while condition
+do
+    //do something
+done
+
+COUNTER=0
+while [ $COUNTER -lt 5 ]
+do
+    COUNTER=`expr $COUNTER + 1`
+    echo $COUNTER
+done
+
+
+无限循环
+while [ 1 ]
+do
+    //
+done
+</code></pre>
+
+<p>until</p>
+
+<pre><code>#执行命令，直到条件为真，至少执行一次，可以用来做监控，condition每次都回去检查
+until condition
+do
+    //do something
+done
+</code></pre>
+
+<p>break/continue</p>
+
+<pre><code>break
+允许跳出循环，通常在进行一些列处理后退出循环或case语句
+若多重循环，可指定跳出的循环个数，如跳出两重循环  break 2
+
+continue
+不会跳出循环，只是跳过此循环步
+命令是程序在本循体内忽略下面的语句,从循环头开始执行
+</code></pre>
+
+<hr />
+
+<h2 id="第五部分-函数">第五部分 函数<a href="#第五部分-函数" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<h4 id="1-函数定义">1.函数定义<a href="#1-函数定义" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
+
+<pre><code>function func_name() {
+
+}
+
+func_name() {
+    //do some thing
+}
+</code></pre>
+
+<p>注意</p>
+
+<pre><code>函数名，在脚本中必须唯一
+函数必须，先定义，后使用
+</code></pre>
+
+<p>return</p>
+
+<pre><code>function equal() {
+    return 1
+}
+
+equal
+echo $? #got 1
+</code></pre>
+
+<h3 id="2-参数传递">2.参数传递<a href="#2-参数传递" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<pre><code>#位置参数
+function copyfile() {
+    cp $1 $2
+    return $?
+}
+
+调用
+
+copyfile /tmp/a /tmp/b
+or获取返回值
+result=`copyfile /tmp/a /tmp/b`
+</code></pre>
+
+<p>位置参数</p>
+
+<pre><code>$1 - $9，当参数超过10个时，需要使用${10}
+$# 参数个数
+$* 将所有参数视为一个字符串=&quot;$1 $2 ...&quot;
+$@ 将所有参数视为个体=&quot;$1&quot; &quot;$2&quot; &quot;$3&quot;
+</code></pre>
+
+<h3 id="3-返回值和退出状态">3.返回值和退出状态<a href="#3-返回值和退出状态" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<pre><code>#返回值
+function func_a() {
+    return 1
+}
+
+result=`func_a`
+if [ result != 0 ]
+then
+    echo &quot;Error&quot;
+fi
+
+#退出状态
+function func_b() {
+    //do something
+}
+
+func_b
+if [ $? -eq 0 ]
+then
+    echo &quot;Success&quot;
+else
+    echo &quot;Error&quot;
+fi
+
+#更简洁
+if func_b; then
+    echo &quot;Success&quot;
+else
+    echo &quot;Error&quot;
+fi
+
+func_b &amp;&amp; echo &quot;Success&quot; || echo &quot;Error&quot;
+</code></pre>
+
+<h2 id="第四部分-高级">第四部分 高级<a href="#第四部分-高级" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p>bash中参数展开-展开运算符</p>
+
+<pre><code>${varname:-word} 如果变量未定义，返回默认值.  ${noexist:-0}返回0
+${varname:=word} 如果变量未定义，设置变量为默认值  ${noexists:=0}; echo ${noexists}; 得到0
+
+${varname:?message} 若未定义，显示varname:message并退出当前的命令或脚本
+${varname:+word} 若存在且非null，返回word，否则返回null
+</code></pre>
+
+<p>模式匹配</p>
+
+<pre><code>${variable##pattern}
+${variable%pattern}
+</code></pre>
+
+<h2 id="第五部分-其他">第五部分 其他<a href="#第五部分-其他" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p>读文件</p>
+
+<pre><code>while read -r line; do
+    echo $line
+done &lt; file
+
+保留首尾字符
+while IFS= reaad -r line; do
+    echo $line
+done
+</code></pre>
+
+<p>一些内置命令</p>
+
+<pre><code>:
+空命令，类似python的pass
+
+.
+相当于source
+
+\
+用于跨行命令
+
+echo
+输出，类似println
+
+exec
+
+exit n
+脚本以n作为退出码退出
+
+export
+设置或显示环境变量
+
+expr
+简单计算
+x=`expr $x + 1`
+x=$(expr $x + 1)
+
+let
+d=111
+let d=$d+1; echo $d
+112
+
+printf
+格式化输出
+
+return
+函数返回
+
+set
+
+shift
+所有参数变量左移一个位置
+
+unset
+从环境变量中删除变量或函数
+</code></pre>
+
+<p>BP:</p>
+
+<pre><code>使用$() 代替反引号``
+$(()) 代替expr运算符
+</code></pre>
+
+<p>bash</p>
+
+<pre><code>GNU Bash 主页
+http://www.gnu.org/software/bash/
+GNU Bash 手册
+http://www.gnu.org/software/bash/manual/
+</code></pre>
+
+<p>更多的特性</p>
+
+<pre><code>$((3 + 4))          而不需要 expr 3 + 4, 算术展开
+/usr/{bin,local/bin}  而不需要 /usr/bin /usr/local/bin
+${str/src/dst}       而不需要 echo $str | sed ”s/$src/$dst/”
+</code></pre>
+
+<p>更方便的语法</p>
+
+<pre><code>for (( expr1; expr2; expr3 )); do
+        commands
+done
+for (( i = 0; i &lt; 100; i++ )); do … done
+echo a{b,c,d}e  ==&gt; abe ace ade
+</code></pre>
+
+<p>表达式求值</p>
+
+<pre><code>$[]    []$中间可以加表达式  eg: echo $[$a+$b]
+$(())   (())中间可以加表达式。Eg： total=$(($a*$b))
+</code></pre>
+
+<p>正则</p>
+
+<pre><code>bash的正则表达式
+str='hello, world'
+if [[ $str =~ '\s+world$' ]]; then
+    echo match!
+fi
+if echo &quot;$str&quot; | grep -E '[ ]+world$'; then
+    echo match!
+fi
+</code></pre>
+
+<p>获取软连接指向的真实文件名</p>
+
+<pre><code>#注:有些系统没有这个命令
+readlink /usr/bin/python
+</code></pre>
+
+<p>增加debug</p>
+
+<pre><code>function debug() {
+    if [[ $DEBUG ]]
+    then
+        echo &quot;&gt;&gt;&gt; $*&quot;
+    fi
+}
+
+# For any debug message
+debug &quot;Trying to find config file&quot;
+
+还有来自于一些很酷的Geeks的单行debug函数：
+
+function debug() { ((DEBUG)) &amp;&amp; echo &quot;&gt;&gt;&gt; $*&quot;; }
+function debug() { [ &quot;$DEBUG&quot; ] &amp;&amp; echo &quot;&gt;&gt;&gt; $*&quot;; }
+</code></pre>
+
+<p>将执行日志全部写到某个文件</p>
+
+<pre><code>exec &gt;&gt;&quot;$LOGPATH&quot;/xx.log.$TODAY 2&gt;&amp;1
+#begin of code
+</code></pre>
+
+<hr />
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p>
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg><span class="tag"><a href="http://wklken.me/tags/linux.html">linux</a></span>
+				</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>3192 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2014-01-12 08:00 &#43;0800</p>
+			</footer>
+		</article>
+		<aside id="toc">
+			<div class="toc-title">Table of Contents</div>
+			<nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#第一部分-一些概念">第一部分 一些概念</a></li>
+<li><a href="#第二部分-shell脚本">第二部分 shell脚本</a></li>
+<li><a href="#第三部分-变量">第三部分 变量</a>
+<ul>
+<li>
+<ul>
+<li><a href="#1-变量赋值">1.变量赋值</a></li>
+<li><a href="#2-分类">2.分类</a></li>
+<li><a href="#3-环境变量">3.环境变量</a></li>
+<li><a href="#4-本地变量">4.本地变量</a></li>
+<li><a href="#5-位置变量">5.位置变量</a></li>
+<li><a href="#6-字符串处理">6.字符串处理</a></li>
+<li><a href="#7-数值处理">7.数值处理</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#第四部分-控制流">第四部分 控制流</a>
+<ul>
+<li>
+<ul>
+<li><a href="#1-条件测试">1.条件测试</a></li>
+<li><a href="#2-分支if-else-case">2.分支if-else/case</a></li>
+<li><a href="#3-循环for-while-until">3.循环for/while/until</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#第五部分-函数">第五部分 函数</a>
+<ul>
+<li>
+<ul>
+<li><a href="#1-函数定义">1.函数定义</a></li>
+</ul></li>
+<li><a href="#2-参数传递">2.参数传递</a></li>
+<li><a href="#3-返回值和退出状态">3.返回值和退出状态</a></li>
+</ul></li>
+<li><a href="#第四部分-高级">第四部分 高级</a></li>
+<li><a href="#第五部分-其他">第五部分 其他</a></li>
+</ul></li>
+</ul>
+</nav>
+		</aside>
+		<div class="post-nav thin">
+			<a class="next-post" href="http://wklken.me/posts/2014/01/19/follow-your-heart.html">
+				<span class="post-nav-label"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>&nbsp;Newer</span><br><span>读书笔记——追随你的心，用思想改变世界</span>
+			</a>
+			<a class="prev-post" href="http://wklken.me/posts/2014/01/05/pragmatic-thinking-and-learning.html">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>读书笔记-程序员的思维训练</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+<div id="disqus_thread"></div>
+<script type="application/javascript">
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "wklken" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2019 <a href="http://wklken.me">wklken</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="http://wklken.me/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+	<script src="http://wklken.me/js/main.min.784417f5847151f848c339cf0acb13a06cbb648b1483435a28ed4556c4ead69b.js" integrity="sha256-eEQX9YRxUfhIwznPCssToGy7ZIsUg0NaKO1FVsTq1ps="></script>
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-42275748-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+</body>
+
+</html>

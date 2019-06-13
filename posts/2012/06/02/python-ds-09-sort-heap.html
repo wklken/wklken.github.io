@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<meta name="theme-color" content="#494f5c">
+	<meta name="msapplication-TileColor" content="#494f5c">
+
+<meta itemprop="name" content="数据结构&amp;算法实践—【排序|选择排序】堆排序">
+<meta itemprop="description" content="排序&gt;&gt;选择排序&gt;&gt;堆排序 List: 0.概念&#43;伪代码&#43;示例分析 1.堆排序实现 2.Question start 基本概念： 维基百科http://zh.wik">
+
+
+<meta itemprop="datePublished" content="2012-06-02T08:00:00&#43;08:00" />
+<meta itemprop="dateModified" content="2012-06-02T08:00:00&#43;08:00" />
+<meta itemprop="wordCount" content="924">
+
+
+
+<meta itemprop="keywords" content="python-ds-algorithm," />
+<meta property="og:title" content="数据结构&amp;算法实践—【排序|选择排序】堆排序" />
+<meta property="og:description" content="排序&gt;&gt;选择排序&gt;&gt;堆排序 List: 0.概念&#43;伪代码&#43;示例分析 1.堆排序实现 2.Question start 基本概念： 维基百科http://zh.wik" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://wklken.me/posts/2012/06/02/python-ds-09-sort-heap.html" />
+<meta property="article:published_time" content="2012-06-02T08:00:00&#43;08:00"/>
+<meta property="article:modified_time" content="2012-06-02T08:00:00&#43;08:00"/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="数据结构&amp;算法实践—【排序|选择排序】堆排序"/>
+<meta name="twitter:description" content="排序&gt;&gt;选择排序&gt;&gt;堆排序 List: 0.概念&#43;伪代码&#43;示例分析 1.堆排序实现 2.Question start 基本概念： 维基百科http://zh.wik"/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>数据结构&amp;算法实践—【排序|选择排序】堆排序</title>
+	<link rel="stylesheet" href="http://wklken.me/css/style.min.31706917653d2b9e8410abd431f30ec4359a88a94fc87a63654779d87329edec.css" integrity="sha256-MXBpF2U9K56EEKvUMfMOxDWaiKlPyHpjZUd52HMp7ew=">
+	
+	<link rel="stylesheet" href="http://wklken.me/css/custom.css">
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp faster">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="http://wklken.me">WKLKEN BUILDING</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					<a href="http://wklken.me/posts.html">Posts</a>
+					<a href="http://wklken.me/about.html">About</a>
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<button id="toc-btn" class="hdr-btn desktop-only-ib" title="Table of Contents"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3" y2="6"></line><line x1="3" y1="12" x2="3" y2="12"></line><line x1="3" y1="18" x2="3" y2="18"></line></svg></button><span class="hdr-social hide-in-mobile"><a href="https://github.com/wklken" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-github"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a><a href="wklken@gmail.com" target="_blank" rel="noopener me" title="Email"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-mail"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="http://wklken.me/posts.html">Posts</a></li>
+			<li><a href="http://wklken.me/about.html">About</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>Jun 2, 2012</span></div>
+				<h1>数据结构&amp;算法实践—【排序|选择排序】堆排序</h1>
+			</header>
+			<div class="content">
+				<blockquote>
+<p>排序&gt;&gt;选择排序&gt;&gt;堆排序</p>
+</blockquote>
+
+<p>List:</p>
+
+<pre><code>0.概念+伪代码+示例分析
+1.堆排序实现
+2.Question
+</code></pre>
+
+<ol>
+<li>start</li>
+</ol>
+
+<p>基本概念：</p>
+
+<p>维基百科<a href="http://zh.wikipedia.org/zh-cn/%E5%A0%86%E7%A9%8D%E6%8E%92%E5%BA%8F">http://zh.wikipedia.org/zh-cn/%E5%A0%86%E7%A9%8D%E6%8E%92%E5%BA%8F</a></p>
+
+<pre><code>function heapSort(A : list[1..n]) {
+    max_heap = make_max_heap(A)  #构建一个最大堆
+    i = 1
+    while(max_heap.size() &gt; 0){   #当堆中还存在值
+        A[n-i] = max_heap.pop_max()   #取出最大一个
+        i++
+    }
+}
+</code></pre>
+
+<p>堆为一棵完全二叉树，每个节点值都&gt;=子节点值</p>
+
+<p>堆排序根据这个特性，首先将所有元素建立堆，然后一个个取出，即有序的</p>
+
+<p>堆中每个节点的位置：</p>
+
+<pre><code>父节点i的左子节点在位置 (2*i);
+父节点i的右子节点在位置 (2*i+1);
+子节点i的父节点在位置 floor(i/2);
+</code></pre>
+
+<p>最大堆主要操作逻辑：</p>
+
+<p>插入：将新元素加入完全二叉树最后一个节点，依次往上，调整直到满足父节点值都&gt;=子节点值</p>
+
+<p>删除：移除根节点，将最后一个节点拿到根节点，依次往下，调整</p>
+
+<p>原始:</p>
+
+<p><img src="https://github.com/wklken/gallery/blob/master/pyds/heap-1.jpg?raw=true" alt="heap1" /></p>
+
+<p>插入操作：12，先假定放在最后一个位置，然后从这个节点开始往上，同父节点比较，依次调整</p>
+
+<p><img src="https://github.com/wklken/gallery/blob/master/pyds/heap-2.jpg?raw=true" alt="heap2" /></p>
+
+<p>删除：取走11，将最后一个元素8移到根节点，从上往下，重新调整</p>
+
+<p><img src="https://github.com/wklken/gallery/blob/master/pyds/heap-3.jpg?raw=true" alt="heap3" /></p>
+
+<ol>
+<li>start</li>
+</ol>
+
+<p>根据公式，我们可以使用数组模拟实现完全二叉树(不使用首个位置)</p>
+
+<p>首先，我们先实现堆:</p>
+
+<pre><code>#!/usr/bin/python
+# -*- coding:utf-8 -*-
+#堆排序
+#@author: wklken@yeah.net
+
+#先实现一个最大堆
+class MaxHeap:
+    def __init__(self):
+        self.heap = [0]  #第一个元素用不到，只是为了将下标转为1开始，方便计算节点的位置
+    def isEmpty(self):
+        return len(self.heap) == 1
+    def size(self):
+        return len(self.heap) - 1
+    #插入节点
+    def insert(self, value):
+        i = len(self.heap)
+        self.heap.append(value)
+        while i != 1 and value &gt; self.heap[i/2]:  #如果插入节点大于其父节点，需要交换二者,反复，直到值小于父节点
+            self.heap[i], self.heap[i/2] = self.heap[i/2], self.heap[i]  #父节点下移
+            i = i/2
+        self.heap[i] = value  #把 value插入对应位置
+    #删除最大节点——最大的是根节点
+    def deleteMax(self):
+        if self.isEmpty(): #没有元素了
+            return None
+        x = self.heap[1]  #最大
+
+        last = self.heap.pop()
+        if self.size() == 0: #每次取最后一个，若是只剩两个的情况，pop
+            return x
+        #每次，移除根节点，将树的最后一个节点挪到根节点，然后从上到下，调整位置，保证树是一个最大堆
+        i = 1
+        ci = 2
+        current_size = self.size()
+        while  ci &lt;= current_size:
+            if ci &lt; current_size and self.heap[ci] &lt; self.heap[ci+1]:
+                ci += 1
+
+            if last &gt;= self.heap[ci]:
+                break
+
+            self.heap[i] = self.heap[ci]
+            i = ci
+            ci *= 2
+        self.heap[i] = last
+        return x
+
+    def initFromList(self, l):
+        self.heap.extend(l)
+        size = self.size()
+        #从最后一棵子树开始，调整每一棵子树
+        for i in range(size/2,0,-1):
+              t_root = self.heap[i]
+
+              c = 2*i
+              while c &lt;= size:
+                  if c &lt; size and self.heap[c] &lt; self.heap[c+1]:
+                      c += 1
+                  if t_root &gt;= self.heap[c]:
+                      break
+                  self.heap[c/2] = self.heap[c]
+                  c *= 2
+                  self.heap[c/2] = t_root
+</code></pre>
+
+<p>然后，实现排序过程：</p>
+
+<pre><code>:::python
+def heap_sort(l):
+    m = MaxHeap()
+    m.initFromList(l)
+    result = []
+    for i in range(len(l)):
+        result.append(m.deleteMax())
+        print result
+    return result
+</code></pre>
+
+<ol>
+<li>start</li>
+</ol>
+
+<p>A.概念，过程描述？</p>
+
+<p>B. 时间复杂度？空间复杂度？是否是稳定排序？</p>
+
+<p>C.适用场景，何种情况下表现最优</p>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p>
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg><span class="tag"><a href="http://wklken.me/tags/python-ds-algorithm.html">python-ds-algorithm</a></span>
+				</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>924 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2012-06-02 08:00 &#43;0800</p>
+			</footer>
+		</article>
+		<aside id="toc">
+			<div class="toc-title">Table of Contents</div>
+			
+		</aside>
+		<div class="post-nav thin">
+			<a class="next-post" href="http://wklken.me/posts/2012/06/02/python-ds-10-sort-insert.html">
+				<span class="post-nav-label"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>&nbsp;Newer</span><br><span>数据结构&amp;算法实践—【排序|插入排序】插入排序</span>
+			</a>
+			<a class="prev-post" href="http://wklken.me/posts/2012/05/27/python-ds-07-sort-bogo.html">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>数据结构&amp;算法实践—【排序|交换排序】Bogo排序</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+<div id="disqus_thread"></div>
+<script type="application/javascript">
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "wklken" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2019 <a href="http://wklken.me">wklken</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="http://wklken.me/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+	<script src="http://wklken.me/js/main.min.784417f5847151f848c339cf0acb13a06cbb648b1483435a28ed4556c4ead69b.js" integrity="sha256-eEQX9YRxUfhIwznPCssToGy7ZIsUg0NaKO1FVsTq1ps="></script>
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-42275748-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+</body>
+
+</html>

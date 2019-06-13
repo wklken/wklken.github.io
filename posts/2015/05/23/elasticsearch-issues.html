@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<meta name="theme-color" content="#494f5c">
+	<meta name="msapplication-TileColor" content="#494f5c">
+
+<meta itemprop="name" content="Elasticsearch几个问题的解决">
+<meta itemprop="description" content="今天惯例看统计报表, 才发现es集群悲剧了&hellip;&hellip;昨天下午到今天早上, 持续报错, 写了1G的错误日志&gt;_&lt;#">
+
+
+<meta itemprop="datePublished" content="2015-05-23T08:00:00&#43;08:00" />
+<meta itemprop="dateModified" content="2015-05-23T08:00:00&#43;08:00" />
+<meta itemprop="wordCount" content="1079">
+
+
+
+<meta itemprop="keywords" content="system," />
+<meta property="og:title" content="Elasticsearch几个问题的解决" />
+<meta property="og:description" content="今天惯例看统计报表, 才发现es集群悲剧了&hellip;&hellip;昨天下午到今天早上, 持续报错, 写了1G的错误日志&gt;_&lt;#" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://wklken.me/posts/2015/05/23/elasticsearch-issues.html" />
+<meta property="article:published_time" content="2015-05-23T08:00:00&#43;08:00"/>
+<meta property="article:modified_time" content="2015-05-23T08:00:00&#43;08:00"/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Elasticsearch几个问题的解决"/>
+<meta name="twitter:description" content="今天惯例看统计报表, 才发现es集群悲剧了&hellip;&hellip;昨天下午到今天早上, 持续报错, 写了1G的错误日志&gt;_&lt;#"/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>Elasticsearch几个问题的解决</title>
+	<link rel="stylesheet" href="http://wklken.me/css/style.min.31706917653d2b9e8410abd431f30ec4359a88a94fc87a63654779d87329edec.css" integrity="sha256-MXBpF2U9K56EEKvUMfMOxDWaiKlPyHpjZUd52HMp7ew=">
+	
+	<link rel="stylesheet" href="http://wklken.me/css/custom.css">
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp faster">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="http://wklken.me">WKLKEN BUILDING</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					<a href="http://wklken.me/posts.html">Posts</a>
+					<a href="http://wklken.me/about.html">About</a>
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<button id="toc-btn" class="hdr-btn desktop-only-ib" title="Table of Contents"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3" y2="6"></line><line x1="3" y1="12" x2="3" y2="12"></line><line x1="3" y1="18" x2="3" y2="18"></line></svg></button><span class="hdr-social hide-in-mobile"><a href="https://github.com/wklken" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-github"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a><a href="wklken@gmail.com" target="_blank" rel="noopener me" title="Email"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-mail"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="http://wklken.me/posts.html">Posts</a></li>
+			<li><a href="http://wklken.me/about.html">About</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>May 23, 2015</span></div>
+				<h1>Elasticsearch几个问题的解决</h1>
+			</header>
+			<div class="content">
+				
+
+<p>今天惯例看统计报表, 才发现es集群悲剧了&hellip;&hellip;昨天下午到今天早上, 持续报错, 写了1G的错误日志&gt;_&lt;#(暂无监控&hellip;.)</p>
+
+<p>当前状态: 单台机器, 单节点(空集群), 200W 数据, 500+shrads,  约3G大小</p>
+
+<p>以下是几个问题的处理过程</p>
+
+<h3 id="大量unassigned-shards">大量unassigned shards<a href="#大量unassigned-shards" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<p>其实刚搭完运行时就是<code>status: yellow</code>(所有主分片可用，但存在不可用的从分片), 只有一个节点, 主分片启动并运行正常, 可以成功处理请求, 但是存在<code>unassigned_shards</code>, 即存在没有被分配到节点的从分片.(只有一个节点&hellip;..)</p>
+
+<p>.当时数据量小, 就暂时没关注. 然后, 随着时间推移,  出现了大量unassigned shards</p>
+
+<pre><code>curl -XGET http://localhost:9200/_cluster/health\?pretty
+{
+  &quot;cluster_name&quot; : &quot;elasticsearch&quot;,
+  &quot;status&quot; : &quot;yellow&quot;,
+  &quot;timed_out&quot; : false,
+  &quot;number_of_nodes&quot; : 2,
+  &quot;number_of_data_nodes&quot; : 1,
+  &quot;active_primary_shards&quot; : 538,
+  &quot;active_shards&quot; : 538,
+  &quot;relocating_shards&quot; : 0,
+  &quot;initializing_shards&quot; : 0,
+  &quot;unassigned_shards&quot; : 558,
+&quot;number_of_pending_tasks&quot; : 0
+}
+</code></pre>
+
+<p>处理方式:  找了台内网机器, 部署另一个节点(保证<code>cluster.name</code>一致即可, 自动发现, 赞一个). 当然, 如果你资源有限只有一台机器,  使用相同命令再启动一个es实例也行. 再次检查集群健康, 发现<code>unassigned_shards</code>减少, <code>active_shards</code>增多.</p>
+
+<p>操作完后, 集群健康从<code>yellow</code>恢复到 <code>green</code></p>
+
+<h3 id="status-red">status: red<a href="#status-red" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<p>集群健康恶化了&hellip;&hellip;</p>
+
+<p>这次检查发现是<code>status: red</code>(存在不可用的主要分片)</p>
+
+<pre><code>curl -XGET http://localhost:9200/_cluster/health\?pretty
+{
+  &quot;cluster_name&quot; : &quot;elasticsearch&quot;,
+  &quot;status&quot; : &quot;red&quot;,    // missing some primary shards
+  &quot;timed_out&quot; : false,
+  &quot;number_of_nodes&quot; : 4,
+  &quot;number_of_data_nodes&quot; : 2,
+  &quot;active_primary_shards&quot; : 538,
+  &quot;active_shards&quot; : 1076,
+  &quot;relocating_shards&quot; : 0,
+  &quot;initializing_shards&quot; : 0,
+  &quot;unassigned_shards&quot; : 20,  // where your lost primary shards are.
+  &quot;number_of_pending_tasks&quot; : 0
+}
+</code></pre>
+
+<h3 id="fix-unassigned-shards">fix unassigned shards<a href="#fix-unassigned-shards" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<p>开始着手修复</p>
+
+<p>查看所有分片状态</p>
+
+<pre><code>curl -XGET http://localhost:9200/_cat/shards
+</code></pre>
+
+<p>找出<code>UNASSIGNED</code>分片</p>
+
+<pre><code>curl -s &quot;http://localhost:9200/_cat/shards&quot; | grep UNASSIGNED
+pv-2015.05.22                 3 p UNASSIGNED
+pv-2015.05.22                 3 r UNASSIGNED
+pv-2015.05.22                 1 p UNASSIGNED
+pv-2015.05.22                 1 r UNASSIGNED
+</code></pre>
+
+<p>查询得到master节点的唯一标识</p>
+
+<pre><code>curl 'localhost:9200/_nodes/process?pretty'
+
+{
+  &quot;cluster_name&quot; : &quot;elasticsearch&quot;,
+  &quot;nodes&quot; : {
+    &quot;AfUyuXmGTESHXpwi4OExxx&quot; : {
+      &quot;name&quot; : &quot;Master&quot;,
+     ....
+      &quot;attributes&quot; : {
+        &quot;master&quot; : &quot;true&quot;
+      },
+.....
+</code></pre>
+
+<p>执行reroute(分多次, 变更shard的值为<code>UNASSIGNED</code>查询结果中编号, 上一步查询结果是1和3)</p>
+
+<pre><code>curl -XPOST 'localhost:9200/_cluster/reroute' -d '{
+        &quot;commands&quot; : [ {
+              &quot;allocate&quot; : {
+                  &quot;index&quot; : &quot;pv-2015.05.22&quot;,
+                  &quot;shard&quot; : 1,
+                  &quot;node&quot; : &quot;AfUyuXmGTESHXpwi4OExxx&quot;,
+                  &quot;allow_primary&quot; : true
+              }
+            }
+        ]
+    }'
+</code></pre>
+
+<p>批量处理的脚本(当数量很多的话, 注意替换node的名字)</p>
+
+<pre><code>#!/bin/bash
+
+for index in $(curl  -s 'http://localhost:9200/_cat/shards' | grep UNASSIGNED | awk '{print $1}' | sort | uniq); do
+    for shard in $(curl  -s 'http://localhost:9200/_cat/shards' | grep UNASSIGNED | grep $index | awk '{print $2}' | sort | uniq); do
+        echo  $index $shard
+
+        curl -XPOST 'localhost:9200/_cluster/reroute' -d &quot;{
+            'commands' : [ {
+                  'allocate' : {
+                      'index' : $index,
+                      'shard' : $shard,
+                      'node' : 'Master',
+                      'allow_primary' : true
+                  }
+                }
+            ]
+        }&quot;
+
+        sleep 5
+    done
+done
+</code></pre>
+
+<h3 id="too-many-open-files">“Too many open files”<a href="#too-many-open-files" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<p>发现日志中大量出现这个错误</p>
+
+<p>执行</p>
+
+<pre><code>curl http://localhost:9200/_nodes/process\?pretty
+</code></pre>
+
+<p>可以看到</p>
+
+<pre><code>&quot;max_file_descriptors&quot; : 4096,
+</code></pre>
+
+<p>官方文档中</p>
+
+<blockquote>
+<p>Make sure to increase the number of open files descriptors on the machine (or for the user running elasticsearch). Setting it to 32k or even 64k is recommended.</p>
+</blockquote>
+
+<p>而此时, 可以在系统级做修改, 然后全局生效</p>
+
+<p>最简单的做法, 在<code>bin/elasticsearch</code>文件开始的位置加入</p>
+
+<pre><code>ulimit -n 64000
+</code></pre>
+
+<p>然后重启es, 再次查询看到</p>
+
+<pre><code>&quot;max_file_descriptors&quot; : 64000,
+</code></pre>
+
+<p>问题解决</p>
+
+<hr />
+
+<p>待续, 目测还有很多坑, 而且随着数据量上来, 会遇到越来越多的坑&hellip;&hellip;</p>
+
+<p>2015-05-23
+于深圳</p>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p>
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg><span class="tag"><a href="http://wklken.me/tags/system.html">system</a></span>
+				</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>1079 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2015-05-23 08:00 &#43;0800</p>
+			</footer>
+		</article>
+		<aside id="toc">
+			<div class="toc-title">Table of Contents</div>
+			<nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#大量unassigned-shards">大量unassigned shards</a></li>
+<li><a href="#status-red">status: red</a></li>
+<li><a href="#fix-unassigned-shards">fix unassigned shards</a></li>
+<li><a href="#too-many-open-files">“Too many open files”</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+		</aside>
+		<div class="post-nav thin">
+			<a class="next-post" href="http://wklken.me/posts/2015/06/07/vim-plugin-vundle.html">
+				<span class="post-nav-label"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>&nbsp;Newer</span><br><span>vim插件: vundle[管理插件]</span>
+			</a>
+			<a class="prev-post" href="http://wklken.me/posts/2015/05/10/vim-intro.html">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>分享一份 Vim 简介PPT</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+<div id="disqus_thread"></div>
+<script type="application/javascript">
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "wklken" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2019 <a href="http://wklken.me">wklken</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="http://wklken.me/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+	<script src="http://wklken.me/js/main.min.784417f5847151f848c339cf0acb13a06cbb648b1483435a28ed4556c4ead69b.js" integrity="sha256-eEQX9YRxUfhIwznPCssToGy7ZIsUg0NaKO1FVsTq1ps="></script>
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-42275748-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+</body>
+
+</html>
