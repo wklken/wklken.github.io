@@ -6,8 +6,106 @@
 		<generator>Hugo -- gohugo.io</generator>
 		<language>en-us</language>
 		<copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright>
-		<lastBuildDate>Sun, 11 Aug 2019 00:00:00 +0800</lastBuildDate>
+		<lastBuildDate>Mon, 07 Oct 2019 08:00:00 +0800</lastBuildDate>
 		<atom:link href="http://wklken.me/posts/index.xml" rel="self" type="application/rss+xml" />
+		
+		<item>
+			<title>Better Code: 使用property</title>
+			<link>http://wklken.me/posts/2019/10/07/better-code-1-use-property.html</link>
+			<pubDate>Mon, 07 Oct 2019 08:00:00 +0800</pubDate>
+			
+			<guid>http://wklken.me/posts/2019/10/07/better-code-1-use-property.html</guid>
+			<description>better code 1: use property introduction @property 是Python的一个内置函数, 通过property, 我们可以获得更好的可读性/可维护性 屏蔽细节, 对于外部使用者, 不需要知道更多</description>
+			<content type="html"><![CDATA[
+
+<h1 id="better-code-1-use-property">better code 1: use property</h1>
+
+<h2 id="introduction">introduction</h2>
+
+<p><code>@property</code> 是Python的一个内置函数, 通过property, 我们可以获得更好的可读性/可维护性</p>
+
+<ul>
+<li>屏蔽细节, 对于外部使用者, 不需要知道更多的细节!</li>
+<li>可读性更好, 调用方只有简单直接的逻辑, 而对象实体中包含了具体处理逻辑</li>
+<li>可维护性更好, 细节不会被<code>扩散</code>到其他地方, 后续变更修改更容易</li>
+</ul>
+
+<h2 id="refactor">refactor</h2>
+
+<p>代码坏味道:</p>
+
+<ul>
+<li>当你发现调用处, 每个地方获取到返回值后, 都做了一模一样的处理;</li>
+<li>变更属性的格式/分隔符等细节, 发现需要修改多个地方代码</li>
+<li>调用者需要感知到属性的当前值<code>[1, 2, 3]</code>(type: list) 以及原始值<code>1,2,3</code>(type: str)</li>
+</ul>
+
+<p>使用property之后:</p>
+
+<ul>
+<li>所有调用处, 没有重复代码</li>
+<li>变更属性的格式/分隔符等细节, 只需要修改一个地方</li>
+<li>调用者只知道属性的当前值<code>[1, 2, 3]</code></li>
+</ul>
+
+<h2 id="usage">usage</h2>
+
+<p>思路: 将属性通用的处理内化, <code>fat model</code>对外屏蔽细节, 避免了使用者的冗余代码以及过多的认知负担;</p>
+
+<ul>
+<li>side effect: 可以在<code>set/get/delete</code> 操作时, 额外进行一些处理, 例如校验, 做一些额外变更等(存在副作用)</li>
+<li>adapter: 也可以作为类似adapter, 组合或者拼装出对调用者更为友好的做法</li>
+<li>封装/facade: 对于类/对象实例, 更多的是起到<code>facade</code> 模式的作用, 将更多的细节封装, 对外屏蔽, 只暴露有限的内容</li>
+</ul>
+
+<h4 id="1-属性校验">1. 属性校验</h4>
+<div class="highlight"><pre class="chroma"><code class="language-python" data-lang="python"><span class="k">class</span> <span class="nc">Student</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">score</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_score</span>
+
+    <span class="nd">@score.setter</span>
+    <span class="k">def</span> <span class="nf">score</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;score must be an integer!&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="mi">100</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;score must between 0 ~ 100!&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_score</span> <span class="o">=</span> <span class="n">value</span></code></pre></div>
+<h4 id="2-限制只读">2. 限制只读</h4>
+<div class="highlight"><pre class="chroma"><code class="language-python" data-lang="python"><span class="k">class</span> <span class="nc">Student</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">birth</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_birth</span></code></pre></div>
+<h4 id="3-拼装组合出额外的属性">3. 拼装组合出额外的属性</h4>
+<div class="highlight"><pre class="chroma"><code class="language-python" data-lang="python"><span class="k">class</span> <span class="nc">Staff</span><span class="p">:</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">email</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">f</span><span class="s1">&#39;{self.username}@{self.domain}&#39;</span></code></pre></div>
+<h4 id="4-类型-格式转换">4. 类型/格式转换</h4>
+
+<p>下面示例是django 中的一种用法, 在db中字段名为<code>maintainers</code>, 是一个字符串, 但是对于模型使用者, <code>maintainers</code>是一个列表, 通过property, 屏蔽了字段类型/分隔符等细节</p>
+<div class="highlight"><pre class="chroma"><code class="language-python" data-lang="python"><span class="k">class</span> <span class="nc">API</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+      <span class="n">_maintainers</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">db_column</span><span class="o">=</span><span class="s1">&#39;maintainers&#39;</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">1024</span><span class="p">)</span>
+      <span class="nd">@property</span>
+      <span class="k">def</span> <span class="nf">maintainers</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+          <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_maintainers</span><span class="p">:</span>
+              <span class="k">return</span> <span class="p">[]</span>
+          <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_maintainers</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&#34;;&#34;</span><span class="p">)</span>
+
+      <span class="nd">@maintainers.setter</span>
+      <span class="k">def</span> <span class="nf">maintainers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]):</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">_maintainers</span> <span class="o">=</span> <span class="s2">&#34;;&#34;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></code></pre></div>
+<p>或者:</p>
+<div class="highlight"><pre class="chroma"><code class="language-python" data-lang="python"><span class="k">class</span> <span class="nc">A</span><span class="p">():</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">)</span>
+    <span class="nd">@data.setter</span>
+    <span class="k">def</span> <span class="nf">data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">d</span><span class="p">)</span></code></pre></div>]]></content>
+		</item>
 		
 		<item>
 			<title>读书笔记-遗留系统重建实战</title>
