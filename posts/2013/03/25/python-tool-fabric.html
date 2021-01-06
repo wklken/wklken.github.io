@@ -7,13 +7,10 @@
 	<meta http-equiv="X-UA-Compatible" content="ie=edge">
 	<meta name="theme-color" content="#494f5c">
 	<meta name="msapplication-TileColor" content="#494f5c">
-
 <meta itemprop="name" content="Python fabric实现远程操作和部署">
 <meta itemprop="description" content="fabric title是开发，但是同时要干开发测试还有运维的活 (o(╯□╰)o) 近期接手越来越多的东西，发布和运维的工作相当机械，加上频率还蛮高，导致">
-
-
-<meta itemprop="datePublished" content="2013-03-25T08:00:00&#43;08:00" />
-<meta itemprop="dateModified" content="2013-03-25T08:00:00&#43;08:00" />
+<meta itemprop="datePublished" content="2013-03-25T08:00:00+08:00" />
+<meta itemprop="dateModified" content="2013-03-25T08:00:00+08:00" />
 <meta itemprop="wordCount" content="2015">
 
 
@@ -23,8 +20,8 @@
 <meta property="og:description" content="fabric title是开发，但是同时要干开发测试还有运维的活 (o(╯□╰)o) 近期接手越来越多的东西，发布和运维的工作相当机械，加上频率还蛮高，导致" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://wklken.me/posts/2013/03/25/python-tool-fabric.html" />
-<meta property="article:published_time" content="2013-03-25T08:00:00&#43;08:00"/>
-<meta property="article:modified_time" content="2013-03-25T08:00:00&#43;08:00"/>
+<meta property="article:published_time" content="2013-03-25T08:00:00+08:00" />
+<meta property="article:modified_time" content="2013-03-25T08:00:00+08:00" />
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Python fabric实现远程操作和部署"/>
 <meta name="twitter:description" content="fabric title是开发，但是同时要干开发测试还有运维的活 (o(╯□╰)o) 近期接手越来越多的东西，发布和运维的工作相当机械，加上频率还蛮高，导致"/>
@@ -37,7 +34,7 @@
 	<link rel="shortcut icon" href="/favicon.ico">
 
 	<title>Python fabric实现远程操作和部署</title>
-	<link rel="stylesheet" href="http://wklken.me/css/style.min.31706917653d2b9e8410abd431f30ec4359a88a94fc87a63654779d87329edec.css" crossorigin="anonymous">
+	<link rel="stylesheet" href="http://wklken.me/css/style.min.6a2d94be52e9f033aff88558e28aa96de11244b0a70e7537f6c33589e8d2d124.css" crossorigin="anonymous">
 	
 	
 	<link rel="stylesheet" href="http://wklken.me/css/custom.css">
@@ -76,74 +73,44 @@
 				<h1>Python fabric实现远程操作和部署</h1>
 			</header>
 			<div class="content">
-				
-
-<h2 id="fabric">fabric<a href="#fabric" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
-
+				<h2 id="fabric">fabric<a href="#fabric" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
 <p>title是开发，但是同时要干开发测试还有运维的活 (o(╯□╰)o)</p>
-
 <p>近期接手越来越多的东西，发布和运维的工作相当机械，加上频率还蛮高，导致时间浪费还是优点多。</p>
-
 <p>修复bug什么的，测试，提交版本库(2分钟)，ssh到测试环境pull部署（2分钟），rsync到线上机器A,B,C,D,E（1分钟），分别ssh到ABCDE五台机器，逐一重启(8-10分钟) =  13-15分钟</p>
-
 <p>其中郁闷的是，每次操作都是相同的，命令一样，要命的是在多个机器上，很难在本机一个脚本搞定，主要时间都浪费在ssh，敲命令上了，写成脚本，完全可以一键执行，花两分钟看下执行结果</p>
-
 <p>直到，发现了fabric这货</p>
-
 <p>官方文档 <a href="http://fabric.readthedocs.org/">入口</a></p>
-
 <h3 id="作用">作用<a href="#作用" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
-
 <p>很强大的工具</p>
-
 <p>可以将自动化部署或者多机操作的命令固化到一个脚本里</p>
-
 <p>和某些运维工具很像，用它主要是因为，python…..</p>
-
 <p>简单好用易上手</p>
-
 <p>当然，shell各种命令组合起来也可以，上古神器和现代兵器的区别</p>
-
 <h3 id="环境配置">环境配置<a href="#环境配置" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
-
 <p>在本机和目标机器安装对应包（注意，都要有）</p>
-
 <pre><code>sudo easy_install fabric
 </code></pre>
-
 <p>目前是1.8版本</p>
-
 <p>安装完后，可以查看是否安装成功</p>
-
 <pre><code>[ken@~$] which fab
 /usr/local/bin/fab
 </code></pre>
-
 <p>装完之后，可以浏览下<a href="http://docs.fabfile.org/en/1.8/">官方文档</a></p>
-
 <p>然后，可以动手了</p>
-
 <h3 id="hello-world">hello world<a href="#hello-world" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
-
 <p>先进行本机简单操作，有一个初步认识，例子来源与官网</p>
-
 <p>新建一个py脚本: fabfile.py</p>
-
 <pre><code>:::python
 def hello():
     print(&quot;Hello world!&quot;)
 </code></pre>
-
 <p>命令行执行：</p>
-
 <pre><code>[ken@~/tmp/fab$] fab hello
 Hello world!
 
 Done.
 </code></pre>
-
 <p>注意，这里可以不用fabfile作为文件名，但是在执行时需指定文件</p>
-
 <pre><code>[ken@~/tmp/fab$] mv fabfile.py test.py
 fabfile.py -&gt; test.py
 [ken@~/tmp/fab$] fab hello
@@ -158,18 +125,13 @@ Hello world!
 
 Done.
 </code></pre>
-
 <p>带参数：</p>
-
 <p>修改fabfile.py脚本：</p>
-
 <pre><code>:::python
 def hello(name, value):
     print(&quot;%s = %s!&quot; % (name, value))
 </code></pre>
-
 <p>执行</p>
-
 <pre><code>[ken@~/tmp/fab$] fab hello:name=age,value=20
 age = 20!
 
@@ -179,11 +141,8 @@ age = 20!
 
 Done.
 </code></pre>
-
 <h3 id="执行本机操作">执行本机操作<a href="#执行本机操作" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
-
 <p>简单的本地操作:</p>
-
 <pre><code>:::python
 from fabric.api import local, lcd
 
@@ -191,9 +150,7 @@ def lsfab():
     with lcd('~/tmp/fab'):
         local('ls')
 </code></pre>
-
 <p>结果：</p>
-
 <pre><code>[ken@~/tmp/fab$] pwd;ls
 /Users/ken/tmp/fab
 fabfile.py   fabfile.pyc  test.py      test.pyc
@@ -204,22 +161,16 @@ fabfile.py  fabfile.pyc test.py     test.pyc
 
 Done.
 </code></pre>
-
 <p>实战开始：</p>
-
 <p>假设，你每天要提交一份配置文件settings.py到版本库（这里没有考虑冲突的情况）</p>
-
 <p>如果是手工操作：</p>
-
 <pre><code>cd /home/project/test/conf/
 git add settings.py
 git commit -m 'daily update settings.py'
 git pull origin
 git push origin
 </code></pre>
-
 <p>也就是说，这几个命令你每天都要手动敲一次，所谓daily job，就是每天都要重复的，机械化的工作，让我们看看用fabric怎么实现一键搞定：(其实用shell脚本可以直接搞定，但是fab的优势不是在这里，这里主要位后面本地+远端操作做准备，毕竟两个地方的操作写一种脚本便于维护)</p>
-
 <pre><code>:::python
 from fabric.api import local, lcd
 
@@ -228,11 +179,8 @@ def setting_ci():
         local(&quot;git add settings.py&quot;)
         #后面你懂的，懒得敲了…..
 </code></pre>
-
 <h3 id="混搭整合远端操作">混搭整合远端操作<a href="#混搭整合远端操作" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
-
 <p>这时候，假设，你要到机器A的/home/ken/project对应项目目录把配置文件更新下来</p>
-
 <pre><code>#!/usr/bin/env python
 # encoding: utf-8
 
@@ -255,9 +203,7 @@ def update():
     setting_ci()
     update_setting_remote()
 </code></pre>
-
 <p>然后，执行之：</p>
-
 <pre><code>[ken@~/tmp/fab$] fab -f deploy.py update
 [user@ip:port] Executing task 'update'
 [localhost] local: echo &quot;add and commit settings in local&quot;
@@ -270,13 +216,9 @@ remote update
 
 Done.
 </code></pre>
-
 <p>注意，如果不声明env.password，执行到对应机器时会跳出要求输入密码的交互</p>
-
 <h3 id="多服务器混搭">多服务器混搭<a href="#多服务器混搭" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
-
 <p>操作多个服务器，需要配置多个host</p>
-
 <pre><code>#!/usr/bin/env python
 # encoding: utf-8
 
@@ -302,9 +244,7 @@ def dotask():
     execute(task1)
     execute(task2)
 </code></pre>
-
 <p>结果：</p>
-
 <pre><code>[ken@~/tmp/fab$] fab -f mult.py dotask
 [user1@host1:port1] Executing task 'task1'
 [user1@host1:port1] run: ls -l | wc -l
@@ -319,13 +259,9 @@ def dotask():
 
 Done.
 </code></pre>
-
 <h3 id="扩展">扩展<a href="#扩展" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
-
 <p>1.颜色</p>
-
 <p>可以打印颜色，在查看操作结果信息的时候更为醒目和方便</p>
-
 <pre><code>:::python
 from fabric.colors import *
 
@@ -335,27 +271,16 @@ def show():
     print yellow('yellow')
 #fab -f color.py show
 </code></pre>
-
 <p>2.错误和异常</p>
-
 <p>关于<a href="http://docs.fabfile.org/en/1.6/usage/execution.html#failures">错误处理</a></p>
-
 <p>默认，一组命令，上一个命令执行失败后，不会接着往下执行</p>
-
 <p>失败后也可以进行不一样的处理， <a href="http://docs.fabfile.org/en/1.6/tutorial.html#failure-handling">文档</a></p>
-
 <p>目前没用到，后续用到再看了</p>
-
 <p>3.密码管理</p>
-
 <p>看<a href="http://docs.fabfile.org/en/1.6/usage/execution.html#password-management">文档</a></p>
-
 <p>更好的密码管理方式，哥比较土，没打通，主要是服务器列表变化频繁，我的处理方式是：</p>
-
 <p>3.1 host,user,port,password配置列表，所有的都写在一个文件</p>
-
 <p>或者直接搞到脚本里，当然这个更&hellip;&hellip;..</p>
-
 <pre><code>:::python
 env.hosts = [
         'host1',
@@ -379,15 +304,10 @@ env.passwords = {
     'host3:22': &quot;pwdofhost3&quot;,
 }
 </code></pre>
-
 <p>3.2 根据key解析成map嵌套，放到deploy中</p>
-
 <p>另外命令其实也可以固化成一个cmds列表的…..</p>
-
 <p>粗略就用到这些，后续有更多需求的时候再去捞文档了，话说文档里好东西真多，就是太多了，看了晕。。。</p>
-
 <p>TODO:</p>
-
 <pre><code>装饰器作用？
 @task
 @parallel
@@ -404,28 +324,17 @@ fab -f             -- 指定入口文件，fab默认入口文件是：fabfile/fa
 
 更复杂的操作
 </code></pre>
-
-<hr />
-
+<hr>
 <p>update log</p>
-
 <pre><code>2014-10-26 fix error of local/lcd
 </code></pre>
-
-<hr />
-
+<hr>
 <p>The end!</p>
-
 <p>To be continue….</p>
-
 <p>wklken</p>
-
-<p>Email: wklken@yeah.net</p>
-
+<p>Email: <a href="mailto:wklken@yeah.net">wklken@yeah.net</a></p>
 <p>Blog:  <a href="http://www.wklken.com">http://www.wklken.com</a></p>
-
 <p>2013-03-25</p>
-
 <p>转载请注明出处，谢谢</p>
 
 			</div>
@@ -441,21 +350,19 @@ fab -f             -- 指定入口文件，fab默认入口文件是：fabfile/fa
 		<aside id="toc">
 			<div class="toc-title">Table of Contents</div>
 			<nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#fabric">fabric</a>
-<ul>
-<li><a href="#作用">作用</a></li>
-<li><a href="#环境配置">环境配置</a></li>
-<li><a href="#hello-world">hello world</a></li>
-<li><a href="#执行本机操作">执行本机操作</a></li>
-<li><a href="#混搭整合远端操作">混搭整合远端操作</a></li>
-<li><a href="#多服务器混搭">多服务器混搭</a></li>
-<li><a href="#扩展">扩展</a></li>
-</ul></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#fabric">fabric</a>
+      <ul>
+        <li><a href="#作用">作用</a></li>
+        <li><a href="#环境配置">环境配置</a></li>
+        <li><a href="#hello-world">hello world</a></li>
+        <li><a href="#执行本机操作">执行本机操作</a></li>
+        <li><a href="#混搭整合远端操作">混搭整合远端操作</a></li>
+        <li><a href="#多服务器混搭">多服务器混搭</a></li>
+        <li><a href="#扩展">扩展</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
 		</aside>
 		<div class="post-nav thin">
@@ -466,12 +373,6 @@ fab -f             -- 指定入口文件，fab默认入口文件是：fabfile/fa
 				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>Python-基础-内置函数小结</span>
 			</a>
 		</div>
-
-    <div class="thin">
-				<span class="post-nav-label">
-          <a href="https://www.vultr.com/?ref=7825696-4F"><img src="https://www.vultr.com/media/banners/banner_800x418.png" width="100%" height="418" style="display: block; margin-left: auto; margin-right: auto;"></a>
-        </span>
-    </div>
 
 		<div id="comments" class="thin">
 <div id="disqus_thread"></div>
@@ -498,7 +399,7 @@ fab -f             -- 指定入口文件，fab默认入口文件是：fabfile/fa
 	</main>
 
 	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
-		<p>&copy; 2019 <a href="http://wklken.me">wklken</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>&copy; 2021 <a href="http://wklken.me">wklken</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
 		<p>
 			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="http://wklken.me/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
 		</p>

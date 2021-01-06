@@ -7,13 +7,10 @@
 	<meta http-equiv="X-UA-Compatible" content="ie=edge">
 	<meta name="theme-color" content="#494f5c">
 	<meta name="msapplication-TileColor" content="#494f5c">
-
 <meta itemprop="name" content="Python 源码阅读 - string">
 <meta itemprop="description" content="本周进展不大(去掉北上, 选择余地太小了), 下周开始投简历:( 这一章, 就一张图, 代码比较多 PyStringObject 源码位置 Include/stringobject.h | Objects/stringobject.c 定义 typedef struct { PyObject_VAR_HEAD long ob_shash; int ob_sstate; char ob_sval[1]; /* Invariants: * ob_sval contains space">
-
-
-<meta itemprop="datePublished" content="2014-08-08T08:00:00&#43;08:00" />
-<meta itemprop="dateModified" content="2014-08-08T08:00:00&#43;08:00" />
+<meta itemprop="datePublished" content="2014-08-08T08:00:00+08:00" />
+<meta itemprop="dateModified" content="2014-08-08T08:00:00+08:00" />
 <meta itemprop="wordCount" content="2220">
 
 
@@ -23,8 +20,8 @@
 <meta property="og:description" content="本周进展不大(去掉北上, 选择余地太小了), 下周开始投简历:( 这一章, 就一张图, 代码比较多 PyStringObject 源码位置 Include/stringobject.h | Objects/stringobject.c 定义 typedef struct { PyObject_VAR_HEAD long ob_shash; int ob_sstate; char ob_sval[1]; /* Invariants: * ob_sval contains space" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://wklken.me/posts/2014/08/08/python-source-string.html" />
-<meta property="article:published_time" content="2014-08-08T08:00:00&#43;08:00"/>
-<meta property="article:modified_time" content="2014-08-08T08:00:00&#43;08:00"/>
+<meta property="article:published_time" content="2014-08-08T08:00:00+08:00" />
+<meta property="article:modified_time" content="2014-08-08T08:00:00+08:00" />
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Python 源码阅读 - string"/>
 <meta name="twitter:description" content="本周进展不大(去掉北上, 选择余地太小了), 下周开始投简历:( 这一章, 就一张图, 代码比较多 PyStringObject 源码位置 Include/stringobject.h | Objects/stringobject.c 定义 typedef struct { PyObject_VAR_HEAD long ob_shash; int ob_sstate; char ob_sval[1]; /* Invariants: * ob_sval contains space"/>
@@ -37,7 +34,7 @@
 	<link rel="shortcut icon" href="/favicon.ico">
 
 	<title>Python 源码阅读 - string</title>
-	<link rel="stylesheet" href="http://wklken.me/css/style.min.31706917653d2b9e8410abd431f30ec4359a88a94fc87a63654779d87329edec.css" crossorigin="anonymous">
+	<link rel="stylesheet" href="http://wklken.me/css/style.min.6a2d94be52e9f033aff88558e28aa96de11244b0a70e7537f6c33589e8d2d124.css" crossorigin="anonymous">
 	
 	
 	<link rel="stylesheet" href="http://wklken.me/css/custom.css">
@@ -76,21 +73,13 @@
 				<h1>Python 源码阅读 - string</h1>
 			</header>
 			<div class="content">
-				
-
-<p>本周进展不大(去掉北上, 选择余地太小了), 下周开始投简历:(</p>
-
+				<p>本周进展不大(去掉北上, 选择余地太小了), 下周开始投简历:(</p>
 <p>这一章, 就一张图, 代码比较多</p>
-
-<hr />
-
+<hr>
 <h1 id="pystringobject">PyStringObject<a href="#pystringobject" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
-
 <p>源码位置 <a href="https://github.com/wklken/Python-2.7.8/blob/master/Include/stringobject.h">Include/stringobject.h</a> |
-         <a href="https://github.com/wklken/Python-2.7.8/blob/master/Objects/stringobject.c">Objects/stringobject.c</a></p>
-
+<a href="https://github.com/wklken/Python-2.7.8/blob/master/Objects/stringobject.c">Objects/stringobject.c</a></p>
 <p>定义</p>
-
 <pre><code>typedef struct {
   PyObject_VAR_HEAD
   long ob_shash;
@@ -107,9 +96,7 @@
    */
 } PyStringObject;
 </code></pre>
-
 <p>说明</p>
-
 <pre><code>1. PyObject_VAR_HEAD
 PyStringObject是变长对象, 比定长对象多了一个ob_size字段
 
@@ -124,31 +111,21 @@ interned后面说
 4. char ob_sval[1]
 字符指针指向一段内存, char数组指针, 指向一个ob_size+1大小数组(c中字符串最后要多一个字符`\0`表字符串结束)
 </code></pre>
-
 <p>结构</p>
-
-<p><img src="/imgs/python-source/PyStringObject.png" alt="PyStringObject" /></p>
-
+<p><img src="/imgs/python-source/PyStringObject.png" alt="PyStringObject"></p>
 <p>构造方法</p>
-
 <pre><code>PyAPI_FUNC(PyObject *) PyString_FromString(const char *);
 
 PyAPI_FUNC(PyObject *) PyString_FromStringAndSize(const char *, Py_ssize_t);
 </code></pre>
-
 <p>两个构造方法其实区别不大,</p>
-
 <pre><code>PyString_FromStringAndSize 参数可以为`NULL`, 无论是否为`NULL`, 都会分配`size+1`个字节空间.(不为NULL的话字符数组会进行拷贝)
 
 PyString_FromString, 参数不能为`NULL`, 且必须是`\0`结束的字符数组, 会调用c 语言string.h模块的strlen()函数计算字符串长度, 分配空间, 并将整个字符数组拷贝到ob_sval指向的内存
 </code></pre>
-
 <p>我们关注<code>PyString_FromString</code>就行</p>
-
-<h1 id="创建过程-pystring-fromstring">创建过程 PyString_FromString<a href="#创建过程-pystring-fromstring" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
-
+<h1 id="创建过程-pystring_fromstring">创建过程 PyString_FromString<a href="#创建过程-pystring_fromstring" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
 <p>定义</p>
-
 <pre><code>//默认未初始化, 均为NULL
 static PyStringObject *characters[UCHAR_MAX + 1];
 static PyStringObject *nullstring;
@@ -231,25 +208,18 @@ PyString_FromString(const char *str)
     return (PyObject *) op;
 }
 </code></pre>
-
 <p>步骤简化</p>
-
 <pre><code>1. 计算长度
 2. 长度0, 空字符串, 是返回已定义好的nullstring
 3. 长度1, 字符, 返回字符缓冲池里面的
 4. 都不是, 分配内存, 初始化
 </code></pre>
-
 <p>结论</p>
-
 <pre><code>长度0/长度1, 会用到intern机制
 注意, intern机制对长度&gt;1的字符串也适用
 </code></pre>
-
 <h1 id="interned机制">interned机制<a href="#interned机制" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
-
 <p>interned</p>
-
 <pre><code>/* This dictionary holds all interned strings.  Note that references to
 strings in this dictionary are *not* counted in the string's ob_refcnt.
 When the interned string reaches a refcnt of 0 the string deallocation
@@ -260,9 +230,7 @@ count of a string is:  s-&gt;ob_refcnt + (s-&gt;ob_sstate?2:0)
 */
 static PyObject *interned; //指针, 指向PyDictObject
 </code></pre>
-
 <p>interned定义</p>
-
 <pre><code>void
 PyString_InternInPlace(PyObject **p)
 {
@@ -316,9 +284,7 @@ PyString_InternInPlace(PyObject **p)
     PyString_CHECK_INTERNED(s) = SSTATE_INTERNED_MORTAL;
 }
 </code></pre>
-
 <p>使用的地方</p>
-
 <pre><code>// 构造方法
 PyAPI_FUNC(PyObject *) PyString_FromString(const char *);
 
@@ -341,9 +307,7 @@ PyString_InternFromString(const char *cp)
 void
 PyString_InternImmortal(PyObject **p)
 </code></pre>
-
 <p>示例</p>
-
 <pre><code>&gt;&gt;&gt; a = ''
 &gt;&gt;&gt; b = ''
 &gt;&gt;&gt; id(a) == id(b)
@@ -359,31 +323,22 @@ True
 &gt;&gt;&gt; id(a) == id(b)
 True
 </code></pre>
-
 <p>python源代码自己也大量使用</p>
-
 <pre><code>dict_str = PyString_InternFromString(&quot;__dict__&quot;)
 lenstr = PyString_InternFromString(&quot;__len__&quot;)
 s_true = PyString_InternFromString(&quot;true&quot;)
 empty_array = PyString_InternFromString(&quot;[]&quot;)
 </code></pre>
-
 <p>好处</p>
-
 <pre><code>一旦字符串被intern, 会被python保存到字典中, 整个python运行期间, 系统中有且仅有一个对象. 下次相同字符串再进入, 不会重复创建对象.
 </code></pre>
-
 <h1 id="字符缓冲池">字符缓冲池<a href="#字符缓冲池" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
-
 <p>定义</p>
-
 <pre><code>UCHAR_MAX 平台相关
 
 static PyStringObject *characters[UCHAR_MAX + 1];
 </code></pre>
-
 <p>在上面<code>PyString_FromString</code>可以看到, 字符缓冲池在使用中初始化(存在直接返回, 不存在建一个, 放interned字典中, 初始化字符缓冲池对应位置)</p>
-
 <pre><code>PyObject *t = (PyObject *)op;
 // 走intern, 后面说
 PyString_InternInPlace(&amp;t);
@@ -392,9 +347,7 @@ op = (PyStringObject *)t;
 // 初始化字符缓冲池对应位置
 characters[*str &amp; UCHAR_MAX] = op;
 </code></pre>
-
 <h1 id="字符串销毁过程">字符串销毁过程<a href="#字符串销毁过程" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
-
 <pre><code>static void
 string_dealloc(PyObject *op)
 {
@@ -424,28 +377,20 @@ string_dealloc(PyObject *op)
     Py_TYPE(op)-&gt;tp_free(op);
 }
 </code></pre>
-
 <h1 id="性能相关">性能相关<a href="#性能相关" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
-
 <p><code>+</code>与 <code>join</code></p>
-
 <pre><code>'a' + 'b' + 'c'
 
 or
 
 ''.join(['a', 'b', 'c'])
 </code></pre>
-
 <p>可以查看<code>string_concat</code>方法和<code>string_join</code>方法的源代码</p>
-
 <pre><code>string_concat, 一次加=分配一次内存空间, 拷贝两次. N次链接, 需要N-1次内存分配.
 string_join, 计算序列所有元素字符串总长度, 用PyString_FromStringAndSize((char*)NULL, sz)分配内存空间, 然后逐一拷贝. 一次内存操作.
 </code></pre>
-
-<hr />
-
+<hr>
 <p>changelog</p>
-
 <pre><code>2014-08-08 first version
 </code></pre>
 
@@ -461,16 +406,7 @@ string_join, 计算序列所有元素字符串总长度, 用PyString_FromStringA
 		</article>
 		<aside id="toc">
 			<div class="toc-title">Table of Contents</div>
-			<nav id="TableOfContents">
-<ul>
-<li><a href="#pystringobject">PyStringObject</a></li>
-<li><a href="#创建过程-pystring-fromstring">创建过程 PyString_FromString</a></li>
-<li><a href="#interned机制">interned机制</a></li>
-<li><a href="#字符缓冲池">字符缓冲池</a></li>
-<li><a href="#字符串销毁过程">字符串销毁过程</a></li>
-<li><a href="#性能相关">性能相关</a></li>
-</ul>
-</nav>
+			<nav id="TableOfContents"></nav>
 		</aside>
 		<div class="post-nav thin">
 			<a class="next-post" href="http://wklken.me/posts/2014/08/10/python-source-list.html">
@@ -480,12 +416,6 @@ string_join, 计算序列所有元素字符串总长度, 用PyString_FromStringA
 				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>Python 源码阅读 - int</span>
 			</a>
 		</div>
-
-    <div class="thin">
-				<span class="post-nav-label">
-          <a href="https://www.vultr.com/?ref=7825696-4F"><img src="https://www.vultr.com/media/banners/banner_800x418.png" width="100%" height="418" style="display: block; margin-left: auto; margin-right: auto;"></a>
-        </span>
-    </div>
 
 		<div id="comments" class="thin">
 <div id="disqus_thread"></div>
@@ -512,7 +442,7 @@ string_join, 计算序列所有元素字符串总长度, 用PyString_FromStringA
 	</main>
 
 	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
-		<p>&copy; 2019 <a href="http://wklken.me">wklken</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>&copy; 2021 <a href="http://wklken.me">wklken</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
 		<p>
 			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="http://wklken.me/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
 		</p>

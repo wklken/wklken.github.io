@@ -7,14 +7,11 @@
 	<meta http-equiv="X-UA-Compatible" content="ie=edge">
 	<meta name="theme-color" content="#494f5c">
 	<meta name="msapplication-TileColor" content="#494f5c">
-
 <meta itemprop="name" content="Python 源码阅读 - 类型">
 <meta itemprop="description" content="这篇主要涉及Python对象的类型机制 有点绕, 一定要思维清晰的时候再看哦:) 一个例子 &gt;&gt;&gt; a = 1 &gt;&gt;&gt; a 1 &gt;&gt;&gt; type(a) &lt;type &#39;int&#39;&gt; #等价的两个 &gt;&gt;&gt; type(type(a)) &lt;type &#39;type&#39;&gt; &gt;&gt;&gt; type(int) &lt;type &#39;type&#39;&gt; #还是">
-
-
-<meta itemprop="datePublished" content="2014-08-05T19:31:00&#43;08:00" />
-<meta itemprop="dateModified" content="2014-08-05T19:31:00&#43;08:00" />
-<meta itemprop="wordCount" content="1153">
+<meta itemprop="datePublished" content="2014-08-05T19:31:00+08:00" />
+<meta itemprop="dateModified" content="2014-08-05T19:31:00+08:00" />
+<meta itemprop="wordCount" content="1151">
 
 
 
@@ -23,8 +20,8 @@
 <meta property="og:description" content="这篇主要涉及Python对象的类型机制 有点绕, 一定要思维清晰的时候再看哦:) 一个例子 &gt;&gt;&gt; a = 1 &gt;&gt;&gt; a 1 &gt;&gt;&gt; type(a) &lt;type &#39;int&#39;&gt; #等价的两个 &gt;&gt;&gt; type(type(a)) &lt;type &#39;type&#39;&gt; &gt;&gt;&gt; type(int) &lt;type &#39;type&#39;&gt; #还是" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://wklken.me/posts/2014/08/05/python-source-type.html" />
-<meta property="article:published_time" content="2014-08-05T19:31:00&#43;08:00"/>
-<meta property="article:modified_time" content="2014-08-05T19:31:00&#43;08:00"/>
+<meta property="article:published_time" content="2014-08-05T19:31:00+08:00" />
+<meta property="article:modified_time" content="2014-08-05T19:31:00+08:00" />
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Python 源码阅读 - 类型"/>
 <meta name="twitter:description" content="这篇主要涉及Python对象的类型机制 有点绕, 一定要思维清晰的时候再看哦:) 一个例子 &gt;&gt;&gt; a = 1 &gt;&gt;&gt; a 1 &gt;&gt;&gt; type(a) &lt;type &#39;int&#39;&gt; #等价的两个 &gt;&gt;&gt; type(type(a)) &lt;type &#39;type&#39;&gt; &gt;&gt;&gt; type(int) &lt;type &#39;type&#39;&gt; #还是"/>
@@ -37,7 +34,7 @@
 	<link rel="shortcut icon" href="/favicon.ico">
 
 	<title>Python 源码阅读 - 类型</title>
-	<link rel="stylesheet" href="http://wklken.me/css/style.min.31706917653d2b9e8410abd431f30ec4359a88a94fc87a63654779d87329edec.css" crossorigin="anonymous">
+	<link rel="stylesheet" href="http://wklken.me/css/style.min.6a2d94be52e9f033aff88558e28aa96de11244b0a70e7537f6c33589e8d2d124.css" crossorigin="anonymous">
 	
 	
 	<link rel="stylesheet" href="http://wklken.me/css/custom.css">
@@ -76,16 +73,10 @@
 				<h1>Python 源码阅读 - 类型</h1>
 			</header>
 			<div class="content">
-				
-
-<p>这篇主要涉及Python对象的类型机制</p>
-
+				<p>这篇主要涉及Python对象的类型机制</p>
 <p>有点绕, 一定要思维清晰的时候再看哦:)</p>
-
-<hr />
-
+<hr>
 <p>一个例子</p>
-
 <pre><code>&gt;&gt;&gt; a = 1
 &gt;&gt;&gt; a
 1
@@ -105,17 +96,11 @@
 &gt;&gt;&gt; type(type(int))
 &lt;type 'type'&gt;
 </code></pre>
-
 <p>我们反向推导一个<code>int</code>对象是怎么生成的.</p>
-
-<hr />
-
+<hr>
 <h3 id="1-首先-定义一种类型叫pytypeobject">1. 首先, 定义一种类型叫PyTypeObject<a href="#1-首先-定义一种类型叫pytypeobject" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
-
 <p>代码位置 <a href="https://github.com/wklken/Python-2.7.8/blob/master/Include/object.h">Include/object.h</a></p>
-
 <p>定义</p>
-
 <pre><code> typedef struct _typeobject {
 
   /* MARK: base, 注意, 是个变长对象*/
@@ -139,26 +124,18 @@
 
 } PyTypeObject;
 </code></pre>
-
 <p>说明</p>
-
 <pre><code>1. PyObject_VAR_HEAD
 变长对象
 
 2. const char *tp_name
 tp_name, 类型名字符串数组
 </code></pre>
-
-<p>所有Type都是PyTypeObject的&rdquo;实例&rdquo;: PyType_Type/PyInt_Type</p>
-
-<hr />
-
-<h3 id="2-然后-用pytypeobject初始化得到一个对象pytype-type">2. 然后, 用PyTypeObject初始化得到一个对象PyType_Type<a href="#2-然后-用pytypeobject初始化得到一个对象pytype-type" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
-
+<p>所有Type都是PyTypeObject的&quot;实例&quot;: PyType_Type/PyInt_Type</p>
+<hr>
+<h3 id="2-然后-用pytypeobject初始化得到一个对象pytype_type">2. 然后, 用PyTypeObject初始化得到一个对象PyType_Type<a href="#2-然后-用pytypeobject初始化得到一个对象pytype_type" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
 <p>代码位置 <a href="https://github.com/wklken/Python-2.7.8/blob/master/Objects/typeobject.c">Objects/typeobject.c</a></p>
-
 <p>定义</p>
-
 <pre><code>PyTypeObject PyType_Type = {
   PyVarObject_HEAD_INIT(&amp;PyType_Type, 0)
   &quot;type&quot;,                                     /* tp_name */
@@ -171,9 +148,7 @@ tp_name, 类型名字符串数组
 
 };
 </code></pre>
-
 <p>说明</p>
-
 <pre><code>1. tp_name
 类型名, 这里是&quot;type&quot;
 
@@ -186,17 +161,12 @@ PyVarObject_HEAD_INIT, 这个方法在 Include/object.h中,
 
 即, PyType_Type的类型是其本身!
 </code></pre>
-
 <p>结构</p>
-
 <p>第一张图, 箭头表示<code>实例化</code>(google doc用不是很熟找不到对应类型的箭头)
-<img src="/imgs/python-source/PyType_Type.png" alt="PyType_Type" /></p>
-
+<img src="/imgs/python-source/PyType_Type.png" alt="PyType_Type"></p>
 <p>第二张图, 箭头表示<code>指向</code>
-<img src="/imgs/python-source/PyType_Type2.png" alt="PyType_Type2" /></p>
-
+<img src="/imgs/python-source/PyType_Type2.png" alt="PyType_Type2"></p>
 <p>使用</p>
-
 <pre><code># 1. int 的 类型 是`type`
 &gt;&gt;&gt; type(int)
 &lt;type 'type'&gt;
@@ -205,17 +175,11 @@ PyVarObject_HEAD_INIT, 这个方法在 Include/object.h中,
 &gt;&gt;&gt; type(type(int))
 &lt;type 'type'&gt;
 </code></pre>
-
 <p>注意: 无论任何时候, ob_type指向的是 PyTypeObject的实例: PyType_Type/PyInt_Type&hellip;</p>
-
-<hr />
-
-<h3 id="3-再然后-定义具体的类型-这里以pyint-type为例子">3. 再然后, 定义具体的类型, 这里以PyInt_Type为例子<a href="#3-再然后-定义具体的类型-这里以pyint-type为例子" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
-
+<hr>
+<h3 id="3-再然后-定义具体的类型-这里以pyint_type为例子">3. 再然后, 定义具体的类型, 这里以PyInt_Type为例子<a href="#3-再然后-定义具体的类型-这里以pyint_type为例子" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
 <p>代码位置 <a href="https://github.com/wklken/Python-2.7.8/blob/master/Objects/intobject.c">Objects/intobject.c</a></p>
-
 <p>定义</p>
-
 <pre><code>PyTypeObject PyInt_Type = {
   PyVarObject_HEAD_INIT(&amp;PyType_Type, 0)
   &quot;int&quot;,
@@ -229,9 +193,7 @@ PyVarObject_HEAD_INIT, 这个方法在 Include/object.h中,
 
 };
 </code></pre>
-
 <p>说明</p>
-
 <pre><code>1. &quot;int&quot;
 PyInt_Type的类型名是int
 
@@ -240,49 +202,34 @@ PyInt_Type的
 
     *ob_type = &amp;PyType_Type
 </code></pre>
-
 <p>结构</p>
-
-<p><img src="/imgs/python-source/PyType_Type3.png" alt="PyType_Type2" /></p>
-
+<p><img src="/imgs/python-source/PyType_Type3.png" alt="PyType_Type2"></p>
 <p>使用</p>
-
 <pre><code>&gt;&gt;&gt; type(1)
 &lt;type 'int'&gt;
 
 &gt;&gt;&gt; type(type(1))
 &lt;type 'type'&gt;
 </code></pre>
-
-<hr />
-
+<hr>
 <h3 id="4-最后-生成一个整数对象int">4. 最后, 生成一个整数对象int<a href="#4-最后-生成一个整数对象int" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
-
 <p>代码位置 <a href="https://github.com/wklken/Python-2.7.8/blob/master/Include/intobject.h">Include/intobject.h</a></p>
-
 <p>定义</p>
-
 <pre><code>typedef struct {
     PyObject_HEAD
     long ob_ival;
 } PyIntObject;
 </code></pre>
-
 <p>结构</p>
-
-<p><img src="/imgs/python-source/PyType_Type4.png" alt="PyType_Type2" /></p>
-
+<p><img src="/imgs/python-source/PyType_Type4.png" alt="PyType_Type2"></p>
 <pre><code>1. PyIntObject为整数类型
 
 2. 声明一个整数后得到整数对象
 
 3. 对象ob_type指向PyInt_type对象
 </code></pre>
-
-<hr />
-
+<hr>
 <h3 id="到这里-总结下">到这里, 总结下<a href="#到这里-总结下" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
-
 <pre><code> 1. 一切都是对象
 
  2. PyType_Type / PyInt_Type / PyString_Type ....等
@@ -297,21 +244,15 @@ PyInt_Type的
  5. 每个object, 例如PyIntObject都属于一种`类型`
  object初始化时进行关联
 </code></pre>
-
-<hr />
-
+<hr>
 <h3 id="多态是如何实现的">多态是如何实现的?<a href="#多态是如何实现的" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
-
 <p>对象的多态, 例如hash</p>
-
 <pre><code>&gt;&gt;&gt; hash(1)
 1
 &gt;&gt;&gt; hash(&quot;abc&quot;)
 1453079729188098211
 </code></pre>
-
 <p>从上面数据结构可以看到, 方法及属性, 在不同Type实例化时就确定了</p>
-
 <pre><code>PyTypeObject PyInt_Type = {
     ...
     (hashfunc)int_hash,                         /* tp_hash */
@@ -325,18 +266,12 @@ PyTypeObject PyString_Type = {
     ...
 }
 </code></pre>
-
 <p>Python内部传递的是泛型指针<code>PyObject *</code>, 函数调用时, 找到其类型<code>* ob_type</code>, 然后调用</p>
-
 <pre><code>object -&gt; ob_type -&gt; tp_hash
 </code></pre>
-
 <p>即: 大量函数指针决定了该类型的具体行为</p>
-
-<hr />
-
+<hr>
 <p>changelog</p>
-
 <pre><code>2014-08-05 first version
 </code></pre>
 
@@ -346,27 +281,25 @@ PyTypeObject PyString_Type = {
 				<p>
 					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg><span class="tag"><a href="http://wklken.me/tags/python.html">python</a></span>
 				</p>
-				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>1153 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>1151 Words</p>
 				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2014-08-05 19:31 &#43;0800</p>
 			</footer>
 		</article>
 		<aside id="toc">
 			<div class="toc-title">Table of Contents</div>
 			<nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li>
-<ul>
-<li><a href="#1-首先-定义一种类型叫pytypeobject">1. 首先, 定义一种类型叫PyTypeObject</a></li>
-<li><a href="#2-然后-用pytypeobject初始化得到一个对象pytype-type">2. 然后, 用PyTypeObject初始化得到一个对象PyType_Type</a></li>
-<li><a href="#3-再然后-定义具体的类型-这里以pyint-type为例子">3. 再然后, 定义具体的类型, 这里以PyInt_Type为例子</a></li>
-<li><a href="#4-最后-生成一个整数对象int">4. 最后, 生成一个整数对象int</a></li>
-<li><a href="#到这里-总结下">到这里, 总结下</a></li>
-<li><a href="#多态是如何实现的">多态是如何实现的?</a></li>
-</ul></li>
-</ul></li>
-</ul>
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#1-首先-定义一种类型叫pytypeobject">1. 首先, 定义一种类型叫PyTypeObject</a></li>
+        <li><a href="#2-然后-用pytypeobject初始化得到一个对象pytype_type">2. 然后, 用PyTypeObject初始化得到一个对象PyType_Type</a></li>
+        <li><a href="#3-再然后-定义具体的类型-这里以pyint_type为例子">3. 再然后, 定义具体的类型, 这里以PyInt_Type为例子</a></li>
+        <li><a href="#4-最后-生成一个整数对象int">4. 最后, 生成一个整数对象int</a></li>
+        <li><a href="#到这里-总结下">到这里, 总结下</a></li>
+        <li><a href="#多态是如何实现的">多态是如何实现的?</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
 		</aside>
 		<div class="post-nav thin">
@@ -377,12 +310,6 @@ PyTypeObject PyString_Type = {
 				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>Python 源码阅读 - 对象</span>
 			</a>
 		</div>
-
-    <div class="thin">
-				<span class="post-nav-label">
-          <a href="https://www.vultr.com/?ref=7825696-4F"><img src="https://www.vultr.com/media/banners/banner_800x418.png" width="100%" height="418" style="display: block; margin-left: auto; margin-right: auto;"></a>
-        </span>
-    </div>
 
 		<div id="comments" class="thin">
 <div id="disqus_thread"></div>
@@ -409,7 +336,7 @@ PyTypeObject PyString_Type = {
 	</main>
 
 	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
-		<p>&copy; 2019 <a href="http://wklken.me">wklken</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>&copy; 2021 <a href="http://wklken.me">wklken</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
 		<p>
 			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="http://wklken.me/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
 		</p>

@@ -7,27 +7,24 @@
 	<meta http-equiv="X-UA-Compatible" content="ie=edge">
 	<meta name="theme-color" content="#494f5c">
 	<meta name="msapplication-TileColor" content="#494f5c">
-
 <meta itemprop="name" content="Python源码阅读-内存管理机制(二)">
-<meta itemprop="description" content="Python 的内存分配策略 arena arena: 多个pool聚合的结果 arena size pool的大小默认值位4KB arena的大小默认值256KB, 能放置 256&frasl;4=64 个pool obmallo">
-
-
-<meta itemprop="datePublished" content="2015-08-29T20:54:00&#43;08:00" />
-<meta itemprop="dateModified" content="2015-08-29T20:54:00&#43;08:00" />
-<meta itemprop="wordCount" content="5022">
+<meta itemprop="description" content="Python 的内存分配策略 arena arena: 多个pool聚合的结果 arena size pool的大小默认值位4KB arena的大小默认值256KB, 能放置 256/4=64 个pool obmallo">
+<meta itemprop="datePublished" content="2015-08-29T20:54:00+08:00" />
+<meta itemprop="dateModified" content="2015-08-29T20:54:00+08:00" />
+<meta itemprop="wordCount" content="5021">
 
 
 
 <meta itemprop="keywords" content="python," />
 <meta property="og:title" content="Python源码阅读-内存管理机制(二)" />
-<meta property="og:description" content="Python 的内存分配策略 arena arena: 多个pool聚合的结果 arena size pool的大小默认值位4KB arena的大小默认值256KB, 能放置 256&frasl;4=64 个pool obmallo" />
+<meta property="og:description" content="Python 的内存分配策略 arena arena: 多个pool聚合的结果 arena size pool的大小默认值位4KB arena的大小默认值256KB, 能放置 256/4=64 个pool obmallo" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://wklken.me/posts/2015/08/29/python-source-memory-2.html" />
-<meta property="article:published_time" content="2015-08-29T20:54:00&#43;08:00"/>
-<meta property="article:modified_time" content="2015-08-29T20:54:00&#43;08:00"/>
+<meta property="article:published_time" content="2015-08-29T20:54:00+08:00" />
+<meta property="article:modified_time" content="2015-08-29T20:54:00+08:00" />
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Python源码阅读-内存管理机制(二)"/>
-<meta name="twitter:description" content="Python 的内存分配策略 arena arena: 多个pool聚合的结果 arena size pool的大小默认值位4KB arena的大小默认值256KB, 能放置 256&frasl;4=64 个pool obmallo"/>
+<meta name="twitter:description" content="Python 的内存分配策略 arena arena: 多个pool聚合的结果 arena size pool的大小默认值位4KB arena的大小默认值256KB, 能放置 256/4=64 个pool obmallo"/>
 
 	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -37,7 +34,7 @@
 	<link rel="shortcut icon" href="/favicon.ico">
 
 	<title>Python源码阅读-内存管理机制(二)</title>
-	<link rel="stylesheet" href="http://wklken.me/css/style.min.31706917653d2b9e8410abd431f30ec4359a88a94fc87a63654779d87329edec.css" crossorigin="anonymous">
+	<link rel="stylesheet" href="http://wklken.me/css/style.min.6a2d94be52e9f033aff88558e28aa96de11244b0a70e7537f6c33589e8d2d124.css" crossorigin="anonymous">
 	
 	
 	<link rel="stylesheet" href="http://wklken.me/css/custom.css">
@@ -76,24 +73,15 @@
 				<h1>Python源码阅读-内存管理机制(二)</h1>
 			</header>
 			<div class="content">
-				
-
-<h2 id="python-的内存分配策略">Python 的内存分配策略<a href="#python-的内存分配策略" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
-
+				<h2 id="python-的内存分配策略">Python 的内存分配策略<a href="#python-的内存分配策略" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
 <h3 id="arena">arena<a href="#arena" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
-
 <p>arena: 多个pool聚合的结果</p>
-
 <h4 id="arena-size">arena size<a href="#arena-size" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
-
 <p>pool的大小默认值位4KB</p>
-
-<p>arena的大小默认值256KB, 能放置 <sup>256</sup>&frasl;<sub>4</sub>=64 个pool</p>
-
+<p>arena的大小默认值256KB, 能放置 256/4=64 个pool</p>
 <p><code>obmalloc.c</code>中代码</p>
-<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="cp">#define ARENA_SIZE              (256 &lt;&lt; 10)     </span><span class="cm">/* 256KB */</span></code></pre></div>
-<h4 id="arena-结构">arena 结构<a href="#arena-结构" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
-
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="cp">#define ARENA_SIZE              (256 &lt;&lt; 10)     </span><span class="cm">/* 256KB */</span><span class="cp">
+</span></code></pre></div><h4 id="arena-结构">arena 结构<a href="#arena-结构" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
 <blockquote>
 <p>一个完整的arena = arena_object + pool集合</p>
 </blockquote>
@@ -140,26 +128,17 @@
     <span class="c1">// arena链表
 </span><span class="c1"></span>    <span class="k">struct</span> <span class="n">arena_object</span><span class="o">*</span> <span class="n">nextarena</span><span class="p">;</span>
     <span class="k">struct</span> <span class="n">arena_object</span><span class="o">*</span> <span class="n">prevarena</span><span class="p">;</span>
-<span class="p">};</span></code></pre></div>
-<p>arena_object的作用</p>
-
+<span class="p">};</span>
+</code></pre></div><p>arena_object的作用</p>
 <pre><code>1. 与其他arena连接, 组成双向链表
 2. 维护arena中可用的pool, 单链表
 3. 其他信息
-</code></pre>
-
-<p><code>pool_header</code> 与 <code>arena_object</code></p>
-
+</code></pre><p><code>pool_header</code> 与 <code>arena_object</code></p>
 <pre><code>pool_header和管理的blocks内存是一块连续的内存 =&gt; pool_header被申请时, 其管理的block集合的内存一并被申请
 arena_object和其管理的内存是分离的 =&gt; arena_object被申请时, 其管理的pool集合的内存没有被申请, 而是在某一时刻建立的联系
-</code></pre>
-
-<p><img src="/imgs/python-source/python-memory-arena.png" alt="arena" /></p>
-
+</code></pre><p><img src="/imgs/python-source/python-memory-arena.png" alt="arena"></p>
 <h4 id="arena的两种状态">arena的两种状态<a href="#arena的两种状态" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
-
 <p>arena存在两种状态: 未使用(没有建立联系)/可用(建立了联系)</p>
-
 <p>全局由两个链表维护着</p>
 <div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="cm">/* The head of the singly-linked, NULL-terminated list of available
 </span><span class="cm"> * arena_objects.
@@ -171,11 +150,9 @@ arena_object和其管理的内存是分离的 =&gt; arena_object被申请时, �
 </span><span class="cm"> * arena_objects associated with arenas that have pools available.
 </span><span class="cm"> */</span>
 <span class="c1">// 双向链表
-</span><span class="c1"></span><span class="k">static</span> <span class="k">struct</span> <span class="n">arena_object</span><span class="o">*</span> <span class="n">usable_arenas</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span></code></pre></div>
-<h4 id="arena的初始化">arena的初始化<a href="#arena的初始化" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
-
+</span><span class="c1"></span><span class="k">static</span> <span class="k">struct</span> <span class="n">arena_object</span><span class="o">*</span> <span class="n">usable_arenas</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+</code></pre></div><h4 id="arena的初始化">arena的初始化<a href="#arena的初始化" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
 <p>首先, 来看下初始化相关的一些参数定义</p>
-
 <p>代码<code>obmalloc.c</code></p>
 <div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="cm">/* Array of objects used to track chunks of memory (arenas). */</span>
 <span class="c1">// arena_object 数组
@@ -206,8 +183,8 @@ arena_object和其管理的内存是分离的 =&gt; arena_object被申请时, �
 </span><span class="cm"> * arena_objects associated with arenas that have pools available.
 </span><span class="cm"> */</span>
 <span class="c1">// 可用状态arena的双向链表
-</span><span class="c1"></span><span class="k">static</span> <span class="k">struct</span> <span class="n">arena_object</span><span class="o">*</span> <span class="n">usable_arenas</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span></code></pre></div>
-<p>然后, 看下<code>obmalloc.c</code>中<code>arena</code>初始化的代码</p>
+</span><span class="c1"></span><span class="k">static</span> <span class="k">struct</span> <span class="n">arena_object</span><span class="o">*</span> <span class="n">usable_arenas</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+</code></pre></div><p>然后, 看下<code>obmalloc.c</code>中<code>arena</code>初始化的代码</p>
 <div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="cm">/* Allocate a new arena.  If we run out of memory, return NULL.  Else
 </span><span class="cm"> * allocate a new arena, and return the address of an arena_object
 </span><span class="cm"> * describing the new arena.  It&#39;s expected that the caller will set
@@ -321,29 +298,22 @@ arena_object和其管理的内存是分离的 =&gt; arena_object被申请时, �
     <span class="n">arenaobj</span><span class="o">-&gt;</span><span class="n">ntotalpools</span> <span class="o">=</span> <span class="n">arenaobj</span><span class="o">-&gt;</span><span class="n">nfreepools</span><span class="p">;</span>
 
     <span class="k">return</span> <span class="n">arenaobj</span><span class="p">;</span>
-<span class="p">}</span></code></pre></div>
-<p>图示: 初始化arenas数组, 初始化后的所有arena都在<code>unused_arena_objects</code>单链表里面</p>
-
-<p><img src="/imgs/python-source/python-memory-arena2.png" alt="arena" /></p>
-
+<span class="p">}</span>
+</code></pre></div><p>图示: 初始化arenas数组, 初始化后的所有arena都在<code>unused_arena_objects</code>单链表里面</p>
+<p><img src="/imgs/python-source/python-memory-arena2.png" alt="arena"></p>
 <p>图示: 从arenas取一个arena进行初始化</p>
-
-<p><img src="/imgs/python-source/python-memory-arena3.png" alt="arena" /></p>
-
+<p><img src="/imgs/python-source/python-memory-arena3.png" alt="arena"></p>
 <h4 id="没有可用的arena">没有可用的arena?<a href="#没有可用的arena" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
-
 <p>此时</p>
 <div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c">    <span class="c1">// 判断成立
 </span><span class="c1"></span>    <span class="k">if</span> <span class="p">(</span><span class="n">unused_arena_objects</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>
         <span class="p">....</span>
         <span class="c1">// 确定需要申请的个数, 首次初始化, 16, 之后每次翻倍
-</span><span class="c1"></span>        <span class="n">numarenas</span> <span class="o">=</span> <span class="n">maxarenas</span> <span class="o">?</span> <span class="n">maxarenas</span> <span class="o">&lt;&lt;</span> <span class="mi">1</span> <span class="o">:</span> <span class="n">INITIAL_ARENA_OBJECTS</span><span class="p">;</span></code></pre></div>
-<p>然后, 假设第一次分配了16个, 发现没有arena之后, 第二次处理结果: <code>numarenas = 32</code></p>
+</span><span class="c1"></span>        <span class="n">numarenas</span> <span class="o">=</span> <span class="n">maxarenas</span> <span class="o">?</span> <span class="n">maxarenas</span> <span class="o">&lt;&lt;</span> <span class="mi">1</span> <span class="o">:</span> <span class="n">INITIAL_ARENA_OBJECTS</span><span class="p">;</span>
 
+</code></pre></div><p>然后, 假设第一次分配了16个, 发现没有arena之后, 第二次处理结果: <code>numarenas = 32</code></p>
 <p>即, 数组扩大了一倍</p>
-
 <h4 id="arena分配">arena分配<a href="#arena分配" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
-
 <p><code>new</code>了一个全新的 arena之后,</p>
 <div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c">  <span class="kt">void</span> <span class="o">*</span>
   <span class="nf">PyObject_Malloc</span><span class="p">(</span><span class="n">size_t</span> <span class="n">nbytes</span><span class="p">)</span>
@@ -379,16 +349,13 @@ arena_object和其管理的内存是分离的 =&gt; arena_object被申请时, �
 
 
 
-<span class="p">}</span></code></pre></div>
-<p>图示: 从全新的arena中获取一个pool</p>
-
-<p><img src="/imgs/python-source/python-memory-arena4.png" alt="arena" /></p>
-
+<span class="p">}</span>
+</code></pre></div><p>图示: 从全新的arena中获取一个pool</p>
+<p><img src="/imgs/python-source/python-memory-arena4.png" alt="arena"></p>
 <p>假设arena是旧的, 怎么分配的pool</p>
 <div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c">          <span class="n">pool</span> <span class="o">=</span> <span class="n">usable_arenas</span><span class="o">-&gt;</span><span class="n">freepools</span><span class="p">;</span>
-          <span class="k">if</span> <span class="p">(</span><span class="n">pool</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span></code></pre></div>
-<p>这个<code>arena-&gt;freepools</code>是何方神圣?</p>
-
+          <span class="k">if</span> <span class="p">(</span><span class="n">pool</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>
+</code></pre></div><p>这个<code>arena-&gt;freepools</code>是何方神圣?</p>
 <p>当arena中一整块pool被释放的时候</p>
 <div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c">  <span class="kt">void</span>
   <span class="nf">PyObject_Free</span><span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="n">p</span><span class="p">)</span>
@@ -404,15 +371,11 @@ arena_object和其管理的内存是分离的 =&gt; arena_object被申请时, �
               <span class="n">ao</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">arenas</span><span class="p">[</span><span class="n">pool</span><span class="o">-&gt;</span><span class="n">arenaindex</span><span class="p">];</span>
               <span class="n">pool</span><span class="o">-&gt;</span><span class="n">nextpool</span> <span class="o">=</span> <span class="n">ao</span><span class="o">-&gt;</span><span class="n">freepools</span><span class="p">;</span>
               <span class="n">ao</span><span class="o">-&gt;</span><span class="n">freepools</span> <span class="o">=</span> <span class="n">pool</span><span class="p">;</span>
-              <span class="n">nf</span> <span class="o">=</span> <span class="o">++</span><span class="n">ao</span><span class="o">-&gt;</span><span class="n">nfreepools</span><span class="p">;</span></code></pre></div>
-<p>也就是说, 在pool整块被释放的时候, 会将pool加入到<code>arena-&gt;freepools</code>作为单链表的表头, 然后, 在从非全新arena中分配pool时, 优先从<code>arena-&gt;freepools</code>里面取, 如果取不到, 再从arena内存块里面获取</p>
-
+              <span class="n">nf</span> <span class="o">=</span> <span class="o">++</span><span class="n">ao</span><span class="o">-&gt;</span><span class="n">nfreepools</span><span class="p">;</span>
+</code></pre></div><p>也就是说, 在pool整块被释放的时候, 会将pool加入到<code>arena-&gt;freepools</code>作为单链表的表头, 然后, 在从非全新arena中分配pool时, 优先从<code>arena-&gt;freepools</code>里面取, 如果取不到, 再从arena内存块里面获取</p>
 <p>图示</p>
-
-<p><img src="/imgs/python-source/python-memory-arena5.png" alt="arena" /></p>
-
+<p><img src="/imgs/python-source/python-memory-arena5.png" alt="arena"></p>
 <h4 id="一个arena满了之后呢">一个arena满了之后呢<a href="#一个arena满了之后呢" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
-
 <p>很自然, 从下一个arena中获取</p>
 <div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c">  <span class="kt">void</span> <span class="o">*</span>
   <span class="nf">PyObject_Malloc</span><span class="p">(</span><span class="n">size_t</span> <span class="n">nbytes</span><span class="p">)</span>
@@ -438,52 +401,34 @@ arena_object和其管理的内存是分离的 =&gt; arena_object被申请时, �
 </span><span class="c1"></span>
           <span class="p">}</span>
 
-  <span class="p">}</span></code></pre></div>
-<p>注意: 这里有个逻辑, 就是每分配一个pool, 就检查是不是用到了最后一个, 如果是, 需要变更<code>usable_arenas</code>到下一个可用的节点, 如果没有可用的, 那么下次进行内存分配的时候, 会判定从arenas数组中取一个</p>
-
+  <span class="p">}</span>
+</code></pre></div><p>注意: 这里有个逻辑, 就是每分配一个pool, 就检查是不是用到了最后一个, 如果是, 需要变更<code>usable_arenas</code>到下一个可用的节点, 如果没有可用的, 那么下次进行内存分配的时候, 会判定从arenas数组中取一个</p>
 <h4 id="arena回收">arena回收<a href="#arena回收" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
-
 <p>内存分配和回收最小单位是block, 当一个block被回收的时候, 可能触发pool被回收, pool被回收, 将会触发arena的回收机制</p>
-
 <p>四种情况</p>
-
 <pre><code>1. arena中所有pool都是闲置的(empty), 将arena内存释放, 返回给操作系统
 2. 如果arena中之前所有的pool都是占用的(used), 现在释放了一个pool(empty), 需要将 arena加入到usable_arenas, 会加入链表表头
 3. 如果arena中empty的pool个数n, 则从useable_arenas开始寻找可以插入的位置. 将arena插入. (useable_arenas是一个有序链表, 按empty pool的个数, 保证empty pool数量越多, 被使用的几率越小, 最终被整体释放的机会越大)
 4. 其他情况, 不对arena 进行处理
-</code></pre>
-
-<p>具体可以看<code>PyObject_Free</code>的代码</p>
-
+</code></pre><p>具体可以看<code>PyObject_Free</code>的代码</p>
 <h3 id="内存分配步骤">内存分配步骤<a href="#内存分配步骤" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
-
 <p>好的, 到这里, 我们已经知道了block和pool的关系(包括pool怎么管理block的), 以及arena和pool的关系(怎么从arena中拉到可用的pool)</p>
-
 <p>那么, 在分析<code>PyObject_Malloc(size_t nbytes)</code>如何进行内存分配的时候, 我们就刨除掉这些管理代码</p>
-
 <p>关注: 如何寻找得到一块可用的nbytes的block内存</p>
-
 <p>其实代码那么多, 寻址得到对应的block也就这么几行代码, 其他代码都是pool没有, 找arena, 申请arena, arena没有, 找arenas, 最终的到一块pool, 初始化, 返回第一个block</p>
-
 <p>如果有的情况, 用现成的</p>
 <div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="n">pool</span> <span class="o">=</span> <span class="n">usedpools</span><span class="p">[</span><span class="n">size</span> <span class="o">+</span> <span class="n">size</span><span class="p">];</span>
 <span class="k">if</span> <span class="nl">pool可用</span><span class="p">:</span>
     <span class="n">pool</span> <span class="err">没满</span><span class="p">,</span> <span class="err">取一个</span><span class="n">block返回</span>
     <span class="n">pool</span> <span class="err">满了</span><span class="p">,</span> <span class="err">从下一个</span><span class="n">pool取一个block返回</span>
 <span class="err">否则</span><span class="o">:</span>
-    <span class="err">获取</span><span class="n">arena</span><span class="p">,</span> <span class="err">从里面初始化一个</span><span class="n">pool</span><span class="p">,</span> <span class="err">拿到第一个</span><span class="n">block</span><span class="p">,</span> <span class="err">返回</span></code></pre></div>
-<p>从上面这个判断逻辑来看, 内存分配其实主要操作的是pool, 跟arena并不是基本的操作单元(只是用来管理pool的)</p>
-
+    <span class="err">获取</span><span class="n">arena</span><span class="p">,</span> <span class="err">从里面初始化一个</span><span class="n">pool</span><span class="p">,</span> <span class="err">拿到第一个</span><span class="n">block</span><span class="p">,</span> <span class="err">返回</span>
+</code></pre></div><p>从上面这个判断逻辑来看, 内存分配其实主要操作的是pool, 跟arena并不是基本的操作单元(只是用来管理pool的)</p>
 <p>结论: 进行内存分配和销毁, 所有操作都是在pool上进行的</p>
-
 <p><code>usedpools</code> 是什么鬼? 其实是可用pool缓冲池, 后面说</p>
-
 <h3 id="内存池">内存池<a href="#内存池" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
-
 <h4 id="arena-内存池的大小">arena 内存池的大小<a href="#arena-内存池的大小" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
-
 <p>取决于用户, Python提供的编译符号, 用于决定是否控制</p>
-
 <p><code>obmalloc.c</code></p>
 <div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c"><span class="cp">#ifdef WITH_MEMORY_LIMITS
 </span><span class="cp">#ifndef SMALL_MEMORY_LIMIT
@@ -493,25 +438,18 @@ arena_object和其管理的内存是分离的 =&gt; arena_object被申请时, �
 </span><span class="cp"></span>
 <span class="cp">#ifdef WITH_MEMORY_LIMITS
 </span><span class="cp">#define MAX_ARENAS              (SMALL_MEMORY_LIMIT / ARENA_SIZE)
-</span><span class="cp">#endif</span></code></pre></div>
-<p>具体使用中, python并不直接与arenas和arena打交道, 当Python申请内存时, 最基本的操作单元并不是arena, 而是pool</p>
-
+</span><span class="cp">#endif
+</span></code></pre></div><p>具体使用中, python并不直接与arenas和arena打交道, 当Python申请内存时, 最基本的操作单元并不是arena, 而是pool</p>
 <p>问题: pool中所有block的size一样, 但是在arena中, 每个pool的size都可能不一样, 那么最终这些pool是怎么维护的? 怎么根据大小找到需要的block所在的pool? =&gt; <code>usedpools</code></p>
-
 <h4 id="pool在内存池中的三种状态">pool在内存池中的三种状态<a href="#pool在内存池中的三种状态" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
-
 <pre><code>1. used状态: pool中至少有一个block已经被使用, 并且至少有一个block未被使用. 这种状态的pool受控于Python内部维护的usedpool数组
 
 2. full状态: pool中所有的block都已经被使用, 这种状态的pool在arena中, 但不在arena的freepools链表中
 处于full的pool各自独立, 不会被链表维护起来
 
 3. empty状态: pool中所有block都未被使用, 处于这个状态的pool的集合通过其pool_header中的nextpool构成一个链表, 链表的表头是arena_object中的freepools
-</code></pre>
-
-<h4 id="usedpools">usedpools<a href="#usedpools" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
-
+</code></pre><h4 id="usedpools">usedpools<a href="#usedpools" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
 <p>usedpools数组: 维护着所有处于used状态的pool, 当申请内存的时候, 会通过usedpools寻找到一块可用的(处于used状态的)pool, 从中分配一个block</p>
-
 <p>结构:</p>
 <div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c">  <span class="cp">#define SMALL_REQUEST_THRESHOLD 512
 </span><span class="cp"></span>  <span class="c1">// 512/8 = 64
@@ -556,9 +494,10 @@ arena_object和其管理的内存是分离的 =&gt; arena_object被申请时, �
    <span class="n">PTA</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">PTA</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">PTA</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">PTA</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">PTA</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="n">PTA</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="n">PTA</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">PTA</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span>
    <span class="p">....</span>
    <span class="n">PTA</span><span class="p">(</span><span class="mi">63</span><span class="p">),</span> <span class="n">PTA</span><span class="p">(</span><span class="mi">63</span><span class="p">)</span>
-<span class="p">}</span></code></pre></div>
-<p>解开看(<code>obmalloc.c</code>)</p>
-<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c">  <span class="k">typedef</span> <span class="n">uchar</span> <span class="n">block</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div><p>解开看(<code>obmalloc.c</code>)</p>
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c">
+  <span class="k">typedef</span> <span class="n">uchar</span> <span class="n">block</span><span class="p">;</span>
 
   <span class="cm">/* Pool for small blocks. */</span>
   <span class="k">struct</span> <span class="n">pool_header</span> <span class="p">{</span>
@@ -578,15 +517,11 @@ arena_object和其管理的内存是分离的 =&gt; arena_object被申请时, �
 
 
 
-  <span class="o">*</span><span class="n">p</span> <span class="o">=</span> <span class="n">usedpools</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=&gt;</span> <span class="n">p</span><span class="o">-&gt;</span><span class="n">nextpool</span> <span class="n">and</span> <span class="n">p</span><span class="o">-&gt;</span><span class="n">prevpool</span> <span class="n">are</span> <span class="n">both</span> <span class="n">p</span></code></pre></div>
-<p>为了看懂这步的trick, 心好累&gt;_&lt;#</p>
-
+  <span class="o">*</span><span class="n">p</span> <span class="o">=</span> <span class="n">usedpools</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=&gt;</span> <span class="n">p</span><span class="o">-&gt;</span><span class="n">nextpool</span> <span class="n">and</span> <span class="n">p</span><span class="o">-&gt;</span><span class="n">prevpool</span> <span class="n">are</span> <span class="n">both</span> <span class="n">p</span>
+</code></pre></div><p>为了看懂这步的trick, 心好累&gt;_&lt;#</p>
 <p>直接上图</p>
-
-<p><img src="/imgs/python-source/python-memory-usedpool.png" alt="arena" /></p>
-
+<p><img src="/imgs/python-source/python-memory-usedpool.png" alt="arena"></p>
 <h4 id="new一个pool时维护">new一个pool时维护<a href="#new一个pool时维护" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
-
 <p><code>init</code>获得的情况, 其实就是将刚刚从arena中获取的pool加入到 usedpools 对应的双向链表中, 然后初始化, 然后返回block</p>
 <div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c">         <span class="nl">init_pool</span><span class="p">:</span>
               <span class="cm">/* Frontlink to used pools. */</span>
@@ -626,9 +561,8 @@ arena_object和其管理的内存是分离的 =&gt; arena_object被申请时, �
               <span class="o">*</span><span class="p">(</span><span class="n">block</span> <span class="o">**</span><span class="p">)(</span><span class="n">pool</span><span class="o">-&gt;</span><span class="n">freeblock</span><span class="p">)</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
               <span class="n">UNLOCK</span><span class="p">();</span>
               <span class="k">return</span> <span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="p">)</span><span class="n">bp</span><span class="p">;</span>   <span class="c1">// here
-</span><span class="c1"></span>          <span class="p">}</span></code></pre></div>
-<h4 id="从现有pool中获取block">从现有pool中获取block<a href="#从现有pool中获取block" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
-
+</span><span class="c1"></span>          <span class="p">}</span>
+</code></pre></div><h4 id="从现有pool中获取block">从现有pool中获取block<a href="#从现有pool中获取block" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
 <p>从现有的pool, 其实就是 usedpools得到双向链表头部, 判断是不是空链表, 不是的话代表有可用的pool, 直接从里面获取</p>
 <div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c">      <span class="k">if</span> <span class="p">((</span><span class="n">nbytes</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">SMALL_REQUEST_THRESHOLD</span><span class="p">)</span> <span class="p">{</span>
           <span class="n">LOCK</span><span class="p">();</span>
@@ -670,19 +604,14 @@ arena_object和其管理的内存是分离的 =&gt; arena_object被申请时, �
               <span class="n">pool</span><span class="o">-&gt;</span><span class="n">nextpool</span> <span class="o">=</span> <span class="n">next</span><span class="p">;</span>
               <span class="n">UNLOCK</span><span class="p">();</span>
               <span class="k">return</span> <span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="p">)</span><span class="n">bp</span><span class="p">;</span>   <span class="c1">// here
-</span><span class="c1"></span>          <span class="p">}</span></code></pre></div>
-<h4 id="全局结构">全局结构<a href="#全局结构" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
+</span><span class="c1"></span>          <span class="p">}</span>
 
-<p><img src="/imgs/python-source/python-memory-usedpool2.png" alt="arena" /></p>
-
-<hr />
-
+</code></pre></div><h4 id="全局结构">全局结构<a href="#全局结构" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
+<p><img src="/imgs/python-source/python-memory-usedpool2.png" alt="arena"></p>
+<hr>
 <p>先这样吧, Python中整个内存池基本结构和机制大概如此, 是不是发现有好多数组/链表等等, 在分配/回收上处理下做成各种池&hellip;..</p>
-
 <p>后面还有内存相关的就是垃圾收集了, 后面再说了吧</p>
-
 <p>wklken</p>
-
 <p>2015-08-29</p>
 
 			</div>
@@ -691,42 +620,22 @@ arena_object和其管理的内存是分离的 =&gt; arena_object被申请时, �
 				<p>
 					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg><span class="tag"><a href="http://wklken.me/tags/python.html">python</a></span>
 				</p>
-				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>5022 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>5021 Words</p>
 				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2015-08-29 20:54 &#43;0800</p>
 			</footer>
 		</article>
 		<aside id="toc">
 			<div class="toc-title">Table of Contents</div>
 			<nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#python-的内存分配策略">Python 的内存分配策略</a>
-<ul>
-<li><a href="#arena">arena</a>
-<ul>
-<li><a href="#arena-size">arena size</a></li>
-<li><a href="#arena-结构">arena 结构</a></li>
-<li><a href="#arena的两种状态">arena的两种状态</a></li>
-<li><a href="#arena的初始化">arena的初始化</a></li>
-<li><a href="#没有可用的arena">没有可用的arena?</a></li>
-<li><a href="#arena分配">arena分配</a></li>
-<li><a href="#一个arena满了之后呢">一个arena满了之后呢</a></li>
-<li><a href="#arena回收">arena回收</a></li>
-</ul></li>
-<li><a href="#内存分配步骤">内存分配步骤</a></li>
-<li><a href="#内存池">内存池</a>
-<ul>
-<li><a href="#arena-内存池的大小">arena 内存池的大小</a></li>
-<li><a href="#pool在内存池中的三种状态">pool在内存池中的三种状态</a></li>
-<li><a href="#usedpools">usedpools</a></li>
-<li><a href="#new一个pool时维护">new一个pool时维护</a></li>
-<li><a href="#从现有pool中获取block">从现有pool中获取block</a></li>
-<li><a href="#全局结构">全局结构</a></li>
-</ul></li>
-</ul></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#python-的内存分配策略">Python 的内存分配策略</a>
+      <ul>
+        <li><a href="#arena">arena</a></li>
+        <li><a href="#内存分配步骤">内存分配步骤</a></li>
+        <li><a href="#内存池">内存池</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
 		</aside>
 		<div class="post-nav thin">
@@ -737,12 +646,6 @@ arena_object和其管理的内存是分离的 =&gt; arena_object被申请时, �
 				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>Python源码阅读-内存管理机制(一)</span>
 			</a>
 		</div>
-
-    <div class="thin">
-				<span class="post-nav-label">
-          <a href="https://www.vultr.com/?ref=7825696-4F"><img src="https://www.vultr.com/media/banners/banner_800x418.png" width="100%" height="418" style="display: block; margin-left: auto; margin-right: auto;"></a>
-        </span>
-    </div>
 
 		<div id="comments" class="thin">
 <div id="disqus_thread"></div>
@@ -769,7 +672,7 @@ arena_object和其管理的内存是分离的 =&gt; arena_object被申请时, �
 	</main>
 
 	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
-		<p>&copy; 2019 <a href="http://wklken.me">wklken</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>&copy; 2021 <a href="http://wklken.me">wklken</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
 		<p>
 			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="http://wklken.me/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
 		</p>

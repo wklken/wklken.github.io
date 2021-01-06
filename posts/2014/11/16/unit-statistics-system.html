@@ -7,13 +7,10 @@
 	<meta http-equiv="X-UA-Compatible" content="ie=edge">
 	<meta name="theme-color" content="#494f5c">
 	<meta name="msapplication-TileColor" content="#494f5c">
-
 <meta itemprop="name" content="基于 PostgreSQL 的数据统计系统">
 <meta itemprop="description" content="看到标题就知道我要写什么了, 这是之前一个项目的小结吧, 自己对统计的一些认识和看法. 当时从前到后, 包括技术选型, 花了接近一个月的时间, 也在生产">
-
-
-<meta itemprop="datePublished" content="2014-11-16T20:58:00&#43;08:00" />
-<meta itemprop="dateModified" content="2014-11-16T20:58:00&#43;08:00" />
+<meta itemprop="datePublished" content="2014-11-16T20:58:00+08:00" />
+<meta itemprop="dateModified" content="2014-11-16T20:58:00+08:00" />
 <meta itemprop="wordCount" content="3724">
 
 
@@ -23,8 +20,8 @@
 <meta property="og:description" content="看到标题就知道我要写什么了, 这是之前一个项目的小结吧, 自己对统计的一些认识和看法. 当时从前到后, 包括技术选型, 花了接近一个月的时间, 也在生产" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://wklken.me/posts/2014/11/16/unit-statistics-system.html" />
-<meta property="article:published_time" content="2014-11-16T20:58:00&#43;08:00"/>
-<meta property="article:modified_time" content="2014-11-16T20:58:00&#43;08:00"/>
+<meta property="article:published_time" content="2014-11-16T20:58:00+08:00" />
+<meta property="article:modified_time" content="2014-11-16T20:58:00+08:00" />
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="基于 PostgreSQL 的数据统计系统"/>
 <meta name="twitter:description" content="看到标题就知道我要写什么了, 这是之前一个项目的小结吧, 自己对统计的一些认识和看法. 当时从前到后, 包括技术选型, 花了接近一个月的时间, 也在生产"/>
@@ -37,7 +34,7 @@
 	<link rel="shortcut icon" href="/favicon.ico">
 
 	<title>基于 PostgreSQL 的数据统计系统</title>
-	<link rel="stylesheet" href="http://wklken.me/css/style.min.31706917653d2b9e8410abd431f30ec4359a88a94fc87a63654779d87329edec.css" crossorigin="anonymous">
+	<link rel="stylesheet" href="http://wklken.me/css/style.min.6a2d94be52e9f033aff88558e28aa96de11244b0a70e7537f6c33589e8d2d124.css" crossorigin="anonymous">
 	
 	
 	<link rel="stylesheet" href="http://wklken.me/css/custom.css">
@@ -76,63 +73,37 @@
 				<h1>基于 PostgreSQL 的数据统计系统</h1>
 			</header>
 			<div class="content">
-				
-
-<p>看到标题就知道我要写什么了, 这是之前一个项目的小结吧, 自己对统计的一些认识和看法.</p>
-
+				<p>看到标题就知道我要写什么了, 这是之前一个项目的小结吧, 自己对统计的一些认识和看法.</p>
 <p>当时从前到后, 包括技术选型, 花了接近一个月的时间, 也在生产上用了两三个月, 一致在持续维护, 做完图表配置化已然接近完工, 无奈后来离开了, 不过目前应该还在运转</p>
-
 <p>至于源代码, 暂时不考虑开源, 太渣(其中在看了几天js情况下, 自己撸了1000行js的前端框架, 质量堪忧), 全套用python实现.</p>
-
 <p>提供一种快速实现运营统计需求的思路.</p>
-
 <p>(图为百度 echarts 示例)</p>
-
-<p><img src="/imgs/system/statistics.png" alt="statistics" /></p>
-
-<hr />
-
+<p><img src="/imgs/system/statistics.png" alt="statistics"></p>
+<hr>
 <h3 id="一-场景">一. 场景<a href="#一-场景" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
-
 <ul>
 <li>统计</li>
 </ul>
-
 <p>所谓统计, 抽象出来就是计数而已(还有各个计数之间的算术运算). 再具体一些, 根据不同维度进行计数.</p>
-
 <p>而统计后台, 无外乎数据的输入, 处理, 及输出.</p>
-
 <p>对于实时性, 一般会以天为单位进行统计.</p>
-
 <p>而在具体业务场景下, 需要计数的数据来源于各个项目和同一个项目的不同机器(分布式部署), 就需要考虑, 如何将日志进行汇聚, 如何更为便捷地进行处理, 存储, 以及展现.</p>
-
 <p>其中要考虑, 需求是不断在变化的, 如何将成本降到最低?</p>
-
 <ul>
-<li><p>以往的统计方式:</p>
-
+<li>以往的统计方式:</li>
+</ul>
 <pre><code>分析统计需求 -&gt; 修改项目记录日志内容和格式(到磁盘) -&gt; 自行将日志汇总到一台机器(rsync) -&gt; crontab脚本分析日志(要删或备份历史数据) -&gt; 新建db表, 存储统计结果 -&gt; 写管理后台, 查询统计结果(最繁琐) -&gt; 处理分页/图表等
-</code></pre></li>
-</ul>
-
-<p>虽然每次耗时或许并不会太长(0.5-2d, 视需求大小), 但对于不同项目和需求变更, 这些工作都是纯体力毫无技术含量的枯燥工作, 可以说是无意义的资源浪费.</p>
-
+</code></pre><p>虽然每次耗时或许并不会太长(0.5-2d, 视需求大小), 但对于不同项目和需求变更, 这些工作都是纯体力毫无技术含量的枯燥工作, 可以说是无意义的资源浪费.</p>
 <ul>
-<li><p>新的方式</p>
-
+<li>新的方式</li>
+</ul>
 <pre><code>分析统计需求 -&gt; 确认日志内容和格式  -&gt; 统计后台配置输入/处理/输出逻辑 -&gt; 查看结果
-</code></pre></li>
-</ul>
-
-<p>说白了就是, 处理统计需求变成了 <code>写sql</code> + <code>配置</code></p>
-
-<hr />
-
+</code></pre><p>说白了就是, 处理统计需求变成了 <code>写sql</code> + <code>配置</code></p>
+<hr>
 <h3 id="二-处理思路">二. 处理思路<a href="#二-处理思路" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
-
 <ul>
-<li><p>大体思路如下(从后往前):</p>
-
+<li>大体思路如下(从后往前):</li>
+</ul>
 <pre><code>1. 将日志进行汇总
 2. 日志格式一致化
 3. 将日志导入到一个容器中
@@ -141,29 +112,21 @@
 6. 提供统一的查询接口
 7. 提供前端框架组件, 可以通过配置调用统一查询接口, 并对数据进行分页及图表化
 8. 提供配置入口, 可以配置日志入口, 处理逻辑, 展现逻辑. 即完全地配置化
-</code></pre></li>
-
-<li><p>需要统一的地方:</p>
-
+</code></pre><ul>
+<li>需要统一的地方:</li>
+</ul>
 <pre><code>日志格式
 容器存储
 报告存储
 查询接口
 前端组件
-</code></pre></li>
-
-<li><p>系统成型后</p>
-
-<pre><code>增加/修改统计需求: 只需要在后台配置数据来源(日志), 处理逻辑(一段 sql), 展示逻辑(一段前端 json配置), 就可以实现图标
-</code></pre></li>
+</code></pre><ul>
+<li>系统成型后</li>
 </ul>
-
-<hr />
-
+<pre><code>增加/修改统计需求: 只需要在后台配置数据来源(日志), 处理逻辑(一段 sql), 展示逻辑(一段前端 json配置), 就可以实现图标
+</code></pre><hr>
 <h3 id="三-具体">三. 具体<a href="#三-具体" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
-
 <h3 id="0-基本架构">0. 基本架构<a href="#0-基本架构" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
-
 <pre><code>
              ----------------------------------------------
             |      日志(UniteStats or ApplicationLogs)     |
@@ -195,154 +158,85 @@
              ------------------------------------
             |      [自定义前端-使用统一库-配置生成]   |
              ------------------------------------
-</code></pre>
-
-<h3 id="1-日志格式">1. 日志格式<a href="#1-日志格式" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
-
+</code></pre><h3 id="1-日志格式">1. 日志格式<a href="#1-日志格式" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
 <p>日志, 即文本.</p>
-
 <p>但是文本存在各种格式, 例如常见的’\t’分隔的列, csv, json, xml等等.</p>
-
 <p>这里的要求是: 一定要满足自描述, 易读(人), 易处理(生成和解析).</p>
-
 <p>最终选择了<code>json</code>. 将原先无结构数据转成半结构化数据.</p>
-
 <p>原因之一, <code>容器</code>对半结构化的数据支持已经非常完善了, 例如postgresql, mongodb等, 对于后续计算很重要.</p>
-
 <p>原因之二, 作为一个统一的平台, 我只在乎数据是一份日志, 但是不在乎, 日志里存了些什么, 每个字段的意义, 这些只有平台的使用者需要知道. 否则带来很大一个问题是, 对于使用者在新增或变更一份日志格式时, 需要明确告诉系统这份日志各个字段是什么(名称和类型), 复杂化了</p>
-
 <p>到这里, 我们统一了日志的格式, 记录为json, 每条记录一行.</p>
-
 <h3 id="2-日志收集汇总">2. 日志收集汇总<a href="#2-日志收集汇总" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
-
 <p>目的: 将日志汇总到同一台机器上, 便于统一处理</p>
-
 <p>命名规则: <code>$THE_LOG_PATH/{projectName}/{projectName}_{moduleName}_{ip}_{yyMMdd}.log</code> (示例)</p>
-
 <p>日志汇总的方案有很多:</p>
-
 <pre><code>scp
 rsync
 nfs
 logstash
-</code></pre>
-
-<p>最终的处理方案: 数据量小, 同一个机房, 使用NFS将日志汇总到目录, 不同机房, 使用rsync进行汇总. 如果数据量大, 可以考虑使用logstash, 直接将日志经过节点处理实时写到一台机器上(就不要分别记录到各自磁盘了).</p>
-
+</code></pre><p>最终的处理方案: 数据量小, 同一个机房, 使用NFS将日志汇总到目录, 不同机房, 使用rsync进行汇总. 如果数据量大, 可以考虑使用logstash, 直接将日志经过节点处理实时写到一台机器上(就不要分别记录到各自磁盘了).</p>
 <p>扩展: 使用多台机器, 只要保证最终导入同一个库即可.(同一个项目, 同一天存在一张表, 不同机器的日志导入之)</p>
-
 <p>到这里, 我们将所有json格式的日志汇集到了一起</p>
-
 <h3 id="3-导入容器处理">3. 导入容器处理<a href="#3-导入容器处理" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
-
 <p>目前每个项目的日志格式是,</p>
-
 <pre><code>{projectName}/{projectName}_{moduleName}_{ip}_{yyMMdd}.log
-</code></pre>
-
-<p>我们会将同一个项目, 可能来自不同机器的日志导入同一张表</p>
-
+</code></pre><p>我们会将同一个项目, 可能来自不同机器的日志导入同一张表</p>
 <pre><code>{projectName}/{projectName}_{moduleName}_*_{yyMMdd}.log
 =&gt;
 table: projectName_moduleName_yyMMdd
-</code></pre>
-
-<p>处理方式: 批量入库, 并且清理保留日期外的表</p>
-
+</code></pre><p>处理方式: 批量入库, 并且清理保留日期外的表</p>
 <p>建议使用批量导入的方式, 速度杠杠的. Postgresql请使用copy命令</p>
-
 <h3 id="4-容器">4. 容器<a href="#4-容器" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
-
 <p>一个计算容器, 仅此而已</p>
-
 <p>技术选型时, 考虑过Mysql/Mongdb/Redis/MariaDB/OrientDB/CouchDB/RethinkDB等等, 最终敲定使用postgresql, 无它, 对json的完美支持, 满足业务: 一定的数据量, 足够简单的统计方式, 足够稳定, 简单易运维等</p>
-
 <p>提下<code>redis</code>, 当时做了整套的<code>redis</code>方案(接口文档都明确完了就差写代码了), 但是后来毙掉了. (典型的拿着锤子满世界都是钉子的案例). 思想是: 流式日志处理, 根据业务需求使用redis counter, 主从, 后台从redis直接取counter进行展示. 脑洞很大, 可以搞定实时/非实时情况, 还可以顺带把各类业务中的counter需求给做了, 以及更为灵活的展现方式, 但是学习成本较高, 对每个写统计的人要求较高(素质, 具备正确的统计思维, 否则会悲剧掉). 再加上业务本身要求实时性并不高, 所以废弃.</p>
-
 <p><code>MySql</code> 对 <code>json</code> 的支持, 相对于 postgresql 而言逊色太多了, 对<code>json</code>格式存在限制(多层复杂嵌套的情况)</p>
-
 <p><code>Mongodb</code> 虽然对<code>json</code>支持不错, 但是对于数据量较大的情况支持并不好, 并且查询以及运维都会带来一定困难, 对于使用者有一定学习成本</p>
-
 <p>PostGresql作为容器的好处:</p>
-
 <pre><code>1. 支持的数据量
 2. 查询简单，支持json, 所有sql查询，group by/order by/嵌套子查询，聚集等
 3. 各种聚集、统计函数均可用，搞定基本统计查询无障碍（再复杂的都可以）
 4. 运维简单
 5. 对于开发而言几乎没有学习成本, 会sql再学习下postgresql的json查询
-</code></pre>
-
-<p>示例:
+</code></pre><p>示例:
 假设搜索日志:</p>
-
 <pre><code>{‘ip’: ‘127.0.0.1’,
  ‘keyword’: ‘test’,
  ‘result_count’: ‘1’,
 }
-</code></pre>
-
-<p>统计 pv</p>
-
+</code></pre><p>统计 pv</p>
 <pre><code>select count(data-&gt;'ip') from search_20141101;
-</code></pre>
-
-<p>统计 uv</p>
-
+</code></pre><p>统计 uv</p>
 <pre><code>select count(DISTINCT data-&gt;&gt;'ip') from search_20141101;
-</code></pre>
-
-<p>无结果数</p>
-
+</code></pre><p>无结果数</p>
 <pre><code>select count(*) from search_20141101 where data-&gt;&gt;'result_count' = '0';
-</code></pre>
-
-<p>搜索热词排行榜</p>
-
+</code></pre><p>搜索热词排行榜</p>
 <pre><code>select data-&gt;&gt;’keyword’, count(*)
 from search_20141101
 where data-&gt;&gt;'result_count' != '0'
 group by data-&gt;&gt;’keyword’
 order by count(*) desc
 limit 100;
-</code></pre>
-
-<h3 id="5-批处理">5. 批处理<a href="#5-批处理" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
-
+</code></pre><h3 id="5-批处理">5. 批处理<a href="#5-批处理" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
 <p>这里要做的事情, 需要有一个管理后台, 让开发可以配置上传自己的处理脚本, 设定脚本执行时间, 执行参数(处理日期/报告表名), 甚至是执行依赖.</p>
-
 <p>这里需要形成一个约定</p>
-
 <pre><code>报告表名: projectName_statsModuleName
 报告表一些字段名(因为统一查询接口需要用到): 日期 date,
 其他约定字段
-</code></pre>
-
-<p>每天, 系统会扫描并调度任务, 执行, 处理得到统计结果, 存入报告表.</p>
-
+</code></pre><p>每天, 系统会扫描并调度任务, 执行, 处理得到统计结果, 存入报告表.</p>
 <p>到这里, 我们每天的统计结果都存入到了报告表中</p>
-
 <h3 id="6-输出">6. 输出<a href="#6-输出" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
-
 <p>报告表, 是以时间为维度的, 每条记录带有日期, 每条记录细化到要统计到的精确维度.(具体表现是一个维度会多一列字段), 原则是, 需求分析时充分考虑当前及后续可能的统计需求(要预见还是蛮容易的), 直接将统计维度最细化.</p>
-
 <p>当然, 如果无法最细化, 后面存在变更, 可以修改统计脚本, 根据情况对历史数据进行重新统计.</p>
-
 <h3 id="7-统一查询层">7. 统一查询层<a href="#7-统一查询层" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
-
 <p>一层通用的接口, 支持传入表名, 条件, 需要结果字段, 格式等, 可以对系统中各类报告表进行各种形式的查询, 获取统计结果.</p>
-
 <h3 id="8-前端框架及展现">8. 前端框架及展现<a href="#8-前端框架及展现" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
-
 <p>是一整套的js款干啊</p>
-
 <p>分成几块</p>
-
 <ul>
 <li>生成查询表单: 模块化组件, 通过json配置, 自动生成统计查询的表单, 支持各类维度</li>
 </ul>
-
 <p>配置示例:</p>
-
 <pre><code>// 产生条件html
     var condition_configs = {
         title: &quot;频道访问统计摘要&quot;,
@@ -371,24 +265,21 @@ limit 100;
                 },
         ]
     };
-</code></pre>
-
-<p>就会自动生成表单</p>
-
+</code></pre><p>就会自动生成表单</p>
 <pre><code>begin_date:
 end_date:
 channel:
 version:
 </code></pre>
-
 <ul>
-<li><p>组合查询条件: 表单提交时, 根据json配置, 将表单内容/字段/值/表等, 拼接成统一查询层接口需要的请求串</p></li>
-
-<li><p>查询后数据处理: 将查询后的结果, 根据json配置, 进行转化和展现, 并图表化.</p></li>
+<li>
+<p>组合查询条件: 表单提交时, 根据json配置, 将表单内容/字段/值/表等, 拼接成统一查询层接口需要的请求串</p>
+</li>
+<li>
+<p>查询后数据处理: 将查询后的结果, 根据json配置, 进行转化和展现, 并图表化.</p>
+</li>
 </ul>
-
 <p>一个配置示例:</p>
-
 <pre><code>一般文本
 {
     'column': 'date',
@@ -424,30 +315,18 @@ version:
         &quot;other&quot;: &quot;其他导入&quot;,
     }
 },
-</code></pre>
-
-<h3 id="9-图表">9. 图表<a href="#9-图表" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
-
+</code></pre><h3 id="9-图表">9. 图表<a href="#9-图表" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
 <p>使用百度 <a href="http://echarts.baidu.com/">echats</a></p>
-
 <p>可以根据配置, 将统一查询层的接口返回数据直接灌入echats, 生成表单</p>
-
 <h3 id="10-过程日志及监控">10. 过程日志及监控<a href="#10-过程日志及监控" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
-
 <p>需要一组管理表, 进行任务配置/调度/执行/执行结果, 整个过程中的操作可以配置和查看, 用于监控.</p>
-
-<hr />
-
+<hr>
 <h3 id="四-小结">四. 小结<a href="#四-小结" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
-
 <blockquote>
 <p>It’s Simple, but it works.</p>
 </blockquote>
-
 <p>数据情况, 当时大概每天 10G 日志 load 到库(处理前&gt;10G), 每天日志数据大概是五千万条, 具体业务上了大概40个的样子, 每天30分钟左右处理完. 对于开发的改进是, 将原先0.5-2d的工作, 缩减到了1-2小时, 对生产力的提升较为显著.(对于日志数多且单一日志量较小的情况处理尤为便捷)</p>
-
 <p>适用范围: 对于一般团队应该足够了(流量百万级别), 每个项目每天3-5百万访问量, 日志数据10-20G, 当然, 一直没机会测试上限, 不过只要PostGresql能抗住, 量再大些应该也ok.(可以考虑上elasticsearch)</p>
-
 <p>以上思路, 仅供借鉴:) 就这样吧</p>
 
 			</div>
@@ -463,29 +342,27 @@ version:
 		<aside id="toc">
 			<div class="toc-title">Table of Contents</div>
 			<nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li>
-<ul>
-<li><a href="#一-场景">一. 场景</a></li>
-<li><a href="#二-处理思路">二. 处理思路</a></li>
-<li><a href="#三-具体">三. 具体</a></li>
-<li><a href="#0-基本架构">0. 基本架构</a></li>
-<li><a href="#1-日志格式">1. 日志格式</a></li>
-<li><a href="#2-日志收集汇总">2. 日志收集汇总</a></li>
-<li><a href="#3-导入容器处理">3. 导入容器处理</a></li>
-<li><a href="#4-容器">4. 容器</a></li>
-<li><a href="#5-批处理">5. 批处理</a></li>
-<li><a href="#6-输出">6. 输出</a></li>
-<li><a href="#7-统一查询层">7. 统一查询层</a></li>
-<li><a href="#8-前端框架及展现">8. 前端框架及展现</a></li>
-<li><a href="#9-图表">9. 图表</a></li>
-<li><a href="#10-过程日志及监控">10. 过程日志及监控</a></li>
-<li><a href="#四-小结">四. 小结</a></li>
-</ul></li>
-</ul></li>
-</ul>
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#一-场景">一. 场景</a></li>
+        <li><a href="#二-处理思路">二. 处理思路</a></li>
+        <li><a href="#三-具体">三. 具体</a></li>
+        <li><a href="#0-基本架构">0. 基本架构</a></li>
+        <li><a href="#1-日志格式">1. 日志格式</a></li>
+        <li><a href="#2-日志收集汇总">2. 日志收集汇总</a></li>
+        <li><a href="#3-导入容器处理">3. 导入容器处理</a></li>
+        <li><a href="#4-容器">4. 容器</a></li>
+        <li><a href="#5-批处理">5. 批处理</a></li>
+        <li><a href="#6-输出">6. 输出</a></li>
+        <li><a href="#7-统一查询层">7. 统一查询层</a></li>
+        <li><a href="#8-前端框架及展现">8. 前端框架及展现</a></li>
+        <li><a href="#9-图表">9. 图表</a></li>
+        <li><a href="#10-过程日志及监控">10. 过程日志及监控</a></li>
+        <li><a href="#四-小结">四. 小结</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
 		</aside>
 		<div class="post-nav thin">
@@ -496,12 +373,6 @@ version:
 				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>简约之美 &amp; 编写可读代码的艺术</span>
 			</a>
 		</div>
-
-    <div class="thin">
-				<span class="post-nav-label">
-          <a href="https://www.vultr.com/?ref=7825696-4F"><img src="https://www.vultr.com/media/banners/banner_800x418.png" width="100%" height="418" style="display: block; margin-left: auto; margin-right: auto;"></a>
-        </span>
-    </div>
 
 		<div id="comments" class="thin">
 <div id="disqus_thread"></div>
@@ -528,7 +399,7 @@ version:
 	</main>
 
 	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
-		<p>&copy; 2019 <a href="http://wklken.me">wklken</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>&copy; 2021 <a href="http://wklken.me">wklken</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
 		<p>
 			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="http://wklken.me/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
 		</p>

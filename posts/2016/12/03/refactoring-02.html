@@ -7,14 +7,11 @@
 	<meta http-equiv="X-UA-Compatible" content="ie=edge">
 	<meta name="theme-color" content="#494f5c">
 	<meta name="msapplication-TileColor" content="#494f5c">
-
 <meta itemprop="name" content="读书笔记-重构: 章7 在对象之间搬移特性">
 <meta itemprop="description" content="重构的读书笔记, 简单转成python版本的code, 供参考 章7: 在对象之间搬移特性 7.1 Move Method 搬移函数 你的程序中, 有个函数与其所驻之外的另一个类进">
-
-
-<meta itemprop="datePublished" content="2016-12-03T11:05:00&#43;08:00" />
-<meta itemprop="dateModified" content="2016-12-03T11:05:00&#43;08:00" />
-<meta itemprop="wordCount" content="806">
+<meta itemprop="datePublished" content="2016-12-03T11:05:00+08:00" />
+<meta itemprop="dateModified" content="2016-12-03T11:05:00+08:00" />
+<meta itemprop="wordCount" content="802">
 
 
 
@@ -23,8 +20,8 @@
 <meta property="og:description" content="重构的读书笔记, 简单转成python版本的code, 供参考 章7: 在对象之间搬移特性 7.1 Move Method 搬移函数 你的程序中, 有个函数与其所驻之外的另一个类进" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://wklken.me/posts/2016/12/03/refactoring-02.html" />
-<meta property="article:published_time" content="2016-12-03T11:05:00&#43;08:00"/>
-<meta property="article:modified_time" content="2016-12-03T11:05:00&#43;08:00"/>
+<meta property="article:published_time" content="2016-12-03T11:05:00+08:00" />
+<meta property="article:modified_time" content="2016-12-03T11:05:00+08:00" />
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="读书笔记-重构: 章7 在对象之间搬移特性"/>
 <meta name="twitter:description" content="重构的读书笔记, 简单转成python版本的code, 供参考 章7: 在对象之间搬移特性 7.1 Move Method 搬移函数 你的程序中, 有个函数与其所驻之外的另一个类进"/>
@@ -37,7 +34,7 @@
 	<link rel="shortcut icon" href="/favicon.ico">
 
 	<title>读书笔记-重构: 章7 在对象之间搬移特性</title>
-	<link rel="stylesheet" href="http://wklken.me/css/style.min.31706917653d2b9e8410abd431f30ec4359a88a94fc87a63654779d87329edec.css" crossorigin="anonymous">
+	<link rel="stylesheet" href="http://wklken.me/css/style.min.6a2d94be52e9f033aff88558e28aa96de11244b0a70e7537f6c33589e8d2d124.css" crossorigin="anonymous">
 	
 	
 	<link rel="stylesheet" href="http://wklken.me/css/custom.css">
@@ -76,14 +73,9 @@
 				<h1>读书笔记-重构: 章7 在对象之间搬移特性</h1>
 			</header>
 			<div class="content">
-				
-
-<p>重构的读书笔记, 简单转成python版本的code, 供参考</p>
-
+				<p>重构的读书笔记, 简单转成python版本的code, 供参考</p>
 <h2 id="章7-在对象之间搬移特性">章7: 在对象之间搬移特性<a href="#章7-在对象之间搬移特性" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
-
-<h4 id="7-1-move-method-搬移函数">7.1 Move Method 搬移函数<a href="#7-1-move-method-搬移函数" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
-
+<h4 id="71-move-method-搬移函数">7.1 Move Method 搬移函数<a href="#71-move-method-搬移函数" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
 <blockquote>
 <p>你的程序中, 有个函数与其所驻之外的另一个类进行更多交流: 调用后者, 或者被后者调用. 在该函数最常引用的类中建立一个有着类似行为的新函数. 将就函数变成一个单纯的委托函数, 或是将就函数完全移除</p>
 </blockquote>
@@ -93,23 +85,20 @@
         <span class="c1"># a lot operations with b</span>
         <span class="k">return</span> <span class="n">b</span><span class="o">.</span><span class="n">compute</span><span class="p">()</span>
 <span class="k">class</span> <span class="nc">B</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">pass</span></code></pre></div>
-<p>to</p>
+    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">pass</span>
+</code></pre></div><p>to</p>
 <div class="highlight"><pre class="chroma"><code class="language-python" data-lang="python"><span class="k">class</span> <span class="nc">A</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="k">pass</span>
 <span class="k">class</span> <span class="nc">B</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">count</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># a lot operations with b</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">pass</span></code></pre></div>
-<h4 id="7-2-move-field-搬移字段">7.2 Move Field 搬移字段<a href="#7-2-move-field-搬移字段" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
-
+    <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">pass</span>
+</code></pre></div><h4 id="72-move-field-搬移字段">7.2 Move Field 搬移字段<a href="#72-move-field-搬移字段" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
 <blockquote>
 <p>某个字段被其所驻类之外的另一个类更多地用到. 在目标类新建一个字段, 修改原字段的所有用户, 令他们改用新字段</p>
 </blockquote>
-
-<h4 id="7-3-extract-class-提炼类">7.3 Extract Class 提炼类<a href="#7-3-extract-class-提炼类" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
-
+<h4 id="73-extract-class-提炼类">7.3 Extract Class 提炼类<a href="#73-extract-class-提炼类" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
 <blockquote>
 <p>某个类做了应该由两个类做的事情. 建立以一个新的类, 将相关字段和函数从旧类版移到新的类</p>
 </blockquote>
@@ -120,8 +109,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">office_area_code</span> <span class="o">=</span> <span class="n">office_area_code</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">office_number</span> <span class="o">=</span> <span class="n">office_number</span>
     <span class="k">def</span> <span class="nf">get_phone_number</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s2">&#34;</span><span class="si">%s</span><span class="s2">-</span><span class="si">%s</span><span class="s2">&#34;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">office_area_code</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">office_number</span><span class="p">)</span></code></pre></div>
-<p>to</p>
+        <span class="k">return</span> <span class="s2">&#34;</span><span class="si">%s</span><span class="s2">-</span><span class="si">%s</span><span class="s2">&#34;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">office_area_code</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">office_number</span><span class="p">)</span>
+</code></pre></div><p>to</p>
 <div class="highlight"><pre class="chroma"><code class="language-python" data-lang="python"><span class="k">class</span> <span class="nc">Person</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">age</span><span class="p">,</span> <span class="n">office_area_code</span><span class="p">,</span> <span class="n">office_number</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
@@ -133,9 +122,8 @@
 
 <span class="k">class</span> <span class="nc">PhoneNumber</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">get_number</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s2">&#34;</span><span class="si">%s</span><span class="s2">-</span><span class="si">%s</span><span class="s2">&#34;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">area_code</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">number</span><span class="p">)</span></code></pre></div>
-<h4 id="7-4-inline-class-将类内聚化">7.4 Inline Class 将类内聚化<a href="#7-4-inline-class-将类内聚化" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
-
+        <span class="k">return</span> <span class="s2">&#34;</span><span class="si">%s</span><span class="s2">-</span><span class="si">%s</span><span class="s2">&#34;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">area_code</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">number</span><span class="p">)</span>
+</code></pre></div><h4 id="74-inline-class-将类内聚化">7.4 Inline Class 将类内聚化<a href="#74-inline-class-将类内聚化" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
 <blockquote>
 <p>某个类没有做太多事情. 将这个类的所有特性移动到另一个类中, 然后移除原类</p>
 </blockquote>
@@ -148,14 +136,13 @@
     <span class="k">def</span> <span class="nf">format</span><span class="p">(</span><span class="nb">object</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
             <span class="n">a</span> <span class="o">=</span> <span class="n">A</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-            <span class="k">print</span> <span class="n">a</span><span class="o">.</span><span class="n">fmt</span><span class="p">()</span></code></pre></div>
-<p>to</p>
+            <span class="k">print</span> <span class="n">a</span><span class="o">.</span><span class="n">fmt</span><span class="p">()</span>
+</code></pre></div><p>to</p>
 <div class="highlight"><pre class="chroma"><code class="language-python" data-lang="python"><span class="k">class</span> <span class="nc">B</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">format</span><span class="p">(</span><span class="nb">object</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
-            <span class="k">print</span> <span class="s2">&#34;[</span><span class="si">%s</span><span class="s2">]&#34;</span> <span class="o">%</span> <span class="n">value</span></code></pre></div>
-<h4 id="7-5-hide-delegate-隐藏-委托关系">7.5 Hide Delegate 隐藏&rdquo;委托关系&rdquo;<a href="#7-5-hide-delegate-隐藏-委托关系" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
-
+            <span class="k">print</span> <span class="s2">&#34;[</span><span class="si">%s</span><span class="s2">]&#34;</span> <span class="o">%</span> <span class="n">value</span>
+</code></pre></div><h4 id="75-hide-delegate-隐藏委托关系">7.5 Hide Delegate 隐藏&quot;委托关系&quot;<a href="#75-hide-delegate-隐藏委托关系" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
 <blockquote>
 <p>客户通过一个委托来调用另一个对象. 在服务类上建立客户所需要的所有函数, 用以隐藏委托关系</p>
 </blockquote>
@@ -165,8 +152,8 @@
 
 <span class="n">john</span> <span class="o">=</span> <span class="n">Employee</span><span class="p">()</span>
 
-<span class="n">manager</span> <span class="o">=</span> <span class="n">john</span><span class="o">.</span><span class="n">get_department</span><span class="p">()</span><span class="o">.</span><span class="n">get_manager</span><span class="p">()</span></code></pre></div>
-<p>to</p>
+<span class="n">manager</span> <span class="o">=</span> <span class="n">john</span><span class="o">.</span><span class="n">get_department</span><span class="p">()</span><span class="o">.</span><span class="n">get_manager</span><span class="p">()</span>
+</code></pre></div><p>to</p>
 <div class="highlight"><pre class="chroma"><code class="language-python" data-lang="python"><span class="k">class</span> <span class="nc">Employee</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">get_department</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">Department</span><span class="p">()</span>
@@ -175,70 +162,54 @@
         <span class="k">return</span> <span class="n">Department</span><span class="p">()</span><span class="o">.</span><span class="n">get_manager</span><span class="p">()</span>
 
 <span class="n">john</span> <span class="o">=</span> <span class="n">Employee</span><span class="p">()</span>
-<span class="n">manager</span> <span class="o">=</span> <span class="n">john</span><span class="o">.</span><span class="n">get_manager</span><span class="p">()</span></code></pre></div>
-<h4 id="7-6-remove-middle-man-移除中间人">7.6 Remove Middle Man 移除中间人<a href="#7-6-remove-middle-man-移除中间人" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
-
+<span class="n">manager</span> <span class="o">=</span> <span class="n">john</span><span class="o">.</span><span class="n">get_manager</span><span class="p">()</span>
+</code></pre></div><h4 id="76-remove-middle-man-移除中间人">7.6 Remove Middle Man 移除中间人<a href="#76-remove-middle-man-移除中间人" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
 <blockquote>
 <p>某个类做了过多的简单委托动作. 让客户直接调用受托类</p>
 </blockquote>
-
-<p>当上一步实例中<code>Employee</code>承载了大量的委托行为. 可以反向处理, 移除中间人. (当受托类功能越来越多, 完全变成了一个&rdquo;中间人&rdquo;)</p>
-
-<h4 id="7-7-introduce-foreign-method-引入外加函数">7.7 Introduce Foreign Method 引入外加函数<a href="#7-7-introduce-foreign-method-引入外加函数" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
-
+<p>当上一步实例中<code>Employee</code>承载了大量的委托行为. 可以反向处理, 移除中间人. (当受托类功能越来越多, 完全变成了一个&quot;中间人&quot;)</p>
+<h4 id="77-introduce-foreign-method-引入外加函数">7.7 Introduce Foreign Method 引入外加函数<a href="#77-introduce-foreign-method-引入外加函数" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
 <blockquote>
 <p>你需要为提供服务的类增加一个函数, 但你无法修改这个类. 在客户类中建立一个函数, 并以第一参数形式传入一个服务类实例</p>
 </blockquote>
-<div class="highlight"><pre class="chroma"><code class="language-python" data-lang="python"><span class="n">new_start</span> <span class="o">=</span> <span class="n">Date</span><span class="p">(</span><span class="n">previous_end</span><span class="o">.</span><span class="n">get_year</span><span class="p">(),</span> <span class="n">previous_end</span><span class="o">.</span><span class="n">get_month</span><span class="p">(),</span> <span class="n">previous_end</span><span class="o">.</span><span class="n">get_date</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span></code></pre></div>
-<p>to</p>
+<div class="highlight"><pre class="chroma"><code class="language-python" data-lang="python"><span class="n">new_start</span> <span class="o">=</span> <span class="n">Date</span><span class="p">(</span><span class="n">previous_end</span><span class="o">.</span><span class="n">get_year</span><span class="p">(),</span> <span class="n">previous_end</span><span class="o">.</span><span class="n">get_month</span><span class="p">(),</span> <span class="n">previous_end</span><span class="o">.</span><span class="n">get_date</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+</code></pre></div><p>to</p>
 <div class="highlight"><pre class="chroma"><code class="language-python" data-lang="python"><span class="n">new_start</span> <span class="o">=</span> <span class="n">next_day</span><span class="p">(</span><span class="n">previous_end</span><span class="p">)</span>
 
 <span class="k">def</span> <span class="nf">next_day</span><span class="p">(</span><span class="n">previous_end</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">Date</span><span class="p">(</span><span class="n">previous_end</span><span class="o">.</span><span class="n">get_year</span><span class="p">(),</span> <span class="n">previous_end</span><span class="o">.</span><span class="n">get_month</span><span class="p">(),</span> <span class="n">previous_end</span><span class="o">.</span><span class="n">get_date</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span></code></pre></div>
-<h4 id="7-8-introduce-local-extension-引入本地扩展">7.8 Introduce Local Extension 引入本地扩展<a href="#7-8-introduce-local-extension-引入本地扩展" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
-
+    <span class="k">return</span> <span class="n">Date</span><span class="p">(</span><span class="n">previous_end</span><span class="o">.</span><span class="n">get_year</span><span class="p">(),</span> <span class="n">previous_end</span><span class="o">.</span><span class="n">get_month</span><span class="p">(),</span> <span class="n">previous_end</span><span class="o">.</span><span class="n">get_date</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+</code></pre></div><h4 id="78-introduce-local-extension-引入本地扩展">7.8 Introduce Local Extension 引入本地扩展<a href="#78-introduce-local-extension-引入本地扩展" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
 <blockquote>
 <p>你需要为服务类提供一些额外函数, 但你无法修改这个类. 建立一个新类, 使它包含这些额外函数. 让这个扩展品成为原类的子类或者包装类</p>
 </blockquote>
 <div class="highlight"><pre class="chroma"><code class="language-python" data-lang="python"><span class="k">class</span> <span class="nc">A</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-     <span class="k">pass</span></code></pre></div>
-<p>to</p>
+     <span class="k">pass</span>
+</code></pre></div><p>to</p>
 <div class="highlight"><pre class="chroma"><code class="language-python" data-lang="python"><span class="k">class</span> <span class="nc">A</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="k">pass</span>
 <span class="k">class</span> <span class="nc">B</span><span class="p">(</span><span class="n">A</span><span class="p">):</span>
-    <span class="c1"># add extra methods</span></code></pre></div>
+    <span class="c1"># add extra methods</span>
+</code></pre></div>
 			</div>
 			<hr class="post-end">
 			<footer class="post-info">
 				<p>
 					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg><span class="tag"><a href="http://wklken.me/tags/books.html">books</a></span>
 				</p>
-				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>806 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>802 Words</p>
 				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2016-12-03 11:05 &#43;0800</p>
 			</footer>
 		</article>
 		<aside id="toc">
 			<div class="toc-title">Table of Contents</div>
 			<nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#章7-在对象之间搬移特性">章7: 在对象之间搬移特性</a>
-<ul>
-<li>
-<ul>
-<li><a href="#7-1-move-method-搬移函数">7.1 Move Method 搬移函数</a></li>
-<li><a href="#7-2-move-field-搬移字段">7.2 Move Field 搬移字段</a></li>
-<li><a href="#7-3-extract-class-提炼类">7.3 Extract Class 提炼类</a></li>
-<li><a href="#7-4-inline-class-将类内聚化">7.4 Inline Class 将类内聚化</a></li>
-<li><a href="#7-5-hide-delegate-隐藏-委托关系">7.5 Hide Delegate 隐藏&rdquo;委托关系&rdquo;</a></li>
-<li><a href="#7-6-remove-middle-man-移除中间人">7.6 Remove Middle Man 移除中间人</a></li>
-<li><a href="#7-7-introduce-foreign-method-引入外加函数">7.7 Introduce Foreign Method 引入外加函数</a></li>
-<li><a href="#7-8-introduce-local-extension-引入本地扩展">7.8 Introduce Local Extension 引入本地扩展</a></li>
-</ul></li>
-</ul></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#章7-在对象之间搬移特性">章7: 在对象之间搬移特性</a>
+      <ul>
+        <li></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
 		</aside>
 		<div class="post-nav thin">
@@ -249,12 +220,6 @@
 				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>读书笔记-重构: 章6 重新组织函数</span>
 			</a>
 		</div>
-
-    <div class="thin">
-				<span class="post-nav-label">
-          <a href="https://www.vultr.com/?ref=7825696-4F"><img src="https://www.vultr.com/media/banners/banner_800x418.png" width="100%" height="418" style="display: block; margin-left: auto; margin-right: auto;"></a>
-        </span>
-    </div>
 
 		<div id="comments" class="thin">
 <div id="disqus_thread"></div>
@@ -281,7 +246,7 @@
 	</main>
 
 	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
-		<p>&copy; 2019 <a href="http://wklken.me">wklken</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>&copy; 2021 <a href="http://wklken.me">wklken</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
 		<p>
 			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="http://wklken.me/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
 		</p>

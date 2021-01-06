@@ -7,13 +7,10 @@
 	<meta http-equiv="X-UA-Compatible" content="ie=edge">
 	<meta name="theme-color" content="#494f5c">
 	<meta name="msapplication-TileColor" content="#494f5c">
-
 <meta itemprop="name" content="Better Code: 使用property">
 <meta itemprop="description" content="introduction @property 是Python的一个内置函数, 通过property, 我们可以获得更好的可读性/可维护性 屏蔽细节, 对于外部使用者, 不需要知道更多的细节! 可">
-
-
-<meta itemprop="datePublished" content="2019-10-07T08:00:00&#43;08:00" />
-<meta itemprop="dateModified" content="2019-10-07T08:00:00&#43;08:00" />
+<meta itemprop="datePublished" content="2019-10-07T08:00:00+08:00" />
+<meta itemprop="dateModified" content="2019-10-07T08:00:00+08:00" />
 <meta itemprop="wordCount" content="716">
 
 
@@ -23,8 +20,8 @@
 <meta property="og:description" content="introduction @property 是Python的一个内置函数, 通过property, 我们可以获得更好的可读性/可维护性 屏蔽细节, 对于外部使用者, 不需要知道更多的细节! 可" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://wklken.me/posts/2019/10/07/better-code-1-use-property.html" />
-<meta property="article:published_time" content="2019-10-07T08:00:00&#43;08:00"/>
-<meta property="article:modified_time" content="2019-10-07T08:00:00&#43;08:00"/>
+<meta property="article:published_time" content="2019-10-07T08:00:00+08:00" />
+<meta property="article:modified_time" content="2019-10-07T08:00:00+08:00" />
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Better Code: 使用property"/>
 <meta name="twitter:description" content="introduction @property 是Python的一个内置函数, 通过property, 我们可以获得更好的可读性/可维护性 屏蔽细节, 对于外部使用者, 不需要知道更多的细节! 可"/>
@@ -37,7 +34,7 @@
 	<link rel="shortcut icon" href="/favicon.ico">
 
 	<title>Better Code: 使用property</title>
-	<link rel="stylesheet" href="http://wklken.me/css/style.min.31706917653d2b9e8410abd431f30ec4359a88a94fc87a63654779d87329edec.css" crossorigin="anonymous">
+	<link rel="stylesheet" href="http://wklken.me/css/style.min.6a2d94be52e9f033aff88558e28aa96de11244b0a70e7537f6c33589e8d2d124.css" crossorigin="anonymous">
 	
 	
 	<link rel="stylesheet" href="http://wklken.me/css/custom.css">
@@ -76,46 +73,33 @@
 				<h1>Better Code: 使用property</h1>
 			</header>
 			<div class="content">
-				
-
-<h2 id="introduction">introduction<a href="#introduction" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
-
+				<h2 id="introduction">introduction<a href="#introduction" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
 <p><code>@property</code> 是Python的一个内置函数, 通过property, 我们可以获得更好的可读性/可维护性</p>
-
 <ul>
 <li>屏蔽细节, 对于外部使用者, 不需要知道更多的细节!</li>
 <li>可读性更好, 调用方只有简单直接的逻辑, 而对象实体中包含了具体处理逻辑</li>
 <li>可维护性更好, 细节不会被<code>扩散</code>到其他地方, 后续变更修改更容易</li>
 </ul>
-
 <h2 id="refactor">refactor<a href="#refactor" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
-
 <p>代码坏味道:</p>
-
 <ul>
 <li>当你发现调用处, 每个地方获取到返回值后, 都做了一模一样的处理;</li>
 <li>变更属性的格式/分隔符等细节, 发现需要修改多个地方代码</li>
 <li>调用者需要感知到属性的当前值<code>[1, 2, 3]</code>(type: list) 以及原始值<code>1,2,3</code>(type: str)</li>
 </ul>
-
 <p>使用property之后:</p>
-
 <ul>
 <li>所有调用处, 没有重复代码</li>
 <li>变更属性的格式/分隔符等细节, 只需要修改一个地方</li>
 <li>调用者只知道属性的当前值<code>[1, 2, 3]</code></li>
 </ul>
-
 <h2 id="usage">usage<a href="#usage" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
-
 <p>思路: 将属性通用的处理内化, <code>fat model</code>对外屏蔽细节, 避免了使用者的冗余代码以及过多的认知负担;</p>
-
 <ul>
 <li>side effect: 可以在<code>set/get/delete</code> 操作时, 额外进行一些处理, 例如校验, 做一些额外变更等(存在副作用)</li>
 <li>adapter: 也可以作为类似adapter, 组合或者拼装出对调用者更为友好的做法</li>
 <li>封装/facade: 对于类/对象实例, 更多的是起到<code>facade</code> 模式的作用, 将更多的细节封装, 对外屏蔽, 只暴露有限的内容</li>
 </ul>
-
 <h4 id="1-属性校验">1. 属性校验<a href="#1-属性校验" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
 <div class="highlight"><pre class="chroma"><code class="language-python" data-lang="python"><span class="k">class</span> <span class="nc">Student</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 
@@ -129,20 +113,19 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;score must be an integer!&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">value</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="mi">100</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;score must between 0 ~ 100!&#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_score</span> <span class="o">=</span> <span class="n">value</span></code></pre></div>
-<h4 id="2-限制只读">2. 限制只读<a href="#2-限制只读" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_score</span> <span class="o">=</span> <span class="n">value</span>
+</code></pre></div><h4 id="2-限制只读">2. 限制只读<a href="#2-限制只读" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
 <div class="highlight"><pre class="chroma"><code class="language-python" data-lang="python"><span class="k">class</span> <span class="nc">Student</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">birth</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_birth</span></code></pre></div>
-<h4 id="3-拼装组合出额外的属性">3. 拼装组合出额外的属性<a href="#3-拼装组合出额外的属性" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_birth</span>
+</code></pre></div><h4 id="3-拼装组合出额外的属性">3. 拼装组合出额外的属性<a href="#3-拼装组合出额外的属性" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
 <div class="highlight"><pre class="chroma"><code class="language-python" data-lang="python"><span class="k">class</span> <span class="nc">Staff</span><span class="p">:</span>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">email</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">f</span><span class="s1">&#39;{self.username}@{self.domain}&#39;</span></code></pre></div>
-<h4 id="4-类型-格式转换">4. 类型/格式转换<a href="#4-类型-格式转换" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
-
+        <span class="k">return</span> <span class="n">f</span><span class="s1">&#39;{self.username}@{self.domain}&#39;</span>
+</code></pre></div><h4 id="4-类型格式转换">4. 类型/格式转换<a href="#4-类型格式转换" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
 <p>下面示例是django 中的一种用法, 在db中字段名为<code>maintainers</code>, 是一个字符串, 但是对于模型使用者, <code>maintainers</code>是一个列表, 通过property, 屏蔽了字段类型/分隔符等细节</p>
 <div class="highlight"><pre class="chroma"><code class="language-python" data-lang="python"><span class="k">class</span> <span class="nc">API</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
       <span class="n">_maintainers</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">db_column</span><span class="o">=</span><span class="s1">&#39;maintainers&#39;</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">1024</span><span class="p">)</span>
@@ -154,15 +137,16 @@
 
       <span class="nd">@maintainers.setter</span>
       <span class="k">def</span> <span class="nf">maintainers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]):</span>
-          <span class="bp">self</span><span class="o">.</span><span class="n">_maintainers</span> <span class="o">=</span> <span class="s2">&#34;;&#34;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></code></pre></div>
-<p>或者:</p>
+          <span class="bp">self</span><span class="o">.</span><span class="n">_maintainers</span> <span class="o">=</span> <span class="s2">&#34;;&#34;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+</code></pre></div><p>或者:</p>
 <div class="highlight"><pre class="chroma"><code class="language-python" data-lang="python"><span class="k">class</span> <span class="nc">A</span><span class="p">():</span>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">)</span>
     <span class="nd">@data.setter</span>
     <span class="k">def</span> <span class="nf">data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">d</span><span class="p">)</span></code></pre></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+</code></pre></div>
 			</div>
 			<hr class="post-end">
 			<footer class="post-info">
@@ -176,23 +160,15 @@
 		<aside id="toc">
 			<div class="toc-title">Table of Contents</div>
 			<nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#introduction">introduction</a></li>
-<li><a href="#refactor">refactor</a></li>
-<li><a href="#usage">usage</a>
-<ul>
-<li>
-<ul>
-<li><a href="#1-属性校验">1. 属性校验</a></li>
-<li><a href="#2-限制只读">2. 限制只读</a></li>
-<li><a href="#3-拼装组合出额外的属性">3. 拼装组合出额外的属性</a></li>
-<li><a href="#4-类型-格式转换">4. 类型/格式转换</a></li>
-</ul></li>
-</ul></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#introduction">introduction</a></li>
+    <li><a href="#refactor">refactor</a></li>
+    <li><a href="#usage">usage</a>
+      <ul>
+        <li></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
 		</aside>
 		<div class="post-nav thin">
@@ -200,12 +176,6 @@
 				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>摘录-架构整洁之道</span>
 			</a>
 		</div>
-
-    <div class="thin">
-				<span class="post-nav-label">
-          <a href="https://www.vultr.com/?ref=7825696-4F"><img src="https://www.vultr.com/media/banners/banner_800x418.png" width="100%" height="418" style="display: block; margin-left: auto; margin-right: auto;"></a>
-        </span>
-    </div>
 
 		<div id="comments" class="thin">
 <div id="disqus_thread"></div>
@@ -232,7 +202,7 @@
 	</main>
 
 	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
-		<p>&copy; 2019 <a href="http://wklken.me">wklken</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>&copy; 2021 <a href="http://wklken.me">wklken</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
 		<p>
 			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="http://wklken.me/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
 		</p>
