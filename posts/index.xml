@@ -6,8 +6,68 @@
 		<generator>Hugo -- gohugo.io</generator>
 		<language>en-us</language>
 		<copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright>
-		<lastBuildDate>Fri, 22 Jan 2021 11:00:00 +0800</lastBuildDate>
+		<lastBuildDate>Fri, 22 Jan 2021 12:00:00 +0800</lastBuildDate>
 		<atom:link href="https://wklken.me/posts/index.xml" rel="self" type="application/rss+xml" />
+		
+		<item>
+			<title>Go: go-sql-driver interpolateparams参数优化</title>
+			<link>https://wklken.me/posts/2021/01/22/golang-sql-driver-interpolateparams.html</link>
+			<pubDate>Fri, 22 Jan 2021 12:00:00 +0800</pubDate>
+			
+			<guid>https://wklken.me/posts/2021/01/22/golang-sql-driver-interpolateparams.html</guid>
+			<description>这是在做 Golang 项目中的一些实践 interpolateparams 性能差异 interpolateparams=false interpolateparams=true 10261 -&amp;gt; 12117, 18% 带占位符SQL执行流程 prepared -&amp;gt; execute -&amp;gt; close 正常带占位符的sql执行过程: 客户端将该语句和参数发给mys</description>
+			<content type="html"><![CDATA[<blockquote>
+<p>这是在做 Golang 项目中的一些实践</p>
+</blockquote>
+<ul>
+<li><a href="https://github.com/go-sql-driver/mysql/blob/5a8a207333b3cbdd6f50a31da2d448658343637e/README.md#interpolateparams">interpolateparams</a></li>
+</ul>
+<p><img src="media/15898755319005/15898755734105.jpg" alt=""></p>
+<h2 id="性能差异">性能差异</h2>
+<p><code>interpolateparams=false</code></p>
+<p><img src="media/15898755319005/15898756219624.jpg" alt=""></p>
+<p><code>interpolateparams=true</code></p>
+<p><img src="media/15898755319005/15898757855623.jpg" alt=""></p>
+<p>10261 -&gt; 12117,  18%</p>
+<h2 id="带占位符sql执行流程">带占位符SQL执行流程</h2>
+<blockquote>
+<p><code>prepared -&gt; execute -&gt; close</code></p>
+</blockquote>
+<p>正常带占位符的sql执行过程:</p>
+<ol>
+<li>客户端将该语句和参数发给mysql服务器</li>
+<li>mysql服务器编译成一个prepared语句，这个语句可以根据不同的参数多次调用</li>
+</ol>
+<p>好处:</p>
+<ol>
+<li>避免通过引号组装拼接sql语句。避免sql注入带来的安全风险</li>
+<li>可以多次执行的sql语句</li>
+</ol>
+<h2 id="这个参数做了什么">这个参数做了什么?</h2>
+<blockquote>
+<p><code>execute -&gt; close</code></p>
+</blockquote>
+<p><code>interpolateparams=true</code>执行流程: <code>execute -&gt; close</code></p>
+<p>好处:</p>
+<ol>
+<li>减少了<code>prepared</code>网络请求</li>
+<li>会防止SQL注入, 在驱动中通过转义特殊字符实现的</li>
+</ol>
+<h2 id="源码">源码</h2>
+<p><img src="media/15898755319005/15898769442406.jpg" alt=""></p>
+<p><img src="media/15898755319005/15898767456835.jpg" alt=""></p>
+<p><img src="media/15898755319005/15898767168170.jpg" alt=""></p>
+<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go">    <span class="nx">prepared</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">mc</span><span class="p">.</span><span class="nf">interpolateParams</span><span class="p">(</span><span class="nx">query</span><span class="p">,</span> <span class="nx">args</span><span class="p">)</span>
+		<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+			<span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">err</span>
+		<span class="p">}</span>
+		<span class="nx">query</span> <span class="p">=</span> <span class="nx">prepared</span>
+
+		<span class="nx">如果query替换成功</span><span class="p">,</span> <span class="nx">直接执行</span> <span class="nx">writeCommandPacketStr</span><span class="p">,</span> <span class="nx">并且读取返回值</span><span class="p">,</span> <span class="k">return</span> <span class="p">(</span><span class="nx">rows</span><span class="p">,</span> <span class="nx">err</span><span class="p">)</span>
+</code></pre></div><p>mc.interpolateParams中, 对<code>string</code>/<code>[]byte</code>等做了转义, prepared是插值后的sql</p>
+<p><img src="media/15898755319005/15898764097530.jpg" alt=""></p>
+]]></content>
+		</item>
 		
 		<item>
 			<title>Go 基于 Ginkgo 框架进行单元测试实践</title>
