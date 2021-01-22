@@ -6,8 +6,253 @@
 		<generator>Hugo -- gohugo.io</generator>
 		<language>en-us</language>
 		<copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright>
-		<lastBuildDate>Mon, 07 Oct 2019 08:00:00 +0800</lastBuildDate>
+		<lastBuildDate>Fri, 22 Jan 2021 11:00:00 +0800</lastBuildDate>
 		<atom:link href="https://wklken.me/posts/index.xml" rel="self" type="application/rss+xml" />
+		
+		<item>
+			<title>Go 基于 Ginkgo 框架进行单元测试实践</title>
+			<link>https://wklken.me/posts/2021/01/22/golang-ginkgo.html</link>
+			<pubDate>Fri, 22 Jan 2021 11:00:00 +0800</pubDate>
+			
+			<guid>https://wklken.me/posts/2021/01/22/golang-ginkgo.html</guid>
+			<description>这是在做 Golang 项目中的一些实践 [toc] ginkgo 基于BDD的测试框架; 开始前, 需要花半个小时阅读官方文档 reference github: https://github.com/onsi/ginkgo 文档: https://onsi.github.io/ginkgo/ table-driven 一个函数 // TruncateString truncate string to specific length func TruncateString(s string, n int) string { if</description>
+			<content type="html"><![CDATA[<blockquote>
+<p>这是在做 Golang 项目中的一些实践</p>
+</blockquote>
+<p>[toc]</p>
+<p><img src="/imgs/golang/ginkgo.png" alt=""></p>
+<p>ginkgo 基于BDD的测试框架; 开始前, 需要花半个小时阅读官方文档</p>
+<h2 id="reference">reference</h2>
+<ul>
+<li>github: <a href="https://github.com/onsi/ginkgo">https://github.com/onsi/ginkgo</a></li>
+<li>文档: <a href="https://onsi.github.io/ginkgo/">https://onsi.github.io/ginkgo/</a></li>
+</ul>
+<h2 id="table-driven">table-driven</h2>
+<p>一个函数</p>
+<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// TruncateString truncate string to specific length
+</span><span class="c1"></span><span class="kd">func</span> <span class="nf">TruncateString</span><span class="p">(</span><span class="nx">s</span> <span class="kt">string</span><span class="p">,</span> <span class="nx">n</span> <span class="kt">int</span><span class="p">)</span> <span class="kt">string</span> <span class="p">{</span>
+	<span class="k">if</span> <span class="nx">n</span> <span class="p">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="nx">s</span><span class="p">)</span> <span class="p">{</span>
+		<span class="k">return</span> <span class="nx">s</span>
+	<span class="p">}</span>
+	<span class="k">return</span> <span class="nx">s</span><span class="p">[:</span><span class="nx">n</span><span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div><p>使用table-driven方式生成测试代码</p>
+<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">func</span> <span class="nf">TestTruncateString</span><span class="p">(</span><span class="nx">t</span> <span class="o">*</span><span class="nx">testing</span><span class="p">.</span><span class="nx">T</span><span class="p">)</span> <span class="p">{</span>
+	<span class="kd">type</span> <span class="nx">args</span> <span class="kd">struct</span> <span class="p">{</span>
+		<span class="nx">s</span> <span class="kt">string</span>
+		<span class="nx">n</span> <span class="kt">int</span>
+	<span class="p">}</span>
+	<span class="nx">tests</span> <span class="o">:=</span> <span class="p">[]</span><span class="kd">struct</span> <span class="p">{</span>
+		<span class="nx">name</span> <span class="kt">string</span>
+		<span class="nx">args</span> <span class="nx">args</span>
+		<span class="nx">want</span> <span class="kt">string</span>
+	<span class="p">}{</span>
+		<span class="c1">// TODO: Add test cases.
+</span><span class="c1"></span>	<span class="p">}</span>
+	<span class="k">for</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">tt</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">tests</span> <span class="p">{</span>
+		<span class="nx">t</span><span class="p">.</span><span class="nf">Run</span><span class="p">(</span><span class="nx">tt</span><span class="p">.</span><span class="nx">name</span><span class="p">,</span> <span class="kd">func</span><span class="p">(</span><span class="nx">t</span> <span class="o">*</span><span class="nx">testing</span><span class="p">.</span><span class="nx">T</span><span class="p">)</span> <span class="p">{</span>
+			<span class="k">if</span> <span class="nx">got</span> <span class="o">:=</span> <span class="nx">util</span><span class="p">.</span><span class="nf">TruncateString</span><span class="p">(</span><span class="nx">tt</span><span class="p">.</span><span class="nx">args</span><span class="p">.</span><span class="nx">s</span><span class="p">,</span> <span class="nx">tt</span><span class="p">.</span><span class="nx">args</span><span class="p">.</span><span class="nx">n</span><span class="p">);</span> <span class="nx">got</span> <span class="o">!=</span> <span class="nx">tt</span><span class="p">.</span><span class="nx">want</span> <span class="p">{</span>
+				<span class="nx">t</span><span class="p">.</span><span class="nf">Errorf</span><span class="p">(</span><span class="s">&#34;TruncateString() = %v, want %v&#34;</span><span class="p">,</span> <span class="nx">got</span><span class="p">,</span> <span class="nx">tt</span><span class="p">.</span><span class="nx">want</span><span class="p">)</span>
+			<span class="p">}</span>
+		<span class="p">})</span>
+	<span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div><p>如果是简单的util函数, 用例比较简单并且用例数量较少, 此时单元测试可读性和可维护性没有问题</p>
+<h2 id="table-driven的问题">table-driven的问题</h2>
+<p>当涉及业务相关的单元测试, 此时</p>
+<ol>
+<li>用例复杂, 输入可能是多层嵌套的struct, 某一层的某个变量的值影响输出</li>
+<li>用例数量多, 某个函数可能有5个以上的用例</li>
+</ol>
+<p>由于table-driven的表达能力有限:</p>
+<ol>
+<li>如何复用输入结构体? (当前情况开发会复制粘贴过去改)</li>
+<li><code>name</code>过于简单不被重视, 导致单元测试失败时难以快速阅读</li>
+</ol>
+<p>最终带来的问题是:</p>
+<ol>
+<li>单个用例构造复杂, 可能是十几行甚至是几十行;</li>
+<li>用例和用例之间没有复用, 基本基于复制粘贴;</li>
+<li>难以区分用例之间的差异</li>
+<li>用例过多导致难以维护, 不能明确知道每个用例的目的, 用例和用例之间的差别;</li>
+<li>单个测试集过大, 可能有几百行测试代码;</li>
+</ol>
+<p>难以阅读/难以理解/难以维护</p>
+<h2 id="ginkgo解决什么问题">Ginkgo解决什么问题?</h2>
+<p>优势:</p>
+<ul>
+<li>丰富的表达能力</li>
+<li>复用: 减少了大量重复代码, 复用</li>
+<li>让注意力更集中, 只关注每个用例的差异点</li>
+<li>减少了认知负担, 每个case有明确的描述/上下文/差异</li>
+<li>更好维护</li>
+</ul>
+<p>注意, 实践中:</p>
+<ul>
+<li>使用 <code>Describe</code>和<code>Context</code>描述/表示行为和逻辑, 以及层次结构</li>
+<li>使用 <code>It</code> 描述及放置每一个用例</li>
+<li>利用<code>BeforeEach</code>构建每个用例(<code>It</code>)用到的公共内容(setup); 利用<code>AfterEach</code>执行回收动作(teardown). 此时<code>BeforeEach</code>用到闭包, 构建闭包变量/类型声明等, 在每个<code>It</code>中可以复用到</li>
+<li>使用testify 替换ginkgo的Matcher <a href="https://onsi.github.io/ginkgo/#using-other-matcher-libraries">Using Other Matcher Libraries</a>
+<ul>
+<li>
+<ol>
+<li>减少目前迁移切换的工作量</li>
+</ol>
+</li>
+<li>
+<ol start="2">
+<li>testify语法更加简洁直接, ginkgo matcher语法略啰嗦多敲好多字</li>
+</ol>
+</li>
+</ul>
+</li>
+</ul>
+<p>请先阅读官方文档之后, 再开始阅读以下内容</p>
+<h3 id="1-基于ginkgo的table-driven">1. 基于ginkgo的table-driven</h3>
+<p>使用场景: util类的简单测试, input和expect都比较简单</p>
+<p>使用</p>
+<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="kn">package</span> <span class="nx">util_test</span>
+
+<span class="kn">import</span> <span class="p">(</span>
+	<span class="s">&#34;fmt&#34;</span>
+	<span class="s">&#34;strconv&#34;</span>
+	<span class="s">&#34;testing&#34;</span>
+
+	<span class="p">.</span> <span class="s">&#34;github.com/onsi/ginkgo&#34;</span>
+	<span class="p">.</span> <span class="s">&#34;github.com/onsi/ginkgo/extensions/table&#34;</span>
+	<span class="s">&#34;github.com/stretchr/testify/assert&#34;</span>
+
+	<span class="s">&#34;example/pkg/util&#34;</span>
+<span class="p">)</span>
+
+<span class="kd">var</span> <span class="nx">_</span> <span class="p">=</span> <span class="nf">Describe</span><span class="p">(</span><span class="s">&#34;String&#34;</span><span class="p">,</span> <span class="kd">func</span><span class="p">()</span> <span class="p">{</span>
+
+	<span class="nf">Describe</span><span class="p">(</span><span class="s">&#34;TruncateBytes&#34;</span><span class="p">,</span> <span class="kd">func</span><span class="p">()</span> <span class="p">{</span>
+		<span class="kd">var</span> <span class="nx">s</span> <span class="p">=</span> <span class="p">[]</span><span class="nb">byte</span><span class="p">(</span><span class="s">&#34;helloworld&#34;</span><span class="p">)</span>
+
+		<span class="nf">DescribeTable</span><span class="p">(</span><span class="s">&#34;TruncateBytes cases&#34;</span><span class="p">,</span> <span class="kd">func</span><span class="p">(</span><span class="nx">expected</span> <span class="p">[]</span><span class="kt">byte</span><span class="p">,</span> <span class="nx">truncatedSize</span> <span class="kt">int</span><span class="p">)</span> <span class="p">{</span>
+			<span class="nx">assert</span><span class="p">.</span><span class="nf">Equal</span><span class="p">(</span><span class="nf">GinkgoT</span><span class="p">(),</span> <span class="nx">expected</span><span class="p">,</span> <span class="nx">util</span><span class="p">.</span><span class="nf">TruncateBytes</span><span class="p">(</span><span class="nx">s</span><span class="p">,</span> <span class="nx">truncatedSize</span><span class="p">))</span>
+		<span class="p">},</span>
+			<span class="nf">Entry</span><span class="p">(</span><span class="s">&#34;truncated size less than real size&#34;</span><span class="p">,</span> <span class="p">[]</span><span class="nb">byte</span><span class="p">(</span><span class="s">&#34;he&#34;</span><span class="p">),</span> <span class="mi">2</span><span class="p">),</span>
+			<span class="nf">Entry</span><span class="p">(</span><span class="s">&#34;truncated size equals to real size&#34;</span><span class="p">,</span> <span class="nx">s</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span>
+			<span class="nf">Entry</span><span class="p">(</span><span class="s">&#34;truncated size greater than real size&#34;</span><span class="p">,</span> <span class="nx">s</span><span class="p">,</span> <span class="mi">20</span><span class="p">),</span>
+		<span class="p">)</span>
+	<span class="p">})</span>
+<span class="p">})</span>
+</code></pre></div><h3 id="2-基于闭包beforeeachit的复用">2. 基于闭包/BeforeEach/It的复用</h3>
+<p>使用场景: 复杂的输入</p>
+<p><a href="https://onsi.github.io/ginkgo/#extracting-common-setup-beforeeach">Extracting Common Setup: BeforeEach</a></p>
+<p>简单复用</p>
+<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go">		<span class="nf">Describe</span><span class="p">(</span><span class="s">&#34;WithoutResourceType&#34;</span><span class="p">,</span> <span class="kd">func</span><span class="p">()</span> <span class="p">{</span>
+			<span class="kd">var</span> <span class="nx">a</span> <span class="nx">types</span><span class="p">.</span><span class="nx">Action</span>
+			<span class="nf">BeforeEach</span><span class="p">(</span><span class="kd">func</span><span class="p">()</span> <span class="p">{</span>
+				<span class="nx">a</span> <span class="p">=</span> <span class="nx">types</span><span class="p">.</span><span class="nf">NewAction</span><span class="p">()</span>
+			<span class="p">})</span>
+
+			<span class="nf">It</span><span class="p">(</span><span class="s">&#34;true&#34;</span><span class="p">,</span> <span class="kd">func</span><span class="p">()</span> <span class="p">{</span>
+				<span class="nx">assert</span><span class="p">.</span><span class="nf">True</span><span class="p">(</span><span class="nf">GinkgoT</span><span class="p">(),</span> <span class="nx">a</span><span class="p">.</span><span class="nf">WithoutResourceType</span><span class="p">())</span>
+			<span class="p">})</span>
+
+			<span class="nf">It</span><span class="p">(</span><span class="s">&#34;true, empty ResourceType&#34;</span><span class="p">,</span> <span class="kd">func</span><span class="p">()</span> <span class="p">{</span>
+				<span class="nx">a</span><span class="p">.</span><span class="nx">Attribute</span><span class="p">.</span><span class="nf">SetResourceTypes</span><span class="p">([]</span><span class="nx">types</span><span class="p">.</span><span class="nx">ActionResourceType</span><span class="p">{})</span>
+				<span class="nx">assert</span><span class="p">.</span><span class="nf">True</span><span class="p">(</span><span class="nf">GinkgoT</span><span class="p">(),</span> <span class="nx">a</span><span class="p">.</span><span class="nf">WithoutResourceType</span><span class="p">())</span>
+			<span class="p">})</span>
+
+			<span class="nf">It</span><span class="p">(</span><span class="s">&#34;false&#34;</span><span class="p">,</span> <span class="kd">func</span><span class="p">()</span> <span class="p">{</span>
+				<span class="nx">a</span><span class="p">.</span><span class="nx">Attribute</span><span class="p">.</span><span class="nf">SetResourceTypes</span><span class="p">([]</span><span class="nx">types</span><span class="p">.</span><span class="nx">ActionResourceType</span><span class="p">{</span>
+					<span class="p">{</span>
+						<span class="nx">System</span><span class="p">:</span> <span class="s">&#34;test&#34;</span><span class="p">,</span>
+						<span class="nx">Type</span><span class="p">:</span>   <span class="s">&#34;test&#34;</span><span class="p">,</span>
+					<span class="p">},</span>
+				<span class="p">})</span>
+				<span class="nx">assert</span><span class="p">.</span><span class="nf">False</span><span class="p">(</span><span class="nf">GinkgoT</span><span class="p">(),</span> <span class="nx">a</span><span class="p">.</span><span class="nf">WithoutResourceType</span><span class="p">())</span>
+			<span class="p">})</span>
+
+		<span class="p">}</span>
+</code></pre></div><p>复杂的复用</p>
+<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go">	<span class="nf">Describe</span><span class="p">(</span><span class="s">&#34;GetPolicesAttrKeys&#34;</span><span class="p">,</span> <span class="kd">func</span><span class="p">()</span> <span class="p">{</span>
+		<span class="kd">var</span> <span class="nx">resource</span> <span class="o">*</span><span class="nx">types</span><span class="p">.</span><span class="nx">Resource</span>
+		<span class="kd">var</span> <span class="nx">policies</span> <span class="p">[]</span><span class="nx">types</span><span class="p">.</span><span class="nx">AuthPolicy</span>
+		<span class="nf">BeforeEach</span><span class="p">(</span><span class="kd">func</span><span class="p">()</span> <span class="p">{</span>
+			<span class="nx">resource</span> <span class="p">=</span> <span class="o">&amp;</span><span class="nx">types</span><span class="p">.</span><span class="nx">Resource</span><span class="p">{</span>
+				<span class="nx">System</span><span class="p">:</span>    <span class="s">&#34;test&#34;</span><span class="p">,</span>
+				<span class="nx">Type</span><span class="p">:</span>      <span class="s">&#34;host&#34;</span><span class="p">,</span>
+				<span class="nx">ID</span><span class="p">:</span>        <span class="s">&#34;1&#34;</span><span class="p">,</span>
+				<span class="nx">Attribute</span><span class="p">:</span> <span class="kc">nil</span><span class="p">,</span>
+			<span class="p">}</span>
+			<span class="nx">policies</span> <span class="p">=</span> <span class="p">[]</span><span class="nx">types</span><span class="p">.</span><span class="nx">AuthPolicy</span><span class="p">{}</span>
+		<span class="p">})</span>
+
+		<span class="nf">It</span><span class="p">(</span><span class="s">&#34;fail&#34;</span><span class="p">,</span> <span class="kd">func</span><span class="p">()</span> <span class="p">{</span>
+			<span class="nx">errExpr</span> <span class="o">:=</span> <span class="s">`[{&#34;system&#34;: &#34;test&#34;, &#34;type&#34;: &#34;host&#34;, &#34;expression&#34;:
+</span><span class="s">{&#34;OR&#34;: {&#34;content&#34;: [{&#34;NotExists&#34;: {&#34;id&#34;: []}}]}}}]`</span>
+			<span class="nx">policies</span> <span class="p">=</span> <span class="p">[]</span><span class="nx">types</span><span class="p">.</span><span class="nx">AuthPolicy</span><span class="p">{</span>
+				<span class="p">{</span>
+					<span class="nx">Expression</span><span class="p">:</span> <span class="nx">errExpr</span><span class="p">,</span>
+				<span class="p">},</span>
+			<span class="p">}</span>
+			<span class="nx">_</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nf">GetPolicesAttrKeys</span><span class="p">(</span><span class="nx">resource</span><span class="p">,</span> <span class="nx">policies</span><span class="p">)</span>
+			<span class="nx">assert</span><span class="p">.</span><span class="nf">Error</span><span class="p">(</span><span class="nf">GinkgoT</span><span class="p">(),</span> <span class="nx">err</span><span class="p">)</span>
+		<span class="p">})</span>
+<span class="p">})</span>
+</code></pre></div><p>with patch</p>
+<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go">	<span class="nf">Describe</span><span class="p">(</span><span class="s">&#34;FillSubjectDetail&#34;</span><span class="p">,</span> <span class="kd">func</span><span class="p">()</span> <span class="p">{</span>
+		<span class="kd">var</span> <span class="nx">r</span> <span class="o">*</span><span class="nx">request</span><span class="p">.</span><span class="nx">Request</span>
+		<span class="kd">var</span> <span class="nx">ctl</span> <span class="o">*</span><span class="nx">gomock</span><span class="p">.</span><span class="nx">Controller</span>
+		<span class="kd">var</span> <span class="nx">patches</span> <span class="o">*</span><span class="nx">gomonkey</span><span class="p">.</span><span class="nx">Patches</span>
+		<span class="nf">BeforeEach</span><span class="p">(</span><span class="kd">func</span><span class="p">()</span> <span class="p">{</span>
+			<span class="nx">ctl</span> <span class="p">=</span> <span class="nx">gomock</span><span class="p">.</span><span class="nf">NewController</span><span class="p">(</span><span class="nf">GinkgoT</span><span class="p">())</span>
+			<span class="nx">r</span> <span class="p">=</span> <span class="nx">request</span><span class="p">.</span><span class="nf">NewRequest</span><span class="p">()</span>
+		<span class="p">})</span>
+		<span class="nf">AfterEach</span><span class="p">(</span><span class="kd">func</span><span class="p">()</span> <span class="p">{</span>
+			<span class="nx">ctl</span><span class="p">.</span><span class="nf">Finish</span><span class="p">()</span>
+			<span class="k">if</span> <span class="nx">patches</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+				<span class="nx">patches</span><span class="p">.</span><span class="nf">Reset</span><span class="p">()</span>
+			<span class="p">}</span>
+		<span class="p">})</span>
+
+		<span class="nf">It</span><span class="p">(</span><span class="s">&#34;pip.GetSubjectPK fail&#34;</span><span class="p">,</span> <span class="kd">func</span><span class="p">()</span> <span class="p">{</span>
+			<span class="nx">patches</span> <span class="p">=</span> <span class="nx">gomonkey</span><span class="p">.</span><span class="nf">ApplyFunc</span><span class="p">(</span><span class="nx">pip</span><span class="p">.</span><span class="nx">GetSubjectPK</span><span class="p">,</span> <span class="kd">func</span><span class="p">(</span><span class="nx">_type</span><span class="p">,</span> <span class="nx">id</span> <span class="kt">string</span><span class="p">)</span> <span class="p">(</span><span class="nx">pk</span> <span class="kt">int64</span><span class="p">,</span> <span class="nx">err</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+				<span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="nx">errors</span><span class="p">.</span><span class="nf">New</span><span class="p">(</span><span class="s">&#34;get subject_pk fail&#34;</span><span class="p">)</span>
+			<span class="p">})</span>
+			<span class="nx">err</span> <span class="o">:=</span> <span class="nx">r</span><span class="p">.</span><span class="nf">FillSubjectDetail</span><span class="p">()</span>
+			<span class="nx">assert</span><span class="p">.</span><span class="nf">Error</span><span class="p">(</span><span class="nf">GinkgoT</span><span class="p">(),</span> <span class="nx">err</span><span class="p">)</span>
+			<span class="nx">assert</span><span class="p">.</span><span class="nf">Contains</span><span class="p">(</span><span class="nf">GinkgoT</span><span class="p">(),</span> <span class="nx">err</span><span class="p">.</span><span class="nf">Error</span><span class="p">(),</span> <span class="s">&#34;get subject_pk fail&#34;</span><span class="p">)</span>
+
+		<span class="p">})</span>
+<span class="p">})</span>
+</code></pre></div><h2 id="ginkgo-cli">ginkgo cli</h2>
+<p><a href="https://onsi.github.io/ginkgo/#the-ginkgo-cli">ginkgo cli文档</a></p>
+<p>bootstrap &amp; generate</p>
+<pre><code># 进入模块
+$ cd pkg/util
+
+# 生成一个模块的 {module_name}_suite_test.go
+$ ginkgo bootstrap
+
+# 生成模块下某个文件 {file_name}_test.go
+$ ginkgo generate set
+</code></pre><p>run</p>
+<pre><code># 运行当前目录下的
+$ ginkgo
+
+# 带tags和gcflags (如果做了mock)
+$ ginkgo -tags=jsoniter -gcflags=all=-l
+
+# 递归执行当前目录及所有子目录下的
+$ ginkgo -r -v -cover
+
+# 只执行某几个目录
+$ ginkgo  -r pkg/util pkg/cache
+</code></pre><p>确认覆盖率 <code>make test &amp;&amp; make cov</code></p>
+<pre><code># in Makefile
+test:
+	go test -mod=vendor -gcflags=all=-l $(shell go list ./... | grep -v mock | grep -v docs) -covermode=count -coverprofile .coverage.cov
+
+cov:
+	go tool cover -html=.coverage.cov
+</code></pre>]]></content>
+		</item>
 		
 		<item>
 			<title>Better Code: 使用property</title>
