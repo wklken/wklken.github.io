@@ -6,8 +6,111 @@
 		<generator>Hugo -- gohugo.io</generator>
 		<language>en-us</language>
 		<copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright>
-		<lastBuildDate>Mon, 25 Jan 2021 18:00:00 +0800</lastBuildDate>
+		<lastBuildDate>Tue, 26 Jan 2021 14:38:00 +0800</lastBuildDate>
 		<atom:link href="https://wklken.me/posts/index.xml" rel="self" type="application/rss+xml" />
+		
+		<item>
+			<title>Go: 一种error wrap调用链处理方式</title>
+			<link>https://wklken.me/posts/2021/01/26/golang-error-wrap.html</link>
+			<pubDate>Tue, 26 Jan 2021 14:38:00 +0800</pubDate>
+			
+			<guid>https://wklken.me/posts/2021/01/26/golang-error-wrap.html</guid>
+			<description>这是在做 Golang 项目中的一些实践 背景 在做一套内部公共服务, 提供后台API调用的时候, 某些情况下, 会返回500错误, 此时有两种做法 在后台记录详细的5</description>
+			<content type="html"><![CDATA[<blockquote>
+<p>这是在做 Golang 项目中的一些实践</p>
+</blockquote>
+<h2 id="背景">背景</h2>
+<p>在做一套内部公共服务, 提供后台API调用的时候, 某些情况下, 会返回500错误, 此时有两种做法</p>
+<ol>
+<li>在后台记录详细的500日志, 返回给调用方一个<code>request_id</code>, 调用方拿request_id查询日志定位问题</li>
+<li>直接在response body中返回错误信息</li>
+</ol>
+<p>选择了问题排查路径短一些的 <code>2</code>, 错误信息中, 需要包含调用链路以及根因错误的详细信息, 提升问题排查的效率</p>
+<p>这样, 开发者在看到报错response body的同时, 可以直接知道调用链, 不需要使用请求重新复现问题, 节约了大量的复现/沟通的时间</p>
+<h2 id="最终效果">最终效果</h2>
+<pre><code>system error[request_id=0838c4090cfa4f4f9dceea5fd8c7b029]: [Handler:validateSystemSuperUser] impls.ListSubjectRoleSystemID subjectType=`user`, subjectID=`test1` fail%!(EXTRA string=test1) =&gt; [Cache:GetSubjectRole] SubjectRoleCache.Get subjectType=`user`, subjectID=`test1` fail =&gt; [Cache:GetSubjectPK] SubjectPKCache.Get _type=`user`, id=`test1` fail =&gt; [SubjectSVC:GetPK] GetPK _type=`user`, id=`test1` fail =&gt; [Raw:Error] sql: no rows in result set
+</code></pre><h2 id="处理机制">处理机制</h2>
+<p>使用error wrap, 一层层抛出</p>
+<h3 id="1-定义pkgerrorx">1. 定义pkg/errorx</h3>
+<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">type</span> <span class="nx">Error</span> <span class="kd">struct</span> <span class="p">{</span>
+	<span class="nx">message</span> <span class="kt">string</span>
+	<span class="nx">err</span>     <span class="kt">error</span>
+<span class="p">}</span>
+
+<span class="kd">func</span> <span class="p">(</span><span class="nx">e</span> <span class="nx">Error</span><span class="p">)</span> <span class="nf">Error</span><span class="p">()</span> <span class="kt">string</span> <span class="p">{</span>
+	<span class="k">return</span> <span class="nx">e</span><span class="p">.</span><span class="nx">message</span>
+<span class="p">}</span>
+
+<span class="kd">func</span> <span class="p">(</span><span class="nx">e</span> <span class="nx">Error</span><span class="p">)</span> <span class="nf">Is</span><span class="p">(</span><span class="nx">target</span> <span class="kt">error</span><span class="p">)</span> <span class="kt">bool</span> <span class="p">{</span>
+	<span class="k">if</span> <span class="nx">target</span> <span class="o">==</span> <span class="kc">nil</span> <span class="o">||</span> <span class="nx">e</span><span class="p">.</span><span class="nx">err</span> <span class="o">==</span> <span class="kc">nil</span> <span class="p">{</span>
+		<span class="k">return</span> <span class="nx">e</span><span class="p">.</span><span class="nx">err</span> <span class="o">==</span> <span class="nx">target</span>
+	<span class="p">}</span>
+
+	<span class="k">return</span> <span class="nx">errors</span><span class="p">.</span><span class="nf">Is</span><span class="p">(</span><span class="nx">e</span><span class="p">.</span><span class="nx">err</span><span class="p">,</span> <span class="nx">target</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="kd">func</span> <span class="p">(</span><span class="nx">e</span> <span class="o">*</span><span class="nx">Error</span><span class="p">)</span> <span class="nf">Unwrap</span><span class="p">()</span> <span class="kt">error</span> <span class="p">{</span>
+	<span class="nx">u</span><span class="p">,</span> <span class="nx">ok</span> <span class="o">:=</span> <span class="nx">e</span><span class="p">.</span><span class="nx">err</span><span class="p">.(</span><span class="kd">interface</span> <span class="p">{</span>
+		<span class="nf">Unwrap</span><span class="p">()</span> <span class="kt">error</span>
+	<span class="p">})</span>
+	<span class="k">if</span> <span class="p">!</span><span class="nx">ok</span> <span class="p">{</span>
+		<span class="k">return</span> <span class="nx">e</span><span class="p">.</span><span class="nx">err</span>
+	<span class="p">}</span>
+
+	<span class="k">return</span> <span class="nx">u</span><span class="p">.</span><span class="nf">Unwrap</span><span class="p">()</span>
+<span class="p">}</span>
+</code></pre></div><h3 id="2-封装wrapfunc-helper">2. 封装wrapfunc helper</h3>
+<p>注意,</p>
+<ul>
+<li>这里如果是最原始的err(即wrap前的err), 会使用<code>[Raw:Error]</code>标注</li>
+<li>如果是中间层的, 会附加<code>layer</code>(哪一层)和<code>function</code>(哪个函数)这两个信息</li>
+<li>这里定义了一个 helper 方法, 用于在</li>
+</ul>
+<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">func</span> <span class="nf">makeMessage</span><span class="p">(</span><span class="nx">err</span> <span class="kt">error</span><span class="p">,</span> <span class="nx">layer</span><span class="p">,</span> <span class="nx">function</span><span class="p">,</span> <span class="nx">msg</span> <span class="kt">string</span><span class="p">)</span> <span class="kt">string</span> <span class="p">{</span>
+	<span class="kd">var</span> <span class="nx">message</span> <span class="kt">string</span>
+	<span class="kd">var</span> <span class="nx">e</span> <span class="nx">Error</span>
+	<span class="k">if</span> <span class="nx">errors</span><span class="p">.</span><span class="nf">As</span><span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="o">&amp;</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+		<span class="nx">message</span> <span class="p">=</span> <span class="nx">fmt</span><span class="p">.</span><span class="nf">Sprintf</span><span class="p">(</span><span class="s">&#34;[%s:%s] %s =&gt; %s&#34;</span><span class="p">,</span> <span class="nx">layer</span><span class="p">,</span> <span class="nx">function</span><span class="p">,</span> <span class="nx">msg</span><span class="p">,</span> <span class="nx">err</span><span class="p">.</span><span class="nf">Error</span><span class="p">())</span>
+	<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+		<span class="nx">message</span> <span class="p">=</span> <span class="nx">fmt</span><span class="p">.</span><span class="nf">Sprintf</span><span class="p">(</span><span class="s">&#34;[%s:%s] %s =&gt; [Raw:Error] %v&#34;</span><span class="p">,</span> <span class="nx">layer</span><span class="p">,</span> <span class="nx">function</span><span class="p">,</span> <span class="nx">msg</span><span class="p">,</span> <span class="nx">err</span><span class="p">.</span><span class="nf">Error</span><span class="p">())</span>
+	<span class="p">}</span>
+
+	<span class="k">return</span> <span class="nx">message</span>
+<span class="p">}</span>
+
+<span class="kd">func</span> <span class="nf">Wrapf</span><span class="p">(</span><span class="nx">err</span> <span class="kt">error</span><span class="p">,</span> <span class="nx">layer</span> <span class="kt">string</span><span class="p">,</span> <span class="nx">function</span> <span class="kt">string</span><span class="p">,</span> <span class="nx">format</span> <span class="kt">string</span><span class="p">,</span> <span class="nx">args</span> <span class="o">...</span><span class="kd">interface</span><span class="p">{})</span> <span class="kt">error</span> <span class="p">{</span>
+	<span class="k">if</span> <span class="nx">err</span> <span class="o">==</span> <span class="kc">nil</span> <span class="p">{</span>
+		<span class="k">return</span> <span class="kc">nil</span>
+	<span class="p">}</span>
+
+	<span class="nx">msg</span> <span class="o">:=</span> <span class="nx">fmt</span><span class="p">.</span><span class="nf">Sprintf</span><span class="p">(</span><span class="nx">format</span><span class="p">,</span> <span class="nx">args</span><span class="o">...</span><span class="p">)</span>
+
+	<span class="k">return</span> <span class="nx">Error</span><span class="p">{</span>
+		<span class="nx">message</span><span class="p">:</span> <span class="nf">makeMessage</span><span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">layer</span><span class="p">,</span> <span class="nx">function</span><span class="p">,</span> <span class="nx">msg</span><span class="p">),</span>
+		<span class="nx">err</span><span class="p">:</span>     <span class="nx">err</span><span class="p">,</span>
+	<span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kd">type</span> <span class="nx">WrapfFuncWithLayerFunction</span> <span class="kd">func</span><span class="p">(</span><span class="nx">err</span> <span class="kt">error</span><span class="p">,</span> <span class="nx">format</span> <span class="kt">string</span><span class="p">,</span> <span class="nx">args</span> <span class="o">...</span><span class="kd">interface</span><span class="p">{})</span> <span class="kt">error</span>
+
+<span class="kd">func</span> <span class="nf">NewLayerFunctionErrorWrapf</span><span class="p">(</span><span class="nx">layer</span> <span class="kt">string</span><span class="p">,</span> <span class="nx">function</span> <span class="kt">string</span><span class="p">)</span> <span class="nx">WrapfFuncWithLayerFunction</span> <span class="p">{</span>
+	<span class="k">return</span> <span class="kd">func</span><span class="p">(</span><span class="nx">err</span> <span class="kt">error</span><span class="p">,</span> <span class="nx">format</span> <span class="kt">string</span><span class="p">,</span> <span class="nx">args</span> <span class="o">...</span><span class="kd">interface</span><span class="p">{})</span> <span class="kt">error</span> <span class="p">{</span>
+		<span class="k">return</span> <span class="nf">Wrapf</span><span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">layer</span><span class="p">,</span> <span class="nx">function</span><span class="p">,</span> <span class="nx">format</span><span class="p">,</span> <span class="nx">args</span><span class="o">...</span><span class="p">)</span>
+	<span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div><h3 id="3-使用">3. 使用</h3>
+<p>在某个函数体内, 涉及到需要return err或中间层</p>
+<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="nx">errorWrapf</span> <span class="o">:=</span> <span class="nx">errorx</span><span class="p">.</span><span class="nf">NewLayerFunctionErrorWrapf</span><span class="p">(</span><span class="s">&#34;Handler&#34;</span><span class="p">,</span> <span class="s">&#34;ListSubject&#34;</span><span class="p">)</span>
+
+<span class="nx">_</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">svc</span><span class="p">.</span><span class="nf">ListPaging</span><span class="p">(</span><span class="nx">body</span><span class="p">.</span><span class="nx">Type</span><span class="p">,</span> <span class="nx">body</span><span class="p">.</span><span class="nx">Limit</span><span class="p">,</span> <span class="nx">body</span><span class="p">.</span><span class="nx">Offset</span><span class="p">)</span>
+<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+    <span class="nx">err</span> <span class="p">=</span> <span class="nf">errorWrapf</span><span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="s">&#34;svc.ListPaging type=`%s` limit=`%d` offset=`%d` fail!&#34;</span><span class="p">,</span>
+			<span class="nx">body</span><span class="p">.</span><span class="nx">Type</span><span class="p">,</span> <span class="nx">body</span><span class="p">.</span><span class="nx">Limit</span><span class="p">,</span> <span class="nx">body</span><span class="p">.</span><span class="nx">Offset</span><span class="p">)</span>
+		<span class="k">return</span> <span class="nx">err</span>
+<span class="p">}</span>
+</code></pre></div><p>注意, <strong>wrap时包含关键的调用参数/返回值等等, 但是不能包含敏感数据</strong></p>
+]]></content>
+		</item>
 		
 		<item>
 			<title>漫谈技术选型</title>
