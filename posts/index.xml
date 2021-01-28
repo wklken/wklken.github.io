@@ -6,8 +6,120 @@
 		<generator>Hugo -- gohugo.io</generator>
 		<language>en-us</language>
 		<copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright>
-		<lastBuildDate>Wed, 27 Jan 2021 20:00:00 +0800</lastBuildDate>
+		<lastBuildDate>Thu, 28 Jan 2021 08:00:00 +0800</lastBuildDate>
 		<atom:link href="https://wklken.me/posts/index.xml" rel="self" type="application/rss+xml" />
+		
+		<item>
+			<title>Go: 开发过程中的一些bug</title>
+			<link>https://wklken.me/posts/2021/01/28/golang-bugs.html</link>
+			<pubDate>Thu, 28 Jan 2021 08:00:00 +0800</pubDate>
+			
+			<guid>https://wklken.me/posts/2021/01/28/golang-bugs.html</guid>
+			<description>1. make slice 很容易漏掉中间参数, 引入 bug并且很难排查 package main import &amp;#34;fmt&amp;#34; func doCopy(a []string) []string { b := make([]string, len(a)) for _, i := range a { b = append(b, i) } return b } func main() { a := []string{&amp;#34;hello&amp;#34;} b := doCopy(a) fmt.Println(b, len(b)) } 得到结果 [ hello]</description>
+			<content type="html"><![CDATA[<h2 id="1-make-slice">1. make slice</h2>
+<p>很容易漏掉中间参数, 引入 bug并且很难排查</p>
+<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="kn">package</span> <span class="nx">main</span>
+
+<span class="kn">import</span> <span class="s">&#34;fmt&#34;</span>
+
+<span class="kd">func</span> <span class="nf">doCopy</span><span class="p">(</span><span class="nx">a</span> <span class="p">[]</span><span class="kt">string</span><span class="p">)</span> <span class="p">[]</span><span class="kt">string</span> <span class="p">{</span>
+	<span class="nx">b</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">([]</span><span class="kt">string</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="nx">a</span><span class="p">))</span>
+	<span class="k">for</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">i</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">a</span> <span class="p">{</span>
+		<span class="nx">b</span> <span class="p">=</span> <span class="nb">append</span><span class="p">(</span><span class="nx">b</span><span class="p">,</span> <span class="nx">i</span><span class="p">)</span>
+	<span class="p">}</span>
+	<span class="k">return</span> <span class="nx">b</span>
+<span class="p">}</span>
+
+<span class="kd">func</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+	<span class="nx">a</span> <span class="o">:=</span> <span class="p">[]</span><span class="kt">string</span><span class="p">{</span><span class="s">&#34;hello&#34;</span><span class="p">}</span>
+	<span class="nx">b</span> <span class="o">:=</span> <span class="nf">doCopy</span><span class="p">(</span><span class="nx">a</span><span class="p">)</span>
+	<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">b</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="nx">b</span><span class="p">))</span>
+<span class="p">}</span>
+</code></pre></div><p>得到结果</p>
+<pre><code>[ hello] 2
+</code></pre><p>实际上</p>
+<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="nx">a</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">([]</span><span class="kt">int</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>  <span class="c1">// len(a)=5
+</span><span class="c1"></span><span class="nx">a</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">([]</span><span class="kt">int</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>  <span class="c1">// len(a)=0 cap(b)=5
+</span></code></pre></div><h2 id="2-shadow">2. shadow</h2>
+<p>本来应该使用<code>=</code>赋值, 错误地使用了<code>:=</code> (这个govet可以扫出来)</p>
+<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">var</span> <span class="nx">form</span> <span class="nx">url</span><span class="p">.</span><span class="nx">Values</span>
+<span class="k">if</span> <span class="nx">checkForm</span> <span class="p">{</span>
+  <span class="nx">form</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="nx">url</span><span class="p">.</span><span class="nx">Values</span><span class="p">)</span>
+  <span class="nx">util</span><span class="p">.</span><span class="nf">CopyValues</span><span class="p">(</span><span class="nx">form</span><span class="p">,</span> <span class="nx">r</span><span class="p">.</span><span class="nx">PostForm</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div><h2 id="3-err--or-">3. err == or !=</h2>
+<p>容易敲错, 且不好排查</p>
+<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="k">if</span> <span class="nx">err</span> <span class="o">==</span> <span class="kc">nil</span> <span class="p">{</span>
+
+<span class="p">}</span>
+
+<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+
+<span class="p">}</span>
+</code></pre></div><h2 id="4-漏掉了return">4. 漏掉了return</h2>
+<p>在本该return的地方漏掉了, 导致逻辑继续往后走, 这种在gin的handler和middleware特别容易漏</p>
+<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+  <span class="nx">render</span><span class="p">.</span><span class="nf">JSON</span><span class="p">(</span><span class="nx">w</span><span class="p">,</span> <span class="nx">err</span><span class="p">.</span><span class="nx">Status</span><span class="p">,</span> <span class="nx">err</span><span class="p">)</span>
+  <span class="c1">// 这里漏掉了 return
+</span><span class="c1"></span><span class="p">}</span>
+
+<span class="nx">next</span><span class="p">.</span><span class="nf">ServeHTTP</span><span class="p">(</span><span class="nx">w</span><span class="p">,</span> <span class="nx">r</span><span class="p">)</span>
+</code></pre></div><h2 id="5-scopelint">5. scopelint</h2>
+<p><a href="https://github.com/kyoh86/scopelint">scopelint</a></p>
+<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="kn">package</span> <span class="nx">main</span>
+
+<span class="kn">import</span> <span class="s">&#34;fmt&#34;</span>
+
+<span class="kd">func</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+	<span class="nx">values</span> <span class="o">:=</span> <span class="p">[]</span><span class="kt">string</span><span class="p">{</span><span class="s">&#34;a&#34;</span><span class="p">,</span> <span class="s">&#34;b&#34;</span><span class="p">,</span> <span class="s">&#34;c&#34;</span><span class="p">}</span>
+	<span class="kd">var</span> <span class="nx">copies</span> <span class="p">[]</span><span class="o">*</span><span class="kt">string</span>
+	<span class="k">for</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">val</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">values</span> <span class="p">{</span>
+		<span class="nx">copies</span> <span class="p">=</span> <span class="nb">append</span><span class="p">(</span><span class="nx">copies</span><span class="p">,</span> <span class="o">&amp;</span><span class="nx">val</span><span class="p">)</span>
+	<span class="p">}</span>
+	<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">copies</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div><p>此时得到</p>
+<pre><code>[0xc000010200 0xc000010200 0xc000010200]
+</code></pre><p>预期的应该是</p>
+<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="kn">package</span> <span class="nx">main</span>
+
+<span class="kn">import</span> <span class="s">&#34;fmt&#34;</span>
+
+<span class="kd">func</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+	<span class="nx">values</span> <span class="o">:=</span> <span class="p">[]</span><span class="kt">string</span><span class="p">{</span><span class="s">&#34;a&#34;</span><span class="p">,</span> <span class="s">&#34;b&#34;</span><span class="p">,</span> <span class="s">&#34;c&#34;</span><span class="p">}</span>
+	<span class="kd">var</span> <span class="nx">copies</span> <span class="p">[]</span><span class="o">*</span><span class="kt">string</span>
+	<span class="k">for</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">val</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">values</span> <span class="p">{</span>
+    <span class="c1">// add := here
+</span><span class="c1"></span>		<span class="nx">val</span> <span class="o">:=</span> <span class="nx">val</span>
+		<span class="nx">copies</span> <span class="p">=</span> <span class="nb">append</span><span class="p">(</span><span class="nx">copies</span><span class="p">,</span> <span class="o">&amp;</span><span class="nx">val</span><span class="p">)</span>
+	<span class="p">}</span>
+	<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">copies</span><span class="p">)</span>
+
+<span class="p">}</span>
+</code></pre></div><h2 id="6-erroris放错了位置">6. error.Is放错了位置</h2>
+<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="nx">err</span>
+<span class="p">}</span>
+
+<span class="o">...</span>
+
+
+<span class="k">if</span> <span class="kt">error</span><span class="p">.</span><span class="nf">Is</span><span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">DEMOError</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// will never execute
+</span><span class="c1"></span><span class="p">}</span>
+</code></pre></div><h2 id="7-close-the-connection">7. close the connection</h2>
+<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// the connection is not close
+</span><span class="c1"></span><span class="nx">_</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">sqlx</span><span class="p">.</span><span class="nf">Connect</span><span class="p">(</span><span class="s">&#34;mysql&#34;</span><span class="p">,</span> <span class="nx">db</span><span class="p">.</span><span class="nx">dataSource</span><span class="p">)</span>
+
+<span class="c1">// should be
+</span><span class="c1"></span><span class="nx">conn</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">sqlx</span><span class="p">.</span><span class="nf">Connect</span><span class="p">(</span><span class="s">&#34;mysql&#34;</span><span class="p">,</span> <span class="nx">db</span><span class="p">.</span><span class="nx">dataSource</span><span class="p">)</span>
+<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+	<span class="k">return</span>
+<span class="p">}</span>
+
+<span class="nx">conn</span><span class="p">.</span><span class="nf">Close</span><span class="p">()</span>
+</code></pre></div>]]></content>
+		</item>
 		
 		<item>
 			<title>项目管理实践: 风险驱动开发</title>
