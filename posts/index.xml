@@ -6,8 +6,263 @@
 		<generator>Hugo -- gohugo.io</generator>
 		<language>en-us</language>
 		<copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright>
-		<lastBuildDate>Mon, 01 Feb 2021 08:00:00 +0800</lastBuildDate>
+		<lastBuildDate>Thu, 04 Feb 2021 08:00:00 +0800</lastBuildDate>
 		<atom:link href="https://wklken.me/posts/index.xml" rel="self" type="application/rss+xml" />
+		
+		<item>
+			<title>Go: gin validation</title>
+			<link>https://wklken.me/posts/2021/02/04/golang-gin-validation.html</link>
+			<pubDate>Thu, 04 Feb 2021 08:00:00 +0800</pubDate>
+			
+			<guid>https://wklken.me/posts/2021/02/04/golang-gin-validation.html</guid>
+			<description>这是在做 Golang 项目中的一些实践 传统的校验方式 需要在获取数据后, 写很多if判断语句, 无法复用且非常罗嗦 if a != &amp;#34;&amp;#34; { } if len(a) &amp;lt; 10 { } gin 的参数校验 gin 使用了</description>
+			<content type="html"><![CDATA[<blockquote>
+<p>这是在做 Golang 项目中的一些实践</p>
+</blockquote>
+<h2 id="传统的校验方式">传统的校验方式</h2>
+<p>需要在获取数据后, 写很多<code>if</code>判断语句, 无法复用且非常罗嗦</p>
+<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="k">if</span> <span class="nx">a</span> <span class="o">!=</span> <span class="s">&#34;&#34;</span> <span class="p">{</span>
+
+<span class="p">}</span>
+<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nx">a</span><span class="p">)</span> <span class="p">&lt;</span> <span class="mi">10</span> <span class="p">{</span>
+
+<span class="p">}</span>
+</code></pre></div><h2 id="gin-的参数校验">gin 的参数校验</h2>
+<p>gin 使用了 <a href="https://github.com/go-playground/validator">go-playground/validator</a>库, 使用tag声明的方式, 支持http请求request中的各类校验</p>
+<ul>
+<li><a href="https://github.com/gin-gonic/gin#model-binding-and-validation">gin: Model binding and validation</a></li>
+<li><a href="https://pkg.go.dev/github.com/go-playground/validator">Package validator docs</a></li>
+<li><a href="https://github.com/gin-gonic/gin#custom-validators">gin: Custom Validators</a></li>
+</ul>
+<h2 id="几种常用参数校验">几种常用参数校验</h2>
+<h3 id="1-get-参数">1. get 参数</h3>
+<p><a href="https://github.com/gin-gonic/gin#only-bind-query-string">gin: Only Bind Query String</a></p>
+<blockquote>
+<p>curl -X GET &ldquo;localhost:8085/testing?name=eason&amp;address=xyz&rdquo;</p>
+</blockquote>
+<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">type</span> <span class="nx">Person</span> <span class="kd">struct</span> <span class="p">{</span>
+	<span class="nx">Name</span>    <span class="kt">string</span> <span class="s">`form:&#34;name&#34;`</span>
+	<span class="nx">Address</span> <span class="kt">string</span> <span class="s">`form:&#34;address&#34;`</span>
+<span class="p">}</span>
+
+<span class="kd">var</span> <span class="nx">person</span> <span class="nx">Person</span>
+<span class="k">if</span> <span class="nx">c</span><span class="p">.</span><span class="nf">ShouldBindQuery</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">person</span><span class="p">)</span> <span class="o">==</span> <span class="kc">nil</span> <span class="p">{</span>
+		<span class="nx">log</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;====== Only Bind By Query String ======&#34;</span><span class="p">)</span>
+		<span class="nx">log</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">person</span><span class="p">.</span><span class="nx">Name</span><span class="p">)</span>
+		<span class="nx">log</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">person</span><span class="p">.</span><span class="nx">Address</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div><h3 id="2-路径参数">2. 路径参数</h3>
+<p><a href="https://github.com/gin-gonic/gin#bind-uri">gin: Bind Uri</a></p>
+<blockquote>
+<p>curl -v localhost:8088/thinkerou/987fbc97-4bed-5078-9f07-9141ba07c9f3</p>
+</blockquote>
+<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="kn">package</span> <span class="nx">main</span>
+
+<span class="kn">import</span> <span class="s">&#34;github.com/gin-gonic/gin&#34;</span>
+
+<span class="kd">type</span> <span class="nx">Person</span> <span class="kd">struct</span> <span class="p">{</span>
+	<span class="nx">ID</span> <span class="kt">string</span> <span class="s">`uri:&#34;id&#34; binding:&#34;required,uuid&#34;`</span>
+	<span class="nx">Name</span> <span class="kt">string</span> <span class="s">`uri:&#34;name&#34; binding:&#34;required&#34;`</span>
+<span class="p">}</span>
+
+<span class="kd">func</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+	<span class="nx">route</span> <span class="o">:=</span> <span class="nx">gin</span><span class="p">.</span><span class="nf">Default</span><span class="p">()</span>
+	<span class="nx">route</span><span class="p">.</span><span class="nf">GET</span><span class="p">(</span><span class="s">&#34;/:name/:id&#34;</span><span class="p">,</span> <span class="kd">func</span><span class="p">(</span><span class="nx">c</span> <span class="o">*</span><span class="nx">gin</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span> <span class="p">{</span>
+		<span class="kd">var</span> <span class="nx">person</span> <span class="nx">Person</span>
+		<span class="k">if</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">c</span><span class="p">.</span><span class="nf">ShouldBindUri</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">person</span><span class="p">);</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+			<span class="nx">c</span><span class="p">.</span><span class="nf">JSON</span><span class="p">(</span><span class="mi">400</span><span class="p">,</span> <span class="nx">gin</span><span class="p">.</span><span class="nx">H</span><span class="p">{</span><span class="s">&#34;msg&#34;</span><span class="p">:</span> <span class="nx">err</span><span class="p">})</span>
+			<span class="k">return</span>
+		<span class="p">}</span>
+		<span class="nx">c</span><span class="p">.</span><span class="nf">JSON</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="nx">gin</span><span class="p">.</span><span class="nx">H</span><span class="p">{</span><span class="s">&#34;name&#34;</span><span class="p">:</span> <span class="nx">person</span><span class="p">.</span><span class="nx">Name</span><span class="p">,</span> <span class="s">&#34;uuid&#34;</span><span class="p">:</span> <span class="nx">person</span><span class="p">.</span><span class="nx">ID</span><span class="p">})</span>
+	<span class="p">})</span>
+	<span class="nx">route</span><span class="p">.</span><span class="nf">Run</span><span class="p">(</span><span class="s">&#34;:8088&#34;</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div><h3 id="3-json-body">3. json body</h3>
+<ul>
+<li><a href="https://github.com/gin-gonic/gin#model-binding-and-validation">gin: Model binding and validation</a></li>
+</ul>
+<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">type</span> <span class="nx">Login</span> <span class="kd">struct</span> <span class="p">{</span>
+	<span class="nx">User</span>     <span class="kt">string</span> <span class="s">`json:&#34;user&#34; binding:&#34;required&#34;`</span>
+	<span class="nx">Password</span> <span class="kt">string</span> <span class="s">`json:&#34;password&#34; binding:&#34;required&#34;`</span>
+<span class="p">}</span>
+
+<span class="kd">var</span> <span class="nx">json</span> <span class="nx">Login</span>
+<span class="k">if</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">c</span><span class="p">.</span><span class="nf">ShouldBindJSON</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">json</span><span class="p">);</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+    <span class="nx">c</span><span class="p">.</span><span class="nf">JSON</span><span class="p">(</span><span class="nx">http</span><span class="p">.</span><span class="nx">StatusBadRequest</span><span class="p">,</span> <span class="nx">gin</span><span class="p">.</span><span class="nx">H</span><span class="p">{</span><span class="s">&#34;error&#34;</span><span class="p">:</span> <span class="nx">err</span><span class="p">.</span><span class="nf">Error</span><span class="p">()})</span>
+    <span class="k">return</span>
+<span class="p">}</span>
+</code></pre></div><h4 id="4-header">4. header</h4>
+<p><a href="https://github.com/gin-gonic/gin#bind-header">gin: Bind Header</a></p>
+<blockquote>
+<p>curl -H &ldquo;rate:300&rdquo; -H &ldquo;domain:music&rdquo; 127.0.0.1:8080/</p>
+</blockquote>
+<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="kn">package</span> <span class="nx">main</span>
+
+<span class="kn">import</span> <span class="p">(</span>
+	<span class="s">&#34;fmt&#34;</span>
+	<span class="s">&#34;github.com/gin-gonic/gin&#34;</span>
+<span class="p">)</span>
+
+<span class="kd">type</span> <span class="nx">testHeader</span> <span class="kd">struct</span> <span class="p">{</span>
+	<span class="nx">Rate</span>   <span class="kt">int</span>    <span class="s">`header:&#34;Rate&#34;`</span>
+	<span class="nx">Domain</span> <span class="kt">string</span> <span class="s">`header:&#34;Domain&#34;`</span>
+<span class="p">}</span>
+
+<span class="kd">func</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+	<span class="nx">r</span> <span class="o">:=</span> <span class="nx">gin</span><span class="p">.</span><span class="nf">Default</span><span class="p">()</span>
+	<span class="nx">r</span><span class="p">.</span><span class="nf">GET</span><span class="p">(</span><span class="s">&#34;/&#34;</span><span class="p">,</span> <span class="kd">func</span><span class="p">(</span><span class="nx">c</span> <span class="o">*</span><span class="nx">gin</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span> <span class="p">{</span>
+		<span class="nx">h</span> <span class="o">:=</span> <span class="nx">testHeader</span><span class="p">{}</span>
+
+		<span class="k">if</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">c</span><span class="p">.</span><span class="nf">ShouldBindHeader</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">h</span><span class="p">);</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+			<span class="nx">c</span><span class="p">.</span><span class="nf">JSON</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="nx">err</span><span class="p">)</span>
+		<span class="p">}</span>
+
+		<span class="nx">fmt</span><span class="p">.</span><span class="nf">Printf</span><span class="p">(</span><span class="s">&#34;%#v\n&#34;</span><span class="p">,</span> <span class="nx">h</span><span class="p">)</span>
+		<span class="nx">c</span><span class="p">.</span><span class="nf">JSON</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="nx">gin</span><span class="p">.</span><span class="nx">H</span><span class="p">{</span><span class="s">&#34;Rate&#34;</span><span class="p">:</span> <span class="nx">h</span><span class="p">.</span><span class="nx">Rate</span><span class="p">,</span> <span class="s">&#34;Domain&#34;</span><span class="p">:</span> <span class="nx">h</span><span class="p">.</span><span class="nx">Domain</span><span class="p">})</span>
+	<span class="p">})</span>
+
+	<span class="nx">r</span><span class="p">.</span><span class="nf">Run</span><span class="p">()</span>
+<span class="p">}</span>
+</code></pre></div><h2 id="json-body是一个对象数组">json body是一个对象数组</h2>
+<p><code>ShouldBindJSON</code>并不会校验对象数组中的每个对象是否符合要求, 需要自行调用方法处理</p>
+<p>可以抽象出一个通用的函数</p>
+<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">var</span> <span class="nx">ErrNotArray</span> <span class="p">=</span> <span class="nx">errors</span><span class="p">.</span><span class="nf">New</span><span class="p">(</span><span class="s">&#34;validate array fail, only support array&#34;</span><span class="p">)</span>
+
+<span class="kd">func</span> <span class="nf">ToSlice</span><span class="p">(</span><span class="nx">array</span> <span class="kd">interface</span><span class="p">{})</span> <span class="p">([]</span><span class="kd">interface</span><span class="p">{},</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+	<span class="nx">v</span> <span class="o">:=</span> <span class="nx">reflect</span><span class="p">.</span><span class="nf">ValueOf</span><span class="p">(</span><span class="nx">array</span><span class="p">)</span>
+	<span class="k">if</span> <span class="nx">v</span><span class="p">.</span><span class="nf">Kind</span><span class="p">()</span> <span class="o">!=</span> <span class="nx">reflect</span><span class="p">.</span><span class="nx">Slice</span> <span class="p">{</span>
+		<span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">ErrNotArray</span>
+	<span class="p">}</span>
+	<span class="nx">l</span> <span class="o">:=</span> <span class="nx">v</span><span class="p">.</span><span class="nf">Len</span><span class="p">()</span>
+	<span class="nx">ret</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">([]</span><span class="kd">interface</span><span class="p">{},</span> <span class="nx">l</span><span class="p">)</span>
+	<span class="k">for</span> <span class="nx">i</span> <span class="o">:=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="p">&lt;</span> <span class="nx">l</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span> <span class="p">{</span>
+		<span class="nx">ret</span><span class="p">[</span><span class="nx">i</span><span class="p">]</span> <span class="p">=</span> <span class="nx">v</span><span class="p">.</span><span class="nf">Index</span><span class="p">(</span><span class="nx">i</span><span class="p">).</span><span class="nf">Interface</span><span class="p">()</span>
+	<span class="p">}</span>
+	<span class="k">return</span> <span class="nx">ret</span><span class="p">,</span> <span class="kc">nil</span>
+<span class="p">}</span>
+
+
+<span class="kd">func</span> <span class="nf">ValidateArray</span><span class="p">(</span><span class="nx">data</span> <span class="kd">interface</span><span class="p">{})</span> <span class="p">(</span><span class="kt">bool</span><span class="p">,</span> <span class="kt">string</span><span class="p">)</span> <span class="p">{</span>
+	<span class="nx">array</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nf">ToSlice</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span>
+	<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+		<span class="k">return</span> <span class="kc">false</span><span class="p">,</span> <span class="nx">err</span><span class="p">.</span><span class="nf">Error</span><span class="p">()</span>
+	<span class="p">}</span>
+
+	<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nx">array</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">{</span>
+		<span class="k">return</span> <span class="kc">false</span><span class="p">,</span> <span class="s">&#34;the array should contain at least 1 item&#34;</span>
+	<span class="p">}</span>
+	<span class="k">for</span> <span class="nx">index</span><span class="p">,</span> <span class="nx">item</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">array</span> <span class="p">{</span>
+		<span class="k">if</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">binding</span><span class="p">.</span><span class="nx">Validator</span><span class="p">.</span><span class="nf">ValidateStruct</span><span class="p">(</span><span class="nx">item</span><span class="p">);</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+			<span class="nx">message</span> <span class="o">:=</span> <span class="nx">fmt</span><span class="p">.</span><span class="nf">Sprintf</span><span class="p">(</span><span class="s">&#34;data in array[%d], %s&#34;</span><span class="p">,</span> <span class="nx">index</span><span class="p">,</span> <span class="nf">ValidationErrorMessage</span><span class="p">(</span><span class="nx">err</span><span class="p">))</span>
+			<span class="k">return</span> <span class="kc">false</span><span class="p">,</span> <span class="nx">message</span>
+		<span class="p">}</span>
+	<span class="p">}</span>
+	<span class="k">return</span> <span class="kc">true</span><span class="p">,</span> <span class="s">&#34;valid&#34;</span>
+<span class="p">}</span>
+</code></pre></div><p>使用时</p>
+<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">var</span> <span class="nx">body</span> <span class="p">[]</span><span class="nx">action</span>
+<span class="k">if</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">c</span><span class="p">.</span><span class="nf">ShouldBindJSON</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">body</span><span class="p">);</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+	<span class="c1">// bad request
+</span><span class="c1"></span>	<span class="k">return</span>
+<span class="p">}</span>
+
+<span class="k">if</span> <span class="nx">valid</span><span class="p">,</span> <span class="nx">message</span> <span class="o">:=</span> <span class="nx">common</span><span class="p">.</span><span class="nf">ValidateArray</span><span class="p">(</span><span class="nx">body</span><span class="p">);</span> <span class="p">!</span><span class="nx">valid</span> <span class="p">{</span>
+    <span class="c1">// bad request: message
+</span><span class="c1"></span>    <span class="k">return</span>
+<span class="p">}</span>
+</code></pre></div><h2 id="更友好的错误提示">更友好的错误提示</h2>
+<p>当validation报错的时候, 我们期望得到一个更友好的提示信息, 便于使用者确认问题</p>
+<p>reference:</p>
+<ol>
+<li><a href="https://github.com/gin-gonic/gin/issues/430">https://github.com/gin-gonic/gin/issues/430</a></li>
+<li><a href="https://medium.com/@seb.nyberg/better-validation-errors-in-go-gin-88f983564a3d">https://medium.com/@seb.nyberg/better-validation-errors-in-go-gin-88f983564a3d</a></li>
+</ol>
+<p>以下是一种实现, 处理的常用的 validation 规则的错误展示</p>
+<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="kn">package</span> <span class="nx">util</span>
+
+<span class="kn">import</span> <span class="p">(</span>
+	<span class="s">&#34;fmt&#34;</span>
+	<span class="s">&#34;io&#34;</span>
+
+	<span class="s">&#34;github.com/go-playground/validator/v10&#34;</span>
+	<span class="nx">log</span> <span class="s">&#34;github.com/sirupsen/logrus&#34;</span>
+<span class="p">)</span>
+
+<span class="c1">// 这里是通用的 FieldError 处理, 如果需要针对某些字段或struct做定制, 需要自行定义一个
+</span><span class="c1"></span><span class="kd">type</span> <span class="nx">ValidationFieldError</span> <span class="kd">struct</span> <span class="p">{</span>
+	<span class="nx">Err</span> <span class="nx">validator</span><span class="p">.</span><span class="nx">FieldError</span>
+<span class="p">}</span>
+
+<span class="kd">func</span> <span class="p">(</span><span class="nx">v</span> <span class="nx">ValidationFieldError</span><span class="p">)</span> <span class="nf">String</span><span class="p">()</span> <span class="kt">string</span> <span class="p">{</span>
+	<span class="nx">e</span> <span class="o">:=</span> <span class="nx">v</span><span class="p">.</span><span class="nx">Err</span>
+
+	<span class="k">switch</span> <span class="nx">e</span><span class="p">.</span><span class="nf">Tag</span><span class="p">()</span> <span class="p">{</span>
+	<span class="k">case</span> <span class="s">&#34;required&#34;</span><span class="p">:</span>
+		<span class="k">return</span> <span class="nx">fmt</span><span class="p">.</span><span class="nf">Sprintf</span><span class="p">(</span><span class="s">&#34;%s is required&#34;</span><span class="p">,</span> <span class="nx">e</span><span class="p">.</span><span class="nf">Field</span><span class="p">())</span>
+	<span class="k">case</span> <span class="s">&#34;max&#34;</span><span class="p">:</span>
+		<span class="k">return</span> <span class="nx">fmt</span><span class="p">.</span><span class="nf">Sprintf</span><span class="p">(</span><span class="s">&#34;%s cannot be longer than %s&#34;</span><span class="p">,</span> <span class="nx">e</span><span class="p">.</span><span class="nf">Field</span><span class="p">(),</span> <span class="nx">e</span><span class="p">.</span><span class="nf">Param</span><span class="p">())</span>
+	<span class="k">case</span> <span class="s">&#34;min&#34;</span><span class="p">:</span>
+		<span class="k">return</span> <span class="nx">fmt</span><span class="p">.</span><span class="nf">Sprintf</span><span class="p">(</span><span class="s">&#34;%s must be longer than %s&#34;</span><span class="p">,</span> <span class="nx">e</span><span class="p">.</span><span class="nf">Field</span><span class="p">(),</span> <span class="nx">e</span><span class="p">.</span><span class="nf">Param</span><span class="p">())</span>
+	<span class="k">case</span> <span class="s">&#34;email&#34;</span><span class="p">:</span>
+		<span class="k">return</span> <span class="s">&#34;Invalid email format&#34;</span>
+	<span class="k">case</span> <span class="s">&#34;len&#34;</span><span class="p">:</span>
+		<span class="k">return</span> <span class="nx">fmt</span><span class="p">.</span><span class="nf">Sprintf</span><span class="p">(</span><span class="s">&#34;%s must be %s characters long&#34;</span><span class="p">,</span> <span class="nx">e</span><span class="p">.</span><span class="nf">Field</span><span class="p">(),</span> <span class="nx">e</span><span class="p">.</span><span class="nf">Param</span><span class="p">())</span>
+	<span class="k">case</span> <span class="s">&#34;gt&#34;</span><span class="p">:</span>
+		<span class="k">return</span> <span class="nx">fmt</span><span class="p">.</span><span class="nf">Sprintf</span><span class="p">(</span><span class="s">&#34;%s must greater than %s&#34;</span><span class="p">,</span> <span class="nx">e</span><span class="p">.</span><span class="nf">Field</span><span class="p">(),</span> <span class="nx">e</span><span class="p">.</span><span class="nf">Param</span><span class="p">())</span>
+	<span class="k">case</span> <span class="s">&#34;gte&#34;</span><span class="p">:</span>
+		<span class="k">return</span> <span class="nx">fmt</span><span class="p">.</span><span class="nf">Sprintf</span><span class="p">(</span><span class="s">&#34;%s must greater or equals to %s&#34;</span><span class="p">,</span> <span class="nx">e</span><span class="p">.</span><span class="nf">Field</span><span class="p">(),</span> <span class="nx">e</span><span class="p">.</span><span class="nf">Param</span><span class="p">())</span>
+	<span class="k">case</span> <span class="s">&#34;lt&#34;</span><span class="p">:</span>
+		<span class="k">return</span> <span class="nx">fmt</span><span class="p">.</span><span class="nf">Sprintf</span><span class="p">(</span><span class="s">&#34;%s must less than %s&#34;</span><span class="p">,</span> <span class="nx">e</span><span class="p">.</span><span class="nf">Field</span><span class="p">(),</span> <span class="nx">e</span><span class="p">.</span><span class="nf">Param</span><span class="p">())</span>
+	<span class="k">case</span> <span class="s">&#34;lte&#34;</span><span class="p">:</span>
+		<span class="k">return</span> <span class="nx">fmt</span><span class="p">.</span><span class="nf">Sprintf</span><span class="p">(</span><span class="s">&#34;%s must less or equals to %s&#34;</span><span class="p">,</span> <span class="nx">e</span><span class="p">.</span><span class="nf">Field</span><span class="p">(),</span> <span class="nx">e</span><span class="p">.</span><span class="nf">Param</span><span class="p">())</span>
+	<span class="k">case</span> <span class="s">&#34;oneof&#34;</span><span class="p">:</span>
+		<span class="k">return</span> <span class="nx">fmt</span><span class="p">.</span><span class="nf">Sprintf</span><span class="p">(</span><span class="s">&#34;%s must be one of &#39;%s&#39;&#34;</span><span class="p">,</span> <span class="nx">e</span><span class="p">.</span><span class="nf">Field</span><span class="p">(),</span> <span class="nx">e</span><span class="p">.</span><span class="nf">Param</span><span class="p">())</span>
+	<span class="p">}</span>
+
+	<span class="k">return</span> <span class="nx">fmt</span><span class="p">.</span><span class="nf">Sprintf</span><span class="p">(</span><span class="s">&#34;%s is not valid, condition: %s&#34;</span><span class="p">,</span> <span class="nx">e</span><span class="p">.</span><span class="nf">Field</span><span class="p">(),</span> <span class="nx">e</span><span class="p">.</span><span class="nf">ActualTag</span><span class="p">())</span>
+<span class="p">}</span>
+
+<span class="kd">func</span> <span class="nf">ValidationErrorMessage</span><span class="p">(</span><span class="nx">err</span> <span class="kt">error</span><span class="p">)</span> <span class="kt">string</span> <span class="p">{</span>
+	<span class="k">if</span> <span class="nx">err</span> <span class="o">==</span> <span class="nx">io</span><span class="p">.</span><span class="nx">EOF</span> <span class="p">{</span>
+		<span class="k">return</span> <span class="s">&#34;EOF, json decode fail&#34;</span>
+	<span class="p">}</span>
+
+	<span class="nx">validationErrs</span><span class="p">,</span> <span class="nx">ok</span> <span class="o">:=</span> <span class="nx">err</span><span class="p">.(</span><span class="nx">validator</span><span class="p">.</span><span class="nx">ValidationErrors</span><span class="p">)</span>
+	<span class="k">if</span> <span class="p">!</span><span class="nx">ok</span> <span class="p">{</span>
+		<span class="nx">message</span> <span class="o">:=</span> <span class="nx">fmt</span><span class="p">.</span><span class="nf">Sprintf</span><span class="p">(</span><span class="s">&#34;json decode or validate fail, err=%s&#34;</span><span class="p">,</span> <span class="nx">err</span><span class="p">)</span>
+		<span class="nx">log</span><span class="p">.</span><span class="nf">Info</span><span class="p">(</span><span class="nx">message</span><span class="p">)</span>
+		<span class="k">return</span> <span class="nx">message</span>
+	<span class="p">}</span>
+
+	<span class="c1">// currently, only return the first error
+</span><span class="c1"></span>	<span class="k">for</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">fieldErr</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">validationErrs</span> <span class="p">{</span>
+		<span class="k">return</span> <span class="nx">ValidationFieldError</span><span class="p">{</span><span class="nx">fieldErr</span><span class="p">}.</span><span class="nf">String</span><span class="p">()</span>
+	<span class="p">}</span>
+
+	<span class="k">return</span> <span class="s">&#34;validationErrs with no error message&#34;</span>
+<span class="p">}</span>
+</code></pre></div><h2 id="判断-空值还是没有传递">判断: 空值还是没有传递</h2>
+<p>有些场景, 如果一个json对象中, 某个字段可以为空, 但是非空的时候, 要执行某些特殊的逻辑</p>
+<p>此时, 使用默认的validation是无法判断, 请求中没有这个字段, 还是传了空值;</p>
+<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go">	<span class="c1">// validate
+</span><span class="c1"></span>	<span class="kd">var</span> <span class="nx">body</span> <span class="nx">action</span>
+	<span class="nx">err</span> <span class="o">:=</span> <span class="nx">c</span><span class="p">.</span><span class="nf">ShouldBindBodyWith</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">body</span><span class="p">,</span> <span class="nx">binding</span><span class="p">.</span><span class="nx">JSON</span><span class="p">)</span>
+	<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+		<span class="c1">// bad request, ValidationErrorMessage(err)
+</span><span class="c1"></span>		<span class="k">return</span>
+	<span class="p">}</span>
+	<span class="kd">var</span> <span class="nx">data</span> <span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kd">interface</span><span class="p">{}</span>
+	<span class="nx">err</span> <span class="p">=</span> <span class="nx">c</span><span class="p">.</span><span class="nf">ShouldBindBodyWith</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">data</span><span class="p">,</span> <span class="nx">binding</span><span class="p">.</span><span class="nx">JSON</span><span class="p">)</span>
+	<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+		<span class="c1">// bad request, ValidationErrorMessage(err)
+</span><span class="c1"></span>		<span class="k">return</span>
+	<span class="p">}</span>
+
+	<span class="k">if</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">ok</span> <span class="o">:=</span> <span class="nx">data</span><span class="p">[</span><span class="s">&#34;name&#34;</span><span class="p">];</span> <span class="p">!</span><span class="nx">ok</span> <span class="p">{</span>
+		<span class="c1">// do something
+</span><span class="c1"></span>	<span class="p">}</span>
+</code></pre></div>]]></content>
+		</item>
 		
 		<item>
 			<title>远程办公的一点总结</title>
