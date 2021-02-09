@@ -6,8 +6,199 @@
 		<generator>Hugo -- gohugo.io</generator>
 		<language>en-us</language>
 		<copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright>
-		<lastBuildDate>Thu, 04 Feb 2021 08:00:00 +0800</lastBuildDate>
+		<lastBuildDate>Tue, 09 Feb 2021 20:00:00 +0800</lastBuildDate>
 		<atom:link href="https://wklken.me/posts/index.xml" rel="self" type="application/rss+xml" />
+		
+		<item>
+			<title>Go: logrus性能提升</title>
+			<link>https://wklken.me/posts/2021/02/09/golang-high-performance-logrus.html</link>
+			<pubDate>Tue, 09 Feb 2021 20:00:00 +0800</pubDate>
+			
+			<guid>https://wklken.me/posts/2021/02/09/golang-high-performance-logrus.html</guid>
+			<description>在Go项目中, logrus是一个相对完备的第三方日志库 用起来非常顺手, 特别是WithField/WithFields/WithError 我们</description>
+			<content type="html"><![CDATA[<p>在Go项目中, logrus是一个相对完备的第三方日志库</p>
+<p>用起来非常顺手, 特别是<code>WithField/WithFields/WithError</code></p>
+<p>我们开发一些对性能要求非常高的应用, 例如API网关/权限服务等, 需要记录流水日志, 此时日志库的性能直接会影响整体接口性能.</p>
+<p>所以针对性地做了一些优化</p>
+<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="nx">log</span><span class="p">.</span><span class="nf">WithFields</span><span class="p">(</span><span class="nx">fields</span><span class="p">).</span><span class="nf">Info</span><span class="p">(</span><span class="s">&#34;-&#34;</span><span class="p">)</span>
+</code></pre></div><p><img src="/imgs/golang/logrus1.png" alt=""></p>
+<h2 id="json-formatter">json formatter</h2>
+<p>logrus的默认json formatter <a href="https://github.com/sirupsen/logrus/blob/master/json_formatter.go">json_formatter</a> 使用的是标准库</p>
+<p>总所周知, 性能比第三方库差很多</p>
+<p>我们可以自定义一个json formatter, 使用例如 <a href="https://github.com/json-iterator/go">json-iterator/go</a>来提升序列化性能</p>
+<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go">	<span class="c1">// ! change here: use jsnoiter to do marshal. but ignore the entry.Buffer
+</span><span class="c1"></span>
+	<span class="c1">// var b *bytes.Buffer
+</span><span class="c1"></span>	<span class="c1">// if entry.Buffer != nil {
+</span><span class="c1"></span>	<span class="c1">// 	b = entry.Buffer
+</span><span class="c1"></span>	<span class="c1">// } else {
+</span><span class="c1"></span>	<span class="c1">// 	b = &amp;bytes.Buffer{}
+</span><span class="c1"></span>	<span class="c1">// }
+</span><span class="c1"></span>
+	<span class="c1">// encoder := json.NewEncoder(b)
+</span><span class="c1"></span>	<span class="c1">// if f.PrettyPrint {
+</span><span class="c1"></span>	<span class="c1">// 	encoder.SetIndent(&#34;&#34;, &#34;  &#34;)
+</span><span class="c1"></span>	<span class="c1">// }
+</span><span class="c1"></span>	<span class="c1">// if err := encoder.Encode(data); err != nil {
+</span><span class="c1"></span>	<span class="c1">// 	return nil, fmt.Errorf(&#34;failed to marshal fields to JSON, %v&#34;, err)
+</span><span class="c1"></span>	<span class="c1">// }
+</span><span class="c1"></span>	<span class="c1">// return b.Bytes(), nil
+</span><span class="c1"></span>
+	<span class="nx">buf</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">jsoniter</span><span class="p">.</span><span class="nf">Marshal</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span>
+	<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+		<span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">fmt</span><span class="p">.</span><span class="nf">Errorf</span><span class="p">(</span><span class="s">&#34;failed to marshal fields to JSON, %v&#34;</span><span class="p">,</span> <span class="nx">err</span><span class="p">)</span>
+	<span class="p">}</span>
+	<span class="nx">buf</span> <span class="p">=</span> <span class="nb">append</span><span class="p">(</span><span class="nx">buf</span><span class="p">,</span> <span class="sc">&#39;\n&#39;</span><span class="p">)</span>
+	<span class="k">return</span> <span class="nx">buf</span><span class="p">,</span> <span class="kc">nil</span>
+</code></pre></div><h2 id="null-formatter-和-hooks">null formatter 和 hooks</h2>
+<p>如果不指定, 默认的formatter是<code>TextFormatter</code></p>
+<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">func</span> <span class="nf">New</span><span class="p">()</span> <span class="o">*</span><span class="nx">Logger</span> <span class="p">{</span>
+	<span class="k">return</span> <span class="o">&amp;</span><span class="nx">Logger</span><span class="p">{</span>
+		<span class="nx">Out</span><span class="p">:</span>          <span class="nx">os</span><span class="p">.</span><span class="nx">Stderr</span><span class="p">,</span>
+		<span class="nx">Formatter</span><span class="p">:</span>    <span class="nb">new</span><span class="p">(</span><span class="nx">TextFormatter</span><span class="p">),</span>
+		<span class="nx">Hooks</span><span class="p">:</span>        <span class="nb">make</span><span class="p">(</span><span class="nx">LevelHooks</span><span class="p">),</span>
+		<span class="nx">Level</span><span class="p">:</span>        <span class="nx">InfoLevel</span><span class="p">,</span>
+		<span class="nx">ExitFunc</span><span class="p">:</span>     <span class="nx">os</span><span class="p">.</span><span class="nx">Exit</span><span class="p">,</span>
+		<span class="nx">ReportCaller</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span>
+	<span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div><p>如果我们使用了 hooks (<a href="https://github.com/sirupsen/logrus/blob/master/hooks.go">hooks.go</a>)将日志转到文件/redis或其他渠道; 此时, 默认的Output和Formatter还是会被调用到;</p>
+<p>其实我们配置了hooks, 那么原entry理论上是不需要的</p>
+<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">func</span> <span class="p">(</span><span class="nx">entry</span> <span class="nx">Entry</span><span class="p">)</span> <span class="nf">log</span><span class="p">(</span><span class="nx">level</span> <span class="nx">Level</span><span class="p">,</span> <span class="nx">msg</span> <span class="kt">string</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">entry</span><span class="p">.</span><span class="nf">fireHooks</span><span class="p">()</span>
+    <span class="o">...</span><span class="p">.</span>
+    <span class="nx">entry</span><span class="p">.</span><span class="nf">write</span><span class="p">()</span>
+<span class="p">}</span>
+
+<span class="kd">func</span> <span class="p">(</span><span class="nx">entry</span> <span class="o">*</span><span class="nx">Entry</span><span class="p">)</span> <span class="nf">write</span><span class="p">()</span> <span class="p">{</span>
+	<span class="nx">entry</span><span class="p">.</span><span class="nx">Logger</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nf">Lock</span><span class="p">()</span>
+	<span class="k">defer</span> <span class="nx">entry</span><span class="p">.</span><span class="nx">Logger</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nf">Unlock</span><span class="p">()</span>
+	<span class="nx">serialized</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">entry</span><span class="p">.</span><span class="nx">Logger</span><span class="p">.</span><span class="nx">Formatter</span><span class="p">.</span><span class="nf">Format</span><span class="p">(</span><span class="nx">entry</span><span class="p">)</span>
+	<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+		<span class="nx">fmt</span><span class="p">.</span><span class="nf">Fprintf</span><span class="p">(</span><span class="nx">os</span><span class="p">.</span><span class="nx">Stderr</span><span class="p">,</span> <span class="s">&#34;Failed to obtain reader, %v\n&#34;</span><span class="p">,</span> <span class="nx">err</span><span class="p">)</span>
+		<span class="k">return</span>
+	<span class="p">}</span>
+	<span class="k">if</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">err</span> <span class="p">=</span> <span class="nx">entry</span><span class="p">.</span><span class="nx">Logger</span><span class="p">.</span><span class="nx">Out</span><span class="p">.</span><span class="nf">Write</span><span class="p">(</span><span class="nx">serialized</span><span class="p">);</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+		<span class="nx">fmt</span><span class="p">.</span><span class="nf">Fprintf</span><span class="p">(</span><span class="nx">os</span><span class="p">.</span><span class="nx">Stderr</span><span class="p">,</span> <span class="s">&#34;Failed to write to log, %v\n&#34;</span><span class="p">,</span> <span class="nx">err</span><span class="p">)</span>
+	<span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div><p>所以, 此时可以配置一个 <code>NullFormatter</code>, 将默认的链路关闭(do nothing), 日志只会走hooks</p>
+<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="kn">package</span> <span class="nx">formatter</span>
+
+<span class="kn">import</span> <span class="p">(</span>
+	<span class="s">&#34;github.com/sirupsen/logrus&#34;</span>
+<span class="p">)</span>
+
+<span class="c1">// NullFormatter formats logs into text
+</span><span class="c1"></span><span class="kd">type</span> <span class="nx">NullFormatter</span> <span class="kd">struct</span> <span class="p">{</span>
+<span class="p">}</span>
+
+<span class="c1">// Format renders a single log entry
+</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">f</span> <span class="o">*</span><span class="nx">NullFormatter</span><span class="p">)</span> <span class="nf">Format</span><span class="p">(</span><span class="nx">entry</span> <span class="o">*</span><span class="nx">logrus</span><span class="p">.</span><span class="nx">Entry</span><span class="p">)</span> <span class="p">([]</span><span class="kt">byte</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+	<span class="k">return</span> <span class="p">[]</span><span class="nb">byte</span><span class="p">(</span><span class="s">&#34;&#34;</span><span class="p">),</span> <span class="kc">nil</span>
+<span class="p">}</span>
+</code></pre></div><p>重新设置log的配置</p>
+<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go">	<span class="nx">logger</span><span class="p">.</span><span class="nf">SetOutput</span><span class="p">(</span><span class="nx">ioutil</span><span class="p">.</span><span class="nx">Discard</span><span class="p">)</span>
+	<span class="nx">logger</span><span class="p">.</span><span class="nf">SetFormatter</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">formatter</span><span class="p">.</span><span class="nx">NullFormatter</span><span class="p">{})</span>
+
+  <span class="nx">logger</span><span class="p">.</span><span class="nf">AddHook</span><span class="p">(</span><span class="nf">NewRedisHook</span><span class="p">())</span>
+</code></pre></div><h2 id="log-entry-pool">log entry pool</h2>
+<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="kn">package</span> <span class="nx">logging</span>
+
+<span class="kn">import</span> <span class="p">(</span>
+	<span class="s">&#34;sync&#34;</span>
+
+	<span class="nx">log</span> <span class="s">&#34;github.com/sirupsen/logrus&#34;</span>
+<span class="p">)</span>
+
+<span class="kd">type</span> <span class="nx">logEntryPool</span> <span class="kd">struct</span> <span class="p">{</span>
+	<span class="nx">pool</span> <span class="nx">sync</span><span class="p">.</span><span class="nx">Pool</span>
+<span class="p">}</span>
+
+<span class="kd">func</span> <span class="nf">newLogEntryPool</span><span class="p">()</span> <span class="o">*</span><span class="nx">logEntryPool</span> <span class="p">{</span>
+	<span class="k">return</span> <span class="o">&amp;</span><span class="nx">logEntryPool</span><span class="p">{</span>
+		<span class="nx">pool</span><span class="p">:</span> <span class="nx">sync</span><span class="p">.</span><span class="nx">Pool</span><span class="p">{</span>
+			<span class="nx">New</span><span class="p">:</span> <span class="kd">func</span><span class="p">()</span> <span class="kd">interface</span><span class="p">{}</span> <span class="p">{</span>
+				<span class="k">return</span> <span class="o">&amp;</span><span class="nx">log</span><span class="p">.</span><span class="nx">Entry</span><span class="p">{</span>
+					<span class="c1">// Logger: logger,
+</span><span class="c1"></span>					<span class="c1">// Default is three fields, plus one optional.  Give a little extra room.
+</span><span class="c1"></span>					<span class="nx">Data</span><span class="p">:</span> <span class="nb">make</span><span class="p">(</span><span class="nx">log</span><span class="p">.</span><span class="nx">Fields</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span>
+				<span class="p">}</span>
+			<span class="p">},</span>
+		<span class="p">},</span>
+	<span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kd">func</span> <span class="p">(</span><span class="nx">p</span> <span class="o">*</span><span class="nx">logEntryPool</span><span class="p">)</span> <span class="nf">Get</span><span class="p">(</span><span class="nx">logger</span> <span class="o">*</span><span class="nx">log</span><span class="p">.</span><span class="nx">Logger</span><span class="p">)</span> <span class="o">*</span><span class="nx">log</span><span class="p">.</span><span class="nx">Entry</span> <span class="p">{</span>
+	<span class="nx">entry</span> <span class="o">:=</span> <span class="nx">p</span><span class="p">.</span><span class="nx">pool</span><span class="p">.</span><span class="nf">Get</span><span class="p">().(</span><span class="o">*</span><span class="nx">log</span><span class="p">.</span><span class="nx">Entry</span><span class="p">)</span>
+	<span class="nx">entry</span><span class="p">.</span><span class="nx">Logger</span> <span class="p">=</span> <span class="nx">logger</span>
+	<span class="k">return</span> <span class="nx">entry</span>
+<span class="p">}</span>
+
+<span class="kd">func</span> <span class="p">(</span><span class="nx">p</span> <span class="o">*</span><span class="nx">logEntryPool</span><span class="p">)</span> <span class="nf">Put</span><span class="p">(</span><span class="nx">e</span> <span class="o">*</span><span class="nx">log</span><span class="p">.</span><span class="nx">Entry</span><span class="p">)</span> <span class="p">{</span>
+	<span class="c1">// TODO: clean, should make?
+</span><span class="c1"></span>	<span class="c1">// reference: https://github.com/sirupsen/logrus/pull/796/files
+</span><span class="c1"></span>	<span class="c1">// e.Data = make(log.Fields, 6)
+</span><span class="c1"></span>	<span class="nx">e</span><span class="p">.</span><span class="nx">Data</span> <span class="p">=</span> <span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kd">interface</span><span class="p">{}{}</span>
+
+	<span class="nx">p</span><span class="p">.</span><span class="nx">pool</span><span class="p">.</span><span class="nf">Put</span><span class="p">(</span><span class="nx">e</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div><p>使用</p>
+<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="nx">entry</span> <span class="o">:=</span> <span class="nx">logging</span><span class="p">.</span><span class="nx">LogEntryPool</span><span class="p">.</span><span class="nf">Get</span><span class="p">(</span><span class="nx">logger</span><span class="p">)</span>
+<span class="k">defer</span> <span class="nx">logging</span><span class="p">.</span><span class="nx">LogEntryPool</span><span class="p">.</span><span class="nf">Put</span><span class="p">(</span><span class="nx">entry</span><span class="p">)</span>
+</code></pre></div><h2 id="异步日志">异步日志</h2>
+<p><img src="/imgs/golang/logrus2.png" alt=""></p>
+<p><img src="/imgs/golang/logrus3.png" alt=""></p>
+<p>使用一个专门处理日志的goroutine</p>
+<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">func</span> <span class="p">(</span><span class="nx">f</span> <span class="o">*</span><span class="nx">FileLogHook</span><span class="p">)</span> <span class="nf">makeAsync</span><span class="p">()</span> <span class="p">{</span>
+	<span class="nx">f</span><span class="p">.</span><span class="nx">fireChannel</span> <span class="p">=</span> <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="o">*</span><span class="nx">logrus</span><span class="p">.</span><span class="nx">Entry</span><span class="p">,</span> <span class="nx">f</span><span class="p">.</span><span class="nx">asyncBufferSize</span><span class="p">)</span>
+	<span class="nx">fmt</span><span class="p">.</span><span class="nf">Printf</span><span class="p">(</span><span class="s">&#34;file hook will use a async buffer with size %d\n&#34;</span><span class="p">,</span> <span class="nx">f</span><span class="p">.</span><span class="nx">asyncBufferSize</span><span class="p">)</span>
+	<span class="k">go</span> <span class="kd">func</span><span class="p">()</span> <span class="p">{</span>
+		<span class="k">for</span> <span class="nx">entry</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">f</span><span class="p">.</span><span class="nx">fireChannel</span> <span class="p">{</span>
+			<span class="k">if</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">f</span><span class="p">.</span><span class="nf">send</span><span class="p">(</span><span class="nx">entry</span><span class="p">);</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+				<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;Error during sending message to file:&#34;</span><span class="p">,</span> <span class="nx">err</span><span class="p">)</span>
+			<span class="p">}</span>
+		<span class="p">}</span>
+	<span class="p">}()</span>
+<span class="p">}</span>
+
+<span class="c1">// Fire is called when a log event is fired.
+</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">f</span> <span class="o">*</span><span class="nx">FileLogHook</span><span class="p">)</span> <span class="nf">Fire</span><span class="p">(</span><span class="nx">entry</span> <span class="o">*</span><span class="nx">logrus</span><span class="p">.</span><span class="nx">Entry</span><span class="p">)</span> <span class="kt">error</span> <span class="p">{</span>
+	<span class="k">if</span> <span class="nx">f</span><span class="p">.</span><span class="nx">fireChannel</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span> <span class="c1">// Async mode.
+</span><span class="c1"></span>		<span class="k">select</span> <span class="p">{</span>
+		<span class="k">case</span> <span class="nx">f</span><span class="p">.</span><span class="nx">fireChannel</span> <span class="o">&lt;-</span> <span class="nx">entry</span><span class="p">:</span> <span class="c1">// try and put into chan, if fail will to default
+</span><span class="c1"></span>		<span class="k">default</span><span class="p">:</span>
+			<span class="k">if</span> <span class="nx">f</span><span class="p">.</span><span class="nx">asyncBlock</span> <span class="p">{</span>
+				<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;the log buffered chan is full! will block&#34;</span><span class="p">)</span>
+				<span class="nx">f</span><span class="p">.</span><span class="nx">fireChannel</span> <span class="o">&lt;-</span> <span class="nx">entry</span> <span class="c1">// Blocks the goroutine because buffer is full.
+</span><span class="c1"></span>				<span class="k">return</span> <span class="kc">nil</span>
+			<span class="p">}</span>
+			<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;the log buffered chan is full! will drop&#34;</span><span class="p">)</span>
+			<span class="c1">// Drop message by default.
+</span><span class="c1"></span>		<span class="p">}</span>
+		<span class="k">return</span> <span class="kc">nil</span>
+	<span class="p">}</span>
+
+  <span class="c1">// Sync mode.
+</span><span class="c1"></span>	<span class="k">return</span> <span class="nx">f</span><span class="p">.</span><span class="nf">send</span><span class="p">(</span><span class="nx">entry</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="kd">func</span> <span class="p">(</span><span class="nx">f</span> <span class="o">*</span><span class="nx">FileLogHook</span><span class="p">)</span> <span class="nf">send</span><span class="p">(</span><span class="nx">entry</span> <span class="o">*</span><span class="nx">logrus</span><span class="p">.</span><span class="nx">Entry</span><span class="p">)</span> <span class="kt">error</span> <span class="p">{</span>
+	<span class="k">return</span> <span class="nx">f</span><span class="p">.</span><span class="nx">loghook</span><span class="p">.</span><span class="nf">Fire</span><span class="p">(</span><span class="nx">entry</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div><div class="highlight"><pre class="chroma"><code class="language-shell" data-lang="shell">Async write to redis 
+with <span class="nv">buffersize</span><span class="o">=</span><span class="m">10000</span>
+<span class="o">(</span>block<span class="o">)</span>
+
+<span class="m">7700</span> -&gt; <span class="m">18000</span>
+
+Async write to redis
+With <span class="nv">buffersize</span><span class="o">=</span><span class="m">10000</span>
+<span class="o">(</span>none block, drop <span class="k">if</span> full<span class="o">)</span>
+
+60000+
+</code></pre></div>]]></content>
+		</item>
 		
 		<item>
 			<title>Go: gin validation</title>
