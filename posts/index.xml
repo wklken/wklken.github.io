@@ -6,8 +6,95 @@
 		<generator>Hugo -- gohugo.io</generator>
 		<language>en-us</language>
 		<copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright>
-		<lastBuildDate>Tue, 09 Feb 2021 20:00:00 +0800</lastBuildDate>
+		<lastBuildDate>Fri, 05 Mar 2021 08:00:00 +0800</lastBuildDate>
 		<atom:link href="https://wklken.me/posts/index.xml" rel="self" type="application/rss+xml" />
+		
+		<item>
+			<title>Go: go-redis/cache升级的坑</title>
+			<link>https://wklken.me/posts/2021/03/05/golang-upgrade-go-redis-cache.html</link>
+			<pubDate>Fri, 05 Mar 2021 08:00:00 +0800</pubDate>
+			
+			<guid>https://wklken.me/posts/2021/03/05/golang-upgrade-go-redis-cache.html</guid>
+			<description>这是在做 Golang 项目中的一些实践 在做一个项目, 使用了 go-redis/redis 及 go-redis/cache 某个节点, 做了所有依赖包的升级. 在做缓存依赖包的升级时, 必须十分注意, 新版本的第三方包做</description>
+			<content type="html"><![CDATA[<blockquote>
+<p>这是在做 Golang 项目中的一些实践</p>
+</blockquote>
+<p>在做一个项目, 使用了 <a href="https://github.com/go-redis/redis">go-redis/redis</a> 及 <a href="https://github.com/go-redis/cache">go-redis/cache</a></p>
+<p>某个节点, 做了所有依赖包的升级.</p>
+<p>在做缓存依赖包的升级时, 必须十分注意, 新版本的第三方包做了哪些变更, 阅读CHANGE LOG和相关的源码;</p>
+<p>主要风险:</p>
+<ul>
+<li>breaking changes</li>
+<li>对象/方法/参数等协议变更</li>
+<li>存储格式(是否向前兼容)</li>
+</ul>
+<p>即, 一旦做了升级, 原先<code>正常</code>的代码, 可能会有<code>问题</code></p>
+<p>所以需要确认:</p>
+<ol>
+<li>新老版本存储格式是否一致?</li>
+<li>代码中涉及<code>读</code>和<code>写</code>的地方是否使用同样的操作?</li>
+</ol>
+<h2 id="1-v7升级v8">1. v7升级v8</h2>
+<p>issue: <a href="https://github.com/go-redis/cache/issues/52">Can&rsquo;t upgrade from v7 to v8 directly?</a></p>
+<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="kn">package</span> <span class="nx">main</span>
+
+<span class="kn">import</span> <span class="p">(</span>
+	<span class="s">&#34;context&#34;</span>
+	<span class="s">&#34;fmt&#34;</span>
+
+	<span class="nx">cv7</span> <span class="s">&#34;github.com/go-redis/cache/v7&#34;</span>
+	<span class="nx">cv8</span> <span class="s">&#34;github.com/go-redis/cache/v8&#34;</span>
+	<span class="nx">rdsv7</span> <span class="s">&#34;github.com/go-redis/redis/v7&#34;</span>
+	<span class="nx">rdsv8</span> <span class="s">&#34;github.com/go-redis/redis/v8&#34;</span>
+	<span class="nx">msgpackv4</span> <span class="s">&#34;github.com/vmihailenco/msgpack/v4&#34;</span>
+<span class="p">)</span>
+
+<span class="kd">func</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+	<span class="c1">// TODO: 测试放入redis用另一个取
+</span><span class="c1"></span>	<span class="nx">d</span> <span class="o">:=</span> <span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kd">interface</span><span class="p">{}{</span>
+		<span class="s">&#34;hello&#34;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+		<span class="s">&#34;world&#34;</span><span class="p">:</span> <span class="s">&#34;ok&#34;</span><span class="p">,</span>
+	<span class="p">}</span>
+
+	<span class="c1">// 使用两个版本的cli进行测试, v7/v8
+</span><span class="c1"></span>	<span class="c1">// 1. 使用v7, marshal 放入db
+</span><span class="c1"></span>	<span class="c1">// 2. use v8, 获取
+</span><span class="c1"></span>
+	<span class="nx">v7</span> <span class="o">:=</span> <span class="o">&amp;</span><span class="nx">cv7</span><span class="p">.</span><span class="nx">Codec</span><span class="p">{</span>
+		<span class="nx">Redis</span><span class="p">:</span>     <span class="nx">rdsv7</span><span class="p">.</span><span class="nf">NewClient</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">rdsv7</span><span class="p">.</span><span class="nx">Options</span><span class="p">{}),</span>
+		<span class="nx">Marshal</span><span class="p">:</span>   <span class="nx">msgpackv4</span><span class="p">.</span><span class="nx">Marshal</span><span class="p">,</span>
+		<span class="nx">Unmarshal</span><span class="p">:</span> <span class="nx">msgpackv4</span><span class="p">.</span><span class="nx">Unmarshal</span><span class="p">,</span>
+	<span class="p">}</span>
+
+	<span class="nx">err</span> <span class="o">:=</span> <span class="nx">v7</span><span class="p">.</span><span class="nf">Set</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">cv7</span><span class="p">.</span><span class="nx">Item</span><span class="p">{</span>
+		<span class="nx">Key</span><span class="p">:</span>    <span class="s">&#34;aaa&#34;</span><span class="p">,</span>
+		<span class="nx">Object</span><span class="p">:</span> <span class="nx">d</span><span class="p">,</span>
+	<span class="p">})</span>
+	<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;set err:&#34;</span><span class="p">,</span> <span class="nx">err</span><span class="p">)</span>
+
+	<span class="nx">v8</span> <span class="o">:=</span> <span class="nx">cv8</span><span class="p">.</span><span class="nf">New</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">cv8</span><span class="p">.</span><span class="nx">Options</span><span class="p">{</span>
+		<span class="nx">Redis</span><span class="p">:</span> <span class="nx">rdsv8</span><span class="p">.</span><span class="nf">NewClient</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">rdsv8</span><span class="p">.</span><span class="nx">Options</span><span class="p">{}),</span>
+	<span class="p">})</span>
+
+	<span class="kd">var</span> <span class="nx">result</span> <span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kd">interface</span><span class="p">{}</span>
+	<span class="nx">err</span> <span class="p">=</span> <span class="nx">v8</span><span class="p">.</span><span class="nf">Get</span><span class="p">(</span><span class="nx">context</span><span class="p">.</span><span class="nf">TODO</span><span class="p">(),</span> <span class="s">&#34;aaa&#34;</span><span class="p">,</span> <span class="o">&amp;</span><span class="nx">result</span><span class="p">)</span>
+	<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;get err:&#34;</span><span class="p">,</span> <span class="nx">err</span><span class="p">)</span>
+	<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">result</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div><p>执行结果:</p>
+<div class="highlight"><pre class="chroma"><code class="language-shell" data-lang="shell"><span class="nb">set</span> err: &lt;nil&gt;
+get err: unknown compression method: 6b
+map<span class="o">[]</span>
+</code></pre></div><p>原因, go-redis/cache v8引入的压缩 <a href="https://github.com/go-redis/cache/blob/v8/cache.go#L353">v8/cache.go</a>, 没有做向前兼容的逻辑</p>
+<p>解决方案: 在基础类中, 更换掉key的namespace, 增加版本号; 例如 <code>project:hello</code> 变成 <code>project:v8:hello</code></p>
+<h2 id="2-升级v8后的msgpack-与-pipeline的处理">2. 升级v8后的msgpack 与 pipeline的处理</h2>
+<p>由于 go-redis/cache 主要用于单个对象的 set/get</p>
+<p>某些业务场景下, 我们使用pipeline进行批量操作</p>
+<p>此时, pipeline拿回回来的是 <code>raw string</code>, 原先v7由于set算法用的<code>msgpack.Marshal</code>, 自定义pipeline处理结果直接用<code>msgpack.Unmarshal</code>没有问题.</p>
+<p>但是, 升级到v8后, 由于compession逻辑的存在, 此时使用原生的<code>msgpack.Unmarshal</code>将会报错(无法识别被压缩的字符串)</p>
+<p>解决: 需要切换为 <code>go-redis/cache</code> 对象的<code>Unmarshal</code></p>
+]]></content>
+		</item>
 		
 		<item>
 			<title>Go: logrus性能提升</title>
