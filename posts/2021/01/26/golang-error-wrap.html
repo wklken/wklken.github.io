@@ -8,15 +8,15 @@
 	<meta name="theme-color" content="#494f5c">
 	<meta name="msapplication-TileColor" content="#494f5c">
 <meta itemprop="name" content="Go: 一种error wrap调用链处理方式">
-<meta itemprop="description" content="这是在做 Golang 项目中的一些实践 背景 在做一套内部公共服务, 提供后台API调用的时候, 某些情况下, 会返回500错误, 此时有两种做法 在后台记录详细的5"><meta itemprop="datePublished" content="2021-01-26T14:38:00&#43;08:00" />
-<meta itemprop="dateModified" content="2021-01-26T14:38:00&#43;08:00" />
+<meta itemprop="description" content="这是在做 Golang 项目中的一些实践 背景 在做一套内部公共服务, 提供后台API调用的时候, 某些情况下, 会返回500错误, 此时有两种做法 在后台记录详细的5"><meta itemprop="datePublished" content="2021-01-26T14:38:00+08:00" />
+<meta itemprop="dateModified" content="2021-01-26T14:38:00+08:00" />
 <meta itemprop="wordCount" content="755">
 <meta itemprop="keywords" content="golang," /><meta property="og:title" content="Go: 一种error wrap调用链处理方式" />
 <meta property="og:description" content="这是在做 Golang 项目中的一些实践 背景 在做一套内部公共服务, 提供后台API调用的时候, 某些情况下, 会返回500错误, 此时有两种做法 在后台记录详细的5" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://wklken.me/posts/2021/01/26/golang-error-wrap.html" /><meta property="article:section" content="posts" />
-<meta property="article:published_time" content="2021-01-26T14:38:00&#43;08:00" />
-<meta property="article:modified_time" content="2021-01-26T14:38:00&#43;08:00" />
+<meta property="article:published_time" content="2021-01-26T14:38:00+08:00" />
+<meta property="article:modified_time" content="2021-01-26T14:38:00+08:00" />
 
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Go: 一种error wrap调用链处理方式"/>
@@ -83,12 +83,12 @@
 <p>选择了问题排查路径短一些的 <code>2</code>, 错误信息中, 需要包含调用链路以及根因错误的详细信息, 提升问题排查的效率</p>
 <p>这样, 开发者在看到报错response body的同时, 可以直接知道调用链, 不需要使用请求重新复现问题, 节约了大量的复现/沟通的时间</p>
 <h2 id="最终效果">最终效果<a href="#最终效果" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
-<pre><code>system error[request_id=0838c4090cfa4f4f9dceea5fd8c7b029]: [Handler:validateSystemSuperUser] impls.ListSubjectRoleSystemID subjectType=`user`, subjectID=`test1` fail%!(EXTRA string=test1) =&gt; [Cache:GetSubjectRole] SubjectRoleCache.Get subjectType=`user`, subjectID=`test1` fail =&gt; [Cache:GetSubjectPK] SubjectPKCache.Get _type=`user`, id=`test1` fail =&gt; [SubjectSVC:GetPK] GetPK _type=`user`, id=`test1` fail =&gt; [Raw:Error] sql: no rows in result set
+<pre tabindex="0"><code>system error[request_id=0838c4090cfa4f4f9dceea5fd8c7b029]: [Handler:validateSystemSuperUser] impls.ListSubjectRoleSystemID subjectType=`user`, subjectID=`test1` fail%!(EXTRA string=test1) =&gt; [Cache:GetSubjectRole] SubjectRoleCache.Get subjectType=`user`, subjectID=`test1` fail =&gt; [Cache:GetSubjectPK] SubjectPKCache.Get _type=`user`, id=`test1` fail =&gt; [SubjectSVC:GetPK] GetPK _type=`user`, id=`test1` fail =&gt; [Raw:Error] sql: no rows in result set
 </code></pre><h2 id="处理机制">处理机制<a href="#处理机制" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
 <p>使用error wrap, 一层层抛出</p>
 <h3 id="1-定义pkgerrorx">1. 定义pkg/errorx<a href="#1-定义pkgerrorx" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
 <p>注意, package name使用<code>errorx</code>, 可以规避同标准库命名的冲突; 同时import的时候不需要alias</p>
-<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">type</span> <span class="nx">Error</span> <span class="kd">struct</span> <span class="p">{</span>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="kd">type</span> <span class="nx">Error</span> <span class="kd">struct</span> <span class="p">{</span>
 	<span class="nx">message</span> <span class="kt">string</span>
 	<span class="nx">err</span>     <span class="kt">error</span>
 <span class="p">}</span>
@@ -122,7 +122,7 @@
 <li>如果是中间层的, 会附加<code>layer</code>(哪一层)和<code>function</code>(哪个函数)这两个信息</li>
 <li>这里定义了一个 helper 方法, 用于在</li>
 </ul>
-<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">func</span> <span class="nf">makeMessage</span><span class="p">(</span><span class="nx">err</span> <span class="kt">error</span><span class="p">,</span> <span class="nx">layer</span><span class="p">,</span> <span class="nx">function</span><span class="p">,</span> <span class="nx">msg</span> <span class="kt">string</span><span class="p">)</span> <span class="kt">string</span> <span class="p">{</span>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="kd">func</span> <span class="nf">makeMessage</span><span class="p">(</span><span class="nx">err</span> <span class="kt">error</span><span class="p">,</span> <span class="nx">layer</span><span class="p">,</span> <span class="nx">function</span><span class="p">,</span> <span class="nx">msg</span> <span class="kt">string</span><span class="p">)</span> <span class="kt">string</span> <span class="p">{</span>
 	<span class="kd">var</span> <span class="nx">message</span> <span class="kt">string</span>
 	<span class="kd">var</span> <span class="nx">e</span> <span class="nx">Error</span>
 	<span class="k">if</span> <span class="nx">errors</span><span class="p">.</span><span class="nf">As</span><span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="o">&amp;</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
@@ -156,7 +156,7 @@
 <span class="p">}</span>
 </code></pre></div><h3 id="3-使用">3. 使用<a href="#3-使用" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
 <p>在某个函数体内, 涉及到需要return err或中间层</p>
-<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="nx">errorWrapf</span> <span class="o">:=</span> <span class="nx">errorx</span><span class="p">.</span><span class="nf">NewLayerFunctionErrorWrapf</span><span class="p">(</span><span class="s">&#34;Handler&#34;</span><span class="p">,</span> <span class="s">&#34;ListSubject&#34;</span><span class="p">)</span>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="nx">errorWrapf</span> <span class="o">:=</span> <span class="nx">errorx</span><span class="p">.</span><span class="nf">NewLayerFunctionErrorWrapf</span><span class="p">(</span><span class="s">&#34;Handler&#34;</span><span class="p">,</span> <span class="s">&#34;ListSubject&#34;</span><span class="p">)</span>
 
 <span class="nx">_</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">svc</span><span class="p">.</span><span class="nf">ListPaging</span><span class="p">(</span><span class="nx">body</span><span class="p">.</span><span class="nx">Type</span><span class="p">,</span> <span class="nx">body</span><span class="p">.</span><span class="nx">Limit</span><span class="p">,</span> <span class="nx">body</span><span class="p">.</span><span class="nx">Offset</span><span class="p">)</span>
 <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
@@ -228,7 +228,7 @@
 	</main>
 
 	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
-		<p>&copy; 2021 <a href="https://wklken.me">wklken</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>&copy; 2022 <a href="https://wklken.me">wklken</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
 		<p>
 			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="https://wklken.me/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
 		</p>

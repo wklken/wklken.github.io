@@ -8,15 +8,15 @@
 	<meta name="theme-color" content="#494f5c">
 	<meta name="msapplication-TileColor" content="#494f5c">
 <meta itemprop="name" content="ELK维护的一些点(二)">
-<meta itemprop="description" content="很杂, 涉及到最近处理的一些点 根据string转浮点数的某个字段排序 一个字段, resp_time, mapping中是string, 有需求是, 按照响应时间降序排序"><meta itemprop="datePublished" content="2016-05-07T08:00:00&#43;08:00" />
-<meta itemprop="dateModified" content="2016-05-07T08:00:00&#43;08:00" />
+<meta itemprop="description" content="很杂, 涉及到最近处理的一些点 根据string转浮点数的某个字段排序 一个字段, resp_time, mapping中是string, 有需求是, 按照响应时间降序排序"><meta itemprop="datePublished" content="2016-05-07T08:00:00+08:00" />
+<meta itemprop="dateModified" content="2016-05-07T08:00:00+08:00" />
 <meta itemprop="wordCount" content="1739">
 <meta itemprop="keywords" content="system," /><meta property="og:title" content="ELK维护的一些点(二)" />
 <meta property="og:description" content="很杂, 涉及到最近处理的一些点 根据string转浮点数的某个字段排序 一个字段, resp_time, mapping中是string, 有需求是, 按照响应时间降序排序" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://wklken.me/posts/2016/05/07/elk-about-2.html" /><meta property="article:section" content="posts" />
-<meta property="article:published_time" content="2016-05-07T08:00:00&#43;08:00" />
-<meta property="article:modified_time" content="2016-05-07T08:00:00&#43;08:00" />
+<meta property="article:published_time" content="2016-05-07T08:00:00+08:00" />
+<meta property="article:modified_time" content="2016-05-07T08:00:00+08:00" />
 
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="ELK维护的一些点(二)"/>
@@ -76,10 +76,10 @@
 <p>一个字段, <code>resp_time</code>, mapping中是string, 有需求是, 按照响应时间降序排序, 此时需要构造qsl(在search中使用), 使用该字段转换为浮点数, 降序排列</p>
 <p>第一步, 修改es配置, 增加groovy支持</p>
 <p>elasticsearch.yml中加入</p>
-<pre><code>script.engine.groovy.inline.search: on
+<pre tabindex="0"><code>script.engine.groovy.inline.search: on
 </code></pre><p>然后, 执行 <a href="http://www.wklken.me/posts/2016/02/16/elk-about-upgrade.html#rolling-restart">rolling restart</a>, 逐一重启集群每个节点</p>
 <p>第二步, 构造qsl,  <code>sort</code>中,  增加<code>_script</code> 使用groovy脚本, 将对应字段从string转成数字, 再进行排序</p>
-<pre><code>'sort': [{'_script': {'lang': 'groovy',
+<pre tabindex="0"><code>'sort': [{'_script': {'lang': 'groovy',
                        'order': 'desc',
                        'script': 'Float.parseFloat(doc[&quot;resp_time&quot;].value)',
                        'type': 'number'}},
@@ -88,7 +88,7 @@
 </code></pre><p>附 <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/modules-scripting.html">scripting文档</a></p>
 <h3 id="fielddata-format-disabled导致的排序失效"><code>fielddata-format-disabled</code>导致的排序失效<a href="#fielddata-format-disabled导致的排序失效" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
 <p>有个集群, 升级后, 发现<code>resp_time</code>字段的mapping是</p>
-<pre><code>&quot;resp_time&quot; : {
+<pre tabindex="0"><code>&quot;resp_time&quot; : {
 &quot;type&quot; : &quot;string&quot;,
 &quot;norms&quot; : {
     &quot;enabled&quot; : false
@@ -104,14 +104,14 @@
     }
 }
 </code></pre><p>注意这里的, 是因为升级es 2.0之后, 默认值变更带来的问题</p>
-<pre><code>&quot;fielddata&quot; : {
+<pre tabindex="0"><code>&quot;fielddata&quot; : {
   &quot;format&quot; : &quot;disabled&quot;
 },
 </code></pre><p><a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/fielddata.html">fielddata文档</a></p>
 <p>此时, 排序的qsl将会报错, 无法按照对应要求排序</p>
-<pre><code>Field data loading is forbidden on resp_time
+<pre tabindex="0"><code>Field data loading is forbidden on resp_time
 </code></pre><p>解决方案, 挺简单的, 使用<code>foo.raw</code>即可</p>
-<pre><code>'sort': [{'_script': {'lang': 'groovy',
+<pre tabindex="0"><code>'sort': [{'_script': {'lang': 'groovy',
     'order': 'desc',
     'script': 'Float.parseFloat(doc[&quot;resp_time.raw&quot;].value)',
     'type': 'number'}},
@@ -119,11 +119,11 @@
 ]
 </code></pre><h3 id="使用聚合">使用聚合<a href="#使用聚合" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
 <p>把string类型的<code>resp_time</code>放到<code>aggs</code>中做聚合的时候.</p>
-<pre><code>&quot;aggs&quot;: {
+<pre tabindex="0"><code>&quot;aggs&quot;: {
      &quot;resp_time_stats&quot;: {&quot;stats&quot;: {&quot;script&quot;: 'Float.parseFloat(doc[&quot;resp_time.raw&quot;].value)'}}
 }
 </code></pre><p>此时, 会报错</p>
-<pre><code>{u'error': {u'failed_shards': [{u'index': u'logstash-2016.04.10',
+<pre tabindex="0"><code>{u'error': {u'failed_shards': [{u'index': u'logstash-2016.04.10',
                                 u'node': u'AvemqKN-RGKy68zJXUapBg',
                                 u'reason': {u'reason': u'scripts of type [inline], operation [aggs] and lang [groovy] are disabled',
                                             u'type': u'script_exception'},
@@ -136,14 +136,14 @@
             u'type': u'search_phase_execution_exception'},
  u'status': 500}
 </code></pre><p>处理, es加配置, 逐一重启</p>
-<pre><code>script.engine.groovy.inline.aggs: on
+<pre tabindex="0"><code>script.engine.groovy.inline.aggs: on
 </code></pre><p>相关 <a href="https://discuss.elastic.co/t/scripts-of-type-inline-operation-aggs-and-lang-groovy-are-disabled/2493">文档</a></p>
 <h3 id="logstash-grok-default-patterns">logstash grok default patterns<a href="#logstash-grok-default-patterns" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
 <p>默认的一些pattern, 见 <a href="https://github.com/logstash-plugins/logstash-patterns-core/blob/master/patterns/grok-patterns">grok-patterns</a></p>
 <p>grok检查在线实时编辑, <a href="https://grokdebug.herokuapp.com/">https://grokdebug.herokuapp.com/</a></p>
 <h3 id="logstash-codec-multiline-限制行数和日志大小">logstash codec multiline 限制行数和日志大小<a href="#logstash-codec-multiline-限制行数和日志大小" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
 <p>配置, 具体见 <a href="https://www.elastic.co/guide/en/logstash/current/plugins-codecs-multiline.html">multiline文档</a></p>
-<pre><code>input {
+<pre tabindex="0"><code>input {
         codec =&gt; multiline {
             patterns_dir =&gt; &quot;./patterns&quot;
             pattern =&gt; &quot;&quot;
@@ -157,7 +157,7 @@
 <p>实践中, 使用<code>max_bytes</code>, 当<code>what=previous + negate=true</code>的情况下, 即不匹配模式的, 归属前一部分, 这种情况下, 性能ok, 反之<code>what=next + negate=true</code>的情况下, 不匹配成功归属于后半部分, 此时产生的cpu消耗非常之大, 可以将一台机器跑满.</p>
 <p>另外, 假设配置<code>max_bytes=1M</code>, 此时用户打了50M, 会给这个event打上tag <code>multiline_codec_max_bytes_reache</code>, 但是, 这50M 最终还是会经logstash灌入到es里面. 即, 超了, 但是并不自动截掉</p>
 <p>这时候, 我们可以, 使用<code>mutate-replace</code>直接替换掉</p>
-<pre><code>    # if multiline_codec_max_lines_reached
+<pre tabindex="0"><code>    # if multiline_codec_max_lines_reached
     if (&quot;multiline_codec_max_bytes_reached&quot; in [tags]) {
         mutate {
             replace =&gt; {
@@ -171,11 +171,11 @@
 <h3 id="查看当前机器logstash进程top">查看当前机器logstash进程top<a href="#查看当前机器logstash进程top" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
 <p>有时, 需要上机器看看对应采集端所有logstash进程是否存在问题, 常常用到<code>top</code>命令, 所以写了个简单的脚本, 配合supervisord的脚本使用</p>
 <p>ltop.sh</p>
-<pre><code>#!/bin/bash
+<pre tabindex="0"><code>#!/bin/bash
 ./logstashd.sh status
 top -p $(./logstashd.sh status | awk '{print $4}' | awk -F',' '{print $1}' | tr '\n' ',' | sed 's/,$//g')
 </code></pre><h3 id="进程占用cpu检测脚本">进程占用cpu检测脚本<a href="#进程占用cpu检测脚本" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
-<pre><code>#!/bin/bash
+<pre tabindex="0"><code>#!/bin/bash
 BASEDIR=$(dirname $0)
 cd $BASEDIR
 CURRENT_DIR=`pwd`
@@ -200,38 +200,38 @@ export -f check
 ./logstashd.sh status | awk '{print &quot;-&quot;, $1, $4}' | awk -F',' '{print $1}' | xargs -n3 bash -c 'check $@'
 </code></pre><h3 id="数据盘满了导致集群状态yellow">数据盘满了导致集群状态yellow<a href="#数据盘满了导致集群状态yellow" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
 <p>机器节点本身有1T 硬盘, 由两块盘组成, 配置es的时候, 数据分别写到了两个盘上, 然后有一天集群状态告警了</p>
-<pre><code>&quot;status&quot; : &quot;yellow&quot;,
+<pre tabindex="0"><code>&quot;status&quot; : &quot;yellow&quot;,
 </code></pre><p>查看es的日志</p>
-<pre><code>[2016-03-21 12:43:45,934][INFO ][cluster.routing.allocation.decider] [node_01] low disk watermark [85%] exceeded
+<pre tabindex="0"><code>[2016-03-21 12:43:45,934][INFO ][cluster.routing.allocation.decider] [node_01] low disk watermark [85%] exceeded
 on [AvemqKN-RGKy68zJXUapBg][node_01][/data/LogNewData/xxx/nodes/0] free: 75.5gb[14.1%], replicas will not be assigned to this node
 </code></pre><p>处理: 腾磁盘空间出来, es会自动检测恢复</p>
 <p>PS: 磁盘大小要预估好</p>
 <h3 id="查看redis中队列的堆积">查看redis中队列的堆积<a href="#查看redis中队列的堆积" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
 <p>历史遗留问题, 有些节点采集发送到redis的key, 在indexer阶段并没有被消费, 导致越堆越多&hellip;.</p>
 <p>这时候, 可以通过redis查下哪些队列堆积了</p>
-<pre><code>bin/redis-cli -h 127.0.0.1 -p 6379 -a blueking_log --bigkeys
+<pre tabindex="0"><code>bin/redis-cli -h 127.0.0.1 -p 6379 -a blueking_log --bigkeys
 </code></pre><p>需要redis版本支持<code>bigkeys</code> =&gt; This is a &ldquo;new&rdquo; feature beginning with 2.8</p>
 <h3 id="解析失败丢弃及黑名单实现">解析失败丢弃及黑名单实现<a href="#解析失败丢弃及黑名单实现" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
 <p>grok解析失败, 丢弃</p>
-<pre><code>if (&quot;_grokparsefailure&quot; in [tags]) {
+<pre tabindex="0"><code>if (&quot;_grokparsefailure&quot; in [tags]) {
     drop {}
 }
 </code></pre><p>有时候, 需要禁止采集某些文件, 但由于<code>file</code>类型的<code>exclude</code>只能用文件名, 而没有更强大的规则, 所以只能采集进来再丢弃, 此时, 可以根据路径grok解析出关键字, 然后判断丢弃</p>
-<pre><code>if ([keyworod] in [&quot;data&quot;, &quot;not_exists&quot;])
+<pre tabindex="0"><code>if ([keyworod] in [&quot;data&quot;, &quot;not_exists&quot;])
 {
     drop {}
 }
 </code></pre><h3 id="启动限制使用的worker数">启动限制使用的worker数<a href="#启动限制使用的worker数" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
 <p>默认情况, 有可能把所有cpu跑满, 这时候, 可以专门加下</p>
-<pre><code>-w, --pipeline-workers COUNT  Sets the number of pipeline workers to run. (default: 24)
+<pre tabindex="0"><code>-w, --pipeline-workers COUNT  Sets the number of pipeline workers to run. (default: 24)
 
 logstash agent -f conf/xxx.conf -w 2
 </code></pre><h3 id="几个简单脚本">几个简单脚本<a href="#几个简单脚本" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
 <p>health.sh</p>
-<pre><code>#!/bin/bash
+<pre tabindex="0"><code>#!/bin/bash
 curl 'http://127.0.0.1:9200/_cluster/health?pretty=true'
 </code></pre><p>indices.sh</p>
-<pre><code>#!/bin/bash
+<pre tabindex="0"><code>#!/bin/bash
 curl 'http://127.0.0.1:9200/_cat/indices?v' | sort -k 3
 </code></pre>
 			</div>
@@ -304,7 +304,7 @@ curl 'http://127.0.0.1:9200/_cat/indices?v' | sort -k 3
 	</main>
 
 	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
-		<p>&copy; 2021 <a href="https://wklken.me">wklken</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>&copy; 2022 <a href="https://wklken.me">wklken</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
 		<p>
 			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="https://wklken.me/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
 		</p>

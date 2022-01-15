@@ -8,15 +8,15 @@
 	<meta name="theme-color" content="#494f5c">
 	<meta name="msapplication-TileColor" content="#494f5c">
 <meta itemprop="name" content="Go: logrus性能提升">
-<meta itemprop="description" content="在Go项目中, logrus是一个相对完备的第三方日志库 用起来非常顺手, 特别是WithField/WithFields/WithError 我们"><meta itemprop="datePublished" content="2021-02-09T20:00:00&#43;08:00" />
-<meta itemprop="dateModified" content="2021-02-09T20:00:00&#43;08:00" />
+<meta itemprop="description" content="在Go项目中, logrus是一个相对完备的第三方日志库 用起来非常顺手, 特别是WithField/WithFields/WithError 我们"><meta itemprop="datePublished" content="2021-02-09T20:00:00+08:00" />
+<meta itemprop="dateModified" content="2021-02-09T20:00:00+08:00" />
 <meta itemprop="wordCount" content="918">
 <meta itemprop="keywords" content="golang," /><meta property="og:title" content="Go: logrus性能提升" />
 <meta property="og:description" content="在Go项目中, logrus是一个相对完备的第三方日志库 用起来非常顺手, 特别是WithField/WithFields/WithError 我们" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://wklken.me/posts/2021/02/09/golang-high-performance-logrus.html" /><meta property="article:section" content="posts" />
-<meta property="article:published_time" content="2021-02-09T20:00:00&#43;08:00" />
-<meta property="article:modified_time" content="2021-02-09T20:00:00&#43;08:00" />
+<meta property="article:published_time" content="2021-02-09T20:00:00+08:00" />
+<meta property="article:modified_time" content="2021-02-09T20:00:00+08:00" />
 
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Go: logrus性能提升"/>
@@ -74,13 +74,13 @@
 <p>用起来非常顺手, 特别是<code>WithField/WithFields/WithError</code></p>
 <p>我们开发一些对性能要求非常高的应用, 例如API网关/权限服务等, 需要记录流水日志, 此时日志库的性能直接会影响整体接口性能.</p>
 <p>所以针对性地做了一些优化</p>
-<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="nx">log</span><span class="p">.</span><span class="nf">WithFields</span><span class="p">(</span><span class="nx">fields</span><span class="p">).</span><span class="nf">Info</span><span class="p">(</span><span class="s">&#34;-&#34;</span><span class="p">)</span>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="nx">log</span><span class="p">.</span><span class="nf">WithFields</span><span class="p">(</span><span class="nx">fields</span><span class="p">).</span><span class="nf">Info</span><span class="p">(</span><span class="s">&#34;-&#34;</span><span class="p">)</span>
 </code></pre></div><p><img src="/imgs/golang/logrus1.png" alt=""></p>
 <h2 id="json-formatter">json formatter<a href="#json-formatter" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
 <p>logrus的默认json formatter <a href="https://github.com/sirupsen/logrus/blob/master/json_formatter.go">json_formatter</a> 使用的是标准库</p>
 <p>众所周知, 性能比第三方库差很多</p>
 <p>我们可以自定义一个json formatter, 使用例如 <a href="https://github.com/json-iterator/go">json-iterator/go</a>来提升序列化性能</p>
-<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go">	<span class="c1">// ! change here: use jsnoiter to do marshal. but ignore the entry.Buffer
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go">	<span class="c1">// ! change here: use jsnoiter to do marshal. but ignore the entry.Buffer
 </span><span class="c1"></span>
 	<span class="c1">// var b *bytes.Buffer
 </span><span class="c1"></span>	<span class="c1">// if entry.Buffer != nil {
@@ -106,7 +106,7 @@
 	<span class="k">return</span> <span class="nx">buf</span><span class="p">,</span> <span class="kc">nil</span>
 </code></pre></div><h2 id="null-formatter-和-hooks">null formatter 和 hooks<a href="#null-formatter-和-hooks" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
 <p>如果不指定, 默认的formatter是<code>TextFormatter</code></p>
-<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">func</span> <span class="nf">New</span><span class="p">()</span> <span class="o">*</span><span class="nx">Logger</span> <span class="p">{</span>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="kd">func</span> <span class="nf">New</span><span class="p">()</span> <span class="o">*</span><span class="nx">Logger</span> <span class="p">{</span>
 	<span class="k">return</span> <span class="o">&amp;</span><span class="nx">Logger</span><span class="p">{</span>
 		<span class="nx">Out</span><span class="p">:</span>          <span class="nx">os</span><span class="p">.</span><span class="nx">Stderr</span><span class="p">,</span>
 		<span class="nx">Formatter</span><span class="p">:</span>    <span class="nb">new</span><span class="p">(</span><span class="nx">TextFormatter</span><span class="p">),</span>
@@ -118,7 +118,7 @@
 <span class="p">}</span>
 </code></pre></div><p>如果我们使用了 hooks (<a href="https://github.com/sirupsen/logrus/blob/master/hooks.go">hooks.go</a>)将日志转到文件/redis或其他渠道; 此时, 默认的Output和Formatter还是会被调用到;</p>
 <p>其实我们配置了hooks, 那么原entry理论上是不需要的</p>
-<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">func</span> <span class="p">(</span><span class="nx">entry</span> <span class="nx">Entry</span><span class="p">)</span> <span class="nf">log</span><span class="p">(</span><span class="nx">level</span> <span class="nx">Level</span><span class="p">,</span> <span class="nx">msg</span> <span class="kt">string</span><span class="p">)</span> <span class="p">{</span>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="kd">func</span> <span class="p">(</span><span class="nx">entry</span> <span class="nx">Entry</span><span class="p">)</span> <span class="nf">log</span><span class="p">(</span><span class="nx">level</span> <span class="nx">Level</span><span class="p">,</span> <span class="nx">msg</span> <span class="kt">string</span><span class="p">)</span> <span class="p">{</span>
     <span class="nx">entry</span><span class="p">.</span><span class="nf">fireHooks</span><span class="p">()</span>
     <span class="o">...</span><span class="p">.</span>
     <span class="nx">entry</span><span class="p">.</span><span class="nf">write</span><span class="p">()</span>
@@ -137,7 +137,7 @@
 	<span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div><p>所以, 此时可以配置一个 <code>NullFormatter</code>, 将默认的链路关闭(do nothing), 日志只会走hooks</p>
-<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="kn">package</span> <span class="nx">formatter</span>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="kn">package</span> <span class="nx">formatter</span>
 
 <span class="kn">import</span> <span class="p">(</span>
 	<span class="s">&#34;github.com/sirupsen/logrus&#34;</span>
@@ -152,12 +152,12 @@
 	<span class="k">return</span> <span class="p">[]</span><span class="nb">byte</span><span class="p">(</span><span class="s">&#34;&#34;</span><span class="p">),</span> <span class="kc">nil</span>
 <span class="p">}</span>
 </code></pre></div><p>重新设置log的配置</p>
-<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="nx">logger</span><span class="p">.</span><span class="nf">SetOutput</span><span class="p">(</span><span class="nx">ioutil</span><span class="p">.</span><span class="nx">Discard</span><span class="p">)</span>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="nx">logger</span><span class="p">.</span><span class="nf">SetOutput</span><span class="p">(</span><span class="nx">ioutil</span><span class="p">.</span><span class="nx">Discard</span><span class="p">)</span>
 <span class="nx">logger</span><span class="p">.</span><span class="nf">SetFormatter</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">formatter</span><span class="p">.</span><span class="nx">NullFormatter</span><span class="p">{})</span>
 
 <span class="nx">logger</span><span class="p">.</span><span class="nf">AddHook</span><span class="p">(</span><span class="nf">NewRedisHook</span><span class="p">())</span>
 </code></pre></div><h2 id="log-entry-pool">log entry pool<a href="#log-entry-pool" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
-<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="kn">package</span> <span class="nx">logging</span>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="kn">package</span> <span class="nx">logging</span>
 
 <span class="kn">import</span> <span class="p">(</span>
 	<span class="s">&#34;sync&#34;</span>
@@ -198,13 +198,13 @@
 	<span class="nx">p</span><span class="p">.</span><span class="nx">pool</span><span class="p">.</span><span class="nf">Put</span><span class="p">(</span><span class="nx">e</span><span class="p">)</span>
 <span class="p">}</span>
 </code></pre></div><p>使用</p>
-<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="nx">entry</span> <span class="o">:=</span> <span class="nx">logging</span><span class="p">.</span><span class="nx">LogEntryPool</span><span class="p">.</span><span class="nf">Get</span><span class="p">(</span><span class="nx">logger</span><span class="p">)</span>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="nx">entry</span> <span class="o">:=</span> <span class="nx">logging</span><span class="p">.</span><span class="nx">LogEntryPool</span><span class="p">.</span><span class="nf">Get</span><span class="p">(</span><span class="nx">logger</span><span class="p">)</span>
 <span class="k">defer</span> <span class="nx">logging</span><span class="p">.</span><span class="nx">LogEntryPool</span><span class="p">.</span><span class="nf">Put</span><span class="p">(</span><span class="nx">entry</span><span class="p">)</span>
 </code></pre></div><h2 id="异步日志">异步日志<a href="#异步日志" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
 <p><img src="/imgs/golang/logrus2.png" alt=""></p>
 <p><img src="/imgs/golang/logrus3.png" alt=""></p>
 <p>使用一个专门处理日志的goroutine</p>
-<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">func</span> <span class="p">(</span><span class="nx">f</span> <span class="o">*</span><span class="nx">FileLogHook</span><span class="p">)</span> <span class="nf">makeAsync</span><span class="p">()</span> <span class="p">{</span>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="kd">func</span> <span class="p">(</span><span class="nx">f</span> <span class="o">*</span><span class="nx">FileLogHook</span><span class="p">)</span> <span class="nf">makeAsync</span><span class="p">()</span> <span class="p">{</span>
 	<span class="nx">f</span><span class="p">.</span><span class="nx">fireChannel</span> <span class="p">=</span> <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="o">*</span><span class="nx">logrus</span><span class="p">.</span><span class="nx">Entry</span><span class="p">,</span> <span class="nx">f</span><span class="p">.</span><span class="nx">asyncBufferSize</span><span class="p">)</span>
 	<span class="nx">fmt</span><span class="p">.</span><span class="nf">Printf</span><span class="p">(</span><span class="s">&#34;file hook will use a async buffer with size %d\n&#34;</span><span class="p">,</span> <span class="nx">f</span><span class="p">.</span><span class="nx">asyncBufferSize</span><span class="p">)</span>
 	<span class="k">go</span> <span class="kd">func</span><span class="p">()</span> <span class="p">{</span>
@@ -240,7 +240,7 @@
 <span class="kd">func</span> <span class="p">(</span><span class="nx">f</span> <span class="o">*</span><span class="nx">FileLogHook</span><span class="p">)</span> <span class="nf">send</span><span class="p">(</span><span class="nx">entry</span> <span class="o">*</span><span class="nx">logrus</span><span class="p">.</span><span class="nx">Entry</span><span class="p">)</span> <span class="kt">error</span> <span class="p">{</span>
 	<span class="k">return</span> <span class="nx">f</span><span class="p">.</span><span class="nx">loghook</span><span class="p">.</span><span class="nf">Fire</span><span class="p">(</span><span class="nx">entry</span><span class="p">)</span>
 <span class="p">}</span>
-</code></pre></div><div class="highlight"><pre class="chroma"><code class="language-shell" data-lang="shell">Async write to redis 
+</code></pre></div><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-shell" data-lang="shell">Async write to redis 
 with <span class="nv">buffersize</span><span class="o">=</span><span class="m">10000</span>
 <span class="o">(</span>block<span class="o">)</span>
 
@@ -309,7 +309,7 @@ With <span class="nv">buffersize</span><span class="o">=</span><span class="m">1
 	</main>
 
 	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
-		<p>&copy; 2021 <a href="https://wklken.me">wklken</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>&copy; 2022 <a href="https://wklken.me">wklken</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
 		<p>
 			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="https://wklken.me/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
 		</p>
