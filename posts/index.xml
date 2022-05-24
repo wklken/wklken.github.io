@@ -6,8 +6,184 @@
 		<generator>Hugo -- gohugo.io</generator>
 		<language>en-us</language>
 		<copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright>
-		<lastBuildDate>Sun, 16 Jan 2022 00:04:00 +0800</lastBuildDate>
+		<lastBuildDate>Tue, 24 May 2022 23:00:00 +0800</lastBuildDate>
 		<atom:link href="https://wklken.me/posts/index.xml" rel="self" type="application/rss+xml" />
+		
+		<item>
+			<title>Better Code: 异常时, 该提示用户哪些信息?</title>
+			<link>https://wklken.me/posts/2022/05/24/better-code-3-better-error-message.html</link>
+			<pubDate>Tue, 24 May 2022 23:00:00 +0800</pubDate>
+			
+			<guid>https://wklken.me/posts/2022/05/24/better-code-3-better-error-message.html</guid>
+			<description>接前一篇 Better Code: 更好的异常日志打印 做 toB 一个非常高的成本是, 用户的环境/网络/数据等, 可能跟你预期的差异很大, 再加上沟通相对困难(涉及三方/四方,</description>
+			<content type="html"><![CDATA[<p>接前一篇 <a href="https://wklken.me/posts/2022/01/16/better-code-2-logging.html">Better Code: 更好的异常日志打印</a></p>
+<p>做 toB 一个非常高的成本是, 用户的环境/网络/数据等, 可能跟你预期的差异很大, 再加上沟通相对困难(涉及三方/四方, 无法便捷地登机器排查问题, 无法便捷地获取日志, 接口人业务或技术水平参差不齐).</p>
+<p>而这时候, 你会面临一个问题, 如何在<code>信息不足</code>/<code>沟通不畅</code>的场景下, 尽量提升效率, 降低成本(<strong>大部分情况下, 逢单必结, 你必须解决问题, 没有选择的余地</strong>)</p>
+<p>TLDR:</p>
+<ol>
+<li>如果有工具, 尽量用工具解决问题, sentry/otel等等</li>
+<li>日志, 该打的地方, 一定要打, 并且尽量包含上下文; 并且能通过日志级别配置动态调整打印明细.</li>
+<li>页面报错提示, 尽量详尽, 用户不一定能看懂, 但是配合文档或者截图给你, 你能<code>秒懂</code>(如果不方便展示给用户, 可以通过<code>request_id</code>或者隐藏在页面等方式)</li>
+<li>尽量减少排查链路(例如, 尽量汇总日志, 尽量在一个地方能看到, 或者通过一个<code>request_id</code>能汇总相关日志等等)</li>
+</ol>
+<h2 id="场景-1-代码逻辑报错">场景 1: 代码逻辑报错</h2>
+<blockquote>
+<p>有个代码初始化数据到数据库的逻辑报错了, 不管是什么原因引起的, 你需要解决!</p>
+</blockquote>
+<h3 id="实现v1">实现v1</h3>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="n">Setting</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+    <span class="n">key</span><span class="o">=</span><span class="n">k</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">v</span><span class="p">,</span> <span class="n">defaults</span><span class="o">=</span><span class="n">x</span>
+<span class="p">)</span>
+</code></pre></div><p>此时, 新装环境没问题, 升级环境会报错,</p>
+<p>通过异常信息知道创建由于<code>唯一性限制</code>报错了, 是由于用户手动插入了数据导致报错</p>
+<p>此时, 用户问你, 数据有几百条, 哪条数据引起的? 我该怎么修复(成本: 小时级)</p>
+<h3 id="实现v2">实现v2</h3>
+<p>打印上下文!</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="k">try</span><span class="p">:</span>
+    <span class="n">Setting</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+        <span class="n">key</span><span class="o">=</span><span class="n">k</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">v</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">x</span>
+    <span class="p">)</span>
+<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&#34;create setting fail, k=</span><span class="si">%s</span><span class="s2">, v=</span><span class="si">%s</span><span class="s2">, default=</span><span class="si">%s</span><span class="s2">&#34;</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="n">e</span>
+</code></pre></div><p>此时, 通过异常信息上下文可以看到哪条数据有问题!(成本: 分钟级)</p>
+<h3 id="实现v3">实现v3</h3>
+<p>代码考虑<code>兼容性</code>, 已发的版本/存量的系统, <code>最好</code>能顺滑升级!</p>
+<p>例如, 这里的<code>create</code>, 可以考虑用<code>get_or_create</code>替代(当然, 前提是符合需求)</p>
+<h2 id="场景-2-用户输入报错了">场景 2: 用户输入报错了</h2>
+<blockquote>
+<p>有个功能是支持用户配置ldap相关地址, 拉取用户数据, 用户点击: <code>测试连接</code>.</p>
+</blockquote>
+<h3 id="实现v1-1">实现v1</h3>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="k">try</span><span class="p">:</span> 
+   <span class="n">test_connection</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+   <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&#34;测试连接失败, 请检查配置&#34;</span><span class="p">)</span>
+</code></pre></div><p>此时, 用户坚信自己的配置是对的, 你如何帮他定位呢? (成本: 几个小时甚至一两天)</p>
+<h3 id="实现v2-1">实现v2</h3>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="k">try</span><span class="p">:</span> 
+   <span class="n">test_connection</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+   <span class="c1"># 注意, 这里一定要logger.exception, 用error意义不大!</span>
+   <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&#34;测试连接失败, 请检查配置&#34;</span><span class="p">)</span>
+   <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&#34;测试连接失败, 请检查配置&#34;</span><span class="p">)</span>
+</code></pre></div><p>这时候的调试方式, 用户找你, 你告诉用户去哪里看日志!(成本: 分钟到几个小时)</p>
+<h3 id="实现v3-1">实现v3</h3>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="k">try</span><span class="p">:</span> 
+   <span class="n">test_connection</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+   <span class="c1"># 注意, 这里一定要logger.exception, 用error意义不大!</span>
+   <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&#34;测试连接失败, 请检查配置&#34;</span><span class="p">)</span>
+   <span class="n">error_detail</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&#34; (</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="vm">__module__</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">)&#34;</span>
+   <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&#34;测试连接失败, 请检查配置&#34;</span> <span class="o">+</span> <span class="n">error_detail</span><span class="p">)</span>
+</code></pre></div><p>这时候, 在页面上, 用户就能看到 <code>报错的类型及错误信息</code></p>
+<ul>
+<li>报错类型: 能定位到是第三方库还是自己程序哪个模块报的, 如果出现标准库<code>KeyError/ValueError</code>等, 大概率是自己哪里代码逻辑处理不正确.</li>
+<li>报错信息: 例如 <code>invalid server address</code>, <code>socket connection error while opening: [Errno 111] Connection refused</code>之类的;</li>
+</ul>
+<p>此时, 用户绝大多数可以在前端提示中看到, 无需支持!</p>
+<h3 id="实现v4">实现v4</h3>
+<p>有必要的话</p>
+<ul>
+<li>如果你能准确根据 Exception 或message区分详情, 可以进一步处理, 返回更精确的提示. 例如<code>invalid server address</code>, 可以翻译成<code>不合法的地址, 请检查xxxx字段, 必须是一个合法的域名</code>, 建议同时带上一个<code>error code</code>方便快速确定问题/文档中检索关键字</li>
+<li>如果有必要, 可以在错误中带上<code>上下文</code>, 但是需要注意<code>脱敏</code></li>
+</ul>
+<h2 id="场景-3-用户输入-报错了-但是不能直接提示给对方">场景 3: 用户输入, 报错了, 但是不能直接提示给对方</h2>
+<blockquote>
+<p>用户登录, 输入的用户名/密码有问题或者账号本身有问题时;由于安全原因, 不能明确告诉对方具体是哪里有问题. 在用户看来, 无论怎么尝试, 报错总是一样的.</p>
+</blockquote>
+<p>那么, 如果用户<code>坚持</code>自己输入是对的, 账号是正常的, 如何帮助其排查问题?</p>
+<h3 id="实现v1-2">实现v1</h3>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="k">if</span> <span class="n">user</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="n">PasswordWrongException</span><span class="p">()</span>
+<span class="k">if</span> <span class="n">user</span><span class="o">.</span><span class="n">status</span> <span class="ow">in</span> <span class="p">[</span><span class="n">DISABLED</span><span class="p">,</span> <span class="n">LOCKED</span><span class="p">]:</span>
+    <span class="k">raise</span> <span class="n">PasswordWrongException</span><span class="p">()</span>
+<span class="k">if</span> <span class="n">user</span> <span class="n">login</span> <span class="n">hit</span> <span class="n">secure</span> <span class="n">policies</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="n">PasswordWrongException</span><span class="p">()</span>
+</code></pre></div><p>这种实现, 你只能看代码, 逐个同用户沟通检查(成本: 小时/天)</p>
+<h3 id="实现v2-2">实现v2</h3>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="k">if</span> <span class="n">user</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">:</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&#34;login fail, user&lt;</span><span class="si">%s</span><span class="s2">&gt; not exists&#34;</span><span class="p">,</span> <span class="n">user</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="n">PasswordWrongException</span><span class="p">()</span>
+<span class="k">if</span> <span class="n">user</span><span class="o">.</span><span class="n">status</span> <span class="ow">in</span> <span class="p">[</span><span class="n">DISABLED</span><span class="p">,</span> <span class="n">LOCKED</span><span class="p">]:</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&#34;login fail, user&lt;</span><span class="si">%s</span><span class="s2">&gt; status is </span><span class="si">%s</span><span class="s2">&#34;</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="n">user</span><span class="o">.</span><span class="n">status</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="n">PasswordWrongException</span><span class="p">()</span>
+<span class="k">if</span> <span class="n">user</span> <span class="n">login</span> <span class="n">hit</span> <span class="n">secure</span> <span class="n">policies</span><span class="p">:</span>
+    <span class="c1"># 这里有必要的话, 甚至需要明确到具体哪个policy</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&#34;login fail, user&lt;</span><span class="si">%s</span><span class="s2">&gt; hit xxx secure policies&#34;</span><span class="p">,</span> <span class="n">user</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="n">PasswordWrongException</span><span class="p">()</span>
+</code></pre></div><p>这种实现, 让用户捞下日志就能明确具体问题(成本: 分钟)</p>
+<h2 id="场景-4强依赖于一个第三方库-如何-debug">场景 4:强依赖于一个第三方库, 如何 debug?</h2>
+<p>如果应用本身依赖于一个第三方库, 且第三方库默认是有logger的.</p>
+<p>此时, 调用第三方库报错, 可能返回的异常信息不足以帮助用户定位问题;</p>
+<p>例如依赖<code>ldap3</code>同步用户数据</p>
+<p>此时数据链路: <code>应用 -&gt; ldap3 -&gt; 网络 -&gt; ldap服务器</code></p>
+<ol>
+<li>由于<code>网络</code>/<code>ldap服务器</code>类型及配置差异较大, 导致非常容易出现<code>异常</code></li>
+<li><code>ldap服务器</code>往往由另一个团队维护, 具体的服务端配置对于配置用户并不透明</li>
+<li><code>ldap3</code>库本身不同版本也存在bug</li>
+</ol>
+<p>此时, 用户配置了ldap相关参数, 但是点击报错, 并且, 用户坚信自己的配置是对的; 如何帮助用户调试?</p>
+<p>我们是否可以支持, 开启<code>ldap3</code>的debug模式?</p>
+<ol>
+<li>首先, 需要确认库是否支持logger配置, 常用的第三方库一般都支持, 例如<code>requests</code>, <code>ldap3</code>是支持的, <a href="https://ldap3.readthedocs.io/en/latest/logging.html">ldap3 logging</a></li>
+<li>其次, 通过配置/环境变量, 支持用户可以开启</li>
+</ol>
+<p>上面的例子, 我们的应用实现上支持</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="kn">from</span> <span class="nn">ldap3.utils</span> <span class="kn">import</span> <span class="n">log</span> <span class="k">as</span> <span class="n">ldap3log</span>
+
+<span class="k">if</span> <span class="n">settings</span><span class="o">.</span><span class="n">ENABLE_LDAP3_DEBUG</span><span class="p">:</span>
+    <span class="n">ldap3log</span><span class="o">.</span><span class="n">set_library_log_detail_level</span><span class="p">(</span><span class="n">ldap3log</span><span class="o">.</span><span class="n">EXTENDED</span><span class="p">)</span>
+    <span class="n">ldap3log</span><span class="o">.</span><span class="n">set_library_log_activation_level</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+</code></pre></div><p>那么, 在用户遇到问题无法解决的时候, 可以通过配置开启, 进入debug模式; 在日志中可以看到详细的 <code>ldap3 -&gt; 网络 -&gt; ldap服务器</code> 的数据细节.</p>
+<h2 id="其他">其他</h2>
+<h3 id="tip-如果有可能-接入sentryotel">tip: 如果有可能, 接入sentry/otel</h3>
+<blockquote>
+<p>如果基建有otel, 建议接入; 如果基建有日志采集汇聚, 建议接入!</p>
+</blockquote>
+<p>能极大提升问题排查效率</p>
+<p>所以, 尽量整合相应的SDK, 并且提供可插拔的配置方式, 让有条件的使用方开启.</p>
+<h3 id="tip-日志链路需要串起来">tip: 日志链路需要串起来</h3>
+<p>如果:</p>
+<ol>
+<li>调用链路长, <code>用户 -&gt; A -&gt; B -&gt; C -&gt; D</code></li>
+<li>服务请求量非常大</li>
+</ol>
+<p>此时, 某个用户一个请求报错(前端或 API), 如何定位问题?</p>
+<p>首先明确一个原则, <code>A -&gt; B</code> 如果出现调用失败, 一定要记录日志, 包括<code>url/request detail(header/body/credentials)/response detail(status/header/body)</code>等等(如果什么都不记, 让用户或运维去 <code>B</code> 看日志, 这是不合理的!)</p>
+<p>此时, 如果请求量很大, 调用链路长, 其实很难逐层定位每一层的处理/报错, 光去捞日志就已经非常费劲了(大部分时候, url或请求中并没有明显的特征)</p>
+<p>如果整个调用链路接入了 OTEL, 那么问题相对简单; 但是如果没有接入, 如何处理?</p>
+<p>我们可以通过 HTTP HEADER中带一个<code>request_id</code>来解决!</p>
+<ol>
+<li>约定一个统一的header, 例如<code>x-request-id</code></li>
+<li>在 <code>网关</code>/<code>ESB</code>/<code>nginx</code>等地方, 需要显示配置<code>透传</code></li>
+<li>程序处理逻辑, 需要在接收请求时, 获取<code>request_id</code>, 如果有向下一级调用的请求, 需要传递该<code>request_id</code></li>
+<li>日志,异常上报等场景, 使用统一的<code>request_id</code></li>
+</ol>
+<h3 id="tip-当开启debug的时候-确保能看到足够多的信息">tip: 当开启debug的时候, 确保能看到足够多的信息</h3>
+<p><code>logging.DEBUG</code>主要目的是, 开启后, 可以准确定位问题!</p>
+<p>所以, 在一些关键的逻辑中</p>
+<ol>
+<li>加上<code>debug</code>日志, 覆盖所有关键的处理逻辑和返回</li>
+<li><code>debug</code>需要带上足够多的<code>上下文</code></li>
+</ol>
+<p>例如, 当关键一个函数, 中间有超过 5 个<code>return</code>, 开启<code>debug</code>之后, 需要能明确知道, 在哪里<code>return</code>的, 为什么会被<code>return</code></p>
+<h3 id="tip-输入尽量做好防御">tip: 输入尽量做好<code>防御</code></h3>
+<p>不管是用户的输入, 还是从某些 API 拉取到的返回值, 尽量在获取到数据的<code>入口</code>处做好防御和检查, 例如, <code>类型/格式/非空</code>等等</p>
+<p>而不是, 层层传递后, 在某个地方异常报错, 这个时候排查的代价会大很多.</p>
+<h3 id="tip-当问题排查陷入僵局">tip: 当问题排查陷入僵局</h3>
+<h4 id="1-如果是第三方库-可以考虑升级试试">1. 如果是第三方库, 可以考虑升级试试?</h4>
+<p>场景: 依赖于ldap3, 能确认用户的配置是正确的, 网络是联通的, 此时无论如何都连不上, 开debug模式也没看出问题</p>
+<p>解决: 确定库版本, 2.6.1, 在官方github issue的bug report中查找相关报错信息, 然后升级了一个版本就成功了</p>
+<p>常见的, 例如requests/加密相关库/ssl相关库等等</p>
+<h4 id="2-重启-本机重新部署或在另一台机器部署-也是可以尝试的方式">2. 重启, 本机重新部署或在另一台机器部署, 也是可以尝试的方式</h4>
+<p>场景: 在一台机器部署, 连接另外一个服务始终连不上, 运维确定网络是没问题的; 后来在另一台机器部署后正常.</p>
+<p>场景: 有一台机器<code>reuqests</code>库一直会报错, 换一台机器部署正常.(openssl相关)</p>
+<h4 id="3-重新检查配置负载io网络依赖库依赖包版本等-重新排查调用链路-追踪请求流转过程-重新获取日志">3. 重新检查配置/负载/io/网络/依赖库/依赖包版本等, 重新排查调用链路, 追踪请求流转过程, 重新获取日志</h4>
+<p>场景: 对方上了网络策略, 存量机器没有处理导致原先正常的环境突然有问题了</p>
+<p>很多时候, 你被拉去排查问题, 并不是因为你负责的服务有问题, 而是更底层的环境问题, 只是因为环境出问题你的服务刚好打了异常, 对方看到了而已.</p>
+]]></content>
+		</item>
 		
 		<item>
 			<title>Better Code: 更好的异常日志打印</title>
@@ -41556,6 +41732,16 @@ out_file共30列，第3列均用字符串”tag_1”填充，第12列用0.0填�
 <p>再看看未来吧，宿舍六人，一国家公务员，两省公务员，一保研，还有我和另一个哥们找工作，一个深圳一个杭州，从此天南地北，各奔东西了。</p>
 <p>未来，不敢说太远，今后五到十年，好好努力吧，好好奋斗</p>
 ]]></content>
+		</item>
+		
+		<item>
+			<title></title>
+			<link>https://wklken.me/posts/1/01/01.html</link>
+			<pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+			
+			<guid>https://wklken.me/posts/1/01/01.html</guid>
+			<description></description>
+			<content type="html"><![CDATA[]]></content>
 		</item>
 		
 	</channel>
