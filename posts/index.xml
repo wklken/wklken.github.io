@@ -6,8 +6,106 @@
 		<generator>Hugo -- gohugo.io</generator>
 		<language>en-us</language>
 		<copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright>
-		<lastBuildDate>Tue, 24 May 2022 23:00:00 +0800</lastBuildDate>
+		<lastBuildDate>Tue, 21 Jun 2022 23:00:00 +0800</lastBuildDate>
 		<atom:link href="https://wklken.me/posts/index.xml" rel="self" type="application/rss+xml" />
+		
+		<item>
+			<title>Better Code: 抽象: 可扩展性与可维护性的抉择</title>
+			<link>https://wklken.me/posts/2022/06/21/better-code-4-abstraction-scalability-maintainability.html</link>
+			<pubDate>Tue, 21 Jun 2022 23:00:00 +0800</pubDate>
+			
+			<guid>https://wklken.me/posts/2022/06/21/better-code-4-abstraction-scalability-maintainability.html</guid>
+			<description>抽象程度 抽象程度高, 往往意味着: 灵活, 可扩展性高 但是, 这也同时意味着: 复杂, 可维护性低 而可维护性在一个项目的生命周期中又是非常重要的, 一次开</description>
+			<content type="html"><![CDATA[<h2 id="抽象程度">抽象程度</h2>
+<p>抽象程度高, 往往意味着: 灵活, 可扩展性高
+但是, 这也同时意味着: 复杂, 可维护性低</p>
+<p>而可维护性在一个项目的生命周期中又是非常重要的, 一次开发编写的代码, 可能有几十倍的阅读/变更/debug等等</p>
+<p>所以, 需要取得平衡, 但是这个度应该如何平衡?</p>
+<h2 id="至下而上-够用保留一定可扩展">至下而上: 够用+保留一定可扩展</h2>
+<p>务实的做法:</p>
+<ol>
+<li>实现功能, 简单/粗暴/丑陋, but it works!</li>
+<li>明确<code>分层</code>/<code>已知的概念</code>, 然后进行抽象, 第一次重构; (分层/模块切分/类切分/方法挪动)</li>
+<li>明确什么是<code>当前的需求</code>, 以及<code>可见范围内的需求</code>(要长远, 但是不能过远, 正常, 2-3年的量, 支持当前十倍作用的上层业务考虑)</li>
+<li>明确<code>变更点</code>, 开闭原则, 变更点意味着未来的可扩展性; 抽出概念, 适当使用相关的设计模式, 进行第二次重构; 此时, 可能会多几个概念, 多一些模式.(但是不会多很多)</li>
+<li>重新组织代码, 测试功能, 加单测等, 交付</li>
+<li>每一次新需求或需求变更, 再来重新审视设计, 概念以及层的合并/拆分, 然后重构代码, 加新需求逻辑</li>
+</ol>
+<p>特征:
+代码中, 具体需求逻辑代码占比很大, 只包含少量必要的抽象/分层等</p>
+<h2 id="至上而下-可能会过度设计">至上而下: 可能会过度设计</h2>
+<blockquote>
+<p>没有必要为不变的点抽出太多的概念/太多层, 没有必要为了未来几年都不会扩展的点增加某个设计模式;</p>
+</blockquote>
+<p>注意: 是<code>可能</code></p>
+<p>容易过度设计的做法:</p>
+<ol>
+<li>想要一步到位, 或者完美主义, 或者看得很远, 所以基于需求直接拆分出一堆层次和概念</li>
+<li>基于概念, 通过组合/继承或者设计模式, 完成一堆父模块/基类/调用框架(此时没有具体代码)</li>
+<li>实现一两个子类, 完成需求, 测试功能, 加单测, 交付</li>
+</ol>
+<p>特征:
+代码中, 抽象的代码占比很大, 大量的概念/抽象等, 只在几个具体实现类中包含实现代码</p>
+<h2 id="问题-概念抽象真的有那么重要吗">问题: 概念抽象真的有那么重要吗?</h2>
+<p>看场景</p>
+<ol>
+<li>大型项目, 很重要</li>
+<li>需求多变/变更频繁, 很重要</li>
+<li>生命周期很长的项目, 很重要</li>
+<li>其他, 不是那么重要</li>
+</ol>
+<p>如果是一次性的任务, 那么quick and dirty搞完即可, 很少或根本没有抽象</p>
+<p>如果是一个小型项目, 或者项目本身需求明确变更不频繁, 或者需求实现之后不怎么变半年一年一种实现.
+那么, <strong>概念抽象</strong>以及<strong>可扩展性</strong>并没有想象中那么<strong>重要</strong>, 而应该把<strong>可读性</strong>/<strong>可维护性</strong>放在前面, 保持适当的<strong>可扩展性</strong>, 某些极端场景, 甚至不考虑<strong>可扩展性</strong></p>
+<p>如果是中大型项目, 生命周期长, 需求复杂且多, 那么此时概念抽象就很重要了</p>
+<h2 id="怎么抉择">怎么抉择?</h2>
+<p>看到这里, 并不是说, 一定要<code>至下而上</code>, 或者一定不能<code>至上而下</code></p>
+<p>而是需要根据很多因素决策: 看项目, 看需求, 看场景&hellip;..</p>
+<ol>
+<li>项目大小</li>
+<li>项目的生命周期</li>
+<li>具体需求的复杂度</li>
+<li>需求变更是否频繁? 新需求加入是否频繁? 是否有可见的需求?</li>
+<li>&hellip;&hellip;</li>
+</ol>
+<h2 id="例子-一个需求及实现">例子: 一个需求及实现</h2>
+<p>需求: 从两个不同的服务, 同步数据到同一个表; 这两个服务的协议不一样, 获取的数据字段映射到数据库表字段也不一样, 并且不同字段有不同的处理规则</p>
+<p>几种实现:</p>
+<ol>
+<li>写两个脚本或者celery任务, 执行同步
+<ul>
+<li>加字段/字段变更需要两边都改</li>
+</ul>
+</li>
+<li>写一个dataclass+两个client, client负责转换为统一格式
+<ul>
+<li>加字段/变更字段, 改两个client即可</li>
+</ul>
+</li>
+<li>写一个dataclass+两个client+两个mapper, mapper 负责数据转换
+<ul>
+<li>加字段/变更字段, 改两个mapper即可, 甚至mapper变更纯配置</li>
+</ul>
+</li>
+<li>抽象概念: syncer/fetcher/client/mapper/hook/helper/loader</li>
+</ol>
+<ul>
+<li>一次性的任务, 选 1(quick and dirty), 如果时间空余, 做到 2</li>
+<li>偶尔有字段变更, 选 2</li>
+<li>频繁字段变更, 选 3, 最好变成配置</li>
+<li>大型项目, N 个服务, N 种协议, N 种映射转换, 且不断有新逻辑, 初期还是最多做到 3, 逐步抽象, 最终可能演变成 4; 但是, 并不是一开始就那么多概念(至上而下), 而是不断迭代中演化出来的</li>
+</ul>
+<p>所以, 以<code>务实</code>的方式来设计方案, 逐步随着项目迭代演化出最终的形态.</p>
+<h2 id="务实">务实</h2>
+<p>从零开始学架构, 提到了三个原则: 合适/简单/演化</p>
+<p>以务实的角度去思考</p>
+<ul>
+<li>合适, 但也不能太简陋/落后</li>
+<li>简单, 但是要能满足现在及未来可见范围内的需求</li>
+<li>演化, 但是底子要好, 避免无法演化只能重写</li>
+</ul>
+]]></content>
+		</item>
 		
 		<item>
 			<title>Better Code: 异常时, 该提示用户哪些信息?</title>
