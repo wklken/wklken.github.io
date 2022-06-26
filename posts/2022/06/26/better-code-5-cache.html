@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<meta name="theme-color" content="#494f5c">
+	<meta name="msapplication-TileColor" content="#494f5c">
+<meta itemprop="name" content="Better Code: 缓存使用的一些经验">
+<meta itemprop="description" content="在一个大的项目中, 使用了全缓存模型, 即, 所有数据都会经过cache. 简单分层: 应用-&gt;内存缓存-&gt;redis缓存-&gt;数据库"><meta itemprop="datePublished" content="2022-06-26T10:00:00+08:00" />
+<meta itemprop="dateModified" content="2022-06-26T10:00:00+08:00" />
+<meta itemprop="wordCount" content="2172">
+<meta itemprop="keywords" content="python,refactor,better-code," /><meta property="og:title" content="Better Code: 缓存使用的一些经验" />
+<meta property="og:description" content="在一个大的项目中, 使用了全缓存模型, 即, 所有数据都会经过cache. 简单分层: 应用-&gt;内存缓存-&gt;redis缓存-&gt;数据库" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://wklken.me/posts/2022/06/26/better-code-5-cache.html" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2022-06-26T10:00:00+08:00" />
+<meta property="article:modified_time" content="2022-06-26T10:00:00+08:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Better Code: 缓存使用的一些经验"/>
+<meta name="twitter:description" content="在一个大的项目中, 使用了全缓存模型, 即, 所有数据都会经过cache. 简单分层: 应用-&gt;内存缓存-&gt;redis缓存-&gt;数据库"/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>Better Code: 缓存使用的一些经验</title>
+	<link rel="stylesheet" href="https://wklken.me/css/style.min.037b6ee8f8c1baab6a3d0a9da11c3ff18a7552471f16c59fd98538d5ce99208b.css" integrity="sha256-A3tu6PjBuqtqPQqdoRw/8Yp1UkcfFsWf2YU41c6ZIIs=" crossorigin="anonymous">
+	
+	<link rel="stylesheet" href="https://wklken.me/css/custom.css">
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="https://wklken.me">WKLKEN THINKING</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					
+				<a href="https://wklken.me/posts.html">Posts</a>
+				<a href="https://wklken.me/about.html">About</a>
+
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<button id="toc-btn" class="hdr-btn desktop-only-ib" title="Table of Contents"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3" y2="6"></line><line x1="3" y1="12" x2="3" y2="12"></line><line x1="3" y1="18" x2="3" y2="18"></line></svg></button><span class="hdr-social hide-in-mobile"><a href="https://github.com/wklken" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" class="feather" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a><a href="https://twitter.com/wklken" target="_blank" rel="noopener me" title="Twitter"><svg xmlns="http://www.w3.org/2000/svg" class="feather" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="https://wklken.me/posts.html">Posts</a></li>
+			<li><a href="https://wklken.me/about.html">About</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>Jun 26, 2022</span></div>
+				<h1>Better Code: 缓存使用的一些经验</h1>
+			</header>
+			<div class="content">
+				<p>在一个大的项目中, 使用了全缓存模型, 即, 所有数据都会经过cache.</p>
+<p>简单分层: <code>应用-&gt;内存缓存-&gt;redis缓存-&gt;数据库</code></p>
+<p>是一个典型的<code>多读写少</code>的场景, 并且数据量, 请求量非常大.</p>
+<p>总结了一些使用经验, 供参考</p>
+<h2 id="1-更新缓存的design-pattern-使用cache-aside">1. 更新缓存的Design Pattern: 使用Cache aside<a href="#1-更新缓存的design-pattern-使用cache-aside" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<blockquote>
+<p>简洁优雅</p>
+</blockquote>
+<p>关于缓存更新, 可以阅读这篇文章: <a href="https://coolshell.cn/articles/17416.html">CoolShell: 缓存更新的套路</a></p>
+<p>为什么选择<code>Cache Aside Pattern</code>, 因为这个模式足够简单, 出现不一致的概率非常低, 对于大多数项目来说够用了.</p>
+<p>而其他几种模式, 复杂度会高很多.</p>
+<h2 id="2-并发很高时-需要防缓存击穿">2. 并发很高时, 需要防缓存击穿<a href="#2-并发很高时-需要防缓存击穿" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>当并发很高的时候, 一个热点<code>key</code>失效, 会触发回数据库重查的逻辑, 此时会有大量请求落到数据库</p>
+<p>需要做防缓存击穿的处理.</p>
+<p>一般各种语言的库, 都有考虑到这一点, 例如 <a href="https://github.com/go-redis/cache/blob/v8/cache.go#L116">go-redis/cache</a></p>
+<p>如果是golang并且自定义了cache, 可以使用 <a href="https://pkg.go.dev/golang.org/x/sync/singleflight">singleflight</a>, 其他语言也可以找类似机制的库.</p>
+<p>这个库很轻量</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="err">#</span> <span class="nx">define</span>
+<span class="kd">type</span> <span class="nx">Cache</span> <span class="kd">struct</span> <span class="p">{</span>
+	<span class="nx">name</span>              <span class="kt">string</span>
+	<span class="nx">keyPrefix</span>         <span class="kt">string</span>
+	<span class="nx">codec</span>             <span class="o">*</span><span class="nx">cache</span><span class="p">.</span><span class="nx">Cache</span>
+	<span class="nx">cli</span>               <span class="o">*</span><span class="nx">redis</span><span class="p">.</span><span class="nx">Client</span>
+	<span class="nx">defaultExpiration</span> <span class="nx">time</span><span class="p">.</span><span class="nx">Duration</span>
+	<span class="nx">G</span>                 <span class="nx">singleflight</span><span class="p">.</span><span class="nx">Group</span>
+<span class="p">}</span>
+
+<span class="err">#</span> <span class="nx">usage</span>
+<span class="c1">// if missing, call retrieveFunc
+</span><span class="c1"></span><span class="nx">data</span><span class="p">,</span> <span class="nx">err</span><span class="p">,</span> <span class="nx">_</span> <span class="o">:=</span> <span class="nx">c</span><span class="p">.</span><span class="nx">G</span><span class="p">.</span><span class="nf">Do</span><span class="p">(</span><span class="nx">key</span><span class="p">.</span><span class="nf">Key</span><span class="p">(),</span> <span class="kd">func</span><span class="p">()</span> <span class="p">(</span><span class="kd">interface</span><span class="p">{},</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+		<span class="k">return</span> <span class="nf">retrieveFunc</span><span class="p">(</span><span class="nx">key</span><span class="p">)</span>
+	<span class="p">})</span>
+</code></pre></div><h2 id="3-缓存空值-需要防缓存穿透">3. 缓存空值, 需要防缓存穿透<a href="#3-缓存空值-需要防缓存穿透" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>如果一个key不存在, 在缓存中查不到, 在数据库中也查不到, 那么这个key的请求每次都会穿透到数据库</p>
+<p>此时, 可以引入 <code>bloomfilter</code> 或者 <code>cuckoofilter</code>;</p>
+<p>但是, 更简单的做法是, 缓存空值; 当成一个普通的key处理(缓存失效/数据一致性处理等)</p>
+<h2 id="4-总是设置过期时间-并且带随机数避免缓存雪崩">4. 总是设置过期时间, 并且带随机数避免缓存雪崩<a href="#4-总是设置过期时间-并且带随机数避免缓存雪崩" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>大部分场景下, 给每一个缓存<code>key</code>设置 <code>TTL</code>是一个很好的习惯. 可以避免无用数据占用资源, 及时淘汰掉使用较少的数据.</p>
+<p>但是, 设置<code>TTL</code>的时候, 建议加上一个范围内容的随机数, 避免缓存在同一时间失效, 造成缓存雪崩.</p>
+<pre tabindex="0"><code>TTL = 900s + randint(0,10)
+</code></pre><h2 id="5-key-中使用namespaceversion前缀">5. key 中使用namespace+version前缀<a href="#5-key-中使用namespaceversion前缀" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<blockquote>
+<p>key = {namespace}:{version}:{type}:{uniqueKey}</p>
+</blockquote>
+<p>在实际应用部署中, 由于可能跟其他应用共用一套缓存, 所以建议缓存的<code>key</code>加入前缀, 防止冲突(如果冲突, 非常难以debug)</p>
+<p>另外, 需要加入一个<code>version</code>, 在版本发布必要时变更, 以弃用缓存中已有的数据</p>
+<ol>
+<li>由于不断迭代开发, 同一个key对应的value可能会变更, 例如value对应的数据结构新增了一个字段, 那么此时缓存中存量的缓存数据是没有这个字段的, 可能会造成一些bug.</li>
+<li>还有另外一个需要特别小心的是, 升级缓存第三方库的时候, 某些版本可能是breaking change, 例如改变了压缩算法, 此时存量数据将无法正确被获取.<a href="https://github.com/go-redis/cache/issues/52">一个例子: Can&rsquo;t upgrade from v7 to v8 directly?</a></li>
+</ol>
+<h2 id="6-缓存结构体-使用msgpack替代json">6. 缓存结构体, 使用msgpack替代json<a href="#6-缓存结构体-使用msgpack替代json" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p><a href="https://msgpack.org/">MessagePack: It&rsquo;s like JSON.but fast and small</a></p>
+<p>优点:</p>
+<ul>
+<li>快</li>
+<li>小</li>
+</ul>
+<p>缺点:</p>
+<ul>
+<li>在redis等服务端debug获取时不是明文, 不是很利于调试</li>
+</ul>
+<p>所以, 缓存数据量比较大, 并且对性能有要求的, 可以使用msgpack</p>
+<h2 id="7-value比较大-可以考虑启用压缩">7. value比较大, 可以考虑启用压缩<a href="#7-value比较大-可以考虑启用压缩" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>如果<code>value</code>比较大, 那么在放入缓存前, 可以进行一次压缩, 获取后再解压</p>
+<p>当然, 这个会产生额外的资源消耗(CPU), 以及会多一些耗时.</p>
+<p>但是, 这个有利于减少网络传输中的包大小. 如果<code>读取</code>是非常高频的话, 那么代价还是值得的.</p>
+<p>可以参考 <a href="https://github.com/go-redis/cache/blob/v8/cache.go#L349">go-redis/cache</a>, 当值超过一定大小时使用 <a href="https://github.com/klauspost/compress/tree/master/s2">s2 compression</a> 进行压缩</p>
+<h2 id="8-批量操作-使用pipeline">8. 批量操作, 使用pipeline<a href="#8-批量操作-使用pipeline" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>以redis为例, 批量操作</p>
+<ol>
+<li>代码for循环, 一个个获取</li>
+<li>可以考虑使用<code>mget/mhget</code>之类的多个key</li>
+<li>使用<code>pipeline</code></li>
+</ol>
+<p>可以根据<code>key-value</code>特征, 批量<code>key</code>的数量等, 简单压测下性能, 决定使用哪种方式. 正常情况下, <code>key</code>数量较大的时候, <code>pipeline</code>性能最好.</p>
+<p>甚至, 代码实现可以根据<code>key</code>的数量, 自行决定使用<code>mget</code>还是<code>pipeline</code></p>
+<h2 id="9-内存缓存-vs-redis">9. 内存缓存 vs Redis<a href="#9-内存缓存-vs-redis" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>大部分情况, 项目中会混用两种缓存.</p>
+<p>如果对数据一致性要求比较高, 可以全部使用 Redis.</p>
+<p>但是, 其实每一次 Redis 操作代价大于内存操作</p>
+<p>某些数据, 例如模型, 主键之类的, 一旦确定, 是不会变更的.</p>
+<p>此时, 可以考虑使用<code>内存缓存</code>替代.</p>
+<p>如果是golang, 推荐使用 <a href="https://github.com/patrickmn/go-cache">go-cache</a>. 没有其他实现那么强大, 但是胜在不需要序列化/反序列化.</p>
+<h2 id="10-多级缓存-and-client-side-cache">10. 多级缓存 and client-side-cache<a href="#10-多级缓存-and-client-side-cache" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>如果使用的 Redis6, 并且程序的driver支持, 那么可以直接利用 <a href="https://redis.io/docs/manual/client-side-caching/">client-side-caching</a> 特性获取最大的性能. 这个对程序透明, 无需在额外的逻辑处理.</p>
+<p>但是, 当前(2022)有很多时候, 部署基建还是老版本Redis, 很多语言的driver也还没有支持, 可能复用不了</p>
+<p>那么, 此时如果使用了<code>内存-&gt;redis</code>两级缓存, 如何确保数据一致性.</p>
+<p>可以做的额外操作:</p>
+<ol>
+<li>实现类似redis6 client-side-cache机制, 通过发布订阅等方式实现</li>
+<li>可以使用一个<code>sorted-set</code>存储<code>5</code>分钟内变更的<code>key</code>, 内存缓存TTL设置<code>5</code>分钟; 每次先获取变更<code>key</code>列表, 本地缓存进行时间戳对比(这个方案对于批量key操作性能提升很大, 相当于把 N 次redis操作, 变成 本地缓存+ 1 次 changedkeylist获取+M次redis操作)</li>
+</ol>
+<h2 id="11-配置建议-同时支持standalone和sentinel配置">11. 配置建议: 同时支持standalone和sentinel配置<a href="#11-配置建议-同时支持standalone和sentinel配置" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>让运维根据实际应用场景, 自行切换使用.</p>
+<p>成本不高的话, 也可以支持下<code>redis-cluster</code>配置</p>
+<p>注意, 开启<code>pool</code>以获取更好的性能</p>
+<p>另外, 也需要关注下如何开启prometheus/otel相关的配置, 以便某些情况下, 监测相关的指标</p>
+<h2 id="12-设置开关-支持withcachewithoutcache调试">12. 设置开关, 支持withCache/withoutCache调试<a href="#12-设置开关-支持withcachewithoutcache调试" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>引入缓存后, 在进行问题调试的时候非常不变.</p>
+<p>建议加入相关的调试标志, 例如<code>?force=true</code></p>
+<ul>
+<li>加上, 全链路数据获取走数据库</li>
+<li>没加, 全链路走缓存</li>
+</ul>
+<p>此时, 可以通过对比两次请求的差异, 确定是否是缓存问题</p>
+<p>甚至, 可以加入<code>?debug=true</code>以获取各个环节的上下文信息, 快速调试</p>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p>
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg><span class="tag"><a href="https://wklken.me/tags/python">python</a></span><span class="tag"><a href="https://wklken.me/tags/refactor">refactor</a></span><span class="tag"><a href="https://wklken.me/tags/better-code">better-code</a></span>
+				</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>2172 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2022-06-26 10:00 &#43;0800</p>
+			</footer>
+		</article>
+		<aside id="toc">
+			<div class="toc-title">Table of Contents</div>
+			<nav id="TableOfContents">
+  <ul>
+    <li><a href="#1-更新缓存的design-pattern-使用cache-aside">1. 更新缓存的Design Pattern: 使用Cache aside</a></li>
+    <li><a href="#2-并发很高时-需要防缓存击穿">2. 并发很高时, 需要防缓存击穿</a></li>
+    <li><a href="#3-缓存空值-需要防缓存穿透">3. 缓存空值, 需要防缓存穿透</a></li>
+    <li><a href="#4-总是设置过期时间-并且带随机数避免缓存雪崩">4. 总是设置过期时间, 并且带随机数避免缓存雪崩</a></li>
+    <li><a href="#5-key-中使用namespaceversion前缀">5. key 中使用namespace+version前缀</a></li>
+    <li><a href="#6-缓存结构体-使用msgpack替代json">6. 缓存结构体, 使用msgpack替代json</a></li>
+    <li><a href="#7-value比较大-可以考虑启用压缩">7. value比较大, 可以考虑启用压缩</a></li>
+    <li><a href="#8-批量操作-使用pipeline">8. 批量操作, 使用pipeline</a></li>
+    <li><a href="#9-内存缓存-vs-redis">9. 内存缓存 vs Redis</a></li>
+    <li><a href="#10-多级缓存-and-client-side-cache">10. 多级缓存 and client-side-cache</a></li>
+    <li><a href="#11-配置建议-同时支持standalone和sentinel配置">11. 配置建议: 同时支持standalone和sentinel配置</a></li>
+    <li><a href="#12-设置开关-支持withcachewithoutcache调试">12. 设置开关, 支持withCache/withoutCache调试</a></li>
+  </ul>
+</nav>
+		</aside>
+		<div class="post-nav thin">
+			<a class="prev-post" href="https://wklken.me/posts/2022/06/21/better-code-4-abstraction-scalability-maintainability.html">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>Better Code: 抽象: 可扩展性与可维护性的抉择</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+<div id="gitalk-container"></div>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script src="https://wklken.me/js/md5.min.js"></script>
+<script>
+  const gitalk = new Gitalk({
+    clientID: '549d325e74a413f1b56a',
+    clientSecret: '086a83faacf152cc3f4079f002058716879e9688',
+    repo: 'wklken.github.io',
+    owner: 'wklken',
+    admin: ['wklken'],
+    id: md5(location.pathname), 
+    distractionFreeMode: false 
+  });
+  (function() {
+    if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+      document.getElementById('gitalk-container').innerHTML = 'Gitalk comments not available by default when the website is previewed locally.';
+      return;
+    }
+    gitalk.render('gitalk-container');
+  })();
+</script>
+
+</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2022 <a href="https://wklken.me">wklken</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="https://wklken.me/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+
+	<script src="https://wklken.me/js/bundle.min.7d8545daa55d62427355498dd8da13f98ff79a7938ce7d2a5e2ae1ec0de3beb8.js" integrity="sha256-fYVF2qVdYkJzVUmN2NoT+Y/3mnk4zn0qXirh7A3jvrg=" crossorigin="anonymous"></script>
+	
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-42275748-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+</body>
+
+</html>
