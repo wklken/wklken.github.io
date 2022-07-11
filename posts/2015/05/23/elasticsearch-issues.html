@@ -78,17 +78,17 @@
 <p>.当时数据量小, 就暂时没关注. 然后, 随着时间推移,  出现了大量unassigned shards</p>
 <pre tabindex="0"><code>curl -XGET http://localhost:9200/_cluster/health\?pretty
 {
-  &quot;cluster_name&quot; : &quot;elasticsearch&quot;,
-  &quot;status&quot; : &quot;yellow&quot;,
-  &quot;timed_out&quot; : false,
-  &quot;number_of_nodes&quot; : 2,
-  &quot;number_of_data_nodes&quot; : 1,
-  &quot;active_primary_shards&quot; : 538,
-  &quot;active_shards&quot; : 538,
-  &quot;relocating_shards&quot; : 0,
-  &quot;initializing_shards&quot; : 0,
-  &quot;unassigned_shards&quot; : 558,
-&quot;number_of_pending_tasks&quot; : 0
+  &#34;cluster_name&#34; : &#34;elasticsearch&#34;,
+  &#34;status&#34; : &#34;yellow&#34;,
+  &#34;timed_out&#34; : false,
+  &#34;number_of_nodes&#34; : 2,
+  &#34;number_of_data_nodes&#34; : 1,
+  &#34;active_primary_shards&#34; : 538,
+  &#34;active_shards&#34; : 538,
+  &#34;relocating_shards&#34; : 0,
+  &#34;initializing_shards&#34; : 0,
+  &#34;unassigned_shards&#34; : 558,
+&#34;number_of_pending_tasks&#34; : 0
 }
 </code></pre><p>处理方式:  找了台内网机器, 部署另一个节点(保证<code>cluster.name</code>一致即可, 自动发现, 赞一个). 当然, 如果你资源有限只有一台机器,  使用相同命令再启动一个es实例也行. 再次检查集群健康, 发现<code>unassigned_shards</code>减少, <code>active_shards</code>增多.</p>
 <p>操作完后, 集群健康从<code>yellow</code>恢复到 <code>green</code></p>
@@ -97,71 +97,71 @@
 <p>这次检查发现是<code>status: red</code>(存在不可用的主要分片)</p>
 <pre tabindex="0"><code>curl -XGET http://localhost:9200/_cluster/health\?pretty
 {
-  &quot;cluster_name&quot; : &quot;elasticsearch&quot;,
-  &quot;status&quot; : &quot;red&quot;,    // missing some primary shards
-  &quot;timed_out&quot; : false,
-  &quot;number_of_nodes&quot; : 4,
-  &quot;number_of_data_nodes&quot; : 2,
-  &quot;active_primary_shards&quot; : 538,
-  &quot;active_shards&quot; : 1076,
-  &quot;relocating_shards&quot; : 0,
-  &quot;initializing_shards&quot; : 0,
-  &quot;unassigned_shards&quot; : 20,  // where your lost primary shards are.
-  &quot;number_of_pending_tasks&quot; : 0
+  &#34;cluster_name&#34; : &#34;elasticsearch&#34;,
+  &#34;status&#34; : &#34;red&#34;,    // missing some primary shards
+  &#34;timed_out&#34; : false,
+  &#34;number_of_nodes&#34; : 4,
+  &#34;number_of_data_nodes&#34; : 2,
+  &#34;active_primary_shards&#34; : 538,
+  &#34;active_shards&#34; : 1076,
+  &#34;relocating_shards&#34; : 0,
+  &#34;initializing_shards&#34; : 0,
+  &#34;unassigned_shards&#34; : 20,  // where your lost primary shards are.
+  &#34;number_of_pending_tasks&#34; : 0
 }
 </code></pre><h3 id="fix-unassigned-shards">fix unassigned shards<a href="#fix-unassigned-shards" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
 <p>开始着手修复</p>
 <p>查看所有分片状态</p>
 <pre tabindex="0"><code>curl -XGET http://localhost:9200/_cat/shards
 </code></pre><p>找出<code>UNASSIGNED</code>分片</p>
-<pre tabindex="0"><code>curl -s &quot;http://localhost:9200/_cat/shards&quot; | grep UNASSIGNED
+<pre tabindex="0"><code>curl -s &#34;http://localhost:9200/_cat/shards&#34; | grep UNASSIGNED
 pv-2015.05.22                 3 p UNASSIGNED
 pv-2015.05.22                 3 r UNASSIGNED
 pv-2015.05.22                 1 p UNASSIGNED
 pv-2015.05.22                 1 r UNASSIGNED
 </code></pre><p>查询得到master节点的唯一标识</p>
-<pre tabindex="0"><code>curl 'localhost:9200/_nodes/process?pretty'
+<pre tabindex="0"><code>curl &#39;localhost:9200/_nodes/process?pretty&#39;
 
 {
-  &quot;cluster_name&quot; : &quot;elasticsearch&quot;,
-  &quot;nodes&quot; : {
-    &quot;AfUyuXmGTESHXpwi4OExxx&quot; : {
-      &quot;name&quot; : &quot;Master&quot;,
+  &#34;cluster_name&#34; : &#34;elasticsearch&#34;,
+  &#34;nodes&#34; : {
+    &#34;AfUyuXmGTESHXpwi4OExxx&#34; : {
+      &#34;name&#34; : &#34;Master&#34;,
      ....
-      &quot;attributes&quot; : {
-        &quot;master&quot; : &quot;true&quot;
+      &#34;attributes&#34; : {
+        &#34;master&#34; : &#34;true&#34;
       },
 .....
 </code></pre><p>执行reroute(分多次, 变更shard的值为<code>UNASSIGNED</code>查询结果中编号, 上一步查询结果是1和3)</p>
-<pre tabindex="0"><code>curl -XPOST 'localhost:9200/_cluster/reroute' -d '{
-        &quot;commands&quot; : [ {
-              &quot;allocate&quot; : {
-                  &quot;index&quot; : &quot;pv-2015.05.22&quot;,
-                  &quot;shard&quot; : 1,
-                  &quot;node&quot; : &quot;AfUyuXmGTESHXpwi4OExxx&quot;,
-                  &quot;allow_primary&quot; : true
+<pre tabindex="0"><code>curl -XPOST &#39;localhost:9200/_cluster/reroute&#39; -d &#39;{
+        &#34;commands&#34; : [ {
+              &#34;allocate&#34; : {
+                  &#34;index&#34; : &#34;pv-2015.05.22&#34;,
+                  &#34;shard&#34; : 1,
+                  &#34;node&#34; : &#34;AfUyuXmGTESHXpwi4OExxx&#34;,
+                  &#34;allow_primary&#34; : true
               }
             }
         ]
-    }'
+    }&#39;
 </code></pre><p>批量处理的脚本(当数量很多的话, 注意替换node的名字)</p>
 <pre tabindex="0"><code>#!/bin/bash
 
-for index in $(curl  -s 'http://localhost:9200/_cat/shards' | grep UNASSIGNED | awk '{print $1}' | sort | uniq); do
-    for shard in $(curl  -s 'http://localhost:9200/_cat/shards' | grep UNASSIGNED | grep $index | awk '{print $2}' | sort | uniq); do
+for index in $(curl  -s &#39;http://localhost:9200/_cat/shards&#39; | grep UNASSIGNED | awk &#39;{print $1}&#39; | sort | uniq); do
+    for shard in $(curl  -s &#39;http://localhost:9200/_cat/shards&#39; | grep UNASSIGNED | grep $index | awk &#39;{print $2}&#39; | sort | uniq); do
         echo  $index $shard
 
-        curl -XPOST 'localhost:9200/_cluster/reroute' -d &quot;{
-            'commands' : [ {
-                  'allocate' : {
-                      'index' : $index,
-                      'shard' : $shard,
-                      'node' : 'Master',
-                      'allow_primary' : true
+        curl -XPOST &#39;localhost:9200/_cluster/reroute&#39; -d &#34;{
+            &#39;commands&#39; : [ {
+                  &#39;allocate&#39; : {
+                      &#39;index&#39; : $index,
+                      &#39;shard&#39; : $shard,
+                      &#39;node&#39; : &#39;Master&#39;,
+                      &#39;allow_primary&#39; : true
                   }
                 }
             ]
-        }&quot;
+        }&#34;
 
         sleep 5
     done
@@ -171,7 +171,7 @@ done
 <p>执行</p>
 <pre tabindex="0"><code>curl http://localhost:9200/_nodes/process\?pretty
 </code></pre><p>可以看到</p>
-<pre tabindex="0"><code>&quot;max_file_descriptors&quot; : 4096,
+<pre tabindex="0"><code>&#34;max_file_descriptors&#34; : 4096,
 </code></pre><p>官方文档中</p>
 <blockquote>
 <p>Make sure to increase the number of open files descriptors on the machine (or for the user running elasticsearch). Setting it to 32k or even 64k is recommended.</p>
@@ -180,7 +180,7 @@ done
 <p>最简单的做法, 在<code>bin/elasticsearch</code>文件开始的位置加入</p>
 <pre tabindex="0"><code>ulimit -n 64000
 </code></pre><p>然后重启es, 再次查询看到</p>
-<pre tabindex="0"><code>&quot;max_file_descriptors&quot; : 64000,
+<pre tabindex="0"><code>&#34;max_file_descriptors&#34; : 64000,
 </code></pre><p>问题解决</p>
 <hr>
 <p>待续, 目测还有很多坑, 而且随着数据量上来, 会遇到越来越多的坑&hellip;&hellip;</p>
@@ -256,7 +256,7 @@ done
 
 
 
-	<script src="https://wklken.me/js/bundle.min.7d8545daa55d62427355498dd8da13f98ff79a7938ce7d2a5e2ae1ec0de3beb8.js" integrity="sha256-fYVF2qVdYkJzVUmN2NoT+Y/3mnk4zn0qXirh7A3jvrg=" crossorigin="anonymous"></script>
+	<script src="https://wklken.me/js/bundle.min.580988ed2982bcbb74a1773c7abea97b43e4c43b9324e10cda0813ec6ec4bb67.js" integrity="sha256-WAmI7SmCvLt0oXc8er6pe0PkxDuTJOEM2ggT7G7Eu2c=" crossorigin="anonymous"></script>
 	
 <script type="application/javascript">
 var doNotTrack = false;

@@ -90,56 +90,56 @@
 </ol>
 <h2 id="1-v7升级v8">1. v7升级v8<a href="#1-v7升级v8" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
 <p>issue: <a href="https://github.com/go-redis/cache/issues/52">Can&rsquo;t upgrade from v7 to v8 directly?</a></p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="kn">package</span> <span class="nx">main</span>
-
-<span class="kn">import</span> <span class="p">(</span>
-	<span class="s">&#34;context&#34;</span>
-	<span class="s">&#34;fmt&#34;</span>
-
-	<span class="nx">cv7</span> <span class="s">&#34;github.com/go-redis/cache/v7&#34;</span>
-	<span class="nx">cv8</span> <span class="s">&#34;github.com/go-redis/cache/v8&#34;</span>
-	<span class="nx">rdsv7</span> <span class="s">&#34;github.com/go-redis/redis/v7&#34;</span>
-	<span class="nx">rdsv8</span> <span class="s">&#34;github.com/go-redis/redis/v8&#34;</span>
-	<span class="nx">msgpackv4</span> <span class="s">&#34;github.com/vmihailenco/msgpack/v4&#34;</span>
-<span class="p">)</span>
-
-<span class="kd">func</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
-	<span class="c1">// TODO: 测试放入redis用另一个取
-</span><span class="c1"></span>	<span class="nx">d</span> <span class="o">:=</span> <span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kd">interface</span><span class="p">{}{</span>
-		<span class="s">&#34;hello&#34;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-		<span class="s">&#34;world&#34;</span><span class="p">:</span> <span class="s">&#34;ok&#34;</span><span class="p">,</span>
-	<span class="p">}</span>
-
-	<span class="c1">// 使用两个版本的cli进行测试, v7/v8
-</span><span class="c1"></span>	<span class="c1">// 1. 使用v7, marshal 放入db
-</span><span class="c1"></span>	<span class="c1">// 2. use v8, 获取
-</span><span class="c1"></span>
-	<span class="nx">v7</span> <span class="o">:=</span> <span class="o">&amp;</span><span class="nx">cv7</span><span class="p">.</span><span class="nx">Codec</span><span class="p">{</span>
-		<span class="nx">Redis</span><span class="p">:</span>     <span class="nx">rdsv7</span><span class="p">.</span><span class="nf">NewClient</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">rdsv7</span><span class="p">.</span><span class="nx">Options</span><span class="p">{}),</span>
-		<span class="nx">Marshal</span><span class="p">:</span>   <span class="nx">msgpackv4</span><span class="p">.</span><span class="nx">Marshal</span><span class="p">,</span>
-		<span class="nx">Unmarshal</span><span class="p">:</span> <span class="nx">msgpackv4</span><span class="p">.</span><span class="nx">Unmarshal</span><span class="p">,</span>
-	<span class="p">}</span>
-
-	<span class="nx">err</span> <span class="o">:=</span> <span class="nx">v7</span><span class="p">.</span><span class="nf">Set</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">cv7</span><span class="p">.</span><span class="nx">Item</span><span class="p">{</span>
-		<span class="nx">Key</span><span class="p">:</span>    <span class="s">&#34;aaa&#34;</span><span class="p">,</span>
-		<span class="nx">Object</span><span class="p">:</span> <span class="nx">d</span><span class="p">,</span>
-	<span class="p">})</span>
-	<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;set err:&#34;</span><span class="p">,</span> <span class="nx">err</span><span class="p">)</span>
-
-	<span class="nx">v8</span> <span class="o">:=</span> <span class="nx">cv8</span><span class="p">.</span><span class="nf">New</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">cv8</span><span class="p">.</span><span class="nx">Options</span><span class="p">{</span>
-		<span class="nx">Redis</span><span class="p">:</span> <span class="nx">rdsv8</span><span class="p">.</span><span class="nf">NewClient</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">rdsv8</span><span class="p">.</span><span class="nx">Options</span><span class="p">{}),</span>
-	<span class="p">})</span>
-
-	<span class="kd">var</span> <span class="nx">result</span> <span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kd">interface</span><span class="p">{}</span>
-	<span class="nx">err</span> <span class="p">=</span> <span class="nx">v8</span><span class="p">.</span><span class="nf">Get</span><span class="p">(</span><span class="nx">context</span><span class="p">.</span><span class="nf">TODO</span><span class="p">(),</span> <span class="s">&#34;aaa&#34;</span><span class="p">,</span> <span class="o">&amp;</span><span class="nx">result</span><span class="p">)</span>
-	<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;get err:&#34;</span><span class="p">,</span> <span class="nx">err</span><span class="p">)</span>
-	<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">result</span><span class="p">)</span>
-<span class="p">}</span>
-</code></pre></div><p>执行结果:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-shell" data-lang="shell"><span class="nb">set</span> err: &lt;nil&gt;
-get err: unknown compression method: 6b
-map<span class="o">[]</span>
-</code></pre></div><p>原因, go-redis/cache v8引入的压缩 <a href="https://github.com/go-redis/cache/blob/v8/cache.go#L353">v8/cache.go</a>, 没有做向前兼容的逻辑</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kn">package</span> <span class="nx">main</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kn">import</span> <span class="p">(</span>
+</span></span><span class="line"><span class="cl">	<span class="s">&#34;context&#34;</span>
+</span></span><span class="line"><span class="cl">	<span class="s">&#34;fmt&#34;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nx">cv7</span> <span class="s">&#34;github.com/go-redis/cache/v7&#34;</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">cv8</span> <span class="s">&#34;github.com/go-redis/cache/v8&#34;</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">rdsv7</span> <span class="s">&#34;github.com/go-redis/redis/v7&#34;</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">rdsv8</span> <span class="s">&#34;github.com/go-redis/redis/v8&#34;</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">msgpackv4</span> <span class="s">&#34;github.com/vmihailenco/msgpack/v4&#34;</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="c1">// TODO: 测试放入redis用另一个取
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="nx">d</span> <span class="o">:=</span> <span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kd">interface</span><span class="p">{}{</span>
+</span></span><span class="line"><span class="cl">		<span class="s">&#34;hello&#34;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="s">&#34;world&#34;</span><span class="p">:</span> <span class="s">&#34;ok&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="c1">// 使用两个版本的cli进行测试, v7/v8
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="c1">// 1. 使用v7, marshal 放入db
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="c1">// 2. use v8, 获取
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">	<span class="nx">v7</span> <span class="o">:=</span> <span class="o">&amp;</span><span class="nx">cv7</span><span class="p">.</span><span class="nx">Codec</span><span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="nx">Redis</span><span class="p">:</span>     <span class="nx">rdsv7</span><span class="p">.</span><span class="nf">NewClient</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">rdsv7</span><span class="p">.</span><span class="nx">Options</span><span class="p">{}),</span>
+</span></span><span class="line"><span class="cl">		<span class="nx">Marshal</span><span class="p">:</span>   <span class="nx">msgpackv4</span><span class="p">.</span><span class="nx">Marshal</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="nx">Unmarshal</span><span class="p">:</span> <span class="nx">msgpackv4</span><span class="p">.</span><span class="nx">Unmarshal</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nx">err</span> <span class="o">:=</span> <span class="nx">v7</span><span class="p">.</span><span class="nf">Set</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">cv7</span><span class="p">.</span><span class="nx">Item</span><span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="nx">Key</span><span class="p">:</span>    <span class="s">&#34;aaa&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="nx">Object</span><span class="p">:</span> <span class="nx">d</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">	<span class="p">})</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;set err:&#34;</span><span class="p">,</span> <span class="nx">err</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nx">v8</span> <span class="o">:=</span> <span class="nx">cv8</span><span class="p">.</span><span class="nf">New</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">cv8</span><span class="p">.</span><span class="nx">Options</span><span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="nx">Redis</span><span class="p">:</span> <span class="nx">rdsv8</span><span class="p">.</span><span class="nf">NewClient</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">rdsv8</span><span class="p">.</span><span class="nx">Options</span><span class="p">{}),</span>
+</span></span><span class="line"><span class="cl">	<span class="p">})</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="kd">var</span> <span class="nx">result</span> <span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kd">interface</span><span class="p">{}</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">err</span> <span class="p">=</span> <span class="nx">v8</span><span class="p">.</span><span class="nf">Get</span><span class="p">(</span><span class="nx">context</span><span class="p">.</span><span class="nf">TODO</span><span class="p">(),</span> <span class="s">&#34;aaa&#34;</span><span class="p">,</span> <span class="o">&amp;</span><span class="nx">result</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;get err:&#34;</span><span class="p">,</span> <span class="nx">err</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">result</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>执行结果:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-shell" data-lang="shell"><span class="line"><span class="cl"><span class="nb">set</span> err: &lt;nil&gt;
+</span></span><span class="line"><span class="cl">get err: unknown compression method: 6b
+</span></span><span class="line"><span class="cl">map<span class="o">[]</span>
+</span></span></code></pre></div><p>原因, go-redis/cache v8引入的压缩 <a href="https://github.com/go-redis/cache/blob/v8/cache.go#L353">v8/cache.go</a>, 没有做向前兼容的逻辑</p>
 <p>解决方案: 在基础类中, 更换掉key的namespace, 增加版本号; 例如 <code>project:hello</code> 变成 <code>project:v8:hello</code></p>
 <h2 id="2-升级v8后的msgpack-与-pipeline的处理">2. 升级v8后的msgpack 与 pipeline的处理<a href="#2-升级v8后的msgpack-与-pipeline的处理" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
 <p>由于 go-redis/cache 主要用于单个对象的 set/get</p>
@@ -211,7 +211,7 @@ map<span class="o">[]</span>
 
 
 
-	<script src="https://wklken.me/js/bundle.min.7d8545daa55d62427355498dd8da13f98ff79a7938ce7d2a5e2ae1ec0de3beb8.js" integrity="sha256-fYVF2qVdYkJzVUmN2NoT+Y/3mnk4zn0qXirh7A3jvrg=" crossorigin="anonymous"></script>
+	<script src="https://wklken.me/js/bundle.min.580988ed2982bcbb74a1773c7abea97b43e4c43b9324e10cda0813ec6ec4bb67.js" integrity="sha256-WAmI7SmCvLt0oXc8er6pe0PkxDuTJOEM2ggT7G7Eu2c=" crossorigin="anonymous"></script>
 	
 <script type="application/javascript">
 var doNotTrack = false;

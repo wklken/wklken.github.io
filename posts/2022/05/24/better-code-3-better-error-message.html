@@ -85,22 +85,22 @@
 <p>有个代码初始化数据到数据库的逻辑报错了, 不管是什么原因引起的, 你需要解决!</p>
 </blockquote>
 <h3 id="实现v1">实现v1<a href="#实现v1" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="n">Setting</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
-    <span class="n">key</span><span class="o">=</span><span class="n">k</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">v</span><span class="p">,</span> <span class="n">defaults</span><span class="o">=</span><span class="n">x</span>
-<span class="p">)</span>
-</code></pre></div><p>此时, 新装环境没问题, 升级环境会报错,</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="n">Setting</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">    <span class="n">key</span><span class="o">=</span><span class="n">k</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">v</span><span class="p">,</span> <span class="n">defaults</span><span class="o">=</span><span class="n">x</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span>
+</span></span></code></pre></div><p>此时, 新装环境没问题, 升级环境会报错,</p>
 <p>通过异常信息知道创建由于<code>唯一性限制</code>报错了, 是由于用户手动插入了数据导致报错</p>
 <p>此时, 用户问你, 数据有几百条, 哪条数据引起的? 我该怎么修复(成本: 小时级)</p>
 <h3 id="实现v2">实现v2<a href="#实现v2" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
 <p>打印上下文!</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="k">try</span><span class="p">:</span>
-    <span class="n">Setting</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
-        <span class="n">key</span><span class="o">=</span><span class="n">k</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">v</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">x</span>
-    <span class="p">)</span>
-<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&#34;create setting fail, k=</span><span class="si">%s</span><span class="s2">, v=</span><span class="si">%s</span><span class="s2">, default=</span><span class="si">%s</span><span class="s2">&#34;</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
-    <span class="k">raise</span> <span class="n">e</span>
-</code></pre></div><p>此时, 通过异常信息上下文可以看到哪条数据有问题!(成本: 分钟级)</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">try</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="n">Setting</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="n">key</span><span class="o">=</span><span class="n">k</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">v</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">x</span>
+</span></span><span class="line"><span class="cl">    <span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&#34;create setting fail, k=</span><span class="si">%s</span><span class="s2">, v=</span><span class="si">%s</span><span class="s2">, default=</span><span class="si">%s</span><span class="s2">&#34;</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="k">raise</span> <span class="n">e</span>
+</span></span></code></pre></div><p>此时, 通过异常信息上下文可以看到哪条数据有问题!(成本: 分钟级)</p>
 <h3 id="实现v3">实现v3<a href="#实现v3" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
 <p>代码考虑<code>兼容性</code>, 已发的版本/存量的系统, <code>最好</code>能顺滑升级!</p>
 <p>例如, 这里的<code>create</code>, 可以考虑用<code>get_or_create</code>替代(当然, 前提是符合需求)</p>
@@ -109,28 +109,28 @@
 <p>有个功能是支持用户配置ldap相关地址, 拉取用户数据, 用户点击: <code>测试连接</code>.</p>
 </blockquote>
 <h3 id="实现v1-1">实现v1<a href="#实现v1-1" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="k">try</span><span class="p">:</span> 
-   <span class="n">test_connection</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">)</span>
-<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-   <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&#34;测试连接失败, 请检查配置&#34;</span><span class="p">)</span>
-</code></pre></div><p>此时, 用户坚信自己的配置是对的, 你如何帮他定位呢? (成本: 几个小时甚至一两天)</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">try</span><span class="p">:</span> 
+</span></span><span class="line"><span class="cl">   <span class="n">test_connection</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">   <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&#34;测试连接失败, 请检查配置&#34;</span><span class="p">)</span>
+</span></span></code></pre></div><p>此时, 用户坚信自己的配置是对的, 你如何帮他定位呢? (成本: 几个小时甚至一两天)</p>
 <h3 id="实现v2-1">实现v2<a href="#实现v2-1" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="k">try</span><span class="p">:</span> 
-   <span class="n">test_connection</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">)</span>
-<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-   <span class="c1"># 注意, 这里一定要logger.exception, 用error意义不大!</span>
-   <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&#34;测试连接失败, 请检查配置&#34;</span><span class="p">)</span>
-   <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&#34;测试连接失败, 请检查配置&#34;</span><span class="p">)</span>
-</code></pre></div><p>这时候的调试方式, 用户找你, 你告诉用户去哪里看日志!(成本: 分钟到几个小时)</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">try</span><span class="p">:</span> 
+</span></span><span class="line"><span class="cl">   <span class="n">test_connection</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">   <span class="c1"># 注意, 这里一定要logger.exception, 用error意义不大!</span>
+</span></span><span class="line"><span class="cl">   <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&#34;测试连接失败, 请检查配置&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">   <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&#34;测试连接失败, 请检查配置&#34;</span><span class="p">)</span>
+</span></span></code></pre></div><p>这时候的调试方式, 用户找你, 你告诉用户去哪里看日志!(成本: 分钟到几个小时)</p>
 <h3 id="实现v3-1">实现v3<a href="#实现v3-1" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="k">try</span><span class="p">:</span> 
-   <span class="n">test_connection</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">)</span>
-<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-   <span class="c1"># 注意, 这里一定要logger.exception, 用error意义不大!</span>
-   <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&#34;测试连接失败, 请检查配置&#34;</span><span class="p">)</span>
-   <span class="n">error_detail</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&#34; (</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="vm">__module__</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">)&#34;</span>
-   <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&#34;测试连接失败, 请检查配置&#34;</span> <span class="o">+</span> <span class="n">error_detail</span><span class="p">)</span>
-</code></pre></div><p>这时候, 在页面上, 用户就能看到 <code>报错的类型及错误信息</code></p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">try</span><span class="p">:</span> 
+</span></span><span class="line"><span class="cl">   <span class="n">test_connection</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">   <span class="c1"># 注意, 这里一定要logger.exception, 用error意义不大!</span>
+</span></span><span class="line"><span class="cl">   <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&#34;测试连接失败, 请检查配置&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">   <span class="n">error_detail</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&#34; (</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="vm">__module__</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">)&#34;</span>
+</span></span><span class="line"><span class="cl">   <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&#34;测试连接失败, 请检查配置&#34;</span> <span class="o">+</span> <span class="n">error_detail</span><span class="p">)</span>
+</span></span></code></pre></div><p>这时候, 在页面上, 用户就能看到 <code>报错的类型及错误信息</code></p>
 <ul>
 <li>报错类型: 能定位到是第三方库还是自己程序哪个模块报的, 如果出现标准库<code>KeyError/ValueError</code>等, 大概率是自己哪里代码逻辑处理不正确.</li>
 <li>报错信息: 例如 <code>invalid server address</code>, <code>socket connection error while opening: [Errno 111] Connection refused</code>之类的;</li>
@@ -148,25 +148,25 @@
 </blockquote>
 <p>那么, 如果用户<code>坚持</code>自己输入是对的, 账号是正常的, 如何帮助其排查问题?</p>
 <h3 id="实现v1-2">实现v1<a href="#实现v1-2" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="k">if</span> <span class="n">user</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">:</span>
-    <span class="k">raise</span> <span class="n">PasswordWrongException</span><span class="p">()</span>
-<span class="k">if</span> <span class="n">user</span><span class="o">.</span><span class="n">status</span> <span class="ow">in</span> <span class="p">[</span><span class="n">DISABLED</span><span class="p">,</span> <span class="n">LOCKED</span><span class="p">]:</span>
-    <span class="k">raise</span> <span class="n">PasswordWrongException</span><span class="p">()</span>
-<span class="k">if</span> <span class="n">user</span> <span class="n">login</span> <span class="n">hit</span> <span class="n">secure</span> <span class="n">policies</span><span class="p">:</span>
-    <span class="k">raise</span> <span class="n">PasswordWrongException</span><span class="p">()</span>
-</code></pre></div><p>这种实现, 你只能看代码, 逐个同用户沟通检查(成本: 小时/天)</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">if</span> <span class="n">user</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="k">raise</span> <span class="n">PasswordWrongException</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl"><span class="k">if</span> <span class="n">user</span><span class="o">.</span><span class="n">status</span> <span class="ow">in</span> <span class="p">[</span><span class="n">DISABLED</span><span class="p">,</span> <span class="n">LOCKED</span><span class="p">]:</span>
+</span></span><span class="line"><span class="cl">    <span class="k">raise</span> <span class="n">PasswordWrongException</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl"><span class="k">if</span> <span class="n">user</span> <span class="n">login</span> <span class="n">hit</span> <span class="n">secure</span> <span class="n">policies</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="k">raise</span> <span class="n">PasswordWrongException</span><span class="p">()</span>
+</span></span></code></pre></div><p>这种实现, 你只能看代码, 逐个同用户沟通检查(成本: 小时/天)</p>
 <h3 id="实现v2-2">实现v2<a href="#实现v2-2" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="k">if</span> <span class="n">user</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">:</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&#34;login fail, user&lt;</span><span class="si">%s</span><span class="s2">&gt; not exists&#34;</span><span class="p">,</span> <span class="n">user</span><span class="p">)</span>
-    <span class="k">raise</span> <span class="n">PasswordWrongException</span><span class="p">()</span>
-<span class="k">if</span> <span class="n">user</span><span class="o">.</span><span class="n">status</span> <span class="ow">in</span> <span class="p">[</span><span class="n">DISABLED</span><span class="p">,</span> <span class="n">LOCKED</span><span class="p">]:</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&#34;login fail, user&lt;</span><span class="si">%s</span><span class="s2">&gt; status is </span><span class="si">%s</span><span class="s2">&#34;</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="n">user</span><span class="o">.</span><span class="n">status</span><span class="p">)</span>
-    <span class="k">raise</span> <span class="n">PasswordWrongException</span><span class="p">()</span>
-<span class="k">if</span> <span class="n">user</span> <span class="n">login</span> <span class="n">hit</span> <span class="n">secure</span> <span class="n">policies</span><span class="p">:</span>
-    <span class="c1"># 这里有必要的话, 甚至需要明确到具体哪个policy</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&#34;login fail, user&lt;</span><span class="si">%s</span><span class="s2">&gt; hit xxx secure policies&#34;</span><span class="p">,</span> <span class="n">user</span><span class="p">)</span>
-    <span class="k">raise</span> <span class="n">PasswordWrongException</span><span class="p">()</span>
-</code></pre></div><p>这种实现, 让用户捞下日志就能明确具体问题(成本: 分钟)</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">if</span> <span class="n">user</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&#34;login fail, user&lt;</span><span class="si">%s</span><span class="s2">&gt; not exists&#34;</span><span class="p">,</span> <span class="n">user</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="k">raise</span> <span class="n">PasswordWrongException</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl"><span class="k">if</span> <span class="n">user</span><span class="o">.</span><span class="n">status</span> <span class="ow">in</span> <span class="p">[</span><span class="n">DISABLED</span><span class="p">,</span> <span class="n">LOCKED</span><span class="p">]:</span>
+</span></span><span class="line"><span class="cl">    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&#34;login fail, user&lt;</span><span class="si">%s</span><span class="s2">&gt; status is </span><span class="si">%s</span><span class="s2">&#34;</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="n">user</span><span class="o">.</span><span class="n">status</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="k">raise</span> <span class="n">PasswordWrongException</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl"><span class="k">if</span> <span class="n">user</span> <span class="n">login</span> <span class="n">hit</span> <span class="n">secure</span> <span class="n">policies</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="c1"># 这里有必要的话, 甚至需要明确到具体哪个policy</span>
+</span></span><span class="line"><span class="cl">    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&#34;login fail, user&lt;</span><span class="si">%s</span><span class="s2">&gt; hit xxx secure policies&#34;</span><span class="p">,</span> <span class="n">user</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="k">raise</span> <span class="n">PasswordWrongException</span><span class="p">()</span>
+</span></span></code></pre></div><p>这种实现, 让用户捞下日志就能明确具体问题(成本: 分钟)</p>
 <h2 id="场景-4强依赖于一个第三方库-如何-debug">场景 4:强依赖于一个第三方库, 如何 debug?<a href="#场景-4强依赖于一个第三方库-如何-debug" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
 <p>如果应用本身依赖于一个第三方库, 且第三方库默认是有logger的.</p>
 <p>此时, 调用第三方库报错, 可能返回的异常信息不足以帮助用户定位问题;</p>
@@ -184,12 +184,12 @@
 <li>其次, 通过配置/环境变量, 支持用户可以开启</li>
 </ol>
 <p>上面的例子, 我们的应用实现上支持</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="kn">from</span> <span class="nn">ldap3.utils</span> <span class="kn">import</span> <span class="n">log</span> <span class="k">as</span> <span class="n">ldap3log</span>
-
-<span class="k">if</span> <span class="n">settings</span><span class="o">.</span><span class="n">ENABLE_LDAP3_DEBUG</span><span class="p">:</span>
-    <span class="n">ldap3log</span><span class="o">.</span><span class="n">set_library_log_detail_level</span><span class="p">(</span><span class="n">ldap3log</span><span class="o">.</span><span class="n">EXTENDED</span><span class="p">)</span>
-    <span class="n">ldap3log</span><span class="o">.</span><span class="n">set_library_log_activation_level</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
-</code></pre></div><p>那么, 在用户遇到问题无法解决的时候, 可以通过配置开启, 进入debug模式; 在日志中可以看到详细的 <code>ldap3 -&gt; 网络 -&gt; ldap服务器</code> 的数据细节.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="kn">from</span> <span class="nn">ldap3.utils</span> <span class="kn">import</span> <span class="n">log</span> <span class="k">as</span> <span class="n">ldap3log</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">if</span> <span class="n">settings</span><span class="o">.</span><span class="n">ENABLE_LDAP3_DEBUG</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="n">ldap3log</span><span class="o">.</span><span class="n">set_library_log_detail_level</span><span class="p">(</span><span class="n">ldap3log</span><span class="o">.</span><span class="n">EXTENDED</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="n">ldap3log</span><span class="o">.</span><span class="n">set_library_log_activation_level</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+</span></span></code></pre></div><p>那么, 在用户遇到问题无法解决的时候, 可以通过配置开启, 进入debug模式; 在日志中可以看到详细的 <code>ldap3 -&gt; 网络 -&gt; ldap服务器</code> 的数据细节.</p>
 <h2 id="其他">其他<a href="#其他" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
 <h3 id="tip-如果有可能-接入sentryotel">tip: 如果有可能, 接入sentry/otel<a href="#tip-如果有可能-接入sentryotel" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
 <blockquote>
@@ -329,7 +329,7 @@
 
 
 
-	<script src="https://wklken.me/js/bundle.min.7d8545daa55d62427355498dd8da13f98ff79a7938ce7d2a5e2ae1ec0de3beb8.js" integrity="sha256-fYVF2qVdYkJzVUmN2NoT+Y/3mnk4zn0qXirh7A3jvrg=" crossorigin="anonymous"></script>
+	<script src="https://wklken.me/js/bundle.min.580988ed2982bcbb74a1773c7abea97b43e4c43b9324e10cda0813ec6ec4bb67.js" integrity="sha256-WAmI7SmCvLt0oXc8er6pe0PkxDuTJOEM2ggT7G7Eu2c=" crossorigin="anonymous"></script>
 	
 <script type="application/javascript">
 var doNotTrack = false;

@@ -88,83 +88,83 @@
 <p>使用error wrap, 一层层抛出</p>
 <h3 id="1-定义pkgerrorx">1. 定义pkg/errorx<a href="#1-定义pkgerrorx" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
 <p>注意, package name使用<code>errorx</code>, 可以规避同标准库命名的冲突; 同时import的时候不需要alias</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="kd">type</span> <span class="nx">Error</span> <span class="kd">struct</span> <span class="p">{</span>
-	<span class="nx">message</span> <span class="kt">string</span>
-	<span class="nx">err</span>     <span class="kt">error</span>
-<span class="p">}</span>
-
-<span class="kd">func</span> <span class="p">(</span><span class="nx">e</span> <span class="nx">Error</span><span class="p">)</span> <span class="nf">Error</span><span class="p">()</span> <span class="kt">string</span> <span class="p">{</span>
-	<span class="k">return</span> <span class="nx">e</span><span class="p">.</span><span class="nx">message</span>
-<span class="p">}</span>
-
-<span class="kd">func</span> <span class="p">(</span><span class="nx">e</span> <span class="nx">Error</span><span class="p">)</span> <span class="nf">Is</span><span class="p">(</span><span class="nx">target</span> <span class="kt">error</span><span class="p">)</span> <span class="kt">bool</span> <span class="p">{</span>
-	<span class="k">if</span> <span class="nx">target</span> <span class="o">==</span> <span class="kc">nil</span> <span class="o">||</span> <span class="nx">e</span><span class="p">.</span><span class="nx">err</span> <span class="o">==</span> <span class="kc">nil</span> <span class="p">{</span>
-		<span class="k">return</span> <span class="nx">e</span><span class="p">.</span><span class="nx">err</span> <span class="o">==</span> <span class="nx">target</span>
-	<span class="p">}</span>
-
-	<span class="k">return</span> <span class="nx">errors</span><span class="p">.</span><span class="nf">Is</span><span class="p">(</span><span class="nx">e</span><span class="p">.</span><span class="nx">err</span><span class="p">,</span> <span class="nx">target</span><span class="p">)</span>
-<span class="p">}</span>
-
-<span class="kd">func</span> <span class="p">(</span><span class="nx">e</span> <span class="o">*</span><span class="nx">Error</span><span class="p">)</span> <span class="nf">Unwrap</span><span class="p">()</span> <span class="kt">error</span> <span class="p">{</span>
-	<span class="nx">u</span><span class="p">,</span> <span class="nx">ok</span> <span class="o">:=</span> <span class="nx">e</span><span class="p">.</span><span class="nx">err</span><span class="p">.(</span><span class="kd">interface</span> <span class="p">{</span>
-		<span class="nf">Unwrap</span><span class="p">()</span> <span class="kt">error</span>
-	<span class="p">})</span>
-	<span class="k">if</span> <span class="p">!</span><span class="nx">ok</span> <span class="p">{</span>
-		<span class="k">return</span> <span class="nx">e</span><span class="p">.</span><span class="nx">err</span>
-	<span class="p">}</span>
-
-	<span class="k">return</span> <span class="nx">u</span><span class="p">.</span><span class="nf">Unwrap</span><span class="p">()</span>
-<span class="p">}</span>
-</code></pre></div><h3 id="2-封装wrapfunc-helper">2. 封装wrapfunc helper<a href="#2-封装wrapfunc-helper" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">type</span> <span class="nx">Error</span> <span class="kd">struct</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">message</span> <span class="kt">string</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">err</span>     <span class="kt">error</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">e</span> <span class="nx">Error</span><span class="p">)</span> <span class="nf">Error</span><span class="p">()</span> <span class="kt">string</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="nx">e</span><span class="p">.</span><span class="nx">message</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">e</span> <span class="nx">Error</span><span class="p">)</span> <span class="nf">Is</span><span class="p">(</span><span class="nx">target</span> <span class="kt">error</span><span class="p">)</span> <span class="kt">bool</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="nx">target</span> <span class="o">==</span> <span class="kc">nil</span> <span class="o">||</span> <span class="nx">e</span><span class="p">.</span><span class="nx">err</span> <span class="o">==</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="k">return</span> <span class="nx">e</span><span class="p">.</span><span class="nx">err</span> <span class="o">==</span> <span class="nx">target</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="nx">errors</span><span class="p">.</span><span class="nf">Is</span><span class="p">(</span><span class="nx">e</span><span class="p">.</span><span class="nx">err</span><span class="p">,</span> <span class="nx">target</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">e</span> <span class="o">*</span><span class="nx">Error</span><span class="p">)</span> <span class="nf">Unwrap</span><span class="p">()</span> <span class="kt">error</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">u</span><span class="p">,</span> <span class="nx">ok</span> <span class="o">:=</span> <span class="nx">e</span><span class="p">.</span><span class="nx">err</span><span class="p">.(</span><span class="kd">interface</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">Unwrap</span><span class="p">()</span> <span class="kt">error</span>
+</span></span><span class="line"><span class="cl">	<span class="p">})</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">!</span><span class="nx">ok</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="k">return</span> <span class="nx">e</span><span class="p">.</span><span class="nx">err</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="nx">u</span><span class="p">.</span><span class="nf">Unwrap</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><h3 id="2-封装wrapfunc-helper">2. 封装wrapfunc helper<a href="#2-封装wrapfunc-helper" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
 <p>注意,</p>
 <ul>
 <li>这里如果是最原始的err(即wrap前的err), 会使用<code>[Raw:Error]</code>标注</li>
 <li>如果是中间层的, 会附加<code>layer</code>(哪一层)和<code>function</code>(哪个函数)这两个信息</li>
 <li>这里定义了一个 helper 方法, 用于在</li>
 </ul>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="kd">func</span> <span class="nf">makeMessage</span><span class="p">(</span><span class="nx">err</span> <span class="kt">error</span><span class="p">,</span> <span class="nx">layer</span><span class="p">,</span> <span class="nx">function</span><span class="p">,</span> <span class="nx">msg</span> <span class="kt">string</span><span class="p">)</span> <span class="kt">string</span> <span class="p">{</span>
-	<span class="kd">var</span> <span class="nx">message</span> <span class="kt">string</span>
-	<span class="kd">var</span> <span class="nx">e</span> <span class="nx">Error</span>
-	<span class="k">if</span> <span class="nx">errors</span><span class="p">.</span><span class="nf">As</span><span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="o">&amp;</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
-		<span class="nx">message</span> <span class="p">=</span> <span class="nx">fmt</span><span class="p">.</span><span class="nf">Sprintf</span><span class="p">(</span><span class="s">&#34;[%s:%s] %s =&gt; %s&#34;</span><span class="p">,</span> <span class="nx">layer</span><span class="p">,</span> <span class="nx">function</span><span class="p">,</span> <span class="nx">msg</span><span class="p">,</span> <span class="nx">err</span><span class="p">.</span><span class="nf">Error</span><span class="p">())</span>
-	<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
-		<span class="nx">message</span> <span class="p">=</span> <span class="nx">fmt</span><span class="p">.</span><span class="nf">Sprintf</span><span class="p">(</span><span class="s">&#34;[%s:%s] %s =&gt; [Raw:Error] %v&#34;</span><span class="p">,</span> <span class="nx">layer</span><span class="p">,</span> <span class="nx">function</span><span class="p">,</span> <span class="nx">msg</span><span class="p">,</span> <span class="nx">err</span><span class="p">.</span><span class="nf">Error</span><span class="p">())</span>
-	<span class="p">}</span>
-
-	<span class="k">return</span> <span class="nx">message</span>
-<span class="p">}</span>
-
-<span class="kd">func</span> <span class="nf">Wrapf</span><span class="p">(</span><span class="nx">err</span> <span class="kt">error</span><span class="p">,</span> <span class="nx">layer</span> <span class="kt">string</span><span class="p">,</span> <span class="nx">function</span> <span class="kt">string</span><span class="p">,</span> <span class="nx">format</span> <span class="kt">string</span><span class="p">,</span> <span class="nx">args</span> <span class="o">...</span><span class="kd">interface</span><span class="p">{})</span> <span class="kt">error</span> <span class="p">{</span>
-	<span class="k">if</span> <span class="nx">err</span> <span class="o">==</span> <span class="kc">nil</span> <span class="p">{</span>
-		<span class="k">return</span> <span class="kc">nil</span>
-	<span class="p">}</span>
-
-	<span class="nx">msg</span> <span class="o">:=</span> <span class="nx">fmt</span><span class="p">.</span><span class="nf">Sprintf</span><span class="p">(</span><span class="nx">format</span><span class="p">,</span> <span class="nx">args</span><span class="o">...</span><span class="p">)</span>
-
-	<span class="k">return</span> <span class="nx">Error</span><span class="p">{</span>
-		<span class="nx">message</span><span class="p">:</span> <span class="nf">makeMessage</span><span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">layer</span><span class="p">,</span> <span class="nx">function</span><span class="p">,</span> <span class="nx">msg</span><span class="p">),</span>
-		<span class="nx">err</span><span class="p">:</span>     <span class="nx">err</span><span class="p">,</span>
-	<span class="p">}</span>
-<span class="p">}</span>
-
-<span class="kd">type</span> <span class="nx">WrapfFuncWithLayerFunction</span> <span class="kd">func</span><span class="p">(</span><span class="nx">err</span> <span class="kt">error</span><span class="p">,</span> <span class="nx">format</span> <span class="kt">string</span><span class="p">,</span> <span class="nx">args</span> <span class="o">...</span><span class="kd">interface</span><span class="p">{})</span> <span class="kt">error</span>
-
-<span class="kd">func</span> <span class="nf">NewLayerFunctionErrorWrapf</span><span class="p">(</span><span class="nx">layer</span> <span class="kt">string</span><span class="p">,</span> <span class="nx">function</span> <span class="kt">string</span><span class="p">)</span> <span class="nx">WrapfFuncWithLayerFunction</span> <span class="p">{</span>
-	<span class="k">return</span> <span class="kd">func</span><span class="p">(</span><span class="nx">err</span> <span class="kt">error</span><span class="p">,</span> <span class="nx">format</span> <span class="kt">string</span><span class="p">,</span> <span class="nx">args</span> <span class="o">...</span><span class="kd">interface</span><span class="p">{})</span> <span class="kt">error</span> <span class="p">{</span>
-		<span class="k">return</span> <span class="nf">Wrapf</span><span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">layer</span><span class="p">,</span> <span class="nx">function</span><span class="p">,</span> <span class="nx">format</span><span class="p">,</span> <span class="nx">args</span><span class="o">...</span><span class="p">)</span>
-	<span class="p">}</span>
-<span class="p">}</span>
-</code></pre></div><h3 id="3-使用">3. 使用<a href="#3-使用" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">makeMessage</span><span class="p">(</span><span class="nx">err</span> <span class="kt">error</span><span class="p">,</span> <span class="nx">layer</span><span class="p">,</span> <span class="nx">function</span><span class="p">,</span> <span class="nx">msg</span> <span class="kt">string</span><span class="p">)</span> <span class="kt">string</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="kd">var</span> <span class="nx">message</span> <span class="kt">string</span>
+</span></span><span class="line"><span class="cl">	<span class="kd">var</span> <span class="nx">e</span> <span class="nx">Error</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="nx">errors</span><span class="p">.</span><span class="nf">As</span><span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="o">&amp;</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="nx">message</span> <span class="p">=</span> <span class="nx">fmt</span><span class="p">.</span><span class="nf">Sprintf</span><span class="p">(</span><span class="s">&#34;[%s:%s] %s =&gt; %s&#34;</span><span class="p">,</span> <span class="nx">layer</span><span class="p">,</span> <span class="nx">function</span><span class="p">,</span> <span class="nx">msg</span><span class="p">,</span> <span class="nx">err</span><span class="p">.</span><span class="nf">Error</span><span class="p">())</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="nx">message</span> <span class="p">=</span> <span class="nx">fmt</span><span class="p">.</span><span class="nf">Sprintf</span><span class="p">(</span><span class="s">&#34;[%s:%s] %s =&gt; [Raw:Error] %v&#34;</span><span class="p">,</span> <span class="nx">layer</span><span class="p">,</span> <span class="nx">function</span><span class="p">,</span> <span class="nx">msg</span><span class="p">,</span> <span class="nx">err</span><span class="p">.</span><span class="nf">Error</span><span class="p">())</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="nx">message</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">Wrapf</span><span class="p">(</span><span class="nx">err</span> <span class="kt">error</span><span class="p">,</span> <span class="nx">layer</span> <span class="kt">string</span><span class="p">,</span> <span class="nx">function</span> <span class="kt">string</span><span class="p">,</span> <span class="nx">format</span> <span class="kt">string</span><span class="p">,</span> <span class="nx">args</span> <span class="o">...</span><span class="kd">interface</span><span class="p">{})</span> <span class="kt">error</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="nx">err</span> <span class="o">==</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="k">return</span> <span class="kc">nil</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nx">msg</span> <span class="o">:=</span> <span class="nx">fmt</span><span class="p">.</span><span class="nf">Sprintf</span><span class="p">(</span><span class="nx">format</span><span class="p">,</span> <span class="nx">args</span><span class="o">...</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="nx">Error</span><span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="nx">message</span><span class="p">:</span> <span class="nf">makeMessage</span><span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">layer</span><span class="p">,</span> <span class="nx">function</span><span class="p">,</span> <span class="nx">msg</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">		<span class="nx">err</span><span class="p">:</span>     <span class="nx">err</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">type</span> <span class="nx">WrapfFuncWithLayerFunction</span> <span class="kd">func</span><span class="p">(</span><span class="nx">err</span> <span class="kt">error</span><span class="p">,</span> <span class="nx">format</span> <span class="kt">string</span><span class="p">,</span> <span class="nx">args</span> <span class="o">...</span><span class="kd">interface</span><span class="p">{})</span> <span class="kt">error</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">NewLayerFunctionErrorWrapf</span><span class="p">(</span><span class="nx">layer</span> <span class="kt">string</span><span class="p">,</span> <span class="nx">function</span> <span class="kt">string</span><span class="p">)</span> <span class="nx">WrapfFuncWithLayerFunction</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="kd">func</span><span class="p">(</span><span class="nx">err</span> <span class="kt">error</span><span class="p">,</span> <span class="nx">format</span> <span class="kt">string</span><span class="p">,</span> <span class="nx">args</span> <span class="o">...</span><span class="kd">interface</span><span class="p">{})</span> <span class="kt">error</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="k">return</span> <span class="nf">Wrapf</span><span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">layer</span><span class="p">,</span> <span class="nx">function</span><span class="p">,</span> <span class="nx">format</span><span class="p">,</span> <span class="nx">args</span><span class="o">...</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><h3 id="3-使用">3. 使用<a href="#3-使用" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
 <p>在某个函数体内, 涉及到需要return err或中间层</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="nx">errorWrapf</span> <span class="o">:=</span> <span class="nx">errorx</span><span class="p">.</span><span class="nf">NewLayerFunctionErrorWrapf</span><span class="p">(</span><span class="s">&#34;Handler&#34;</span><span class="p">,</span> <span class="s">&#34;ListSubject&#34;</span><span class="p">)</span>
-
-<span class="nx">_</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">svc</span><span class="p">.</span><span class="nf">ListPaging</span><span class="p">(</span><span class="nx">body</span><span class="p">.</span><span class="nx">Type</span><span class="p">,</span> <span class="nx">body</span><span class="p">.</span><span class="nx">Limit</span><span class="p">,</span> <span class="nx">body</span><span class="p">.</span><span class="nx">Offset</span><span class="p">)</span>
-<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
-    <span class="nx">err</span> <span class="p">=</span> <span class="nf">errorWrapf</span><span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="s">&#34;svc.ListPaging type=`%s` limit=`%d` offset=`%d` fail!&#34;</span><span class="p">,</span>
-			<span class="nx">body</span><span class="p">.</span><span class="nx">Type</span><span class="p">,</span> <span class="nx">body</span><span class="p">.</span><span class="nx">Limit</span><span class="p">,</span> <span class="nx">body</span><span class="p">.</span><span class="nx">Offset</span><span class="p">)</span>
-		<span class="k">return</span> <span class="nx">err</span>
-<span class="p">}</span>
-</code></pre></div><p>注意, <strong>wrap时包含关键的调用参数/返回值等等, 但是不能包含敏感数据</strong></p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="nx">errorWrapf</span> <span class="o">:=</span> <span class="nx">errorx</span><span class="p">.</span><span class="nf">NewLayerFunctionErrorWrapf</span><span class="p">(</span><span class="s">&#34;Handler&#34;</span><span class="p">,</span> <span class="s">&#34;ListSubject&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nx">_</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">svc</span><span class="p">.</span><span class="nf">ListPaging</span><span class="p">(</span><span class="nx">body</span><span class="p">.</span><span class="nx">Type</span><span class="p">,</span> <span class="nx">body</span><span class="p">.</span><span class="nx">Limit</span><span class="p">,</span> <span class="nx">body</span><span class="p">.</span><span class="nx">Offset</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">err</span> <span class="p">=</span> <span class="nf">errorWrapf</span><span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="s">&#34;svc.ListPaging type=`%s` limit=`%d` offset=`%d` fail!&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">			<span class="nx">body</span><span class="p">.</span><span class="nx">Type</span><span class="p">,</span> <span class="nx">body</span><span class="p">.</span><span class="nx">Limit</span><span class="p">,</span> <span class="nx">body</span><span class="p">.</span><span class="nx">Offset</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">		<span class="k">return</span> <span class="nx">err</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>注意, <strong>wrap时包含关键的调用参数/返回值等等, 但是不能包含敏感数据</strong></p>
 
 			</div>
 			<hr class="post-end">
@@ -236,7 +236,7 @@
 
 
 
-	<script src="https://wklken.me/js/bundle.min.7d8545daa55d62427355498dd8da13f98ff79a7938ce7d2a5e2ae1ec0de3beb8.js" integrity="sha256-fYVF2qVdYkJzVUmN2NoT+Y/3mnk4zn0qXirh7A3jvrg=" crossorigin="anonymous"></script>
+	<script src="https://wklken.me/js/bundle.min.580988ed2982bcbb74a1773c7abea97b43e4c43b9324e10cda0813ec6ec4bb67.js" integrity="sha256-WAmI7SmCvLt0oXc8er6pe0PkxDuTJOEM2ggT7G7Eu2c=" crossorigin="anonymous"></script>
 	
 <script type="application/javascript">
 var doNotTrack = false;

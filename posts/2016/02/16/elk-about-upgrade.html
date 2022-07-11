@@ -96,29 +96,29 @@
 <p>建议, 部署agent的时候, 如果读的是文件, 建议配置<code>sincedb_path</code> 这样假设下次升级, 就可以从老的服务最后读取的位置开始了</p>
 <pre tabindex="0"><code>input {
     file {
-        path =&gt; [&quot;/data/logs/*.log&quot;]
-        sincedb_path =&gt; &quot;/data/LogNew/logstash/sincedb/celery.sincedb&quot;
+        path =&gt; [&#34;/data/logs/*.log&#34;]
+        sincedb_path =&gt; &#34;/data/LogNew/logstash/sincedb/celery.sincedb&#34;
     }
 }
 </code></pre><h4 id="2-elasticsearch升级的策略">2. elasticsearch升级的策略<a href="#2-elasticsearch升级的策略" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
 <p>elasticsearch从1.4到2.0, 部署上变化不大, 变化最大的是存储doc的schema变了&hellip;&hellip;</p>
 <p>使用原来的语法查询, 发现查不到, 因为字段名以及嵌套层级完全不一样了, 这里, 要修改查询端, 兼容新老版本的格式</p>
-<pre tabindex="0"><code>{'from': 0,
- 'query': {'filtered': {'filter': {'bool': {'must': [{'bool': {'should': [{'term': {'type': 'app'}},
-                                                                          {'term': {'@type': 'app'}}]}},
-                                                     {'bool': {'should': [{'term': {'log_level': u'error'}},
-                                                                          {'term': {'@fields.log_level': u'error'}}]}},
-                                                     {'range': {'@timestamp': {'gt': 'now-5h'}}},
-                                                     {'bool': {'should': [{'term': {'log_type': u'celery'}},
-                                                                          {'term': {'@fields.log_type': u'celery'}}]}}]}}}},
- 'size': 100,
- 'sort': [{'@timestamp': 'desc'}]}
+<pre tabindex="0"><code>{&#39;from&#39;: 0,
+ &#39;query&#39;: {&#39;filtered&#39;: {&#39;filter&#39;: {&#39;bool&#39;: {&#39;must&#39;: [{&#39;bool&#39;: {&#39;should&#39;: [{&#39;term&#39;: {&#39;type&#39;: &#39;app&#39;}},
+                                                                          {&#39;term&#39;: {&#39;@type&#39;: &#39;app&#39;}}]}},
+                                                     {&#39;bool&#39;: {&#39;should&#39;: [{&#39;term&#39;: {&#39;log_level&#39;: u&#39;error&#39;}},
+                                                                          {&#39;term&#39;: {&#39;@fields.log_level&#39;: u&#39;error&#39;}}]}},
+                                                     {&#39;range&#39;: {&#39;@timestamp&#39;: {&#39;gt&#39;: &#39;now-5h&#39;}}},
+                                                     {&#39;bool&#39;: {&#39;should&#39;: [{&#39;term&#39;: {&#39;log_type&#39;: u&#39;celery&#39;}},
+                                                                          {&#39;term&#39;: {&#39;@fields.log_type&#39;: u&#39;celery&#39;}}]}}]}}}},
+ &#39;size&#39;: 100,
+ &#39;sort&#39;: [{&#39;@timestamp&#39;: &#39;desc&#39;}]}
 </code></pre><p>另一个是, 取到数据进行解析的时候, 发现解析逻辑跪了, 没办法, 返回的json也完全变了, 这里, 要修改解析逻辑, 兼容新老版本格式</p>
 <pre tabindex="0"><code>for hit in log_hits:
     try:
-        source = hit.get('_source')
-        if '@fields' in source:
-            log = source.get('@fields', {})
+        source = hit.get(&#39;_source&#39;)
+        if &#39;@fields&#39; in source:
+            log = source.get(&#39;@fields&#39;, {})
         else:
             log = source
 </code></pre><p>为了让用户感觉不到集群升级, 首先要做的就是上面两个变更</p>
@@ -126,10 +126,10 @@
 <p>ready, 所有节点起好维护好, 然后, 改indexer, 将同一份日志灌到两个集群</p>
 <pre tabindex="0"><code>output {
     elasticsearch {
-        hosts =&gt; [&quot;10.1.1.1:9100&quot;, &quot;10.1.1.2:9100&quot;]
+        hosts =&gt; [&#34;10.1.1.1:9100&#34;, &#34;10.1.1.2:9100&#34;]
     }
     elasticsearch {
-        hosts =&gt; [&quot;10.1.1.1:9110&quot;, &quot;10.1.1.2:9110&quot;]
+        hosts =&gt; [&#34;10.1.1.1:9110&#34;, &#34;10.1.1.2:9110&#34;]
     }
 }
 </code></pre><p>简单测试下, 没问题就放着甭管了, 等数据攒齐了&hellip;.</p>
@@ -146,27 +146,27 @@ cd $BASEDIR
 CURRENT_DIR=`pwd`
 
 function help_msg() {
-    echo &quot;===================== usage =====================&quot;
-    echo &quot;./logstashd.sh  - enter command line&quot;
-    echo &quot;./logstashd.sh status - show all configured process&quot;
-    echo &quot;./logstashd.sh start ${name} - start program&quot;
-    echo &quot;./logstashd.sh stop ${name} - stop program&quot;
-    echo &quot;./logstashd.sh restart ${name} - restart program&quot;
-    echo &quot;./logstashd.sh reread &amp;&amp; ./logstashd.sh update - update config and just update the modified programs&quot;
-    echo &quot;./logstashd.sh reload - reload config files and restart all programs(stopeed not included)&quot;
-    echo &quot;=================================================&quot;
-    echo &quot;&quot;
+    echo &#34;===================== usage =====================&#34;
+    echo &#34;./logstashd.sh  - enter command line&#34;
+    echo &#34;./logstashd.sh status - show all configured process&#34;
+    echo &#34;./logstashd.sh start ${name} - start program&#34;
+    echo &#34;./logstashd.sh stop ${name} - stop program&#34;
+    echo &#34;./logstashd.sh restart ${name} - restart program&#34;
+    echo &#34;./logstashd.sh reread &amp;&amp; ./logstashd.sh update - update config and just update the modified programs&#34;
+    echo &#34;./logstashd.sh reload - reload config files and restart all programs(stopeed not included)&#34;
+    echo &#34;=================================================&#34;
+    echo &#34;&#34;
 }
 
-if [ &quot;${1}&quot; = &quot;-h&quot; -o &quot;${1}&quot; = &quot;--help&quot; ]
+if [ &#34;${1}&#34; = &#34;-h&#34; -o &#34;${1}&#34; = &#34;--help&#34; ]
 then
     help_msg
     exit 0
 fi
 
-SUPERVISORCTL='/data/LogNew/python27/bin/supervisorctl'
+SUPERVISORCTL=&#39;/data/LogNew/python27/bin/supervisorctl&#39;
 
-CONFIG_FILE_PATH=&quot;${CURRENT_DIR}/conf/supervisord.conf&quot;
+CONFIG_FILE_PATH=&#34;${CURRENT_DIR}/conf/supervisord.conf&#34;
 
 $SUPERVISORCTL -c $CONFIG_FILE_PATH $@
 </code></pre><p>使用</p>
@@ -194,14 +194,14 @@ supervisor&gt; restart indexer
 <p>logstash indexer, 分别转发数据到两个不同的output</p>
 <pre tabindex="0"><code>output {
     elasticsearch {
-        hosts =&gt; [&quot;10.1.1.1:8080&quot;, &quot;10.1.1.2:8080&quot;]
+        hosts =&gt; [&#34;10.1.1.1:8080&#34;, &#34;10.1.1.2:8080&#34;]
     }
     redis {
-        host =&gt; &quot;10.1.1.3&quot;
+        host =&gt; &#34;10.1.1.3&#34;
         port =&gt; 6379
-        password =&gt; &quot;7oEsjqUNoTdgE4&quot;
-        data_type =&gt; &quot;list&quot;
-        key =&gt; &quot;log_queue&quot;
+        password =&gt; &#34;7oEsjqUNoTdgE4&#34;
+        data_type =&gt; &#34;list&#34;
+        key =&gt; &#34;log_queue&#34;
         db =&gt; 0
         batch =&gt; true
     }
@@ -215,15 +215,15 @@ supervisor&gt; restart indexer
 <pre tabindex="0"><code>GetLanIp () {
      ## get associated LAN ip address
      ## usage: GetLanIp
-     /sbin/ifconfig | awk '
+     /sbin/ifconfig | awk &#39;
          /eth/{
              getline;
              if (/inet addr:(172|10|192)\./) {
-                 gsub(&quot;.*addr:|  *Bcast.*&quot;,&quot;&quot;);
+                 gsub(&#34;.*addr:|  *Bcast.*&#34;,&#34;&#34;);
                  print $0;
                  exit;
              }
-         }'
+         }&#39;
      return 0
 }
 </code></pre><p>2.放入环境变量</p>
@@ -231,8 +231,8 @@ supervisor&gt; restart indexer
 </code></pre><p>3.修改logstash配置</p>
 <p>注意, 这里是logstash2.x的语法</p>
 <pre tabindex="0"><code>    environment {
-        add_metadata_from_env =&gt; [&quot;agent_ip&quot;, &quot;ETH1_IP&quot;]
-        add_field =&gt; {&quot;agent_ip&quot; =&gt;  &quot;%{[@metadata][agent_ip]}&quot; }
+        add_metadata_from_env =&gt; [&#34;agent_ip&#34;, &#34;ETH1_IP&#34;]
+        add_field =&gt; {&#34;agent_ip&#34; =&gt;  &#34;%{[@metadata][agent_ip]}&#34; }
     }
 </code></pre><h4 id="问题-elk的utc问题">问题: elk的utc问题<a href="#问题-elk的utc问题" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
 <p>elasticsearch内部使用的是utc, 存储为long (milliseconds since the epoch)  e.g. timestamp=1420070400000</p>
@@ -254,20 +254,20 @@ supervisor&gt; restart indexer
 <p>当存在配置变更时, 需要重启es集群, 不可能全部重启的, 这样会导致服务不可用&hellip;.</p>
 <p>所以, 要一个个重启</p>
 <p>先执行</p>
-<pre tabindex="0"><code>curl -XPUT 'http://localhost:9200/_cluster/settings' -d '
+<pre tabindex="0"><code>curl -XPUT &#39;http://localhost:9200/_cluster/settings&#39; -d &#39;
 {
-    &quot;transient&quot; : {
-        &quot;cluster.routing.allocation.enable&quot; : &quot;none&quot;
+    &#34;transient&#34; : {
+        &#34;cluster.routing.allocation.enable&#34; : &#34;none&#34;
     }
-}'
+}&#39;
 </code></pre><p>然后, shutdown, 改配置, start</p>
 <p>then : 一定要记得执行, 否则不会执行recovery&hellip;..会一直等着</p>
-<pre tabindex="0"><code>curl -XPUT 'http://localhost:9200/_cluster/settings' -d '
+<pre tabindex="0"><code>curl -XPUT &#39;http://localhost:9200/_cluster/settings&#39; -d &#39;
 {
-    &quot;transient&quot; : {
-        &quot;cluster.routing.allocation.enable&quot; : &quot;all&quot;
+    &#34;transient&#34; : {
+        &#34;cluster.routing.allocation.enable&#34; : &#34;all&#34;
     }
-}'
+}&#39;
 </code></pre><h4 id="logstash文本解析配置grok语法">logstash文本解析配置grok语法<a href="#logstash文本解析配置grok语法" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
 <p>一个线上的工具, <a href="https://grokdebug.herokuapp.com/">https://grokdebug.herokuapp.com/</a></p>
 <p>挺好用的, 但是有时候变更频繁相应有些缓慢</p>
@@ -278,7 +278,7 @@ supervisor&gt; restart indexer
 <p>而 <code>WORD</code>: 不支持连字符和下划线</p>
 <p>跪了, 需要自定义<code>LOGFILENAME [a-z\-A-Z0-9_\.]+</code>放到pattern中</p>
 <p>然后, 搜索的时候, 尼玛, 也搜不到&hellip;.语法要做处理, 使用<code>raw</code>, es建索引的时候自动拆掉了导致搜索不到</p>
-<pre tabindex="0"><code>{'term': {'app_name.raw': 'nms-t'}}
+<pre tabindex="0"><code>{&#39;term&#39;: {&#39;app_name.raw&#39;: &#39;nms-t&#39;}}
 </code></pre><h4 id="做一些exclude">做一些exclude<a href="#做一些exclude" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
 <p>有时候需要做一些exclude, 去除比必要采集和监控的日志(进入采集逻辑纯粹是浪费cpu和内存)</p>
 <p>例如, 目录树, 不要监控celery.log</p>
@@ -292,9 +292,9 @@ supervisor&gt; restart indexer
         └── d.log
 </code></pre><p>排除部分文件</p>
 <pre tabindex="0"><code>file {
-    path =&gt; [&quot;/data/logs/*/*.log&quot;]
-    exclude =&gt; [&quot;celery.log&quot;, ]
-    sincedb_path =&gt; &quot;/data/LogNew/logstash/sincedb/django.sincedb&quot;
+    path =&gt; [&#34;/data/logs/*/*.log&#34;]
+    exclude =&gt; [&#34;celery.log&#34;, ]
+    sincedb_path =&gt; &#34;/data/LogNew/logstash/sincedb/django.sincedb&#34;
 }
 </code></pre><p><a href="https://www.elastic.co/guide/en/logstash/current/plugins-inputs-file.html#plugins-inputs-file-exclude">文档</a></p>
 <h4 id="一些相关用到的命令">一些相关用到的命令<a href="#一些相关用到的命令" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
@@ -306,26 +306,26 @@ supervisor&gt; restart indexer
 </code></pre><ul>
 <li>create empty index</li>
 </ul>
-<pre tabindex="0"><code>curl -XPUT 'http://localhost:9100/logstash-2015.12.15/'
+<pre tabindex="0"><code>curl -XPUT &#39;http://localhost:9100/logstash-2015.12.15/&#39;
 </code></pre><ul>
 <li>查看健康度</li>
 </ul>
-<pre tabindex="0"><code>curl 'http://localhost:9100/_cluster/health?pretty=true'
+<pre tabindex="0"><code>curl &#39;http://localhost:9100/_cluster/health?pretty=true&#39;
 </code></pre><ul>
 <li>查看indices</li>
 </ul>
 <pre tabindex="0"><code>#!/bin/bash
 
-curl 'http://localhost:9100/_cat/indices?v' | sort -k 3
+curl &#39;http://localhost:9100/_cat/indices?v&#39; | sort -k 3
 </code></pre><h4 id="删除30天前crontab脚本">删除30天前crontab脚本<a href="#删除30天前crontab脚本" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
 <pre tabindex="0"><code>#!/bin/bash
 
 now=`date +%Y%m%d`
 echo $now
-days_30_before=`date -d &quot;$now 31 days ago&quot; +%Y.%m.%d`
+days_30_before=`date -d &#34;$now 31 days ago&#34; +%Y.%m.%d`
 echo $days_30_before
-echo &quot;http://10.1.1.1:9100/logstash-$days_30_before&quot;
-curl -XDELETE &quot;http://10.1.1.1:9100/logstash-$days_30_before&quot; &gt; /dev/null 2&gt;&amp;1
+echo &#34;http://10.1.1.1:9100/logstash-$days_30_before&#34;
+curl -XDELETE &#34;http://10.1.1.1:9100/logstash-$days_30_before&#34; &gt; /dev/null 2&gt;&amp;1
 </code></pre><h4 id="尚未处理">尚未处理<a href="#尚未处理" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
 <p>logstash2.1 muline codec, 配置多个数据来源, 存在串的情况, 生产中大数据量有, 小规模没有复现&hellip;.</p>
 <hr>
@@ -399,7 +399,7 @@ curl -XDELETE &quot;http://10.1.1.1:9100/logstash-$days_30_before&quot; &gt; /de
 
 
 
-	<script src="https://wklken.me/js/bundle.min.7d8545daa55d62427355498dd8da13f98ff79a7938ce7d2a5e2ae1ec0de3beb8.js" integrity="sha256-fYVF2qVdYkJzVUmN2NoT+Y/3mnk4zn0qXirh7A3jvrg=" crossorigin="anonymous"></script>
+	<script src="https://wklken.me/js/bundle.min.580988ed2982bcbb74a1773c7abea97b43e4c43b9324e10cda0813ec6ec4bb67.js" integrity="sha256-WAmI7SmCvLt0oXc8er6pe0PkxDuTJOEM2ggT7G7Eu2c=" crossorigin="anonymous"></script>
 	
 <script type="application/javascript">
 var doNotTrack = false;

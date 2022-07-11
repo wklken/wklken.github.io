@@ -80,10 +80,10 @@
 <p>下面主要介绍对nginx日志进行处理的过程, 不是针对<code>elk</code>的介绍, 所有涉及ip的地方都改成<code>127.0.0.1</code>了, 根据自己环境进行修改</p>
 <h3 id="1-nginx日志---logstash-shipper---redis">1. nginx日志 -&gt; logstash shipper -&gt; redis<a href="#1-nginx日志---logstash-shipper---redis" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
 <p>在<code>centos</code>使用<code>yum</code>安装<code>nginx</code>后, 默认<code>/etc/nginx/nginx.conf</code>中的日志格式定义为:</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-nginx" data-lang="nginx"><span class="k">log_format</span>  <span class="s">main</span>  <span class="s">&#39;</span><span class="nv">$remote_addr</span> <span class="s">-</span> <span class="nv">$remote_user</span> <span class="s">[</span><span class="nv">$time_local]</span> <span class="s">&#34;</span><span class="nv">$request&#34;</span> <span class="s">&#39;</span>
-                  <span class="s">&#39;</span><span class="nv">$status</span> <span class="nv">$body_bytes_sent</span> <span class="s">&#34;</span><span class="nv">$http_referer&#34;</span> <span class="s">&#39;</span>
-                  <span class="s">&#39;&#34;</span><span class="nv">$http_user_agent&#34;</span> <span class="s">&#34;</span><span class="nv">$http_x_forwarded_for&#34;&#39;</span><span class="p">;</span>
-</code></pre></div><p>然后在具体<code>server</code>配置中使用</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-nginx" data-lang="nginx"><span class="line"><span class="cl"><span class="k">log_format</span>  <span class="s">main</span>  <span class="s">&#39;</span><span class="nv">$remote_addr</span> <span class="s">-</span> <span class="nv">$remote_user</span> <span class="s">[</span><span class="nv">$time_local]</span> <span class="s">&#34;</span><span class="nv">$request&#34;</span> <span class="s">&#39;</span>
+</span></span><span class="line"><span class="cl">                  <span class="s">&#39;</span><span class="nv">$status</span> <span class="nv">$body_bytes_sent</span> <span class="s">&#34;</span><span class="nv">$http_referer&#34;</span> <span class="s">&#39;</span>
+</span></span><span class="line"><span class="cl">                  <span class="s">&#39;&#34;</span><span class="nv">$http_user_agent&#34;</span> <span class="s">&#34;</span><span class="nv">$http_x_forwarded_for&#34;&#39;</span><span class="p">;</span>
+</span></span></code></pre></div><p>然后在具体<code>server</code>配置中使用</p>
 <pre tabindex="0"><code>access_log /data/logs/nginx/{PROJECT_NAME}_access.log main;
 </code></pre><p>此时, 我们需要做的是, 将<code>access log</code>通过<code>logstash shipper</code>读取, 转<code>json</code>, 发送到<code>redis</code>, 由后续的<code>logstash indexer</code>进行处理</p>
 <p>步骤</p>
@@ -92,32 +92,32 @@
 <p>内容(与上面的<code>log_format</code>相对应)</p>
 <pre tabindex="0"><code>NGUSERNAME [a-zA-Z\.\@\-\+_%]+
 NGUSER %{NGUSERNAME}
-NGINXACCESS %{IPORHOST:clientip} - %{NOTSPACE:remote_user} \[%{HTTPDATE:timestamp}\] \&quot;(?:%{WORD:verb} %{NOTSPACE:request}(?: HTTP/%{NUMBER:httpversion})?|%{DATA:rawrequest})\&quot; %{NUMBER:response} (?:%{NUMBER:bytes}|-) %{QS:referrer} %{QS:agent} %{NOTSPACE:http_x_forwarded_for}
+NGINXACCESS %{IPORHOST:clientip} - %{NOTSPACE:remote_user} \[%{HTTPDATE:timestamp}\] \&#34;(?:%{WORD:verb} %{NOTSPACE:request}(?: HTTP/%{NUMBER:httpversion})?|%{DATA:rawrequest})\&#34; %{NUMBER:response} (?:%{NUMBER:bytes}|-) %{QS:referrer} %{QS:agent} %{NOTSPACE:http_x_forwarded_for}
 </code></pre><p>3.增加一个<code>logstash</code>配置文件: <code>logstash-project-access-log.conf</code></p>
 <p>注意, input的file, filter的grok, output的redis-key</p>
 <pre tabindex="0"><code>    input {
     file {
-        path =&gt; [ &quot;/data/logs/nginx/xxxx_access.log&quot; ]
-        start_position =&gt; &quot;beginning&quot;
+        path =&gt; [ &#34;/data/logs/nginx/xxxx_access.log&#34; ]
+        start_position =&gt; &#34;beginning&#34;
     }
     }
 
     filter {
-    mutate { replace =&gt; { &quot;type&quot; =&gt; &quot;nginx_access&quot; } }
+    mutate { replace =&gt; { &#34;type&#34; =&gt; &#34;nginx_access&#34; } }
     grok {
-        match =&gt; { &quot;message&quot; =&gt; &quot;%{NGINXACCESS}&quot; }
+        match =&gt; { &#34;message&#34; =&gt; &#34;%{NGINXACCESS}&#34; }
     }
     date {
-        match =&gt; [ &quot;timestamp&quot; , &quot;dd/MMM/YYYY:HH:mm:ss Z&quot; ]
+        match =&gt; [ &#34;timestamp&#34; , &#34;dd/MMM/YYYY:HH:mm:ss Z&#34; ]
     }
     geoip {
-        source =&gt; &quot;clientip&quot;
+        source =&gt; &#34;clientip&#34;
     }
     }
 
 
     output {
-    redis { host =&gt; &quot;127.0.0.1&quot; data_type =&gt; &quot;list&quot; key =&gt; &quot;logstash:xxxx:access_log&quot; }
+    redis { host =&gt; &#34;127.0.0.1&#34; data_type =&gt; &#34;list&#34; key =&gt; &#34;logstash:xxxx:access_log&#34; }
     }
 </code></pre><p>4.使用<code>supervisor</code>启动<code>shipper</code>.</p>
 <pre tabindex="0"><code>    [program:logstash_xxxx_shipper]
@@ -132,20 +132,20 @@ NGINXACCESS %{IPORHOST:clientip} - %{NOTSPACE:remote_user} \[%{HTTPDATE:timestam
 <p>注意, input的redis为上一步redis配置, key要对应, output的elasticsearch配置, <code>index</code>指定了最终es中存储对应的index, 加日期, 方便对日志进行定期删除</p>
 <pre tabindex="0"><code>input {
 redis {
-    host =&gt; &quot;127.0.0.1&quot;
-    port =&gt; &quot;6379&quot;
-    key =&gt; &quot;logstash:xxxx:access_log&quot;
-    data_type =&gt; &quot;list&quot;
-    codec  =&gt; &quot;json&quot;
-    type =&gt; &quot;logstash-arthas-access&quot;
-    tags =&gt; [&quot;arthas&quot;]
+    host =&gt; &#34;127.0.0.1&#34;
+    port =&gt; &#34;6379&#34;
+    key =&gt; &#34;logstash:xxxx:access_log&#34;
+    data_type =&gt; &#34;list&#34;
+    codec  =&gt; &#34;json&#34;
+    type =&gt; &#34;logstash-arthas-access&#34;
+    tags =&gt; [&#34;arthas&#34;]
 }
 }
 
 output {
 elasticsearch {
-    host =&gt; &quot;127.0.0.1&quot;
-    index =&gt; &quot;logstash-arthas-access-%{+YYYY.MM.dd}&quot;
+    host =&gt; &#34;127.0.0.1&#34;
+    index =&gt; &#34;logstash-arthas-access-%{+YYYY.MM.dd}&#34;
 }
 }
 </code></pre><h3 id="3-elasticsearch---kibana">3. elasticsearch -&gt; kibana<a href="#3-elasticsearch---kibana" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
@@ -174,16 +174,16 @@ elasticsearch {
 <p>所以, 我们在处理<code>nginx</code>日志时, 需要根据具体<code>logformat</code>定义对应的<code>grok</code>表达式</p>
 <p>除了上面例子中用的那套,  另一份</p>
 <p>logformat</p>
-<pre tabindex="0"><code>  log_format logstash '$http_host '
-                      '$remote_addr [$time_local] '
-                      '&quot;$request&quot; $status $body_bytes_sent '
-                      '&quot;$http_referer&quot; &quot;$http_user_agent&quot; '
-                      '$request_time '
-                      '$upstream_response_time';
+<pre tabindex="0"><code>  log_format logstash &#39;$http_host &#39;
+                      &#39;$remote_addr [$time_local] &#39;
+                      &#39;&#34;$request&#34; $status $body_bytes_sent &#39;
+                      &#39;&#34;$http_referer&#34; &#34;$http_user_agent&#34; &#39;
+                      &#39;$request_time &#39;
+                      &#39;$upstream_response_time&#39;;
 </code></pre><p>patterns/nginx</p>
 <pre tabindex="0"><code>NGUSERNAME [a-zA-Z\.\@\-\+_%]+
 NGUSER %{NGUSERNAME}
-NGINXACCESS %{IPORHOST:http_host} %{IPORHOST:clientip} \[%{HTTPDATE:timestamp}\] \&quot;(?:%{WORD:verb} %{NOTSPACE:request}(?: HTTP/%{NUMBER:httpversion})?|%{DATA:rawrequest})\&quot; %{NUMBER:response} (?:%{NUMBER:bytes}|-) %{QS:referrer} %{QS:agent} %{NUMBER:request_time:float} %{NUMBER:upstream_time:float}
+NGINXACCESS %{IPORHOST:http_host} %{IPORHOST:clientip} \[%{HTTPDATE:timestamp}\] \&#34;(?:%{WORD:verb} %{NOTSPACE:request}(?: HTTP/%{NUMBER:httpversion})?|%{DATA:rawrequest})\&#34; %{NUMBER:response} (?:%{NUMBER:bytes}|-) %{QS:referrer} %{QS:agent} %{NUMBER:request_time:float} %{NUMBER:upstream_time:float}
 </code></pre><p>如果想自行定义, 可以使用 <a href="https://grokdebug.herokuapp.com/">grokdebug</a>, 将要解析的日志和配置的正则放入, 可以查看最终得到的结构化数据</p>
 <h2 id="2-elasticsearch插件">2. elasticsearch插件<a href="#2-elasticsearch插件" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
 <p>初期只安装了一个 <a href="https://github.com/lmenezes/elasticsearch-kopf">kopf</a>, web界面查看</p>
@@ -211,7 +211,7 @@ log_stdout=true
 log_stderr=true
 logfile=/data/logs/elk/logstash/logstash_arthas_access.log
 </code></pre><h2 id="4-logstash坑">4. logstash坑<a href="#4-logstash坑" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
-<pre tabindex="0"><code>start_position =&gt; &quot;beginning&quot;
+<pre tabindex="0"><code>start_position =&gt; &#34;beginning&#34;
 </code></pre><p>logstash, 会记录一份文件读到的位置, 在$HOME/.sincedb_xxxxx 如果要让logstash重新读取文件, 删除之即可, 重启<code>shipper</code>.</p>
 <p>但是你可能发现es中重复记录了, 这是因为, 在<code>output</code>中, 没有定义存储到es时使用的<code>document_id</code>, es全部当成新纪录存入, 导致数据重复</p>
 
@@ -291,7 +291,7 @@ logfile=/data/logs/elk/logstash/logstash_arthas_access.log
 
 
 
-	<script src="https://wklken.me/js/bundle.min.7d8545daa55d62427355498dd8da13f98ff79a7938ce7d2a5e2ae1ec0de3beb8.js" integrity="sha256-fYVF2qVdYkJzVUmN2NoT+Y/3mnk4zn0qXirh7A3jvrg=" crossorigin="anonymous"></script>
+	<script src="https://wklken.me/js/bundle.min.580988ed2982bcbb74a1773c7abea97b43e4c43b9324e10cda0813ec6ec4bb67.js" integrity="sha256-WAmI7SmCvLt0oXc8er6pe0PkxDuTJOEM2ggT7G7Eu2c=" crossorigin="anonymous"></script>
 	
 <script type="application/javascript">
 var doNotTrack = false;

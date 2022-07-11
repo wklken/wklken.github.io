@@ -75,7 +75,7 @@
 <p>开始吧</p>
 <h2 id="1-找到日志的位置">1. 找到日志的位置<a href="#1-找到日志的位置" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
 <p>先确认是否开启了, 然后找到日志文件的位置</p>
-<pre tabindex="0"><code>&gt; show variables like '%slow%';
+<pre tabindex="0"><code>&gt; show variables like &#39;%slow%&#39;;
 +---------------------+-------------------------------------+
 | Variable_name       | Value                               |
 +---------------------+-------------------------------------+
@@ -99,17 +99,17 @@ SELECT 1 from dbname;
 <p>第二个, 慢查询sql, 是会反复出现的, 所以, 执行次数成了一个很重要的指标. 我们要做的, 就是<code>降噪</code>(将参数去掉, 涉及带引号的内容+数字), 将参数类信息过滤掉, 留下核心的sql, 然后计算出一个hash, 这样就可以在查询, 根据这个字段进行聚合. 这里用到了 <a href="https://www.elastic.co/guide/en/logstash/current/plugins-filters-mutate.html#plugins-filters-mutate-add_field">mutate</a> 以及 <a href="https://www.elastic.co/guide/en/logstash/current/plugins-filters-checksum.html">checksum</a></p>
 <pre tabindex="0"><code>  # calculate unique hash
   mutate {
-    add_field =&gt; {&quot;sql_for_hash&quot; =&gt; &quot;%{sql}&quot;}
+    add_field =&gt; {&#34;sql_for_hash&#34; =&gt; &#34;%{sql}&#34;}
   }
   mutate {
     gsub =&gt; [
-        &quot;sql_for_hash&quot;, &quot;'.+?'&quot;, &quot;&quot;,
-        &quot;sql_for_hash&quot;, &quot;-?\d*\.{0,1}\d+&quot;, &quot;&quot;
+        &#34;sql_for_hash&#34;, &#34;&#39;.+?&#39;&#34;, &#34;&#34;,
+        &#34;sql_for_hash&#34;, &#34;-?\d*\.{0,1}\d+&#34;, &#34;&#34;
     ]
   }
   checksum {
-    algorithm =&gt; &quot;md5&quot;
-    keys =&gt; [&quot;sql_for_hash&quot;]
+    algorithm =&gt; &#34;md5&#34;
+    keys =&gt; [&#34;sql_for_hash&#34;]
   }
 </code></pre><p>最后算出来的md5, 放入了<code>logstash_checksum</code></p>
 <p>第三个, 某些sql会非常大, 例如某些不规范的sql可能到几百M或是上G&hellip;.会直接导致采集进程OOM, 所以, 处理时, 设定超过100k丢弃掉</p>
@@ -118,53 +118,53 @@ SELECT 1 from dbname;
 注意, 里面的pattern <code>ALLWORD [\s\S]*</code></p>
 <pre tabindex="0"><code>input {
   file {
-    path =&gt; [&quot;/data/mysqllog/20000/slow-query.log&quot;]
-    sincedb_path =&gt; &quot;/data/LogNew/logstash/sincedb/mysql.sincedb&quot;
-    type =&gt; &quot;mysql-slow-log&quot;
-    add_field =&gt; [&quot;env&quot;, &quot;PRODUCT&quot;]
+    path =&gt; [&#34;/data/mysqllog/20000/slow-query.log&#34;]
+    sincedb_path =&gt; &#34;/data/LogNew/logstash/sincedb/mysql.sincedb&#34;
+    type =&gt; &#34;mysql-slow-log&#34;
+    add_field =&gt; [&#34;env&#34;, &#34;PRODUCT&#34;]
     codec =&gt; multiline {
-      pattern =&gt; &quot;^# User@Host:&quot;
+      pattern =&gt; &#34;^# User@Host:&#34;
       negate =&gt; true
       what =&gt; previous
-      max_bytes =&gt; &quot;100kib&quot;
+      max_bytes =&gt; &#34;100kib&#34;
       auto_flush_interval =&gt; 5
     }
   }
 }
 filter {
-  if (&quot;multiline_codec_max_bytes_reached&quot; in [tags]) {
+  if (&#34;multiline_codec_max_bytes_reached&#34; in [tags]) {
       drop {}
   }
   grok {
     # User@Host: logstash[logstash] @ localhost [127.0.0.1]
     # User@Host: logstash[logstash] @  [127.0.0.1]
-    match =&gt; [ &quot;message&quot;, &quot;^# User@Host: %{ALLWORD:user}\[%{ALLWAORD}\] @ %{ALLWORD:dbhost}? \[%{IP:ip}\]&quot; ]
+    match =&gt; [ &#34;message&#34;, &#34;^# User@Host: %{ALLWORD:user}\[%{ALLWAORD}\] @ %{ALLWORD:dbhost}? \[%{IP:ip}\]&#34; ]
   }
   grok {
     # Query_time: 102.413328  Lock_time: 0.000167 Rows_sent: 0  Rows_examined: 1970
-    match =&gt; [ &quot;message&quot;, &quot;^# Query_time: %{NUMBER:duration:float}%{SPACE}Lock_time: %{NUMBER:lock_wait:float}%{SPACE}Rows_sent: %{NUMBER:results:int}%{SPACE}Rows_examined:%{SPACE}%{NUMBER:scanned:int}%{ALLWORD:sql}&quot;]
+    match =&gt; [ &#34;message&#34;, &#34;^# Query_time: %{NUMBER:duration:float}%{SPACE}Lock_time: %{NUMBER:lock_wait:float}%{SPACE}Rows_sent: %{NUMBER:results:int}%{SPACE}Rows_examined:%{SPACE}%{NUMBER:scanned:int}%{ALLWORD:sql}&#34;]
   }
 
   # Capture the time the query happened
   grok {
-    match =&gt; [ &quot;message&quot;, &quot;^SET timestamp=%{NUMBER:timestamp};&quot; ]
+    match =&gt; [ &#34;message&#34;, &#34;^SET timestamp=%{NUMBER:timestamp};&#34; ]
   }
   # if codec multiline parse failure
-  if (&quot;_grokparsefailure&quot; in [tags]) {
+  if (&#34;_grokparsefailure&#34; in [tags]) {
       drop {}
   }
   date {
-    match =&gt; [ &quot;timestamp&quot;, &quot;UNIX&quot; ]
+    match =&gt; [ &#34;timestamp&#34;, &#34;UNIX&#34; ]
   }
 
   mutate {
     gsub =&gt; [
-        &quot;sql&quot;, &quot;\nSET timestamp=\d+?;\n&quot;, &quot;&quot;,
-        &quot;sql&quot;, &quot;\nuse [a-zA-Z0-9\-\_]+?;&quot;, &quot;&quot;,
-        &quot;sql&quot;, &quot;\n# Time: \d+\s+\d+:\d+:\d+&quot;, &quot;&quot;,
-        &quot;sql&quot;, &quot;\n/usr/local/mysql/bin/mysqld.+$&quot;, &quot;&quot;,
-        &quot;sql&quot;, &quot;\nTcp port:.+$&quot;, &quot;&quot;,
-        &quot;sql&quot;, &quot;\nTime .+$&quot;, &quot;&quot;
+        &#34;sql&#34;, &#34;\nSET timestamp=\d+?;\n&#34;, &#34;&#34;,
+        &#34;sql&#34;, &#34;\nuse [a-zA-Z0-9\-\_]+?;&#34;, &#34;&#34;,
+        &#34;sql&#34;, &#34;\n# Time: \d+\s+\d+:\d+:\d+&#34;, &#34;&#34;,
+        &#34;sql&#34;, &#34;\n/usr/local/mysql/bin/mysqld.+$&#34;, &#34;&#34;,
+        &#34;sql&#34;, &#34;\nTcp port:.+$&#34;, &#34;&#34;,
+        &#34;sql&#34;, &#34;\nTime .+$&#34;, &#34;&#34;
     ]
   }
 
@@ -172,107 +172,107 @@ filter {
 
   # calculate unique hash
   mutate {
-    add_field =&gt; {&quot;sql_for_hash&quot; =&gt; &quot;%{sql}&quot;}
+    add_field =&gt; {&#34;sql_for_hash&#34; =&gt; &#34;%{sql}&#34;}
   }
   mutate {
     gsub =&gt; [
-        &quot;sql_for_hash&quot;, &quot;'.+?'&quot;, &quot;&quot;,
-        &quot;sql_for_hash&quot;, &quot;-?\d*\.{0,1}\d+&quot;, &quot;&quot;
+        &#34;sql_for_hash&#34;, &#34;&#39;.+?&#39;&#34;, &#34;&#34;,
+        &#34;sql_for_hash&#34;, &#34;-?\d*\.{0,1}\d+&#34;, &#34;&#34;
     ]
   }
   checksum {
-    algorithm =&gt; &quot;md5&quot;
-    keys =&gt; [&quot;sql_for_hash&quot;]
+    algorithm =&gt; &#34;md5&#34;
+    keys =&gt; [&#34;sql_for_hash&#34;]
   }
 
   # Drop the captured timestamp field since it has been moved to the time of the event
   mutate {
     # TODO: remove the message field
-    remove_field =&gt; [&quot;timestamp&quot;, &quot;message&quot;, &quot;sql_for_hash&quot;]
+    remove_field =&gt; [&#34;timestamp&#34;, &#34;message&#34;, &#34;sql_for_hash&#34;]
   }
 }
 output {
     #stdout{
     #    codec =&gt; rubydebug
     #}
-    #if (&quot;_grokparsefailure&quot; not in [tags]) {
+    #if (&#34;_grokparsefailure&#34; not in [tags]) {
     #    stdout{
     #        codec =&gt; rubydebug
     #    }
     #}
-    if (&quot;_grokparsefailure&quot; not in [tags]) {
+    if (&#34;_grokparsefailure&#34; not in [tags]) {
         elasticsearch {
-          hosts =&gt; [&quot;192.168.1.1:9200&quot;]
-          index =&gt; &quot;logstash-slowlog&quot;
+          hosts =&gt; [&#34;192.168.1.1:9200&#34;]
+          index =&gt; &#34;logstash-slowlog&#34;
         }
     }
 }
 </code></pre><p>采集进去的内容</p>
 <pre tabindex="0"><code>{
-           &quot;@timestamp&quot; =&gt; &quot;2016-05-23T21:12:59.000Z&quot;,
-             &quot;@version&quot; =&gt; &quot;1&quot;,
-                 &quot;tags&quot; =&gt; [
-        [0] &quot;multiline&quot;
+           &#34;@timestamp&#34; =&gt; &#34;2016-05-23T21:12:59.000Z&#34;,
+             &#34;@version&#34; =&gt; &#34;1&#34;,
+                 &#34;tags&#34; =&gt; [
+        [0] &#34;multiline&#34;
     ],
-                 &quot;path&quot; =&gt; &quot;/Users/ken/tx/elk/logstash/data/slow_sql.log&quot;,
-                 &quot;host&quot; =&gt; &quot;Luna-mac-2.local&quot;,
-                 &quot;type&quot; =&gt; &quot;mysql-slow&quot;,
-                  &quot;env&quot; =&gt; &quot;PRODUCT&quot;,
-                 &quot;user&quot; =&gt; &quot;dba_bak_all_sel&quot;,
-                   &quot;ip&quot; =&gt; &quot;10.166.140.109&quot;,
-             &quot;duration&quot; =&gt; 28.812601,
-            &quot;lock_wait&quot; =&gt; 0.000132,
-              &quot;results&quot; =&gt; 749414,
-              &quot;scanned&quot; =&gt; 749414,
-                  &quot;sql&quot; =&gt; &quot;SELECT /*!40001 SQL_NO_CACHE */ * FROM `xxxxx`;&quot;,
-    &quot;logstash_checksum&quot; =&gt; &quot;3e3ccb89ee792de882a57e2bef6c5371&quot;
+                 &#34;path&#34; =&gt; &#34;/Users/ken/tx/elk/logstash/data/slow_sql.log&#34;,
+                 &#34;host&#34; =&gt; &#34;Luna-mac-2.local&#34;,
+                 &#34;type&#34; =&gt; &#34;mysql-slow&#34;,
+                  &#34;env&#34; =&gt; &#34;PRODUCT&#34;,
+                 &#34;user&#34; =&gt; &#34;dba_bak_all_sel&#34;,
+                   &#34;ip&#34; =&gt; &#34;10.166.140.109&#34;,
+             &#34;duration&#34; =&gt; 28.812601,
+            &#34;lock_wait&#34; =&gt; 0.000132,
+              &#34;results&#34; =&gt; 749414,
+              &#34;scanned&#34; =&gt; 749414,
+                  &#34;sql&#34; =&gt; &#34;SELECT /*!40001 SQL_NO_CACHE */ * FROM `xxxxx`;&#34;,
+    &#34;logstash_checksum&#34; =&gt; &#34;3e3ccb89ee792de882a57e2bef6c5371&#34;
 }
 </code></pre><h2 id="4-写查询">4. 写查询<a href="#4-写查询" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
 <p>查询, 我们需要按<code>logstash_checksum</code>进行聚合, 然后按照次数由多到少降序展示, 同时, 每个<code>logstash_checksum</code>需要有一条具体的sql进行展示</p>
 <p>通过 es 的 <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-metrics-top-hits-aggregation.html">Top hits Aggregation</a> 可以完美地解决这个查询需求</p>
 <p>查询的query</p>
 <pre tabindex="0"><code>body = {
-    &quot;from&quot;: 0,
-    &quot;size&quot;: 0,
-    &quot;query&quot;: {
-        &quot;filtered&quot;: {
-            &quot;query&quot;: {
-                &quot;match&quot;: {
-                    &quot;user&quot;: &quot;test&quot;
+    &#34;from&#34;: 0,
+    &#34;size&#34;: 0,
+    &#34;query&#34;: {
+        &#34;filtered&#34;: {
+            &#34;query&#34;: {
+                &#34;match&#34;: {
+                    &#34;user&#34;: &#34;test&#34;
                 }
             },
-            &quot;filter&quot;: {
-                &quot;range&quot;: {
-                    &quot;@timestamp&quot;: {
-                        &quot;gte&quot;: &quot;now-1d&quot;,
-                        &quot;lte&quot;: &quot;now&quot;
+            &#34;filter&#34;: {
+                &#34;range&#34;: {
+                    &#34;@timestamp&#34;: {
+                        &#34;gte&#34;: &#34;now-1d&#34;,
+                        &#34;lte&#34;: &#34;now&#34;
                     }
                 }
             }
         }
     },
-    &quot;aggs&quot;: {
-        &quot;top_errors&quot;: {
-            &quot;terms&quot;: {
-                &quot;field&quot;: &quot;logstash_checksum&quot;,
-                &quot;size&quot;: 20
+    &#34;aggs&#34;: {
+        &#34;top_errors&#34;: {
+            &#34;terms&#34;: {
+                &#34;field&#34;: &#34;logstash_checksum&#34;,
+                &#34;size&#34;: 20
             },
-            &quot;aggs&quot;: {
-                &quot;top_error_hits&quot;: {
-                    &quot;top_hits&quot;: {
-                        &quot;sort&quot;: [
+            &#34;aggs&#34;: {
+                &#34;top_error_hits&#34;: {
+                    &#34;top_hits&#34;: {
+                        &#34;sort&#34;: [
                             {
-                                &quot;@timestamp&quot;:{
-                                    &quot;order&quot;: &quot;desc&quot;
+                                &#34;@timestamp&#34;:{
+                                    &#34;order&#34;: &#34;desc&#34;
                                 }
                             }
                         ],
-                        &quot;_source&quot;: {
-                            &quot;include&quot;: [
-                               &quot;user&quot; , &quot;sql&quot;, &quot;logstash_checksum&quot;, &quot;@timestamp&quot;, &quot;duration&quot;, &quot;lock_wait&quot;, &quot;results&quot;, &quot;scanned&quot;
+                        &#34;_source&#34;: {
+                            &#34;include&#34;: [
+                               &#34;user&#34; , &#34;sql&#34;, &#34;logstash_checksum&#34;, &#34;@timestamp&#34;, &#34;duration&#34;, &#34;lock_wait&#34;, &#34;results&#34;, &#34;scanned&#34;
                             ]
                         },
-                        &quot;size&quot; : 1
+                        &#34;size&#34; : 1
                     }
                 }
             }
@@ -282,8 +282,8 @@ output {
 </code></pre><p>跟这个写法相关的几个参考链接: <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-bucket-terms-aggregation.html#search-aggregations-bucket-terms-aggregation">Terms Aggregation</a> /  <a href="http://stackoverflow.com/questions/25986538/elasticsearch-filter-document-group-by-field">Elasticsearch filter document group by field</a></p>
 <h2 id="5-渲染页面">5. 渲染页面<a href="#5-渲染页面" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
 <p>python的后台, 使用<code>sqlparse</code>包, 将sql进行格式化(换行/缩进/大小写), 再往前端传. <a href="https://pypi.python.org/pypi/sqlparse">sqlparse</a></p>
-<pre tabindex="0"><code>&gt;&gt;&gt; sql = 'select * from foo where id in (select id from bar);'
-&gt;&gt;&gt; print sqlparse.format(sql, reindent=True, keyword_case='upper')
+<pre tabindex="0"><code>&gt;&gt;&gt; sql = &#39;select * from foo where id in (select id from bar);&#39;
+&gt;&gt;&gt; print sqlparse.format(sql, reindent=True, keyword_case=&#39;upper&#39;)
 SELECT *
 FROM foo
 WHERE id IN
@@ -357,7 +357,7 @@ WHERE id IN
 
 
 
-	<script src="https://wklken.me/js/bundle.min.7d8545daa55d62427355498dd8da13f98ff79a7938ce7d2a5e2ae1ec0de3beb8.js" integrity="sha256-fYVF2qVdYkJzVUmN2NoT+Y/3mnk4zn0qXirh7A3jvrg=" crossorigin="anonymous"></script>
+	<script src="https://wklken.me/js/bundle.min.580988ed2982bcbb74a1773c7abea97b43e4c43b9324e10cda0813ec6ec4bb67.js" integrity="sha256-WAmI7SmCvLt0oXc8er6pe0PkxDuTJOEM2ggT7G7Eu2c=" crossorigin="anonymous"></script>
 	
 <script type="application/javascript">
 var doNotTrack = false;

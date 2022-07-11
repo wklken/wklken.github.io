@@ -79,62 +79,62 @@
 <pre tabindex="0"><code>script.engine.groovy.inline.search: on
 </code></pre><p>然后, 执行 <a href="http://www.wklken.me/posts/2016/02/16/elk-about-upgrade.html#rolling-restart">rolling restart</a>, 逐一重启集群每个节点</p>
 <p>第二步, 构造qsl,  <code>sort</code>中,  增加<code>_script</code> 使用groovy脚本, 将对应字段从string转成数字, 再进行排序</p>
-<pre tabindex="0"><code>'sort': [{'_script': {'lang': 'groovy',
-                       'order': 'desc',
-                       'script': 'Float.parseFloat(doc[&quot;resp_time&quot;].value)',
-                       'type': 'number'}},
-          {'@timestamp': 'desc'}
+<pre tabindex="0"><code>&#39;sort&#39;: [{&#39;_script&#39;: {&#39;lang&#39;: &#39;groovy&#39;,
+                       &#39;order&#39;: &#39;desc&#39;,
+                       &#39;script&#39;: &#39;Float.parseFloat(doc[&#34;resp_time&#34;].value)&#39;,
+                       &#39;type&#39;: &#39;number&#39;}},
+          {&#39;@timestamp&#39;: &#39;desc&#39;}
           ]
 </code></pre><p>附 <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/modules-scripting.html">scripting文档</a></p>
 <h3 id="fielddata-format-disabled导致的排序失效"><code>fielddata-format-disabled</code>导致的排序失效<a href="#fielddata-format-disabled导致的排序失效" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
 <p>有个集群, 升级后, 发现<code>resp_time</code>字段的mapping是</p>
-<pre tabindex="0"><code>&quot;resp_time&quot; : {
-&quot;type&quot; : &quot;string&quot;,
-&quot;norms&quot; : {
-    &quot;enabled&quot; : false
+<pre tabindex="0"><code>&#34;resp_time&#34; : {
+&#34;type&#34; : &#34;string&#34;,
+&#34;norms&#34; : {
+    &#34;enabled&#34; : false
 },
-&quot;fielddata&quot; : {
-    &quot;format&quot; : &quot;disabled&quot;
+&#34;fielddata&#34; : {
+    &#34;format&#34; : &#34;disabled&#34;
 },
-&quot;fields&quot; : {
-    &quot;raw&quot; : {
-    &quot;type&quot; : &quot;string&quot;,
-    &quot;index&quot; : &quot;not_analyzed&quot;,
-    &quot;ignore_above&quot; : 256
+&#34;fields&#34; : {
+    &#34;raw&#34; : {
+    &#34;type&#34; : &#34;string&#34;,
+    &#34;index&#34; : &#34;not_analyzed&#34;,
+    &#34;ignore_above&#34; : 256
     }
 }
 </code></pre><p>注意这里的, 是因为升级es 2.0之后, 默认值变更带来的问题</p>
-<pre tabindex="0"><code>&quot;fielddata&quot; : {
-  &quot;format&quot; : &quot;disabled&quot;
+<pre tabindex="0"><code>&#34;fielddata&#34; : {
+  &#34;format&#34; : &#34;disabled&#34;
 },
 </code></pre><p><a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/fielddata.html">fielddata文档</a></p>
 <p>此时, 排序的qsl将会报错, 无法按照对应要求排序</p>
 <pre tabindex="0"><code>Field data loading is forbidden on resp_time
 </code></pre><p>解决方案, 挺简单的, 使用<code>foo.raw</code>即可</p>
-<pre tabindex="0"><code>'sort': [{'_script': {'lang': 'groovy',
-    'order': 'desc',
-    'script': 'Float.parseFloat(doc[&quot;resp_time.raw&quot;].value)',
-    'type': 'number'}},
-{'@timestamp': 'desc'}
+<pre tabindex="0"><code>&#39;sort&#39;: [{&#39;_script&#39;: {&#39;lang&#39;: &#39;groovy&#39;,
+    &#39;order&#39;: &#39;desc&#39;,
+    &#39;script&#39;: &#39;Float.parseFloat(doc[&#34;resp_time.raw&#34;].value)&#39;,
+    &#39;type&#39;: &#39;number&#39;}},
+{&#39;@timestamp&#39;: &#39;desc&#39;}
 ]
 </code></pre><h3 id="使用聚合">使用聚合<a href="#使用聚合" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
 <p>把string类型的<code>resp_time</code>放到<code>aggs</code>中做聚合的时候.</p>
-<pre tabindex="0"><code>&quot;aggs&quot;: {
-     &quot;resp_time_stats&quot;: {&quot;stats&quot;: {&quot;script&quot;: 'Float.parseFloat(doc[&quot;resp_time.raw&quot;].value)'}}
+<pre tabindex="0"><code>&#34;aggs&#34;: {
+     &#34;resp_time_stats&#34;: {&#34;stats&#34;: {&#34;script&#34;: &#39;Float.parseFloat(doc[&#34;resp_time.raw&#34;].value)&#39;}}
 }
 </code></pre><p>此时, 会报错</p>
-<pre tabindex="0"><code>{u'error': {u'failed_shards': [{u'index': u'logstash-2016.04.10',
-                                u'node': u'AvemqKN-RGKy68zJXUapBg',
-                                u'reason': {u'reason': u'scripts of type [inline], operation [aggs] and lang [groovy] are disabled',
-                                            u'type': u'script_exception'},
-                                u'shard': 0}],
-            u'grouped': True,
-            u'phase': u'query',
-            u'reason': u'all shards failed',
-            u'root_cause': [{u'reason': u'scripts of type [inline], operation [aggs] and lang [groovy] are disabled',
-                             u'type': u'script_exception'}],
-            u'type': u'search_phase_execution_exception'},
- u'status': 500}
+<pre tabindex="0"><code>{u&#39;error&#39;: {u&#39;failed_shards&#39;: [{u&#39;index&#39;: u&#39;logstash-2016.04.10&#39;,
+                                u&#39;node&#39;: u&#39;AvemqKN-RGKy68zJXUapBg&#39;,
+                                u&#39;reason&#39;: {u&#39;reason&#39;: u&#39;scripts of type [inline], operation [aggs] and lang [groovy] are disabled&#39;,
+                                            u&#39;type&#39;: u&#39;script_exception&#39;},
+                                u&#39;shard&#39;: 0}],
+            u&#39;grouped&#39;: True,
+            u&#39;phase&#39;: u&#39;query&#39;,
+            u&#39;reason&#39;: u&#39;all shards failed&#39;,
+            u&#39;root_cause&#39;: [{u&#39;reason&#39;: u&#39;scripts of type [inline], operation [aggs] and lang [groovy] are disabled&#39;,
+                             u&#39;type&#39;: u&#39;script_exception&#39;}],
+            u&#39;type&#39;: u&#39;search_phase_execution_exception&#39;},
+ u&#39;status&#39;: 500}
 </code></pre><p>处理, es加配置, 逐一重启</p>
 <pre tabindex="0"><code>script.engine.groovy.inline.aggs: on
 </code></pre><p>相关 <a href="https://discuss.elastic.co/t/scripts-of-type-inline-operation-aggs-and-lang-groovy-are-disabled/2493">文档</a></p>
@@ -145,12 +145,12 @@
 <p>配置, 具体见 <a href="https://www.elastic.co/guide/en/logstash/current/plugins-codecs-multiline.html">multiline文档</a></p>
 <pre tabindex="0"><code>input {
         codec =&gt; multiline {
-            patterns_dir =&gt; &quot;./patterns&quot;
-            pattern =&gt; &quot;&quot;
-            what =&gt; &quot;previous&quot;
+            patterns_dir =&gt; &#34;./patterns&#34;
+            pattern =&gt; &#34;&#34;
+            what =&gt; &#34;previous&#34;
             negate  =&gt; true
             max_lines =&gt; 100
-            max_bytes =&gt; &quot;50kib&quot;
+            max_bytes =&gt; &#34;50kib&#34;
         }
 }
 </code></pre><p>单位 <a href="https://www.elastic.co/guide/en/logstash/current/configuration-file-structure.html#bytes">bytes</a></p>
@@ -158,11 +158,11 @@
 <p>另外, 假设配置<code>max_bytes=1M</code>, 此时用户打了50M, 会给这个event打上tag <code>multiline_codec_max_bytes_reache</code>, 但是, 这50M 最终还是会经logstash灌入到es里面. 即, 超了, 但是并不自动截掉</p>
 <p>这时候, 我们可以, 使用<code>mutate-replace</code>直接替换掉</p>
 <pre tabindex="0"><code>    # if multiline_codec_max_lines_reached
-    if (&quot;multiline_codec_max_bytes_reached&quot; in [tags]) {
+    if (&#34;multiline_codec_max_bytes_reached&#34; in [tags]) {
         mutate {
             replace =&gt; {
-                &quot;message&quot; =&gt; &quot;Log System Warnning: multiline_codec_max_lines_reached, Your log has exceeded 50kB(51200 chars), it was blocked by log system. Please check your code to make your log info shorter and useful&quot;
-                &quot;msg&quot; =&gt; &quot;Log System Warnning: multiline_codec_max_lines_reached, Your log has exceeded 50kB(51200 chars), it was blocked by log system. Please check your code to make your log info shorter and useful&quot;
+                &#34;message&#34; =&gt; &#34;Log System Warnning: multiline_codec_max_lines_reached, Your log has exceeded 50kB(51200 chars), it was blocked by log system. Please check your code to make your log info shorter and useful&#34;
+                &#34;msg&#34; =&gt; &#34;Log System Warnning: multiline_codec_max_lines_reached, Your log has exceeded 50kB(51200 chars), it was blocked by log system. Please check your code to make your log info shorter and useful&#34;
             }
         }
     }
@@ -173,7 +173,7 @@
 <p>ltop.sh</p>
 <pre tabindex="0"><code>#!/bin/bash
 ./logstashd.sh status
-top -p $(./logstashd.sh status | awk '{print $4}' | awk -F',' '{print $1}' | tr '\n' ',' | sed 's/,$//g')
+top -p $(./logstashd.sh status | awk &#39;{print $4}&#39; | awk -F&#39;,&#39; &#39;{print $1}&#39; | tr &#39;\n&#39; &#39;,&#39; | sed &#39;s/,$//g&#39;)
 </code></pre><h3 id="进程占用cpu检测脚本">进程占用cpu检测脚本<a href="#进程占用cpu检测脚本" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
 <pre tabindex="0"><code>#!/bin/bash
 BASEDIR=$(dirname $0)
@@ -181,26 +181,26 @@ cd $BASEDIR
 CURRENT_DIR=`pwd`
 
 exec &gt;&gt; /tmp/log/monitor.log 2&gt;&amp;1
-echo &quot;==============================================&quot;
+echo &#34;==============================================&#34;
 date
 function check() {
     PNAME=$1
     PID=$2
-    CPU_USE=$(ps -p $PID -o %cpu | sed -n '2p')
-    INT_CPU_USE=$(printf &quot;%.0f\n&quot; $CPU_USE)
-    echo $PNAME&quot; - &quot;$CPU_USE&quot; - &quot;$INT_CPU_USE
+    CPU_USE=$(ps -p $PID -o %cpu | sed -n &#39;2p&#39;)
+    INT_CPU_USE=$(printf &#34;%.0f\n&#34; $CPU_USE)
+    echo $PNAME&#34; - &#34;$CPU_USE&#34; - &#34;$INT_CPU_USE
 
     if [ $INT_CPU_USE -gt 85 ]
     then
-       echo &quot;$PNAME cpu usage greater than 85%,do restart&quot;
+       echo &#34;$PNAME cpu usage greater than 85%,do restart&#34;
        ./logstashd.sh restart $PNAME
     fi
 }
 export -f check
-./logstashd.sh status | awk '{print &quot;-&quot;, $1, $4}' | awk -F',' '{print $1}' | xargs -n3 bash -c 'check $@'
+./logstashd.sh status | awk &#39;{print &#34;-&#34;, $1, $4}&#39; | awk -F&#39;,&#39; &#39;{print $1}&#39; | xargs -n3 bash -c &#39;check $@&#39;
 </code></pre><h3 id="数据盘满了导致集群状态yellow">数据盘满了导致集群状态yellow<a href="#数据盘满了导致集群状态yellow" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
 <p>机器节点本身有1T 硬盘, 由两块盘组成, 配置es的时候, 数据分别写到了两个盘上, 然后有一天集群状态告警了</p>
-<pre tabindex="0"><code>&quot;status&quot; : &quot;yellow&quot;,
+<pre tabindex="0"><code>&#34;status&#34; : &#34;yellow&#34;,
 </code></pre><p>查看es的日志</p>
 <pre tabindex="0"><code>[2016-03-21 12:43:45,934][INFO ][cluster.routing.allocation.decider] [node_01] low disk watermark [85%] exceeded
 on [AvemqKN-RGKy68zJXUapBg][node_01][/data/LogNewData/xxx/nodes/0] free: 75.5gb[14.1%], replicas will not be assigned to this node
@@ -213,11 +213,11 @@ on [AvemqKN-RGKy68zJXUapBg][node_01][/data/LogNewData/xxx/nodes/0] free: 75.5gb[
 </code></pre><p>需要redis版本支持<code>bigkeys</code> =&gt; This is a &ldquo;new&rdquo; feature beginning with 2.8</p>
 <h3 id="解析失败丢弃及黑名单实现">解析失败丢弃及黑名单实现<a href="#解析失败丢弃及黑名单实现" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
 <p>grok解析失败, 丢弃</p>
-<pre tabindex="0"><code>if (&quot;_grokparsefailure&quot; in [tags]) {
+<pre tabindex="0"><code>if (&#34;_grokparsefailure&#34; in [tags]) {
     drop {}
 }
 </code></pre><p>有时候, 需要禁止采集某些文件, 但由于<code>file</code>类型的<code>exclude</code>只能用文件名, 而没有更强大的规则, 所以只能采集进来再丢弃, 此时, 可以根据路径grok解析出关键字, 然后判断丢弃</p>
-<pre tabindex="0"><code>if ([keyworod] in [&quot;data&quot;, &quot;not_exists&quot;])
+<pre tabindex="0"><code>if ([keyworod] in [&#34;data&#34;, &#34;not_exists&#34;])
 {
     drop {}
 }
@@ -229,10 +229,10 @@ logstash agent -f conf/xxx.conf -w 2
 </code></pre><h3 id="几个简单脚本">几个简单脚本<a href="#几个简单脚本" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
 <p>health.sh</p>
 <pre tabindex="0"><code>#!/bin/bash
-curl 'http://127.0.0.1:9200/_cluster/health?pretty=true'
+curl &#39;http://127.0.0.1:9200/_cluster/health?pretty=true&#39;
 </code></pre><p>indices.sh</p>
 <pre tabindex="0"><code>#!/bin/bash
-curl 'http://127.0.0.1:9200/_cat/indices?v' | sort -k 3
+curl &#39;http://127.0.0.1:9200/_cat/indices?v&#39; | sort -k 3
 </code></pre>
 			</div>
 			<hr class="post-end">
@@ -312,7 +312,7 @@ curl 'http://127.0.0.1:9200/_cat/indices?v' | sort -k 3
 
 
 
-	<script src="https://wklken.me/js/bundle.min.7d8545daa55d62427355498dd8da13f98ff79a7938ce7d2a5e2ae1ec0de3beb8.js" integrity="sha256-fYVF2qVdYkJzVUmN2NoT+Y/3mnk4zn0qXirh7A3jvrg=" crossorigin="anonymous"></script>
+	<script src="https://wklken.me/js/bundle.min.580988ed2982bcbb74a1773c7abea97b43e4c43b9324e10cda0813ec6ec4bb67.js" integrity="sha256-WAmI7SmCvLt0oXc8er6pe0PkxDuTJOEM2ggT7G7Eu2c=" crossorigin="anonymous"></script>
 	
 <script type="application/javascript">
 var doNotTrack = false;
