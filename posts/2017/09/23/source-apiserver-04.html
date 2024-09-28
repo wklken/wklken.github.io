@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<meta name="theme-color" content="#494f5c">
+	<meta name="msapplication-TileColor" content="#494f5c">
+<meta itemprop="name" content="k8s APIServer源码: api注册详细细节">
+<meta itemprop="description" content="基于版本 1.6.7 前面介绍了, api注册过程 问题: go-restful github的route中, handler和path是如何绑定在一起的? handler在哪里定义"><meta itemprop="datePublished" content="2017-09-23T15:00:00+08:00" />
+<meta itemprop="dateModified" content="2017-09-23T15:00:00+08:00" />
+<meta itemprop="wordCount" content="1506">
+<meta itemprop="keywords" content="paas," /><meta property="og:title" content="k8s APIServer源码: api注册详细细节" />
+<meta property="og:description" content="基于版本 1.6.7 前面介绍了, api注册过程 问题: go-restful github的route中, handler和path是如何绑定在一起的? handler在哪里定义" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://wklken.me/posts/2017/09/23/source-apiserver-04.html" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2017-09-23T15:00:00+08:00" />
+<meta property="article:modified_time" content="2017-09-23T15:00:00+08:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="k8s APIServer源码: api注册详细细节"/>
+<meta name="twitter:description" content="基于版本 1.6.7 前面介绍了, api注册过程 问题: go-restful github的route中, handler和path是如何绑定在一起的? handler在哪里定义"/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>k8s APIServer源码: api注册详细细节</title>
+	<link rel="stylesheet" href="https://wklken.me/css/style.min.a634759f5e59454c8c91bba6cb21df1387610e17a0916dfc23b1723d2e0623ed.css" integrity="sha256-pjR1n15ZRUyMkbumyyHfE4dhDhegkW38I7FyPS4GI+0=" crossorigin="anonymous">
+	
+	<link rel="stylesheet" href="https://wklken.me/css/custom.css">
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="https://wklken.me">WKLKEN THINKING</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					
+				<a href="https://wklken.me/posts.html">Posts</a>
+				<a href="https://wklken.me/about.html">About</a>
+
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<button id="toc-btn" class="hdr-btn desktop-only-ib" title="Table of Contents"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3" y2="6"></line><line x1="3" y1="12" x2="3" y2="12"></line><line x1="3" y1="18" x2="3" y2="18"></line></svg></button><span class="hdr-social hide-in-mobile"><a href="https://github.com/wklken" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" class="feather" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a><a href="https://twitter.com/wklken" target="_blank" rel="noopener me" title="Twitter"><svg xmlns="http://www.w3.org/2000/svg" class="feather" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="https://wklken.me/posts.html">Posts</a></li>
+			<li><a href="https://wklken.me/about.html">About</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>Sep 23, 2017</span></div>
+				<h1>k8s APIServer源码: api注册详细细节</h1>
+			</header>
+			<div class="content">
+				<p>基于版本 1.6.7</p>
+<p>前面介绍了, api注册过程</p>
+<p>问题: <a href="https://github.com/emicklei/go-restful">go-restful github</a>的<code>route</code>中, <code>handler</code>和<code>path</code>是如何绑定在一起的? <code>handler</code>在哪里定义的?</p>
+<p>以<code>/api</code>为例</p>
+<p><img src="/imgs/k8s/apiserver-register-02.jpg" alt=""></p>
+<p>前面介绍到<code>/api</code>和<code>/apis</code>分别注册加入到<code>Container</code>, 而最终, 二者调用<code>installer.Install(ws)</code>. 这一步, 我们需要进一步了解细节.</p>
+<p><img src="/imgs/k8s/apiserver-register-03.jpg" alt=""></p>
+<h2 id="webserviceaddroute">webservice.add(route)<a href="#webserviceaddroute" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>问题: 构建Route加入到WebService在哪里处理的?</p>
+<ul>
+<li>vendor/k8s.io/apiserver/pkg/endpoints/installer.go</li>
+</ul>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">a</span> <span class="o">*</span><span class="nx">APIInstaller</span><span class="p">)</span> <span class="nf">Install</span><span class="p">(</span><span class="nx">ws</span> <span class="o">*</span><span class="nx">restful</span><span class="p">.</span><span class="nx">WebService</span><span class="p">)</span> <span class="p">(</span><span class="nx">apiResources</span> <span class="p">[]</span><span class="nx">metav1</span><span class="p">.</span><span class="nx">APIResource</span><span class="p">,</span> <span class="nx">errors</span> <span class="p">[]</span><span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="c1">// Register the paths in a deterministic (sorted) order to get a deterministic swagger spec.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="nx">paths</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">([]</span><span class="kt">string</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="nx">a</span><span class="p">.</span><span class="nx">group</span><span class="p">.</span><span class="nx">Storage</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">	<span class="kd">var</span> <span class="nx">i</span> <span class="kt">int</span> <span class="p">=</span> <span class="mi">0</span>
+</span></span><span class="line"><span class="cl">	<span class="k">for</span> <span class="nx">path</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">a</span><span class="p">.</span><span class="nx">group</span><span class="p">.</span><span class="nx">Storage</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="nx">paths</span><span class="p">[</span><span class="nx">i</span><span class="p">]</span> <span class="p">=</span> <span class="nx">path</span>
+</span></span><span class="line"><span class="cl">		<span class="nx">i</span><span class="o">++</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">sort</span><span class="p">.</span><span class="nf">Strings</span><span class="p">(</span><span class="nx">paths</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">	<span class="k">for</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">path</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">paths</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="nx">apiResource</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">a</span><span class="p">.</span><span class="nf">registerResourceHandlers</span><span class="p">(</span><span class="nx">path</span><span class="p">,</span> <span class="nx">a</span><span class="p">.</span><span class="nx">group</span><span class="p">.</span><span class="nx">Storage</span><span class="p">[</span><span class="nx">path</span><span class="p">],</span> <span class="nx">ws</span><span class="p">,</span> <span class="nx">proxyHandler</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><ul>
+<li>apiserver/pkg/endpoints/installer.go</li>
+</ul>
+<p>仅摘录部分核心代码, 这里, 获取<code>handler</code>之后, 构建<code>route</code>, 然后加入到<code>webservice</code>中</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">a</span> <span class="o">*</span><span class="nx">APIInstaller</span><span class="p">)</span> <span class="nf">registerResourceHandlers</span><span class="p">(</span><span class="nx">path</span> <span class="kt">string</span><span class="p">,</span> <span class="nx">storage</span> <span class="nx">rest</span><span class="p">.</span><span class="nx">Storage</span><span class="p">,</span> <span class="nx">ws</span> <span class="o">*</span><span class="nx">restful</span><span class="p">.</span><span class="nx">WebService</span><span class="p">,</span> <span class="nx">proxyHandler</span> <span class="nx">http</span><span class="p">.</span><span class="nx">Handler</span><span class="p">)</span> <span class="p">(</span><span class="o">*</span><span class="nx">metav1</span><span class="p">.</span><span class="nx">APIResource</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">   <span class="o">...</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">creater</span><span class="p">,</span> <span class="nx">isCreater</span> <span class="o">:=</span> <span class="nx">storage</span><span class="p">.(</span><span class="nx">rest</span><span class="p">.</span><span class="nx">Creater</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">	<span class="o">...</span><span class="p">.</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">actions</span> <span class="p">=</span> <span class="nf">appendIf</span><span class="p">(</span><span class="nx">actions</span><span class="p">,</span> <span class="nx">action</span><span class="p">{</span><span class="s">&#34;POST&#34;</span><span class="p">,</span> <span class="nx">resourcePath</span><span class="p">,</span> <span class="nx">resourceParams</span><span class="p">,</span> <span class="nx">namer</span><span class="p">,</span> <span class="kc">false</span><span class="p">},</span> <span class="nx">isCreater</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">	<span class="k">case</span> <span class="s">&#34;POST&#34;</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	 <span class="c1">// 获取handler
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nx">handler</span> <span class="p">=</span> <span class="nx">handlers</span><span class="p">.</span><span class="nf">CreateResource</span><span class="p">(</span><span class="nx">creater</span><span class="p">,</span> <span class="nx">reqScope</span><span class="p">,</span> <span class="nx">a</span><span class="p">.</span><span class="nx">group</span><span class="p">.</span><span class="nx">Typer</span><span class="p">,</span> <span class="nx">admit</span><span class="p">)</span> <span class="c1">// =&gt; next
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="c1">// 构建route,  action.Path -&gt; handler
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	  <span class="nx">route</span> <span class="o">:=</span> <span class="nx">ws</span><span class="p">.</span><span class="nf">POST</span><span class="p">(</span><span class="nx">action</span><span class="p">.</span><span class="nx">Path</span><span class="p">).</span><span class="nf">To</span><span class="p">(</span><span class="nx">handler</span><span class="p">).</span>
+</span></span><span class="line"><span class="cl">				<span class="nf">Doc</span><span class="p">(</span><span class="nx">doc</span><span class="p">).</span>
+</span></span><span class="line"><span class="cl">				<span class="nf">Param</span><span class="p">(</span><span class="nx">ws</span><span class="p">.</span><span class="nf">QueryParameter</span><span class="p">(</span><span class="s">&#34;pretty&#34;</span><span class="p">,</span> <span class="s">&#34;If &#39;true&#39;, then the output is pretty printed.&#34;</span><span class="p">)).</span>
+</span></span><span class="line"><span class="cl">				<span class="nf">Operation</span><span class="p">(</span><span class="s">&#34;create&#34;</span><span class="o">+</span><span class="nx">namespaced</span><span class="o">+</span><span class="nx">kind</span><span class="o">+</span><span class="nx">strings</span><span class="p">.</span><span class="nf">Title</span><span class="p">(</span><span class="nx">subresource</span><span class="p">)</span><span class="o">+</span><span class="nx">operationSuffix</span><span class="p">).</span>
+</span></span><span class="line"><span class="cl">				<span class="nf">Produces</span><span class="p">(</span><span class="nb">append</span><span class="p">(</span><span class="nx">storageMeta</span><span class="p">.</span><span class="nf">ProducesMIMETypes</span><span class="p">(</span><span class="nx">action</span><span class="p">.</span><span class="nx">Verb</span><span class="p">),</span> <span class="nx">mediaTypes</span><span class="o">...</span><span class="p">)</span><span class="o">...</span><span class="p">).</span>
+</span></span><span class="line"><span class="cl">				<span class="nf">Returns</span><span class="p">(</span><span class="nx">http</span><span class="p">.</span><span class="nx">StatusOK</span><span class="p">,</span> <span class="s">&#34;OK&#34;</span><span class="p">,</span> <span class="nx">versionedObject</span><span class="p">).</span>
+</span></span><span class="line"><span class="cl">				<span class="nf">Reads</span><span class="p">(</span><span class="nx">versionedObject</span><span class="p">).</span>
+</span></span><span class="line"><span class="cl">				<span class="nf">Writes</span><span class="p">(</span><span class="nx">versionedObject</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">addParams</span><span class="p">(</span><span class="nx">route</span><span class="p">,</span> <span class="nx">action</span><span class="p">.</span><span class="nx">Params</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">		<span class="c1">// 添加route到webservice
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>		<span class="nx">ws</span><span class="p">.</span><span class="nf">Route</span><span class="p">(</span><span class="nx">route</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><h2 id="create-handler">create handler<a href="#create-handler" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<ul>
+<li>vendor/k8s.io/apiserver/pkg/endpoints/handlers/rest.go</li>
+</ul>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// CreateResource returns a function that will handle a resource creation.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">func</span> <span class="nf">CreateResource</span><span class="p">(</span><span class="nx">r</span> <span class="nx">rest</span><span class="p">.</span><span class="nx">Creater</span><span class="p">,</span> <span class="nx">scope</span> <span class="nx">RequestScope</span><span class="p">,</span> <span class="nx">typer</span> <span class="nx">runtime</span><span class="p">.</span><span class="nx">ObjectTyper</span><span class="p">,</span> <span class="nx">admit</span> <span class="nx">admission</span><span class="p">.</span><span class="nx">Interface</span><span class="p">)</span> <span class="nx">restful</span><span class="p">.</span><span class="nx">RouteFunction</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="nf">createHandler</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">namedCreaterAdapter</span><span class="p">{</span><span class="nx">r</span><span class="p">},</span> <span class="nx">scope</span><span class="p">,</span> <span class="nx">typer</span><span class="p">,</span> <span class="nx">admit</span><span class="p">,</span> <span class="kc">false</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">createHandler</span><span class="p">(</span><span class="nx">r</span> <span class="nx">rest</span><span class="p">.</span><span class="nx">NamedCreater</span><span class="p">,</span> <span class="nx">scope</span> <span class="nx">RequestScope</span><span class="p">,</span> <span class="nx">typer</span> <span class="nx">runtime</span><span class="p">.</span><span class="nx">ObjectTyper</span><span class="p">,</span> <span class="nx">admit</span> <span class="nx">admission</span><span class="p">.</span><span class="nx">Interface</span><span class="p">,</span> <span class="nx">includeName</span> <span class="kt">bool</span><span class="p">)</span> <span class="nx">restful</span><span class="p">.</span><span class="nx">RouteFunction</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="kd">func</span><span class="p">(</span><span class="nx">req</span> <span class="o">*</span><span class="nx">restful</span><span class="p">.</span><span class="nx">Request</span><span class="p">,</span> <span class="nx">res</span> <span class="o">*</span><span class="nx">restful</span><span class="p">.</span><span class="nx">Response</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="nx">original</span> <span class="o">:=</span> <span class="nx">r</span><span class="p">.</span><span class="nf">New</span><span class="p">()</span>  <span class="c1">// =&gt; here
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>		<span class="nx">responsewriters</span><span class="p">.</span><span class="nf">WriteObject</span><span class="p">(</span><span class="nx">http</span><span class="p">.</span><span class="nx">StatusCreated</span><span class="p">,</span> <span class="nx">scope</span><span class="p">.</span><span class="nx">Kind</span><span class="p">.</span><span class="nf">GroupVersion</span><span class="p">(),</span> <span class="nx">scope</span><span class="p">.</span><span class="nx">Serializer</span><span class="p">,</span> <span class="nx">result</span><span class="p">,</span> <span class="nx">w</span><span class="p">,</span> <span class="nx">req</span><span class="p">.</span><span class="nx">Request</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>即, 最终<code>handler</code>执行时, 调用的是<code>rest.Creater.New()</code></p>
+<p>这里的 <code>Creater</code> 是一个<code>interface</code></p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="err">#</span> <span class="nx">vendor</span><span class="o">/</span><span class="nx">k8s</span><span class="p">.</span><span class="nx">io</span><span class="o">/</span><span class="nx">apiserver</span><span class="o">/</span><span class="nx">pkg</span><span class="o">/</span><span class="nx">registry</span><span class="o">/</span><span class="nx">rest</span><span class="o">/</span><span class="nx">rest</span><span class="p">.</span><span class="k">go</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// Creater is an object that can create an instance of a RESTful object.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">type</span> <span class="nx">Creater</span> <span class="kd">interface</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="c1">// New returns an empty object that can be used with Create after request data has been put into it.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="c1">// This object must be a pointer type for use with Codec.DecodeInto([]byte, runtime.Object)
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="nf">New</span><span class="p">()</span> <span class="nx">runtime</span><span class="p">.</span><span class="nx">Object</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="c1">// Create creates a new version of a resource.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="nf">Create</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">genericapirequest</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span> <span class="nx">obj</span> <span class="nx">runtime</span><span class="p">.</span><span class="nx">Object</span><span class="p">)</span> <span class="p">(</span><span class="nx">runtime</span><span class="p">.</span><span class="nx">Object</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><h2 id="回到最初的问题">回到最初的问题<a href="#回到最初的问题" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>最终, <code>handler</code>调用的是<code>rest.Creater.New()</code></p>
+<p>而<code>creater</code>声明的位置</p>
+<ul>
+<li>apiserver/pkg/endpoints/installer.go</li>
+</ul>
+<pre tabindex="0"><code>	creater, isCreater := storage.(rest.Creater)
+</code></pre><p>这里, 想要知道<code>handler</code>最终调用的是哪里定义的方法, 我们需要分析<code>storage</code>的来源</p>
+<h2 id="第一步--链路分析">第一步:  链路分析<a href="#第一步--链路分析" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p><img src="/imgs/k8s/apiserver-register-04.jpg" alt=""></p>
+<p>调用链</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// pkg/master/master.go
+</span></span></span><span class="line"><span class="cl"><span class="c1">// =&gt; got: apiGroupInfo 初始化
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">m</span> <span class="o">*</span><span class="nx">Master</span><span class="p">)</span> <span class="nf">InstallLegacyAPI</span><span class="p">(</span><span class="nx">c</span> <span class="o">*</span><span class="nx">Config</span><span class="p">,</span> <span class="nx">restOptionsGetter</span> <span class="nx">generic</span><span class="p">.</span><span class="nx">RESTOptionsGetter</span><span class="p">,</span> <span class="nx">legacyRESTStorageProvider</span> <span class="nx">corerest</span><span class="p">.</span><span class="nx">LegacyRESTStorageProvider</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">legacyRESTStorage</span><span class="p">,</span> <span class="nx">apiGroupInfo</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">legacyRESTStorageProvider</span><span class="p">.</span><span class="nf">NewLegacyRESTStorage</span><span class="p">(</span><span class="nx">restOptionsGetter</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">m</span><span class="p">.</span><span class="nx">GenericAPIServer</span><span class="p">.</span><span class="nf">InstallLegacyAPIGroup</span><span class="p">(</span><span class="nx">genericapiserver</span><span class="p">.</span><span class="nx">DefaultLegacyAPIPrefix</span><span class="p">,</span> <span class="o">&amp;</span><span class="nx">apiGroupInfo</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// vendor/k8s.io/apiserver/pkg/server/genericapiserver.go
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">s</span> <span class="o">*</span><span class="nx">GenericAPIServer</span><span class="p">)</span> <span class="nf">InstallLegacyAPIGroup</span><span class="p">(</span><span class="nx">apiPrefix</span> <span class="kt">string</span><span class="p">,</span> <span class="nx">apiGroupInfo</span> <span class="o">*</span><span class="nx">APIGroupInfo</span><span class="p">)</span> <span class="kt">error</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">s</span><span class="p">.</span><span class="nf">installAPIResources</span><span class="p">(</span><span class="nx">apiPrefix</span><span class="p">,</span> <span class="nx">apiGroupInfo</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// vendor/k8s.io/apiserver/pkg/server/genericapiserver.go
+</span></span></span><span class="line"><span class="cl"><span class="c1">// NOTE =&gt; apigroup TO apigroupversion
+</span></span></span><span class="line"><span class="cl"><span class="c1">// =&gt; got: apigroupversion
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">s</span> <span class="o">*</span><span class="nx">GenericAPIServer</span><span class="p">)</span> <span class="nf">installAPIResources</span><span class="p">(</span><span class="nx">apiPrefix</span> <span class="kt">string</span><span class="p">,</span> <span class="nx">apiGroupInfo</span> <span class="o">*</span><span class="nx">APIGroupInfo</span><span class="p">)</span> <span class="kt">error</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">for</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">groupVersion</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">apiGroupInfo</span><span class="p">.</span><span class="nx">GroupMeta</span><span class="p">.</span><span class="nx">GroupVersions</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="nx">apiGroupVersion</span> <span class="o">:=</span> <span class="nx">s</span><span class="p">.</span><span class="nf">getAPIGroupVersion</span><span class="p">(</span><span class="nx">apiGroupInfo</span><span class="p">,</span> <span class="nx">groupVersion</span><span class="p">,</span> <span class="nx">apiPrefix</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">		<span class="nx">apiGroupVersion</span><span class="p">.</span><span class="nf">InstallREST</span><span class="p">(</span><span class="nx">s</span><span class="p">.</span><span class="nx">HandlerContainer</span><span class="p">.</span><span class="nx">Container</span><span class="p">);</span>	<span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// vendor/k8s.io/apiserver/pkg/server/genericapiserver.go
+</span></span></span><span class="line"><span class="cl"><span class="c1">// =&gt; got: APIGroupVersion.Storage = make(map[string]rest.Storage
+</span></span></span><span class="line"><span class="cl"><span class="c1">//         APIGroupVersion.Storage[path] = apiGroupInfo.VersionedResourcesStorageMap[groupVersion.Version][path]
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">s</span> <span class="o">*</span><span class="nx">GenericAPIServer</span><span class="p">)</span> <span class="nf">getAPIGroupVersion</span><span class="p">(</span><span class="nx">apiGroupInfo</span> <span class="o">*</span><span class="nx">APIGroupInfo</span><span class="p">,</span> <span class="nx">groupVersion</span> <span class="nx">schema</span><span class="p">.</span><span class="nx">GroupVersion</span><span class="p">,</span> <span class="nx">apiPrefix</span> <span class="kt">string</span><span class="p">)</span> <span class="o">*</span><span class="nx">genericapi</span><span class="p">.</span><span class="nx">APIGroupVersion</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">storage</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="nx">rest</span><span class="p">.</span><span class="nx">Storage</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">	<span class="k">for</span> <span class="nx">k</span><span class="p">,</span> <span class="nx">v</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">apiGroupInfo</span><span class="p">.</span><span class="nx">VersionedResourcesStorageMap</span><span class="p">[</span><span class="nx">groupVersion</span><span class="p">.</span><span class="nx">Version</span><span class="p">]</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="nx">storage</span><span class="p">[</span><span class="nx">strings</span><span class="p">.</span><span class="nf">ToLower</span><span class="p">(</span><span class="nx">k</span><span class="p">)]</span> <span class="p">=</span> <span class="nx">v</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">version</span> <span class="o">:=</span> <span class="nx">s</span><span class="p">.</span><span class="nf">newAPIGroupVersion</span><span class="p">(</span><span class="nx">apiGroupInfo</span><span class="p">,</span> <span class="nx">groupVersion</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">version</span><span class="p">.</span><span class="nx">Root</span> <span class="p">=</span> <span class="nx">apiPrefix</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">version</span><span class="p">.</span><span class="nx">Storage</span> <span class="p">=</span> <span class="nx">storage</span>
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="nx">version</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// vendor/k8s.io/apiserver/pkg/endpoints/groupversion.go
+</span></span></span><span class="line"><span class="cl"><span class="c1">// =&gt; got: installer.group = APIGroupVersion
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">g</span> <span class="o">*</span><span class="nx">APIGroupVersion</span><span class="p">)</span> <span class="nf">InstallREST</span><span class="p">(</span><span class="nx">container</span> <span class="o">*</span><span class="nx">restful</span><span class="p">.</span><span class="nx">Container</span><span class="p">)</span> <span class="kt">error</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">installer</span> <span class="o">:=</span> <span class="nx">g</span><span class="p">.</span><span class="nf">newInstaller</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">installer</span><span class="p">.</span><span class="nf">Install</span><span class="p">(</span><span class="nx">ws</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">g</span> <span class="o">*</span><span class="nx">APIGroupVersion</span><span class="p">)</span> <span class="nf">newInstaller</span><span class="p">()</span> <span class="o">*</span><span class="nx">APIInstaller</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">prefix</span> <span class="o">:=</span> <span class="nx">path</span><span class="p">.</span><span class="nf">Join</span><span class="p">(</span><span class="nx">g</span><span class="p">.</span><span class="nx">Root</span><span class="p">,</span> <span class="nx">g</span><span class="p">.</span><span class="nx">GroupVersion</span><span class="p">.</span><span class="nx">Group</span><span class="p">,</span> <span class="nx">g</span><span class="p">.</span><span class="nx">GroupVersion</span><span class="p">.</span><span class="nx">Version</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">installer</span> <span class="o">:=</span> <span class="o">&amp;</span><span class="nx">APIInstaller</span><span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="nx">group</span><span class="p">:</span>             <span class="nx">g</span><span class="p">,</span>           <span class="c1">// group = APIGroupVersion
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>		<span class="nx">prefix</span><span class="p">:</span>            <span class="nx">prefix</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="nx">minRequestTimeout</span><span class="p">:</span> <span class="nx">g</span><span class="p">.</span><span class="nx">MinRequestTimeout</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="nx">installer</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// vendor/k8s.io/apiserver/pkg/endpoints/installer.go
+</span></span></span><span class="line"><span class="cl"><span class="c1">// got: a.group.Storage[path] = APIInstaller.group.Storage[path] = APIGroupVersion.Storage[path]
+</span></span></span><span class="line"><span class="cl"><span class="c1">//      APIGroupVersion.Storage[path] = apiGroupInfo.VersionedResourcesStorageMap[groupVersion.Version][path]
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">a</span> <span class="o">*</span><span class="nx">APIInstaller</span><span class="p">)</span> <span class="nf">Install</span><span class="p">(</span><span class="nx">ws</span> <span class="o">*</span><span class="nx">restful</span><span class="p">.</span><span class="nx">WebService</span><span class="p">)</span> <span class="p">(</span><span class="nx">apiResources</span> <span class="p">[]</span><span class="nx">metav1</span><span class="p">.</span><span class="nx">APIResource</span><span class="p">,</span> <span class="nx">errors</span> <span class="p">[]</span><span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="c1">// Register the paths in a deterministic (sorted) order to get a deterministic swagger spec.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="nx">paths</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">([]</span><span class="kt">string</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="nx">a</span><span class="p">.</span><span class="nx">group</span><span class="p">.</span><span class="nx">Storage</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">	<span class="kd">var</span> <span class="nx">i</span> <span class="kt">int</span> <span class="p">=</span> <span class="mi">0</span>
+</span></span><span class="line"><span class="cl">	<span class="k">for</span> <span class="nx">path</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">a</span><span class="p">.</span><span class="nx">group</span><span class="p">.</span><span class="nx">Storage</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="nx">paths</span><span class="p">[</span><span class="nx">i</span><span class="p">]</span> <span class="p">=</span> <span class="nx">path</span>
+</span></span><span class="line"><span class="cl">		<span class="nx">i</span><span class="o">++</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">sort</span><span class="p">.</span><span class="nf">Strings</span><span class="p">(</span><span class="nx">paths</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">	<span class="k">for</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">path</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">paths</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="nx">apiResource</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">a</span><span class="p">.</span><span class="nf">registerResourceHandlers</span><span class="p">(</span><span class="nx">path</span><span class="p">,</span> <span class="nx">a</span><span class="p">.</span><span class="nx">group</span><span class="p">.</span><span class="nx">Storage</span><span class="p">[</span><span class="nx">path</span><span class="p">],</span> <span class="nx">ws</span><span class="p">,</span> <span class="nx">proxyHandler</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// apiserver/pkg/endpoints/installer.go
+</span></span></span><span class="line"><span class="cl"><span class="c1">// got: storage = apiGroupInfo.VersionedResourcesStorageMap[groupVersion.Version][path]
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">a</span> <span class="o">*</span><span class="nx">APIInstaller</span><span class="p">)</span> <span class="nf">registerResourceHandlers</span><span class="p">(</span><span class="nx">path</span> <span class="kt">string</span><span class="p">,</span> <span class="nx">storage</span> <span class="nx">rest</span><span class="p">.</span><span class="nx">Storage</span><span class="p">,</span> <span class="nx">ws</span> <span class="o">*</span><span class="nx">restful</span><span class="p">.</span><span class="nx">WebService</span><span class="p">,</span> <span class="nx">proxyHandler</span> <span class="nx">http</span><span class="p">.</span><span class="nx">Handler</span><span class="p">)</span> <span class="p">(</span><span class="o">*</span><span class="nx">metav1</span><span class="p">.</span><span class="nx">APIResource</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nx">creater</span><span class="p">,</span> <span class="nx">isCreater</span> <span class="o">:=</span> <span class="nx">storage</span><span class="p">.(</span><span class="nx">rest</span><span class="p">.</span><span class="nx">Creater</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>到了这里, 其实有了一个清晰的结论</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// apiGroupInfo.VersionedResourcesStorageMap
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">storage</span> <span class="p">=</span> <span class="nx">apiGroupInfo</span><span class="p">.</span><span class="nx">VersionedResourcesStorageMap</span><span class="p">[</span><span class="nx">groupVersion</span><span class="p">.</span><span class="nx">Version</span><span class="p">][</span><span class="nx">path</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl"><span class="nx">creater</span><span class="p">,</span> <span class="nx">isCreater</span> <span class="o">:=</span> <span class="nx">storage</span><span class="p">.(</span><span class="nx">rest</span><span class="p">.</span><span class="nx">Creater</span><span class="p">)</span>
+</span></span></code></pre></div><p>此时, 我们再反向寻找<code>apiGroupInfo</code>初始化的位置</p>
+<h2 id="第二步-apigroupinfo-初始化">第二步: apiGroupInfo 初始化<a href="#第二步-apigroupinfo-初始化" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<ul>
+<li>pkg/master/master.go</li>
+</ul>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">m</span> <span class="o">*</span><span class="nx">Master</span><span class="p">)</span> <span class="nf">InstallLegacyAPI</span><span class="p">(</span><span class="nx">c</span> <span class="o">*</span><span class="nx">Config</span><span class="p">,</span> <span class="nx">restOptionsGetter</span> <span class="nx">generic</span><span class="p">.</span><span class="nx">RESTOptionsGetter</span><span class="p">,</span> <span class="nx">legacyRESTStorageProvider</span> <span class="nx">corerest</span><span class="p">.</span><span class="nx">LegacyRESTStorageProvider</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">legacyRESTStorage</span><span class="p">,</span> <span class="nx">apiGroupInfo</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">legacyRESTStorageProvider</span><span class="p">.</span><span class="nf">NewLegacyRESTStorage</span><span class="p">(</span><span class="nx">restOptionsGetter</span><span class="p">)</span> <span class="c1">// =&gt; next
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="nx">m</span><span class="p">.</span><span class="nx">GenericAPIServer</span><span class="p">.</span><span class="nf">InstallLegacyAPIGroup</span><span class="p">(</span><span class="nx">genericapiserver</span><span class="p">.</span><span class="nx">DefaultLegacyAPIPrefix</span><span class="p">,</span> <span class="o">&amp;</span><span class="nx">apiGroupInfo</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><ul>
+<li>pkg/registry/core/rest/storage_core.go</li>
+</ul>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">c</span> <span class="nx">LegacyRESTStorageProvider</span><span class="p">)</span> <span class="nf">NewLegacyRESTStorage</span><span class="p">(</span><span class="nx">restOptionsGetter</span> <span class="nx">generic</span><span class="p">.</span><span class="nx">RESTOptionsGetter</span><span class="p">)</span> <span class="p">(</span><span class="nx">LegacyRESTStorage</span><span class="p">,</span> <span class="nx">genericapiserver</span><span class="p">.</span><span class="nx">APIGroupInfo</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">  <span class="c1">// 初始化: VersionedResourcesStorageMap
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="nx">apiGroupInfo</span> <span class="o">:=</span> <span class="nx">genericapiserver</span><span class="p">.</span><span class="nx">APIGroupInfo</span><span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="nx">GroupMeta</span><span class="p">:</span>                    <span class="o">*</span><span class="nx">api</span><span class="p">.</span><span class="nx">Registry</span><span class="p">.</span><span class="nf">GroupOrDie</span><span class="p">(</span><span class="nx">api</span><span class="p">.</span><span class="nx">GroupName</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">		<span class="nx">VersionedResourcesStorageMap</span><span class="p">:</span> <span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="nx">rest</span><span class="p">.</span><span class="nx">Storage</span><span class="p">{},</span>
+</span></span><span class="line"><span class="cl">		<span class="nx">Scheme</span><span class="p">:</span>                      <span class="nx">api</span><span class="p">.</span><span class="nx">Scheme</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="nx">ParameterCodec</span><span class="p">:</span>              <span class="nx">api</span><span class="p">.</span><span class="nx">ParameterCodec</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="nx">NegotiatedSerializer</span><span class="p">:</span>        <span class="nx">api</span><span class="p">.</span><span class="nx">Codecs</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="nx">SubresourceGroupVersionKind</span><span class="p">:</span> <span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="nx">schema</span><span class="p">.</span><span class="nx">GroupVersionKind</span><span class="p">{},</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">	<span class="c1">// ......
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">	<span class="c1">// 初始化了一个restStorage的map，然后赋值给APIGroupInfo.VersionedResourcesStorageMap[&#34;v1&#34;]
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="nx">restStorageMap</span> <span class="o">:=</span> <span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="nx">rest</span><span class="p">.</span><span class="nx">Storage</span><span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="s">&#34;pods&#34;</span><span class="p">:</span>             <span class="nx">podStorage</span><span class="p">.</span><span class="nx">Pod</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="s">&#34;pods/attach&#34;</span><span class="p">:</span>      <span class="nx">podStorage</span><span class="p">.</span><span class="nx">Attach</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="s">&#34;pods/status&#34;</span><span class="p">:</span>      <span class="nx">podStorage</span><span class="p">.</span><span class="nx">Status</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="s">&#34;services&#34;</span><span class="p">:</span>        <span class="nx">serviceRest</span><span class="p">.</span><span class="nx">Service</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="s">&#34;nodes&#34;</span><span class="p">:</span>        <span class="nx">nodeStorage</span><span class="p">.</span><span class="nx">Node</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="o">...</span><span class="p">..</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nx">apiGroupInfo</span><span class="p">.</span><span class="nx">VersionedResourcesStorageMap</span><span class="p">[</span><span class="s">&#34;v1&#34;</span><span class="p">]</span> <span class="p">=</span> <span class="nx">restStorageMap</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="nx">restStorage</span><span class="p">,</span> <span class="nx">apiGroupInfo</span><span class="p">,</span> <span class="kc">nil</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>即</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="nx">apiGroupInfo</span><span class="p">.</span><span class="nx">VersionedResourcesStorageMap</span><span class="p">[</span><span class="s">&#34;v1&#34;</span><span class="p">]</span> <span class="p">=</span> <span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="nx">rest</span><span class="p">.</span><span class="nx">Storage</span><span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="s">&#34;pods&#34;</span><span class="p">:</span>             <span class="nx">podStorage</span><span class="p">.</span><span class="nx">Pod</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="s">&#34;pods/attach&#34;</span><span class="p">:</span>      <span class="nx">podStorage</span><span class="p">.</span><span class="nx">Attach</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="s">&#34;pods/status&#34;</span><span class="p">:</span>      <span class="nx">podStorage</span><span class="p">.</span><span class="nx">Status</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="s">&#34;services&#34;</span><span class="p">:</span>        <span class="nx">serviceRest</span><span class="p">.</span><span class="nx">Service</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="s">&#34;nodes&#34;</span><span class="p">:</span>        <span class="nx">nodeStorage</span><span class="p">.</span><span class="nx">Node</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="o">...</span><span class="p">..</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span></code></pre></div><p>此时, 根据</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// apiGroupInfo.VersionedResourcesStorageMap
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">storage</span> <span class="p">=</span> <span class="nx">apiGroupInfo</span><span class="p">.</span><span class="nx">VersionedResourcesStorageMap</span><span class="p">[</span><span class="nx">groupVersion</span><span class="p">.</span><span class="nx">Version</span><span class="p">][</span><span class="nx">path</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl"><span class="nx">creater</span><span class="p">,</span> <span class="nx">isCreater</span> <span class="o">:=</span> <span class="nx">storage</span><span class="p">.(</span><span class="nx">rest</span><span class="p">.</span><span class="nx">Creater</span><span class="p">)</span>
+</span></span></code></pre></div><p>我们可以得到</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="nx">storage</span> <span class="p">=</span> <span class="nx">apiGroupInfo</span><span class="p">.</span><span class="nx">VersionedResourcesStorageMap</span><span class="p">[</span><span class="s">&#34;v1&#34;</span><span class="p">][</span><span class="s">&#34;pods&#34;</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl"><span class="c1">// equals
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">storage</span> <span class="p">=</span> <span class="nx">podStorage</span><span class="p">.</span><span class="nx">Pod</span>
+</span></span><span class="line"><span class="cl"><span class="nx">creater</span><span class="p">,</span> <span class="nx">isCreater</span> <span class="o">:=</span> <span class="p">(</span><span class="nx">podStorage</span><span class="p">.</span><span class="nx">Pod</span><span class="p">).(</span><span class="nx">rest</span><span class="p">.</span><span class="nx">Creater</span><span class="p">)</span>
+</span></span></code></pre></div><p>然后, 我们再看下<code>podStorage.Pod</code>的实现</p>
+<h2 id="第三步-podstoragepod">第三步: podStorage.Pod<a href="#第三步-podstoragepod" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<ul>
+<li>pkg/registry/core/pod/storage/storage.go</li>
+</ul>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">type</span> <span class="nx">PodStorage</span> <span class="kd">struct</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">Pod</span>         <span class="o">*</span><span class="nx">REST</span>
+</span></span><span class="line"><span class="cl">  <span class="o">...</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// REST implements a RESTStorage for pods
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">type</span> <span class="nx">REST</span> <span class="kd">struct</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="o">*</span><span class="nx">genericregistry</span><span class="p">.</span><span class="nx">Store</span>     <span class="c1">// =&gt; NOTE
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="nx">proxyTransport</span> <span class="nx">http</span><span class="p">.</span><span class="nx">RoundTripper</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>即, <code>PodStorage.Pod</code> 类型是 <code>REST</code>, 而<code>REST.genericregistry.Store</code>, 其定义文件中存在</p>
+<ul>
+<li>vendor/k8s.io/apiserver/pkg/registry/generic/registry/store.go</li>
+</ul>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// New implements RESTStorage.New.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">e</span> <span class="o">*</span><span class="nx">Store</span><span class="p">)</span> <span class="nf">New</span><span class="p">()</span> <span class="nx">runtime</span><span class="p">.</span><span class="nx">Object</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="nx">e</span><span class="p">.</span><span class="nf">NewFunc</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">e</span> <span class="o">*</span><span class="nx">Store</span><span class="p">)</span> <span class="nf">Create</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">genericapirequest</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span> <span class="nx">obj</span> <span class="nx">runtime</span><span class="p">.</span><span class="nx">Object</span><span class="p">)</span> <span class="p">(</span><span class="nx">runtime</span><span class="p">.</span><span class="nx">Object</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>即,</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="nx">storage</span> <span class="p">=</span> <span class="nx">apiGroupInfo</span><span class="p">.</span><span class="nx">VersionedResourcesStorageMap</span><span class="p">[</span><span class="s">&#34;v1&#34;</span><span class="p">][</span><span class="s">&#34;pods&#34;</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl"><span class="c1">// equals
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">storage</span> <span class="p">=</span> <span class="nx">podStorage</span><span class="p">.</span><span class="nx">Pod</span>
+</span></span><span class="line"><span class="cl"><span class="nx">creater</span><span class="p">,</span> <span class="nx">isCreater</span> <span class="o">:=</span> <span class="p">(</span><span class="nx">podStorage</span><span class="p">.</span><span class="nx">Pod</span><span class="p">).(</span><span class="nx">rest</span><span class="p">.</span><span class="nx">Creater</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// equals
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">creater</span><span class="p">,</span> <span class="nx">isCreater</span> <span class="o">:=</span> <span class="p">(</span><span class="nx">REST</span><span class="p">).(</span><span class="nx">rest</span><span class="p">.</span><span class="nx">Creater</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="nx">creater</span><span class="p">,</span> <span class="nx">isCreater</span> <span class="o">:=</span> <span class="p">(</span><span class="o">*</span><span class="nx">genericregistry</span><span class="p">.</span><span class="nx">Store</span><span class="p">).(</span><span class="nx">rest</span><span class="p">.</span><span class="nx">Creater</span><span class="p">)</span>
+</span></span></code></pre></div><h2 id="第四步-creaternew">第四步: creater.New()<a href="#第四步-creaternew" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p><img src="/imgs/k8s/apiserver-register-05.jpg" alt=""></p>
+<ul>
+<li>vendor/k8s.io/apiserver/pkg/registry/generic/registry/store.go</li>
+</ul>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// New implements RESTStorage.New.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">e</span> <span class="o">*</span><span class="nx">Store</span><span class="p">)</span> <span class="nf">New</span><span class="p">()</span> <span class="nx">runtime</span><span class="p">.</span><span class="nx">Object</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="nx">e</span><span class="p">.</span><span class="nf">NewFunc</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><ul>
+<li>pkg/registry/core/pod/storage/storage.go</li>
+</ul>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">NewStorage</span><span class="p">(</span><span class="nx">optsGetter</span> <span class="nx">generic</span><span class="p">.</span><span class="nx">RESTOptionsGetter</span><span class="p">,</span> <span class="nx">k</span> <span class="nx">client</span><span class="p">.</span><span class="nx">ConnectionInfoGetter</span><span class="p">,</span> <span class="nx">proxyTransport</span> <span class="nx">http</span><span class="p">.</span><span class="nx">RoundTripper</span><span class="p">,</span> <span class="nx">podDisruptionBudgetClient</span> <span class="nx">policyclient</span><span class="p">.</span><span class="nx">PodDisruptionBudgetsGetter</span><span class="p">)</span> <span class="nx">PodStorage</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nx">store</span> <span class="o">:=</span> <span class="o">&amp;</span><span class="nx">genericregistry</span><span class="p">.</span><span class="nx">Store</span><span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="nx">NewFunc</span><span class="p">:</span>     <span class="kd">func</span><span class="p">()</span> <span class="nx">runtime</span><span class="p">.</span><span class="nx">Object</span> <span class="p">{</span> <span class="k">return</span> <span class="o">&amp;</span><span class="nx">api</span><span class="p">.</span><span class="nx">Pod</span><span class="p">{}</span> <span class="p">},</span>
+</span></span><span class="line"><span class="cl">		<span class="o">...</span><span class="p">.</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// pkg/api/types.go
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">type</span> <span class="nx">Pod</span> <span class="kd">struct</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">metav1</span><span class="p">.</span><span class="nx">TypeMeta</span>
+</span></span><span class="line"><span class="cl">	<span class="c1">// +optional
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="nx">metav1</span><span class="p">.</span><span class="nx">ObjectMeta</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="c1">// Spec defines the behavior of a pod.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="c1">// +optional
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="nx">Spec</span> <span class="nx">PodSpec</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="c1">// Status represents the current information about a pod. This data may not be up
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="c1">// to date.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="c1">// +optional
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="nx">Status</span> <span class="nx">PodStatus</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>etcd相关的, 在后面介绍</p>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p>
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg><span class="tag"><a href="https://wklken.me/tags/paas">paas</a></span>
+				</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>1506 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2017-09-23 07:00 &#43;0000</p>
+			</footer>
+		</article>
+		<aside id="toc">
+			<div class="toc-title">Table of Contents</div>
+			<nav id="TableOfContents">
+  <ul>
+    <li><a href="#webserviceaddroute">webservice.add(route)</a></li>
+    <li><a href="#create-handler">create handler</a></li>
+    <li><a href="#回到最初的问题">回到最初的问题</a></li>
+    <li><a href="#第一步--链路分析">第一步:  链路分析</a></li>
+    <li><a href="#第二步-apigroupinfo-初始化">第二步: apiGroupInfo 初始化</a></li>
+    <li><a href="#第三步-podstoragepod">第三步: podStorage.Pod</a></li>
+    <li><a href="#第四步-creaternew">第四步: creater.New()</a></li>
+  </ul>
+</nav>
+		</aside>
+		<div class="post-nav thin">
+			<a class="next-post" href="https://wklken.me/posts/2017/12/31/summary-14-2017end-2018begin.html">
+				<span class="post-nav-label"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>&nbsp;Newer</span><br><span>2017总结: 予时光以意义</span>
+			</a>
+			<a class="prev-post" href="https://wklken.me/posts/2017/09/23/source-apiserver-03.html">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>k8s APIServer源码: api注册主体流程</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+<div id="gitalk-container"></div>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script src="https://wklken.me/js/md5.min.js"></script>
+<script>
+  const gitalk = new Gitalk({
+    clientID: '549d325e74a413f1b56a',
+    clientSecret: '086a83faacf152cc3f4079f002058716879e9688',
+    repo: 'wklken.github.io',
+    owner: 'wklken',
+    admin: ['wklken'],
+    id: md5(location.pathname), 
+    distractionFreeMode: false 
+  });
+  (function() {
+    if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+      document.getElementById('gitalk-container').innerHTML = 'Gitalk comments not available by default when the website is previewed locally.';
+      return;
+    }
+    gitalk.render('gitalk-container');
+  })();
+</script>
+
+</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2024 <a href="https://wklken.me">wklken</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="https://wklken.me/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+
+	<script src="https://wklken.me/js/bundle.min.580988ed2982bcbb74a1773c7abea97b43e4c43b9324e10cda0813ec6ec4bb67.js" integrity="sha256-WAmI7SmCvLt0oXc8er6pe0PkxDuTJOEM2ggT7G7Eu2c=" crossorigin="anonymous"></script>
+	
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-2GRCMEVXLQ"></script>
+<script>
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.dataLayer = window.dataLayer || [];
+	function gtag(){dataLayer.push(arguments);}
+	gtag('js', new Date());
+	gtag('config', 'G-2GRCMEVXLQ', { 'anonymize_ip': false });
+}
+</script>
+
+
+
+</body>
+
+</html>

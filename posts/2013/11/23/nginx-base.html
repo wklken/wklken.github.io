@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<meta name="theme-color" content="#494f5c">
+	<meta name="msapplication-TileColor" content="#494f5c">
+<meta itemprop="name" content="Nginx基础笔记">
+<meta itemprop="description" content="nginx小结 资源 资源 Nginx 官网 Nginx 官方下载地址 Nginx最佳实践配置项目 地址 Nginx Configuration wiki 教程 agentzh的Nginx教程 链接 Nginx开发从入门到精"><meta itemprop="datePublished" content="2013-11-23T08:00:00+08:00" />
+<meta itemprop="dateModified" content="2013-11-23T08:00:00+08:00" />
+<meta itemprop="wordCount" content="3051">
+<meta itemprop="keywords" content="linux,nginx," /><meta property="og:title" content="Nginx基础笔记" />
+<meta property="og:description" content="nginx小结 资源 资源 Nginx 官网 Nginx 官方下载地址 Nginx最佳实践配置项目 地址 Nginx Configuration wiki 教程 agentzh的Nginx教程 链接 Nginx开发从入门到精" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://wklken.me/posts/2013/11/23/nginx-base.html" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2013-11-23T08:00:00+08:00" />
+<meta property="article:modified_time" content="2013-11-23T08:00:00+08:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Nginx基础笔记"/>
+<meta name="twitter:description" content="nginx小结 资源 资源 Nginx 官网 Nginx 官方下载地址 Nginx最佳实践配置项目 地址 Nginx Configuration wiki 教程 agentzh的Nginx教程 链接 Nginx开发从入门到精"/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>Nginx基础笔记</title>
+	<link rel="stylesheet" href="https://wklken.me/css/style.min.a634759f5e59454c8c91bba6cb21df1387610e17a0916dfc23b1723d2e0623ed.css" integrity="sha256-pjR1n15ZRUyMkbumyyHfE4dhDhegkW38I7FyPS4GI+0=" crossorigin="anonymous">
+	
+	<link rel="stylesheet" href="https://wklken.me/css/custom.css">
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="https://wklken.me">WKLKEN THINKING</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					
+				<a href="https://wklken.me/posts.html">Posts</a>
+				<a href="https://wklken.me/about.html">About</a>
+
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<button id="toc-btn" class="hdr-btn desktop-only-ib" title="Table of Contents"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3" y2="6"></line><line x1="3" y1="12" x2="3" y2="12"></line><line x1="3" y1="18" x2="3" y2="18"></line></svg></button><span class="hdr-social hide-in-mobile"><a href="https://github.com/wklken" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" class="feather" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a><a href="https://twitter.com/wklken" target="_blank" rel="noopener me" title="Twitter"><svg xmlns="http://www.w3.org/2000/svg" class="feather" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="https://wklken.me/posts.html">Posts</a></li>
+			<li><a href="https://wklken.me/about.html">About</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>Nov 23, 2013</span></div>
+				<h1>Nginx基础笔记</h1>
+			</header>
+			<div class="content">
+				<p>nginx小结</p>
+<h3 id="资源">资源<a href="#资源" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<blockquote>
+<p>资源</p>
+</blockquote>
+<p>Nginx <a href="http://nginx.org/">官网</a></p>
+<p>Nginx <a href="http://nginx.org/en/download.html">官方下载地址</a></p>
+<p>Nginx最佳实践配置项目 <a href="https://github.com/Umkus/nginx-boilerplate">地址</a></p>
+<p>Nginx Configuration <a href="http://wiki.nginx.org/Configuration">wiki</a></p>
+<blockquote>
+<p>教程</p>
+</blockquote>
+<p>agentzh的Nginx教程 <a href="http://openresty.org/download/agentzh-nginx-tutorials-zhcn.html">链接</a></p>
+<p>Nginx开发从入门到精通 <a href="http://tengine.taobao.org/book/index.html">入口</a></p>
+<blockquote>
+<p>文章</p>
+</blockquote>
+<p>Nginx战斗准备-优化指南 <a href="http://www.oschina.net/translate/nginx-setup">入口</a></p>
+<p>Nginx模块开发入门 <a href="http://blog.codinglabs.org/articles/intro-of-nginx-module-development.html">入口</a></p>
+<p>解析Nginx负载均衡 <a href="http://stblog.baidu-tech.com/?p=2027">入口</a></p>
+<p>Nginx Rewrite研究笔记 <a href="http://blog.cafeneko.info/2010/10/nginx_rewrite_note/">入口</a></p>
+<h2 id="安装">安装<a href="#安装" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<h3 id="ubuntu下">ubuntu下<a href="#ubuntu下" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<pre><code>sudo apt-get install nginx
+
+启动
+sudo /etc/init.d/nginx start       #通过init.d下的启动文件启动。
+sudo service nginx start#通过ubuntu的服务管理器启动
+
+配置文件位置
+/etc/nginx/nginx.conf
+</code></pre>
+<h3 id="编译安装">编译安装<a href="#编译安装" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>1.先决条件</p>
+<pre><code>1.gcc
+apt-get install gcc
+2.pcre(Perl Compatible Regular Expression)
+apt-get install libpcre3 libpcre3-dev
+3.zlib
+apt-get install zliblg zliblg-dev
+4.openssl
+apt-get install openssl opensll-dev
+
+#如果非apt，可以使用下载包手动编译安装的方式处理
+</code></pre>
+<p>2.下载包</p>
+<pre><code>www.nginx.net 下载稳定版
+wget http://nginx.org/download/nginx-1.4.4.tar.gz
+</code></pre>
+<p>3.解压安装</p>
+<pre><code>tar -xzvf nginx-1.4.4.tar.gz
+#默认，安装目录/usr/local/nginx
+./configure
+make
+make install
+
+#配置
+./configure --conf-path=/etc/nginx/nginx.conf
+
+可以配置一些其他选项
+
+安装后查看下目录下的Configuration summary
+</code></pre>
+<p>4.init脚本</p>
+<pre><code>需要给nginx建立一个init脚本
+从网上捞一个，放入/etc/init.d/nginx
+</code></pre>
+<p>推荐编译配置</p>
+<pre><code>1.使用不同prefix，方便指定不同版本,也便于升级
+./configure --prefix=/usr/local/nginx-1.4.4
+</code></pre>
+<h2 id="基本操作">基本操作<a href="#基本操作" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<pre><code>查看帮助
+/usr/local/nginx/sbin/nginx -h
+
+立即停止进程(TERM信号)
+/usr/local/nginx/sbin/nginx -s stop
+
+温和停止进程(QUIT信号)
+/usr/local/nginx/sbin/nginx -s quit
+
+重加载
+/etc/init.d/nginx reload #有init脚本情况下
+/usr/local/nginx/sbin/nginx -s reload #原生
+
+检测配置文件是否正确
+/usr/local/nginx/sbin/nginx -t #生产路径下的
+/usr/local/nginx/sbin/nginx -t -c /home/ken/tmp/test.conf #可以测试某个临时文件
+</code></pre>
+<h2 id="http基本配置">HTTP基本配置<a href="#http基本配置" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<h3 id="配置说明">配置说明<a href="#配置说明" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<pre><code>注释，#
+每条指令总是以分好结束(;)
+配置继承：在一个区块中嵌套其他区段，那么被嵌套的区段会继承其父区段的设置
+字符串，可以没有引号，但是如果存在特殊字符（空格，分号，花括号）需要用引号引起
+单位：大小(k/K m/M) 时间值(ms/s/m/h/d/w/M/y 默认s)
+模块提供各种变量值，可以进行读取和赋值（每个模块提供变量列表需要自己去查）
+</code></pre>
+<h3 id="配置文件目录结构">配置文件目录结构<a href="#配置文件目录结构" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<pre><code>/usr/local/nginx/conf/
+
+- mime.types 一个文件扩展列表，它们与MIME类型关联
+- fastcgi.conf 与FastCGI相关的配置文件
+- proxy.conf 与Proxy相关的配置文件
+- nginx.conf 应用程序的基本配置文件
+- sites/
+    |- a.conf #允许给每个单独网站建立一个配置文件
+    |- b.conf
+    |- dir/
+        |- c.conf
+
+需要在nginx.conf中使用包含命令
+include sites/*.conf;
+include sites/*/*.conf;
+</code></pre>
+<h3 id="配置文件结构">配置文件结构<a href="#配置文件结构" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<pre><code>http { #嵌入配置文件的根部， 一个http里可以配置多个server
+
+    server { #声明一个站点
+        server_name www.website.com; #监听的主机名
+        listen 80; #监听套接字所使用的ip地址和端口号
+
+        error_page 404 /not_found.html;
+        error_page 500 501 502 503 504 /server_error.html;
+
+        index index.html;
+
+        root /var/www/website/com/html; #定义文档的根目录
+
+        #location, 通过制定的模式与客户端请求的URI相匹配
+        location / { #网站的特定位置
+        }
+        location /admin/ { #网站的特定位置 #
+            alias /var/www/locked/; #只能放在 location区段中，为指定路径提供别名
+        }
+
+        #操作符,匹配时跟定义顺序无关
+        location = /abcd { #精确匹配，不能用正则
+        }
+        location /abc/ { #url必须以指定模式开始，不能用正则
+        }
+        location ^~ /abcd$ { #吴标致行为，URI定位必须以指定模式开始，如果匹配，停止搜索其他模式
+        }
+        location ~ ^/abcd$ { #正则匹配，区分大小写
+        }
+        location ~* ^/abcd$ { #正则匹配，不区分大小写
+        }
+        location @test  { #定义location区段名，客户端不能访问，内部产生的请求可以,例如try_files或error_page
+        }
+    }
+}
+</code></pre>
+<h2 id="模块">模块<a href="#模块" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<h3 id="模块化">模块化<a href="#模块化" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>nginx真正的魅力在于它的模块，整个应用程序建立在一个模块化系统之上，在编译时，可以对每一个模块进行启用或者禁用</p>
+<h3 id="index模块">index模块<a href="#index模块" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>定义往回走哪index页</p>
+<pre><code>index index.php index.html /data/website/index.html;
+#可以指定多个，但是ngxin提供第一个找到的文件
+</code></pre>
+<h3 id="log模块">Log模块<a href="#log模块" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<pre><code>access_log /file/path;
+error_log /file/path error;  #level: debug/info/notice/warn/error/crit
+</code></pre>
+<p>日志格式</p>
+<pre><code>log_format main '$remote_addr - $remote_user [$time_local] &quot;$request&quot; '
+'$status $body_bytes_sent &quot;$http_referer&quot; '
+'&quot;$http_user_agent&quot; $http_x_forwarded_for';
+
+access_log /var/log/test.log main;
+</code></pre>
+<h3 id="real-ip模块">Real IP模块<a href="#real-ip模块" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>默认编译nginx不包含这个模块</p>
+<p>当通过nginx将用户请求进行转发时，接收请求的应用要拿到用户的真实IP(经转发拿到的是服务器的IP)</p>
+<pre><code>real_ip_header X-Forwarded-For;
+</code></pre>
+<h3 id="access模块">Access模块<a href="#access模块" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>可以禁用ip段</p>
+<p>语法</p>
+<pre><code>#如果规则之间有冲突，会以最前面匹配的规则为准
+deny IP;
+deny subnet;
+allow IP;
+allow subnet;
+# block all ips
+deny    all;
+# allow all ips
+allow    all;
+</code></pre>
+<p>配置一个blockips.conf,然后在nginx.conf中include</p>
+<p>e.g</p>
+<pre><code>location {
+    allow 127.0.0.1; #允许本地ip 注意顺序，allow要放在前面
+    deny all; #禁止其他ip
+}
+</code></pre>
+<h3 id="rewrite模块">Rewrite模块<a href="#rewrite模块" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>作用：执行URL重定向,允许你去掉带有恶意的URL，包含多个参数（修改）</p>
+<p>利用正则的匹配，分组和引用，达到目的</p>
+<p>break/return/set等</p>
+<pre><code>if (-f $uri) {
+    break
+}
+if ($uri ~ ^/admin/){
+    return 403;
+}
+if ($uri ~ ^/search/(.*)$) {
+    set $query $1;
+    rewrite ^ /search.php?q=$query?;
+}
+</code></pre>
+<p>例子</p>
+<pre><code>A:http://website.com/search/some-search-keywords
+B:http://website.com/search.php?q=some-search-keywords
+rewrite ^/search/(.*)$ /search.php?q=$1?;
+
+A:http://website.com/user/31/James
+B:http://website.com/user.php?id=31&amp;name=James
+rewrite ^/user/([0-9]+)/(.+)$ /user.php?id=$1&amp;name=$2?;
+
+A:http://website.com/index.php/param1/param2/param3
+B:http://website.com/index.php/?p1=param1&amp;p2=param2&amp;p3=param3
+rewrite ^/index.php/(.*)/(.*)/(.*)$ /index.php?p1=$1&amp;p2=$2&amp;p3=$3?;
+</code></pre>
+<p>rewrite语法</p>
+<pre><code>rewrite A B option;
+options:
+        last :表示完成rewrite
+        break:本规则匹配完成后，终止匹配，不再匹配后面的规则
+        redirect:返回302临时重定向，地址栏会显示跳转后的地址
+        permanent:返回301永久重定向，地址栏会显示跳转后的地址
+</code></pre>
+<h3 id="proxy模块">Proxy模块<a href="#proxy模块" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>默认模块，允许你讲客户端的HTTP请求转到后端服务器</p>
+<pre><code>location / {
+    proxy_pass_header Server;  #该指令强制一些被忽略的头传递到客户端
+    proxy_redirect off; #允许改写出现在HTTP头却被后端服务器触发重定向的URL,对相应本身不做任何处理
+    proxy_set_header Host $http_host; #允许你重新定义代理header值再转到后端服务器.目标服务器可以看到客户端的原始主机名
+    proxy_set_header X-Real-IP $remote_addr; #目标服务器可以看到客户端的真实ip，而不是转发服务器的ip
+    proxy_set_header X-Scheme $scheme;
+    proxy_pass http://localhost:8080;
+}
+</code></pre>
+<h3 id="upstream模块">upstream模块<a href="#upstream模块" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<pre><code>upstream up_name {
+    server 192.168.0.1:9000 weight=5; #权重
+    server 192.168.0.2:9000 weight=5 max_fails=5 fail_timeout=60s; #在60s内，其错误通信超过5次,认为该服务失效
+    server 192.168.0.3:9000 down; #服务标记为离线，不再使用
+    server 192.168.0.4:9000 backup; #备份服务器，其他全部宕机了才启用
+}
+</code></pre>
+<h2 id="其他">其他<a href="#其他" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<h3 id="配置静态化目录">配置静态化目录<a href="#配置静态化目录" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<pre><code>    location /static/
+    {
+        root /var/www/app/;
+        autoindex off;
+    }
+</code></pre>
+<h3 id="负载均衡">负载均衡<a href="#负载均衡" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<pre><code>http {
+    include mime.types;
+    default_type application/octet-stream;
+
+    keepalive_timeout 120;
+
+    tcp_nodelay on;
+
+    upstream up_localhost {
+        server 127.0.0.1:8000 weight=5;
+        server 127.0.0.1:8001 weight=10;
+    }
+
+    server {
+        listen 80;
+
+        server_name localhost;
+
+        location /{
+            proxy_pass http://up_localhost;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real_IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        }
+    }
+
+}
+</code></pre>
+<h3 id="控制页面缓存">控制页面缓存<a href="#控制页面缓存" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<pre><code>location ~ \.(htm|html|gif|jpg|jpeg|png|bmp|ico|css|js|txt)$ {
+    root /opt/webapp;
+    expires 24h;
+}
+
+expires 1 January, 1970, 00:00:01 GMT;
+expires 60s;
+expires 30m;
+expires 24h;
+expires 1d;
+expires max;
+expires off;
+</code></pre>
+<h3 id="nginx的内置变量">nginx的内置变量<a href="#nginx的内置变量" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<pre><code>$arg_PARAMETER 这个变量包含在查询字符串时GET请求PARAMETER的值。
+$args 这个变量等于请求行中的参数。
+$binary_remote_addr 二进制码形式的客户端地址。
+$body_bytes_sent
+$content_length 请求头中的Content-length字段。
+$content_type 请求头中的Content-Type字段。
+$cookie_COOKIE cookie COOKIE的值。
+$document_root 当前请求在root指令中指定的值。
+$document_uri 与$uri相同。
+$host 请求中的主机头字段，如果请求中的主机头不可用，则为服务器处理请求的服务器名称。
+$is_args 如果$args设置，值为&quot;?&quot;，否则为&quot;&quot;。
+$limit_rate 这个变量可以限制连接速率。
+$nginx_version 当前运行的nginx版本号。
+$query_string 与$args相同。
+$remote_addr 客户端的IP地址。
+$remote_port 客户端的端口。
+$remote_user 已经经过Auth Basic Module验证的用户名。
+$request_filename 当前连接请求的文件路径，由root或alias指令与URI请求生成。
+$request_body 这个变量（0.7.58+）包含请求的主要信息。在使用proxy_pass或fastcgi_pass指令的location中比较有意义。
+$request_body_file 客户端请求主体信息的临时文件名。
+$request_completion 请求完成
+$request_method 这个变量是客户端请求的动作，通常为GET或POST。包括0.8.20及之前的版本中，这个变量总为main request中的动作，如果当前请求是一个子请求，并不使用这个当前请求的动作。
+$request_uri 这个变量等于包含一些客户端请求参数的原始URI，它无法修改，请查看$uri更改或重写URI。
+$schemeHTTP 方法（如http，https）。按需使用，例：
+rewrite ^(.+)$ $scheme://example.com$1 redirect;
+$server_addr 服务器地址，在完成一次系统调用后可以确定这个值，如果要绕开系统调用，则必须在listen中指定地址并且使用bind参数。
+$server_name 服务器名称。
+$server_port 请求到达服务器的端口号。
+$server_protocol 请求使用的协议，通常是HTTP/1.0或HTTP/1.1。
+$uri 请求中的当前URI(不带请求参数，参数位于$args)，可以不同于浏览器传递的$request_uri的值，它可以通过内部重定向，或者使用index指令进行修改。
+</code></pre>
+<h3 id="配置shtml访问">配置shtml访问<a href="#配置shtml访问" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p><a href="http://nginx.org/en/docs/http/ngx_http_ssi_module.html">文档</a></p>
+<pre tabindex="0"><code>location  ~ ^/static {
+    ....
+    ssi on;
+    ssi_client_errors on;
+    ssi_types text/shtml;
+}
+</code></pre><h3 id="auth-basic配置">auth basic配置<a href="#auth-basic配置" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>首先, 安装<code>htpasswd</code>, 生成密码</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">htpasswd -c paas_admin username
+</span></span><span class="line"><span class="cl">password: password
+</span></span></code></pre></div><p>生成文件后, 拷贝到nginx目录下</p>
+<p>配置</p>
+<pre tabindex="0"><code>location / {
+    auth_basic &#34;Restricted&#34;;
+    auth_basic_user_file /usr/local/nginx/conf/kibana.htpasswd;
+    root  /data/BKLogTool/kibana;
+    index  index.html  index.htm;
+}
+</code></pre><p>reload nginx</p>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p>
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg><span class="tag"><a href="https://wklken.me/tags/linux">linux</a></span><span class="tag"><a href="https://wklken.me/tags/nginx">nginx</a></span>
+				</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>3051 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2013-11-23 00:00 &#43;0000</p>
+			</footer>
+		</article>
+		<aside id="toc">
+			<div class="toc-title">Table of Contents</div>
+			<nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#资源">资源</a></li>
+      </ul>
+    </li>
+    <li><a href="#安装">安装</a>
+      <ul>
+        <li><a href="#ubuntu下">ubuntu下</a></li>
+        <li><a href="#编译安装">编译安装</a></li>
+      </ul>
+    </li>
+    <li><a href="#基本操作">基本操作</a></li>
+    <li><a href="#http基本配置">HTTP基本配置</a>
+      <ul>
+        <li><a href="#配置说明">配置说明</a></li>
+        <li><a href="#配置文件目录结构">配置文件目录结构</a></li>
+        <li><a href="#配置文件结构">配置文件结构</a></li>
+      </ul>
+    </li>
+    <li><a href="#模块">模块</a>
+      <ul>
+        <li><a href="#模块化">模块化</a></li>
+        <li><a href="#index模块">index模块</a></li>
+        <li><a href="#log模块">Log模块</a></li>
+        <li><a href="#real-ip模块">Real IP模块</a></li>
+        <li><a href="#access模块">Access模块</a></li>
+        <li><a href="#rewrite模块">Rewrite模块</a></li>
+        <li><a href="#proxy模块">Proxy模块</a></li>
+        <li><a href="#upstream模块">upstream模块</a></li>
+      </ul>
+    </li>
+    <li><a href="#其他">其他</a>
+      <ul>
+        <li><a href="#配置静态化目录">配置静态化目录</a></li>
+        <li><a href="#负载均衡">负载均衡</a></li>
+        <li><a href="#控制页面缓存">控制页面缓存</a></li>
+        <li><a href="#nginx的内置变量">nginx的内置变量</a></li>
+        <li><a href="#配置shtml访问">配置shtml访问</a></li>
+        <li><a href="#auth-basic配置">auth basic配置</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+		</aside>
+		<div class="post-nav thin">
+			<a class="next-post" href="https://wklken.me/posts/2013/11/24/the-clean-coder.html">
+				<span class="post-nav-label"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>&nbsp;Newer</span><br><span>读书笔记-程序员的职业素养</span>
+			</a>
+			<a class="prev-post" href="https://wklken.me/posts/2013/11/17/the-art-of-procrastination.html">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>读书笔记-拖拉一点也无妨</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+<div id="gitalk-container"></div>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script src="https://wklken.me/js/md5.min.js"></script>
+<script>
+  const gitalk = new Gitalk({
+    clientID: '549d325e74a413f1b56a',
+    clientSecret: '086a83faacf152cc3f4079f002058716879e9688',
+    repo: 'wklken.github.io',
+    owner: 'wklken',
+    admin: ['wklken'],
+    id: md5(location.pathname), 
+    distractionFreeMode: false 
+  });
+  (function() {
+    if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+      document.getElementById('gitalk-container').innerHTML = 'Gitalk comments not available by default when the website is previewed locally.';
+      return;
+    }
+    gitalk.render('gitalk-container');
+  })();
+</script>
+
+</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2024 <a href="https://wklken.me">wklken</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="https://wklken.me/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+
+	<script src="https://wklken.me/js/bundle.min.580988ed2982bcbb74a1773c7abea97b43e4c43b9324e10cda0813ec6ec4bb67.js" integrity="sha256-WAmI7SmCvLt0oXc8er6pe0PkxDuTJOEM2ggT7G7Eu2c=" crossorigin="anonymous"></script>
+	
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-2GRCMEVXLQ"></script>
+<script>
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.dataLayer = window.dataLayer || [];
+	function gtag(){dataLayer.push(arguments);}
+	gtag('js', new Date());
+	gtag('config', 'G-2GRCMEVXLQ', { 'anonymize_ip': false });
+}
+</script>
+
+
+
+</body>
+
+</html>

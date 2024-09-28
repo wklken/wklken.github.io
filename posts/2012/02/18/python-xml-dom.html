@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<meta name="theme-color" content="#494f5c">
+	<meta name="msapplication-TileColor" content="#494f5c">
+<meta itemprop="name" content="Python解析xml[xml.dom]">
+<meta itemprop="description" content="用到的包：xml.dom.minidom 文档 代码托管位置 github-pytools 需求 有一个表，里面数据量比较大，每天一更新，其字段可以通过xml配置文件进行配置，"><meta itemprop="datePublished" content="2012-02-18T08:00:00+08:00" />
+<meta itemprop="dateModified" content="2012-02-18T08:00:00+08:00" />
+<meta itemprop="wordCount" content="514">
+<meta itemprop="keywords" content="python,xml," /><meta property="og:title" content="Python解析xml[xml.dom]" />
+<meta property="og:description" content="用到的包：xml.dom.minidom 文档 代码托管位置 github-pytools 需求 有一个表，里面数据量比较大，每天一更新，其字段可以通过xml配置文件进行配置，" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://wklken.me/posts/2012/02/18/python-xml-dom.html" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2012-02-18T08:00:00+08:00" />
+<meta property="article:modified_time" content="2012-02-18T08:00:00+08:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Python解析xml[xml.dom]"/>
+<meta name="twitter:description" content="用到的包：xml.dom.minidom 文档 代码托管位置 github-pytools 需求 有一个表，里面数据量比较大，每天一更新，其字段可以通过xml配置文件进行配置，"/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>Python解析xml[xml.dom]</title>
+	<link rel="stylesheet" href="https://wklken.me/css/style.min.a634759f5e59454c8c91bba6cb21df1387610e17a0916dfc23b1723d2e0623ed.css" integrity="sha256-pjR1n15ZRUyMkbumyyHfE4dhDhegkW38I7FyPS4GI+0=" crossorigin="anonymous">
+	
+	<link rel="stylesheet" href="https://wklken.me/css/custom.css">
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="https://wklken.me">WKLKEN THINKING</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					
+				<a href="https://wklken.me/posts.html">Posts</a>
+				<a href="https://wklken.me/about.html">About</a>
+
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<button id="toc-btn" class="hdr-btn desktop-only-ib" title="Table of Contents"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3" y2="6"></line><line x1="3" y1="12" x2="3" y2="12"></line><line x1="3" y1="18" x2="3" y2="18"></line></svg></button><span class="hdr-social hide-in-mobile"><a href="https://github.com/wklken" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" class="feather" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a><a href="https://twitter.com/wklken" target="_blank" rel="noopener me" title="Twitter"><svg xmlns="http://www.w3.org/2000/svg" class="feather" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="https://wklken.me/posts.html">Posts</a></li>
+			<li><a href="https://wklken.me/about.html">About</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>Feb 18, 2012</span></div>
+				<h1>Python解析xml[xml.dom]</h1>
+			</header>
+			<div class="content">
+				<p>用到的包：xml.dom.minidom <a href="http://docs.python.org/2/library/xml.dom.minidom.html">文档</a></p>
+<p>代码托管位置 <a href="https://github.com/wklken/pytools">github-pytools</a></p>
+<h3 id="需求">需求<a href="#需求" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>有一个表，里面数据量比较大，每天一更新，其字段可以通过xml配置文件进行配置，即，可能每次建表的字段不一样。</p>
+<p>上游跑时会根据配置从源文件中提取，到入库这一步需要根据配置进行建表。</p>
+<h3 id="解决">解决<a href="#解决" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>写了一个简单的xml，配置需要字段及类型</p>
+<p>上游读取到对应的数据</p>
+<p>入库这一步，先把原表删除，根据配置建新表</p>
+<h3 id="xml文件">XML文件<a href="#xml文件" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;!-- 表名 ,数据库名   可灵活配置插入哪个库哪个表 --&gt;
+&lt;table name=&quot;top_query&quot; db_name=&quot;evaluting_sys&quot;&gt;
+&lt;!-- 非业务主键，自增长,可配名，其他 INTEGER UNSIGNED AUTO_INCREMENT  --&gt;
+&lt;primary_key&gt;
+&lt;name&gt;id&lt;/name&gt;
+&lt;/primary_key&gt;
+&lt;!-- 字段开始 --&gt;
+&lt;field&gt;
+&lt;name&gt;query&lt;/name&gt;
+&lt;type&gt;varchar(200)&lt;/type&gt;
+&lt;is_index&gt;false&lt;/is_index&gt;
+&lt;description&gt;query&lt;/description&gt;
+&lt;/field&gt;
+&lt;field&gt;
+&lt;name&gt;pv&lt;/name&gt;
+&lt;type&gt;integer&lt;/type&gt;
+&lt;is_index&gt;false&lt;/is_index&gt;
+&lt;description&gt;pv&lt;/description&gt;
+&lt;/field&gt;
+&lt;field&gt;
+&lt;name&gt;avg_money&lt;/name&gt;
+&lt;type&gt;integer&lt;/type&gt;
+&lt;is_index&gt;false&lt;/is_index&gt;
+&lt;description&gt;&lt;/description&gt;
+&lt;/field&gt;
+&lt;!-- 字段配置结束 --&gt;
+&lt;/table&gt;
+</code></pre>
+<h3 id="处理脚本">处理脚本<a href="#处理脚本" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<pre><code>#!/usr/bin/python
+# -*- coding:utf-8 -*-
+#author: wklken
+#desc: use to read db xml config.
+#-----------------------
+#2012-02-18 created
+#----------------------
+
+import sys,os
+from xml.dom import minidom, Node
+
+def read_dbconfig_xml(xml_file_path):
+    content = {}
+
+    root = minidom.parse(xml_file_path)
+    table = root.getElementsByTagName(&quot;table&quot;)[0]
+
+    #read dbname and table name.
+    table_name = table.getAttribute(&quot;name&quot;)
+    db_name = table.getAttribute(&quot;db_name&quot;)
+
+    if len(table_name) &gt; 0 and len(db_name) &gt; 0:
+        db_sql = &quot;create database if not exists `&quot; + db_name +&quot;`; use &quot; + db_name + &quot;;&quot;
+        table_drop_sql = &quot;drop &quot; + table_name + &quot; if exists &quot; + table_name + &quot;;&quot;
+        content.update({&quot;db_sql&quot; : db_sql})
+        content.update({&quot;table_sql&quot; : table_drop_sql })
+    else:
+        print &quot;Error:attribute is not define well!  db_name=&quot; + db_name + &quot; ;table_name=&quot; + table_name
+        sys.exit(1)
+    #print table_name, db_name
+
+    table_create_sql = &quot;create table &quot; + table_name +&quot;(&quot;
+
+    #read primary cell
+    primary_key = table.getElementsByTagName(&quot;primary_key&quot;)[0]
+    primary_key_name = primary_key.getElementsByTagName(&quot;name&quot;)[0].childNodes[0].nodeValue
+
+    table_create_sql += primary_key_name + &quot; INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,&quot;
+
+    #print primary_key.toxml()
+    #read ordernary field
+    fields = table.getElementsByTagName(&quot;field&quot;)
+    f_index = 0
+    for field in fields:
+        f_index += 1
+        name = field.getElementsByTagName(&quot;name&quot;)[0].childNodes[0].nodeValue
+        type = field.getElementsByTagName(&quot;type&quot;)[0].childNodes[0].nodeValue
+        table_create_sql += name + &quot; &quot; + type
+        if f_index != len(fields):
+        table_create_sql += &quot;,&quot;
+        is_index = field.getElementsByTagName(&quot;is_index&quot;)[0].childNodes[0].nodeValue
+
+    table_create_sql += &quot;);&quot;
+    content.update({&quot;table_create_sql&quot; : table_create_sql})
+    #character set latin1 collate latin1_danish_ci;
+    print content
+
+
+if __name__ == &quot;__main__&quot;:
+read_dbconfig_xml(sys.argv[1])
+</code></pre>
+<h3 id="涉及方法">涉及方法<a href="#涉及方法" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>root = minidom.parse(xml_file_path)  获取dom对象</p>
+<p>root.getElementsByTagName(&ldquo;table&rdquo;)  根据tag获取节点列表</p>
+<p>table.getAttribute(&ldquo;name&rdquo;)  获取属性</p>
+<p>primary_key.getElementsByTagName(&ldquo;name&rdquo;)[0].childNodes[0].nodeValue  获取子节点的值（<name>id</name>  得到id）</p>
+<p>2012-02-18</p>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p>
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg><span class="tag"><a href="https://wklken.me/tags/pythonxml">python,xml</a></span>
+				</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>514 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2012-02-18 00:00 &#43;0000</p>
+			</footer>
+		</article>
+		<aside id="toc">
+			<div class="toc-title">Table of Contents</div>
+			<nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#需求">需求</a></li>
+        <li><a href="#解决">解决</a></li>
+        <li><a href="#xml文件">XML文件</a></li>
+        <li><a href="#处理脚本">处理脚本</a></li>
+        <li><a href="#涉及方法">涉及方法</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+		</aside>
+		<div class="post-nav thin">
+			<a class="next-post" href="https://wklken.me/posts/2012/02/19/python-ini-configparser.html">
+				<span class="post-nav-label"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>&nbsp;Newer</span><br><span>Python读取修改ini配置文件[ConfigParser]</span>
+			</a>
+			<a class="prev-post" href="https://wklken.me/posts/2012/02/05/summary-03-workhalfyear.html">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>半年工作成长小结</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+<div id="gitalk-container"></div>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script src="https://wklken.me/js/md5.min.js"></script>
+<script>
+  const gitalk = new Gitalk({
+    clientID: '549d325e74a413f1b56a',
+    clientSecret: '086a83faacf152cc3f4079f002058716879e9688',
+    repo: 'wklken.github.io',
+    owner: 'wklken',
+    admin: ['wklken'],
+    id: md5(location.pathname), 
+    distractionFreeMode: false 
+  });
+  (function() {
+    if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+      document.getElementById('gitalk-container').innerHTML = 'Gitalk comments not available by default when the website is previewed locally.';
+      return;
+    }
+    gitalk.render('gitalk-container');
+  })();
+</script>
+
+</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2024 <a href="https://wklken.me">wklken</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="https://wklken.me/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+
+	<script src="https://wklken.me/js/bundle.min.580988ed2982bcbb74a1773c7abea97b43e4c43b9324e10cda0813ec6ec4bb67.js" integrity="sha256-WAmI7SmCvLt0oXc8er6pe0PkxDuTJOEM2ggT7G7Eu2c=" crossorigin="anonymous"></script>
+	
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-2GRCMEVXLQ"></script>
+<script>
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.dataLayer = window.dataLayer || [];
+	function gtag(){dataLayer.push(arguments);}
+	gtag('js', new Date());
+	gtag('config', 'G-2GRCMEVXLQ', { 'anonymize_ip': false });
+}
+</script>
+
+
+
+</body>
+
+</html>

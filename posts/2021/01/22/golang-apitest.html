@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<meta name="theme-color" content="#494f5c">
+	<meta name="msapplication-TileColor" content="#494f5c">
+<meta itemprop="name" content="Go: 基于 apitest 做handler层单元测试">
+<meta itemprop="description" content="apitest A simple and extensible behavioural testing library. Supports mocking external http calls and renders sequence diagrams on completion. Credit to testify which is this libraries&rsquo; only dependency 相关资源: Github apitest 文档 示例: Examples / Gin integration 老的方案: postman/newman 原先使用 postman &#43; newman 的方式做的 API 功能测试; 这种"><meta itemprop="datePublished" content="2021-01-22T14:35:00+08:00" />
+<meta itemprop="dateModified" content="2021-01-22T14:35:00+08:00" />
+<meta itemprop="wordCount" content="1166">
+<meta itemprop="keywords" content="golang," /><meta property="og:title" content="Go: 基于 apitest 做handler层单元测试" />
+<meta property="og:description" content="apitest A simple and extensible behavioural testing library. Supports mocking external http calls and renders sequence diagrams on completion. Credit to testify which is this libraries&rsquo; only dependency 相关资源: Github apitest 文档 示例: Examples / Gin integration 老的方案: postman/newman 原先使用 postman &#43; newman 的方式做的 API 功能测试; 这种" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://wklken.me/posts/2021/01/22/golang-apitest.html" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2021-01-22T14:35:00+08:00" />
+<meta property="article:modified_time" content="2021-01-22T14:35:00+08:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Go: 基于 apitest 做handler层单元测试"/>
+<meta name="twitter:description" content="apitest A simple and extensible behavioural testing library. Supports mocking external http calls and renders sequence diagrams on completion. Credit to testify which is this libraries&rsquo; only dependency 相关资源: Github apitest 文档 示例: Examples / Gin integration 老的方案: postman/newman 原先使用 postman &#43; newman 的方式做的 API 功能测试; 这种"/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>Go: 基于 apitest 做handler层单元测试</title>
+	<link rel="stylesheet" href="https://wklken.me/css/style.min.a634759f5e59454c8c91bba6cb21df1387610e17a0916dfc23b1723d2e0623ed.css" integrity="sha256-pjR1n15ZRUyMkbumyyHfE4dhDhegkW38I7FyPS4GI+0=" crossorigin="anonymous">
+	
+	<link rel="stylesheet" href="https://wklken.me/css/custom.css">
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="https://wklken.me">WKLKEN THINKING</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					
+				<a href="https://wklken.me/posts.html">Posts</a>
+				<a href="https://wklken.me/about.html">About</a>
+
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<button id="toc-btn" class="hdr-btn desktop-only-ib" title="Table of Contents"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3" y2="6"></line><line x1="3" y1="12" x2="3" y2="12"></line><line x1="3" y1="18" x2="3" y2="18"></line></svg></button><span class="hdr-social hide-in-mobile"><a href="https://github.com/wklken" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" class="feather" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a><a href="https://twitter.com/wklken" target="_blank" rel="noopener me" title="Twitter"><svg xmlns="http://www.w3.org/2000/svg" class="feather" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="https://wklken.me/posts.html">Posts</a></li>
+			<li><a href="https://wklken.me/about.html">About</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>Jan 22, 2021</span></div>
+				<h1>Go: 基于 apitest 做handler层单元测试</h1>
+			</header>
+			<div class="content">
+				<h2 id="apitest">apitest<a href="#apitest" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p><img src="/imgs/golang/apitest.png" alt=""></p>
+<blockquote>
+<p>A simple and extensible behavioural testing library. Supports mocking external http calls and renders sequence diagrams on completion.
+Credit to testify which is this libraries&rsquo; only dependency</p>
+</blockquote>
+<p>相关资源:</p>
+<ul>
+<li><a href="https://github.com/steinfletcher/apitest">Github apitest</a></li>
+<li><a href="https://apitest.dev/">文档</a></li>
+<li>示例: <a href="https://github.com/steinfletcher/apitest#examples">Examples</a> / <a href="https://github.com/steinfletcher/apitest/tree/master/examples/gin">Gin integration</a></li>
+</ul>
+<h2 id="老的方案-postmannewman">老的方案: postman/newman<a href="#老的方案-postmannewman" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>原先使用 postman + newman 的方式做的 API 功能测试;</p>
+<p>这种方式不完全是API层的单元测试, 预先配置好数据库/初始化好数据后, 直接通过API调用, 判定响应值</p>
+<p>是介于单元测试 + 集成测试 之间的一种测试, 但是既不是完备的单元测试, 也不是完整的集成测试;</p>
+<p>好处:</p>
+<ul>
+<li>简单方便, 在本地开发调试API时, 就能将调试请求直接转为测试用例</li>
+</ul>
+<p>缺点:</p>
+<ul>
+<li>难以维护: 更新API/增加API时, 未实时同步更新测试用例; 变更上层协议时, 例如middleware, 所有case需要改</li>
+<li>违背Isolate原则: 无法独立, 每个case运行时, 前面执行的数据会影响后面执行的数据; 每个case都需要考虑规避之前case的数据影响</li>
+<li>缺乏完备性: 一个API一般只构造一个失败, 一个成功两个Case</li>
+</ul>
+<h2 id="新的方案">新的方案<a href="#新的方案" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<ul>
+<li>Golang 使用 apitest 做handler层的<code>单元测试</code></li>
+<li>当前只覆盖<code>核心逻辑</code></li>
+<li>重新去寻找<code>集成测试</code>的方案</li>
+</ul>
+<h3 id="1-入门示例">1. 入门示例<a href="#1-入门示例" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">TestApi</span><span class="p">(</span><span class="nx">t</span> <span class="o">*</span><span class="nx">testing</span><span class="p">.</span><span class="nx">T</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">apitest</span><span class="p">.</span><span class="nf">New</span><span class="p">().</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">Handler</span><span class="p">(</span><span class="nx">handler</span><span class="p">).</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">Get</span><span class="p">(</span><span class="s">&#34;/user/1234&#34;</span><span class="p">).</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">Expect</span><span class="p">(</span><span class="nx">t</span><span class="p">).</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">Body</span><span class="p">(</span><span class="s">`{&#34;id&#34;: &#34;1234&#34;, &#34;name&#34;: &#34;Tate&#34;}`</span><span class="p">).</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">Status</span><span class="p">(</span><span class="nx">http</span><span class="p">.</span><span class="nx">StatusCreated</span><span class="p">).</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">End</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><h3 id="2-传统httptest-vs-apitest">2. 传统httptest vs apitest<a href="#2-传统httptest-vs-apitest" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>使用httptest</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">TestPong</span><span class="p">(</span><span class="nx">t</span> <span class="o">*</span><span class="nx">testing</span><span class="p">.</span><span class="nx">T</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">r</span> <span class="o">:=</span> <span class="nx">util</span><span class="p">.</span><span class="nf">SetupRouter</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">r</span><span class="p">.</span><span class="nf">GET</span><span class="p">(</span><span class="s">&#34;/test&#34;</span><span class="p">,</span> <span class="nx">Pong</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nx">req</span><span class="p">,</span> <span class="nx">_</span> <span class="o">:=</span> <span class="nx">http</span><span class="p">.</span><span class="nf">NewRequest</span><span class="p">(</span><span class="s">&#34;GET&#34;</span><span class="p">,</span> <span class="s">&#34;/test&#34;</span><span class="p">,</span> <span class="kc">nil</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">w</span> <span class="o">:=</span> <span class="nx">httptest</span><span class="p">.</span><span class="nf">NewRecorder</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">r</span><span class="p">.</span><span class="nf">ServeHTTP</span><span class="p">(</span><span class="nx">w</span><span class="p">,</span> <span class="nx">req</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nx">assert</span><span class="p">.</span><span class="nf">Equal</span><span class="p">(</span><span class="nx">t</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="nx">w</span><span class="p">.</span><span class="nx">Code</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nx">body</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">ioutil</span><span class="p">.</span><span class="nf">ReadAll</span><span class="p">(</span><span class="nx">w</span><span class="p">.</span><span class="nx">Body</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">assert</span><span class="p">.</span><span class="nf">NoError</span><span class="p">(</span><span class="nx">t</span><span class="p">,</span> <span class="nx">err</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">assert</span><span class="p">.</span><span class="nf">True</span><span class="p">(</span><span class="nx">t</span><span class="p">,</span> <span class="nx">strings</span><span class="p">.</span><span class="nf">Contains</span><span class="p">(</span><span class="nb">string</span><span class="p">(</span><span class="nx">body</span><span class="p">),</span> <span class="s">&#34;pong&#34;</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>使用apitest</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">TestPong</span><span class="p">(</span><span class="nx">t</span> <span class="o">*</span><span class="nx">testing</span><span class="p">.</span><span class="nx">T</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">r</span> <span class="o">:=</span> <span class="nx">util</span><span class="p">.</span><span class="nf">SetupRouter</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">r</span><span class="p">.</span><span class="nf">GET</span><span class="p">(</span><span class="s">&#34;/ping&#34;</span><span class="p">,</span> <span class="nx">Pong</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nx">apitest</span><span class="p">.</span><span class="nf">New</span><span class="p">().</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">Handler</span><span class="p">(</span><span class="nx">r</span><span class="p">).</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">Get</span><span class="p">(</span><span class="s">&#34;/ping&#34;</span><span class="p">).</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">Expect</span><span class="p">(</span><span class="nx">t</span><span class="p">).</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">Body</span><span class="p">(</span><span class="s">`{&#34;message&#34;:&#34;pong&#34;}`</span><span class="p">).</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">Status</span><span class="p">(</span><span class="nx">http</span><span class="p">.</span><span class="nx">StatusOK</span><span class="p">).</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">End</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><h3 id="3-why-not-jsonpath">3. why not JSONpath?<a href="#3-why-not-jsonpath" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>我们决定<code>禁止</code>在测试中使用<code>JSONpath</code>, 虽然这是apitest提供的一个强大的特性</p>
+<p>官方示例: <code>{&quot;a&quot;: 12345, &quot;b&quot;: [{&quot;key&quot;: &quot;c&quot;, &quot;value&quot;: &quot;result&quot;}]}</code></p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">TestApi</span><span class="p">(</span><span class="nx">t</span> <span class="o">*</span><span class="nx">testing</span><span class="p">.</span><span class="nx">T</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">apitest</span><span class="p">.</span><span class="nf">New</span><span class="p">().</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">Handler</span><span class="p">(</span><span class="nx">handler</span><span class="p">).</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">Get</span><span class="p">(</span><span class="s">&#34;/hello&#34;</span><span class="p">).</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">Expect</span><span class="p">(</span><span class="nx">t</span><span class="p">).</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">Assert</span><span class="p">(</span><span class="nx">jsonpath</span><span class="p">.</span><span class="nf">Contains</span><span class="p">(</span><span class="s">`$.b[? @.key==&#34;c&#34;].value`</span><span class="p">,</span> <span class="s">&#34;result&#34;</span><span class="p">)).</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">End</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>问题点: 可维护性并不好(多一层学习和理解成本, JSONPath本身是一套很强大的语法, 但也就意味着其复杂度很高); 而单元测试最重要的就是后续的可维护性</p>
+<h3 id="4-jsonassert-封装-json-解析成mapstringinterface">4. JSONAssert: 封装 json 解析成map[string]interface<a href="#4-jsonassert-封装-json-解析成mapstringinterface" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>注意力集中在json body, 而不是解析</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">type</span> <span class="nx">JSONAssertFunc</span> <span class="kd">func</span><span class="p">(</span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kd">interface</span><span class="p">{})</span> <span class="kt">error</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">NewJSONAssertFunc</span><span class="p">(</span><span class="nx">t</span> <span class="o">*</span><span class="nx">testing</span><span class="p">.</span><span class="nx">T</span><span class="p">,</span> <span class="nx">assertFunc</span> <span class="nx">JSONAssertFunc</span><span class="p">)</span> <span class="kd">func</span><span class="p">(</span><span class="nx">res</span> <span class="o">*</span><span class="nx">http</span><span class="p">.</span><span class="nx">Response</span><span class="p">,</span> <span class="nx">req</span> <span class="o">*</span><span class="nx">http</span><span class="p">.</span><span class="nx">Request</span><span class="p">)</span> <span class="kt">error</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="kd">func</span><span class="p">(</span><span class="nx">res</span> <span class="o">*</span><span class="nx">http</span><span class="p">.</span><span class="nx">Response</span><span class="p">,</span> <span class="nx">req</span> <span class="o">*</span><span class="nx">http</span><span class="p">.</span><span class="nx">Request</span><span class="p">)</span> <span class="kt">error</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="nx">body</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">ioutil</span><span class="p">.</span><span class="nf">ReadAll</span><span class="p">(</span><span class="nx">res</span><span class="p">.</span><span class="nx">Body</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">		<span class="nx">assert</span><span class="p">.</span><span class="nf">NoError</span><span class="p">(</span><span class="nx">t</span><span class="p">,</span> <span class="nx">err</span><span class="p">,</span> <span class="s">&#34;read body from response fail&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">		<span class="k">defer</span> <span class="nx">res</span><span class="p">.</span><span class="nx">Body</span><span class="p">.</span><span class="nf">Close</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">		<span class="kd">var</span> <span class="nx">data</span> <span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kd">interface</span><span class="p">{}</span>
+</span></span><span class="line"><span class="cl">		<span class="c1">//var data Response
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">		<span class="nx">err</span> <span class="p">=</span> <span class="nx">json</span><span class="p">.</span><span class="nf">Unmarshal</span><span class="p">(</span><span class="nx">body</span><span class="p">,</span> <span class="o">&amp;</span><span class="nx">data</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">		<span class="nx">assert</span><span class="p">.</span><span class="nf">NoError</span><span class="p">(</span><span class="nx">t</span><span class="p">,</span> <span class="nx">err</span><span class="p">,</span> <span class="s">&#34;unmarshal string to json fail&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">		<span class="k">return</span> <span class="nf">assertFunc</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>使用</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">TestVersion</span><span class="p">(</span><span class="nx">t</span> <span class="o">*</span><span class="nx">testing</span><span class="p">.</span><span class="nx">T</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">r</span> <span class="o">:=</span> <span class="nx">util</span><span class="p">.</span><span class="nf">SetupRouter</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">r</span><span class="p">.</span><span class="nf">GET</span><span class="p">(</span><span class="s">&#34;/version&#34;</span><span class="p">,</span> <span class="nx">Version</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nx">apitest</span><span class="p">.</span><span class="nf">New</span><span class="p">().</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">Handler</span><span class="p">(</span><span class="nx">r</span><span class="p">).</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">Get</span><span class="p">(</span><span class="s">&#34;/version&#34;</span><span class="p">).</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">Expect</span><span class="p">(</span><span class="nx">t</span><span class="p">).</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">Assert</span><span class="p">(</span><span class="nx">util</span><span class="p">.</span><span class="nf">NewJSONAssertFunc</span><span class="p">(</span><span class="nx">t</span><span class="p">,</span> <span class="kd">func</span><span class="p">(</span><span class="nx">m</span> <span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kd">interface</span><span class="p">{})</span> <span class="kt">error</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">			<span class="nx">assert</span><span class="p">.</span><span class="nf">Contains</span><span class="p">(</span><span class="nx">t</span><span class="p">,</span> <span class="nx">m</span><span class="p">,</span> <span class="s">&#34;version&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">			<span class="nx">assert</span><span class="p">.</span><span class="nf">Contains</span><span class="p">(</span><span class="nx">t</span><span class="p">,</span> <span class="nx">m</span><span class="p">,</span> <span class="s">&#34;commit&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">			<span class="nx">assert</span><span class="p">.</span><span class="nf">Contains</span><span class="p">(</span><span class="nx">t</span><span class="p">,</span> <span class="nx">m</span><span class="p">,</span> <span class="s">&#34;buildTime&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">			<span class="nx">assert</span><span class="p">.</span><span class="nf">Contains</span><span class="p">(</span><span class="nx">t</span><span class="p">,</span> <span class="nx">m</span><span class="p">,</span> <span class="s">&#34;goVersion&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">			<span class="nx">assert</span><span class="p">.</span><span class="nf">Contains</span><span class="p">(</span><span class="nx">t</span><span class="p">,</span> <span class="nx">m</span><span class="p">,</span> <span class="s">&#34;env&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">			<span class="k">return</span> <span class="kc">nil</span>
+</span></span><span class="line"><span class="cl">		<span class="p">})).</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">Status</span><span class="p">(</span><span class="nx">http</span><span class="p">.</span><span class="nx">StatusOK</span><span class="p">).</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">End</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><h3 id="5-responseassert-封装成后台返回协议response">5. ResponseAssert: 封装成后台返回协议(Response)<a href="#5-responseassert-封装成后台返回协议response" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">type</span> <span class="nx">Response</span> <span class="kd">struct</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">Code</span>    <span class="kt">int</span>         <span class="s">`json:&#34;code&#34;`</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">Message</span> <span class="kt">string</span>      <span class="s">`json:&#34;message&#34;`</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">Data</span>    <span class="kd">interface</span><span class="p">{}</span> <span class="s">`json:&#34;data&#34;`</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">type</span> <span class="nx">ResponseAssertFunc</span> <span class="kd">func</span><span class="p">(</span><span class="nx">Response</span><span class="p">)</span> <span class="kt">error</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">NewResponseAssertFunc</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">t</span> <span class="o">*</span><span class="nx">testing</span><span class="p">.</span><span class="nx">T</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">responseFunc</span> <span class="nx">ResponseAssertFunc</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span> <span class="kd">func</span><span class="p">(</span><span class="nx">res</span> <span class="o">*</span><span class="nx">http</span><span class="p">.</span><span class="nx">Response</span><span class="p">,</span> <span class="nx">req</span> <span class="o">*</span><span class="nx">http</span><span class="p">.</span><span class="nx">Request</span><span class="p">)</span> <span class="kt">error</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="kd">func</span><span class="p">(</span><span class="nx">res</span> <span class="o">*</span><span class="nx">http</span><span class="p">.</span><span class="nx">Response</span><span class="p">,</span> <span class="nx">req</span> <span class="o">*</span><span class="nx">http</span><span class="p">.</span><span class="nx">Request</span><span class="p">)</span> <span class="kt">error</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="nx">body</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">ioutil</span><span class="p">.</span><span class="nf">ReadAll</span><span class="p">(</span><span class="nx">res</span><span class="p">.</span><span class="nx">Body</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">		<span class="nx">assert</span><span class="p">.</span><span class="nf">NoError</span><span class="p">(</span><span class="nx">t</span><span class="p">,</span> <span class="nx">err</span><span class="p">,</span> <span class="s">&#34;read body from response fail&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">		<span class="k">defer</span> <span class="nx">res</span><span class="p">.</span><span class="nx">Body</span><span class="p">.</span><span class="nf">Close</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">		<span class="kd">var</span> <span class="nx">data</span> <span class="nx">Response</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">		<span class="nx">err</span> <span class="p">=</span> <span class="nx">json</span><span class="p">.</span><span class="nf">Unmarshal</span><span class="p">(</span><span class="nx">body</span><span class="p">,</span> <span class="o">&amp;</span><span class="nx">data</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">		<span class="nx">assert</span><span class="p">.</span><span class="nf">NoError</span><span class="p">(</span><span class="nx">t</span><span class="p">,</span> <span class="nx">err</span><span class="p">,</span> <span class="s">&#34;unmarshal string to response fail&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">		<span class="k">return</span> <span class="nf">responseFunc</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>使用</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">TestCreateSystemBadRequestInvalidJson</span><span class="p">(</span><span class="nx">t</span> <span class="o">*</span><span class="nx">testing</span><span class="p">.</span><span class="nx">T</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">r</span> <span class="o">:=</span> <span class="nx">util</span><span class="p">.</span><span class="nf">SetupRouter</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">url</span> <span class="o">:=</span> <span class="s">&#34;/api/v1/systems&#34;</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">r</span><span class="p">.</span><span class="nf">POST</span><span class="p">(</span><span class="nx">url</span><span class="p">,</span> <span class="nx">CreateSystem</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">	<span class="c1">// validate fail
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="nx">apitest</span><span class="p">.</span><span class="nf">New</span><span class="p">().</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">Handler</span><span class="p">(</span><span class="nx">r</span><span class="p">).</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">Post</span><span class="p">(</span><span class="nx">url</span><span class="p">).</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">JSON</span><span class="p">(</span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kd">interface</span><span class="p">{}{</span>
+</span></span><span class="line"><span class="cl">			<span class="s">&#34;hello&#34;</span><span class="p">:</span> <span class="s">&#34;123&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="p">}).</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">Expect</span><span class="p">(</span><span class="nx">t</span><span class="p">).</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">Assert</span><span class="p">(</span><span class="nx">util</span><span class="p">.</span><span class="nf">NewResponseAssertFunc</span><span class="p">(</span><span class="nx">t</span><span class="p">,</span> <span class="kd">func</span><span class="p">(</span><span class="nx">resp</span> <span class="nx">util</span><span class="p">.</span><span class="nx">Response</span><span class="p">)</span> <span class="kt">error</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">			<span class="nx">assert</span><span class="p">.</span><span class="nf">Equal</span><span class="p">(</span><span class="nx">t</span><span class="p">,</span> <span class="nx">resp</span><span class="p">.</span><span class="nx">Code</span><span class="p">,</span> <span class="nx">util</span><span class="p">.</span><span class="nx">BadRequestError</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">			<span class="nx">assert</span><span class="p">.</span><span class="nf">Equal</span><span class="p">(</span><span class="nx">t</span><span class="p">,</span> <span class="nx">resp</span><span class="p">.</span><span class="nx">Message</span><span class="p">,</span> <span class="s">&#34;bad request:ID is required&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">			<span class="k">return</span> <span class="kc">nil</span>
+</span></span><span class="line"><span class="cl">		<span class="p">})).</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">Status</span><span class="p">(</span><span class="nx">http</span><span class="p">.</span><span class="nx">StatusOK</span><span class="p">).</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">End</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><h3 id="6-能不能整合-ginkgo">6. 能不能整合 ginkgo?<a href="#6-能不能整合-ginkgo" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>apitst的Expect方法接收的是 <code>*testing.T</code>, 对应interface是<code>testing.TB</code></p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// Expect marks the request spec as complete and following code will define the expected response
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">r</span> <span class="o">*</span><span class="nx">Request</span><span class="p">)</span> <span class="nf">Expect</span><span class="p">(</span><span class="nx">t</span> <span class="o">*</span><span class="nx">testing</span><span class="p">.</span><span class="nx">T</span><span class="p">)</span> <span class="o">*</span><span class="nx">Response</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">r</span><span class="p">.</span><span class="nx">apiTest</span><span class="p">.</span><span class="nx">t</span> <span class="p">=</span> <span class="nx">t</span>
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="nx">r</span><span class="p">.</span><span class="nx">apiTest</span><span class="p">.</span><span class="nx">response</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>并不兼容于 ginkgo 的<code>GinkgoT()</code></p>
+<h3 id="7-再抽象一层-no">7. 再抽象一层? No<a href="#7-再抽象一层-no" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>不要再试图抽象成一个函数, 为了足够的灵活性, 势必导致函数参数数量增多, 导致使用困难;</p>
+<p>最终完备的函数封装跟链式调用已经没有区别了</p>
+<p>问题复杂化了. 再次封装的意义不大</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">assertRequestResponse</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">t</span> <span class="o">*</span><span class="nx">testing</span><span class="p">.</span><span class="nx">T</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">r</span> <span class="nx">http</span><span class="p">.</span><span class="nx">Handler</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">url</span> <span class="kt">string</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">appCode</span><span class="p">,</span> <span class="nx">appSecret</span> <span class="kt">string</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">jsonData</span> <span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kd">interface</span><span class="p">{},</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">assertFunc</span> <span class="kd">func</span><span class="p">(</span><span class="nx">res</span> <span class="o">*</span><span class="nx">http</span><span class="p">.</span><span class="nx">Response</span><span class="p">,</span> <span class="nx">req</span> <span class="o">*</span><span class="nx">http</span><span class="p">.</span><span class="nx">Request</span><span class="p">)</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="c1">// 问题:
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="c1">// 1. post/get/put/delete
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="c1">// 2. headers
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="c1">// 3. query参数等等
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">	<span class="nx">apitest</span><span class="p">.</span><span class="nf">New</span><span class="p">().</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">Handler</span><span class="p">(</span><span class="nx">r</span><span class="p">).</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">Post</span><span class="p">(</span><span class="nx">url</span><span class="p">).</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">Header</span><span class="p">(</span><span class="s">&#34;X-App-Code&#34;</span><span class="p">,</span> <span class="nx">appCode</span><span class="p">).</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">Header</span><span class="p">(</span><span class="s">&#34;X-App-Secret&#34;</span><span class="p">,</span> <span class="nx">appSecret</span><span class="p">).</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">JSON</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">			<span class="nx">jsonData</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="p">).</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">Expect</span><span class="p">(</span><span class="nx">t</span><span class="p">).</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">Assert</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">			<span class="nx">assertFunc</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="p">).</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">Status</span><span class="p">(</span><span class="nx">http</span><span class="p">.</span><span class="nx">StatusOK</span><span class="p">).</span>
+</span></span><span class="line"><span class="cl">		<span class="nf">End</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div>
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p>
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg><span class="tag"><a href="https://wklken.me/tags/golang">golang</a></span>
+				</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>1166 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2021-01-22 06:35 &#43;0000</p>
+			</footer>
+		</article>
+		<aside id="toc">
+			<div class="toc-title">Table of Contents</div>
+			<nav id="TableOfContents">
+  <ul>
+    <li><a href="#apitest">apitest</a></li>
+    <li><a href="#老的方案-postmannewman">老的方案: postman/newman</a></li>
+    <li><a href="#新的方案">新的方案</a>
+      <ul>
+        <li><a href="#1-入门示例">1. 入门示例</a></li>
+        <li><a href="#2-传统httptest-vs-apitest">2. 传统httptest vs apitest</a></li>
+        <li><a href="#3-why-not-jsonpath">3. why not JSONpath?</a></li>
+        <li><a href="#4-jsonassert-封装-json-解析成mapstringinterface">4. JSONAssert: 封装 json 解析成map[string]interface</a></li>
+        <li><a href="#5-responseassert-封装成后台返回协议response">5. ResponseAssert: 封装成后台返回协议(Response)</a></li>
+        <li><a href="#6-能不能整合-ginkgo">6. 能不能整合 ginkgo?</a></li>
+        <li><a href="#7-再抽象一层-no">7. 再抽象一层? No</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+		</aside>
+		<div class="post-nav thin">
+			<a class="next-post" href="https://wklken.me/posts/2021/01/25/something-about-tech-selection.html">
+				<span class="post-nav-label"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>&nbsp;Newer</span><br><span>漫谈技术选型</span>
+			</a>
+			<a class="prev-post" href="https://wklken.me/posts/2021/01/22/golang-sql-driver-interpolateparams.html">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>Go: go-sql-driver interpolateparams参数优化</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+<div id="gitalk-container"></div>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script src="https://wklken.me/js/md5.min.js"></script>
+<script>
+  const gitalk = new Gitalk({
+    clientID: '549d325e74a413f1b56a',
+    clientSecret: '086a83faacf152cc3f4079f002058716879e9688',
+    repo: 'wklken.github.io',
+    owner: 'wklken',
+    admin: ['wklken'],
+    id: md5(location.pathname), 
+    distractionFreeMode: false 
+  });
+  (function() {
+    if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+      document.getElementById('gitalk-container').innerHTML = 'Gitalk comments not available by default when the website is previewed locally.';
+      return;
+    }
+    gitalk.render('gitalk-container');
+  })();
+</script>
+
+</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2024 <a href="https://wklken.me">wklken</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="https://wklken.me/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+
+	<script src="https://wklken.me/js/bundle.min.580988ed2982bcbb74a1773c7abea97b43e4c43b9324e10cda0813ec6ec4bb67.js" integrity="sha256-WAmI7SmCvLt0oXc8er6pe0PkxDuTJOEM2ggT7G7Eu2c=" crossorigin="anonymous"></script>
+	
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-2GRCMEVXLQ"></script>
+<script>
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.dataLayer = window.dataLayer || [];
+	function gtag(){dataLayer.push(arguments);}
+	gtag('js', new Date());
+	gtag('config', 'G-2GRCMEVXLQ', { 'anonymize_ip': false });
+}
+</script>
+
+
+
+</body>
+
+</html>

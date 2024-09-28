@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<meta name="theme-color" content="#494f5c">
+	<meta name="msapplication-TileColor" content="#494f5c">
+<meta itemprop="name" content="apisix 遇到的一些问题">
+<meta itemprop="description" content="背景 大约十年前，部门内部有一套 ESB, 一套网关服务，当时网关服务用的 Python (Django 框架), 处理了一些基本的认证/流控逻辑，但是无法支持高并发并且经过网关的性"><meta itemprop="datePublished" content="2023-12-16T08:00:00+08:00" />
+<meta itemprop="dateModified" content="2023-12-16T08:00:00+08:00" />
+<meta itemprop="wordCount" content="3008">
+<meta itemprop="keywords" content="apigateway," /><meta property="og:title" content="apisix 遇到的一些问题" />
+<meta property="og:description" content="背景 大约十年前，部门内部有一套 ESB, 一套网关服务，当时网关服务用的 Python (Django 框架), 处理了一些基本的认证/流控逻辑，但是无法支持高并发并且经过网关的性" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://wklken.me/posts/2023/12/16/apisix-2023.html" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2023-12-16T08:00:00+08:00" />
+<meta property="article:modified_time" content="2023-12-16T08:00:00+08:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="apisix 遇到的一些问题"/>
+<meta name="twitter:description" content="背景 大约十年前，部门内部有一套 ESB, 一套网关服务，当时网关服务用的 Python (Django 框架), 处理了一些基本的认证/流控逻辑，但是无法支持高并发并且经过网关的性"/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>apisix 遇到的一些问题</title>
+	<link rel="stylesheet" href="https://wklken.me/css/style.min.a634759f5e59454c8c91bba6cb21df1387610e17a0916dfc23b1723d2e0623ed.css" integrity="sha256-pjR1n15ZRUyMkbumyyHfE4dhDhegkW38I7FyPS4GI+0=" crossorigin="anonymous">
+	
+	<link rel="stylesheet" href="https://wklken.me/css/custom.css">
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="https://wklken.me">WKLKEN THINKING</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					
+				<a href="https://wklken.me/posts.html">Posts</a>
+				<a href="https://wklken.me/about.html">About</a>
+
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<button id="toc-btn" class="hdr-btn desktop-only-ib" title="Table of Contents"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3" y2="6"></line><line x1="3" y1="12" x2="3" y2="12"></line><line x1="3" y1="18" x2="3" y2="18"></line></svg></button><span class="hdr-social hide-in-mobile"><a href="https://github.com/wklken" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" class="feather" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a><a href="https://twitter.com/wklken" target="_blank" rel="noopener me" title="Twitter"><svg xmlns="http://www.w3.org/2000/svg" class="feather" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="https://wklken.me/posts.html">Posts</a></li>
+			<li><a href="https://wklken.me/about.html">About</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>Dec 16, 2023</span></div>
+				<h1>apisix 遇到的一些问题</h1>
+			</header>
+			<div class="content">
+				<h2 id="背景">背景<a href="#背景" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>大约十年前，部门内部有一套 ESB, 一套网关服务，当时网关服务用的 Python (Django 框架), 处理了一些基本的认证/流控逻辑，但是无法支持高并发并且经过网关的性能损耗很大</p>
+<p>在 2019 年，我们使用 Golang 重写了网关服务，性能大约是原来的 34 倍</p>
+<p>至于选择 Golang 的原因，主要是因为：</p>
+<ul>
+<li>团队内部有 Golang 的开发经验，当时基于 Golang 的开源网关比较多，例如 janus, KrakenD, tyk 等等</li>
+<li>相反，团队内部没有 OpenResty 的开发和运维经验 (当时 OpenResty 及 Kong 比较火，并且当时 Apisix 并不火)</li>
+</ul>
+<p>(我们的网关上线一年多之后，Apisix 团队有到我们内部做过分享，当时切到其他项目救火了并没有去听)</p>
+<p>当时技术选型没有使用 gin, 而是 chi (轻量，100% compatible with net/http ) + std reverse proxy + dbless 模型 (借鉴 Kong 的概念)</p>
+<p>做了两个大版本：</p>
+<ul>
+<li>第一个版本，底层数据不变，完全实现了原来的功能，发布上线 (此时新老版本都可以运行，灰度过去)</li>
+<li>第二个版本，重新设计了底层数据结构，重做了管理端功能，数据迁移发布切换到新版本</li>
+</ul>
+<p>(这个版本的一直非常稳定，并且性能比 apisix 版本还好。得益于 goroutines / channels 以及无处不在的缓存)</p>
+<p>然后在 2022 年，我们又遇到下一个问题：扩展性，我们有越来越多的需求</p>
+<p>但是</p>
+<ul>
+<li>Golang 要实现插件的成本太高了，并且缺乏生态，很多很常见的特性都需要自己实现</li>
+<li>无法支持自定义插件的场景</li>
+<li>无法支持热更新 (在内存中全量重建 radixtree 之后替换掉旧的)</li>
+</ul>
+<p>在 2019 我切换去做权限系统，搞完之后又去接用户系统，到了 2023 四月份，由于某些原因，切回来接手新版的基于 apisix 的网关</p>
+<p>接近八个月时间，很大部分时间在做架构调整以及重构，并且花费了很长一段时间验证新版本的稳定性，遇到了蛮多问题</p>
+<p>最近在整理工作文档，汇总一下</p>
+<p>简单梳理总结一下</p>
+<h2 id="架构调整和代码重构">架构调整和代码重构<a href="#架构调整和代码重构" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>原先的项目拆分的非常细碎，通过 SDK 共享代码，通过 API 做数据交互</p>
+<ul>
+<li>合并管理端的项目到一个单体项目，去掉 SDK 及交互 API</li>
+<li>删除过度设计的模块，使用更直接/务实的方式实现</li>
+<li>去除 基于 <a href="https://github.com/apache/apisix-go-plugin-runner">apisix-go-plugin-runner</a> 实现的权限数据同步/鉴权模块，使用 HTTP + lrucache 方式实现 (简单，不用考虑数据一致性)</li>
+<li>去除 基于 <a href="https://github.com/apache/apisix-go-plugin-runner">apisix-go-plugin-runner</a> 实现的基于漏桶算法的频率控制，使用原生插件实现 (fixed-windows, 务实，虽然效果不如漏桶)</li>
+<li>去反向依赖</li>
+<li>对代码进行重构，模块及分层，提升可读性; 同时增加单元测试，引入 test-nginx</li>
+<li>集成测试左移</li>
+<li>对 dockerfile, helm-charts, 各种运维脚本进行优化，优化出包流水线</li>
+<li>增加多套环境用于不同场景的测试</li>
+<li>&hellip;&hellip;</li>
+</ul>
+<p>(这块花了很多时间，才做到 production ready, 主要是又得在开飞机的时候换引擎)</p>
+<h2 id="apisix-相关的问题">Apisix 相关的问题<a href="#apisix-相关的问题" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<h3 id="升级215-升级到-321">升级：2.15 升级到 3.2.1<a href="#升级215-升级到-321" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>基本按照 <a href="https://apisix.apache.org/docs/apisix/upgrade-guide-from-2.15.x-to-3.0.0/">Upgrade Guide</a> 阅读，评估后直接升级到 3.2.1</p>
+<p>主要的变更还是配置文件，顺带还把原先配置文件的生成方式重写，直接 helm 生成最终用的文件，抹掉了在容器启动时各种 sed/subst 之类的操作</p>
+<p>其实后来还尝试升级到 3.2.2, 当时以为是一个小版本，结果合入了一个 pr <a href="https://github.com/apache/apisix/pull/9456">#9456 feat(config_etcd): use a single long http connection to watch all resources</a>, 导致了 <a href="https://github.com/apache/apisix/issues/9951">bug: route 404 after upgrade to 3.2.2</a>, 原因是<code>etcd prefix</code>中带了<code>-</code>, 在这个 <a href="https://github.com/apache/apisix/pull/9967">fix: can&rsquo;t sync etcd data if key has special character</a> 中修复了</p>
+<p>带了 9456 这个特性的版本都需要关注下这个 PR 后面带的一批 bugfix (应该有四五个了，并且都比较重要，所以建议用最新版)</p>
+<h3 id="prometheus-的问题">prometheus 的问题<a href="#prometheus-的问题" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<ul>
+<li>
+<p>apisix 3.2.1 已经合入 <a href="https://github.com/apache/apisix/pull/8434">#8434 feat(prometheus): support collect metrics works in the priviledged agent</a>, 所以理论上由于 prometheus 带来的性能问题应该已经解决了。(相关文章 <a href="https://apisix.apache.org/zh/blog/2023/03/06/the-mystery-of-prometheus-plugins-and-long-tail-requests/">从 1 秒到 10 毫秒！在 APISIX 中减少 Prometheus 请求阻塞</a>)</p>
+</li>
+<li>
+<p>踩坑 1: 最早我们网关的 prometheus 自定义指标中，使用了 <code>path</code> 而不是 <code>matched_uri</code>作为 label, 这样会导致<code>/metrics</code>中记录数爆炸式增长，带来性能问题</p>
+</li>
+<li>
+<p>踩坑 2: 由于我们的 route 数量很多，官方的 <code>local DEFAULT_BUCKETS = {1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 30000, 60000}</code> 是写死的，非常大导致记录数很大。所以我们提了个 issue <a href="https://github.com/apache/apisix/issues/9653">feat: The Prometheus plugin can now allow users to configure the DEFAULT_BUCKETS</a>, 后来在 <a href="https://github.com/apache/apisix/pull/9673">#9673</a> 实现</p>
+<ul>
+<li>解决：我们在构建镜像时自己 patch 了这个修复</li>
+</ul>
+</li>
+<li>
+<p>踩坑 3: 某一天线上某个环境的 apisix 被 KILL 了，影响到业务，后来定位到是 CPU 超过了 limits 被 k8s 杀掉; 而这个环境的请求量并不大，通过分析我们发现是 prometheus 特权进程在处理<code>/healthz</code>时把 CPU 给打满了，<a href="https://github.com/apache/apisix/issues/10000">bug: high cpu usage after prometheus.lua report &rsquo;no memory&rsquo;</a>, 原因还是 官方的 metrics 记录数过多</p>
+<ul>
+<li>解决：patch 一堆开关，支持从配置文件中关闭掉所有的官方 metrics, 只留下自定义 metrics</li>
+</ul>
+</li>
+<li>
+<p>踩坑 4: 目前我们还遇到一个疑似内存泄露问题，看着也是跟 prometheus 插件有关系 <a href="https://github.com/apache/apisix/issues/10618">help request: 3.2.1 memory leak</a>, 暂时没有解决，生产环境分配比较大的内存 (涨到一定大小之后就趋于稳定了)</p>
+</li>
+</ul>
+<h3 id="radixtree-最长路径匹配问题">radixtree 最长路径匹配问题<a href="#radixtree-最长路径匹配问题" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>发布后，有业务反馈其原先正常的路由目前被匹配到了另一个路由上</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-yaml" data-lang="yaml"><span class="line"><span class="cl"><span class="nt">apisix</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">router</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">http</span><span class="p">:</span><span class="w"> </span><span class="l">radixtree_uri_with_parameter</span><span class="w">
+</span></span></span></code></pre></div><p>在这种类型的 radixtree 中，最长路径匹配实际上并不是确定的，跟路径被加入树中的顺序有关，<a href="https://github.com/apache/apisix/issues/9366">bug: Adding routes to a Radix Tree in a different order can lead to the same URL matching the first added route instead of the longest path match</a></p>
+<p>这个问题目前官方还没定位修复，我们目前是通过写入路由配置时，计算 priority，使得其看起来像最长路径匹配 <a href="https://github.com/TencentBlueKing/blueking-apigateway-operator/blob/60f0cd4c1ea59b169ba47e55b23a6af8d2dabf8c/pkg/commiter/conversion/resource.go#L61C6-L61C40">通过 priority 解决最长路径匹配失败：calculateMatchSubPathRoutePriority</a></p>
+<h3 id="dns-服务出问题恢复后apisix-无法从解析失败中恢复">DNS 服务出问题，恢复后，apisix 无法从解析失败中恢复<a href="#dns-服务出问题恢复后apisix-无法从解析失败中恢复" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>DNS 解析失败之后，有报错日志; 然后 DNS 服务恢复了，apisix 也一直无法将请求进行转发</p>
+<p>报错：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-plaintext" data-lang="plaintext"><span class="line"><span class="cl">2023/04/20 09:08:02 [error] 68#68: *151026556 [lua] resolver.lua:47: parse_domain(): failed to parse domain: aaa.com, error: failed to query the DNS serve
+</span></span><span class="line"><span class="cl">r: dns server error: 2 server failure, client: 1.1.1.1, server: _, request: &#34;POST /api/v1/xxxxx HTTP/1.0&#34;, host: &#34;aaa.com&#34;
+</span></span><span class="line"><span class="cl">2023/04/20 09:08:02 [error] 68#68: *151026556 [lua] upstream.lua:79: parse_domain_for_nodes(): dns resolver domain: aaa.com error: failed to query the DNS
+</span></span><span class="line"><span class="cl"> server: dns server error: 2 server failure, client: 1.1.1.1, server: _, request: &#34;POST /api/v1/xxxxx  HTTP/1.0&#34;, host: &#34;aaa.com&#34;
+</span></span><span class="line"><span class="cl">2023/04/20 09:08:02 [error] 68#68: *151026556 [lua] init.lua:540: http_access_phase(): failed to set upstream: no valid upstream node, client: 1.1.1.1, server: _, req
+</span></span><span class="line"><span class="cl">uest: &#34;POST /api/v1/xxxxx HTTP/1.0&#34;, host: &#34;aaa.com&#34;
+</span></span></code></pre></div><p>触发条件：route 有 upstream(upstream 中是域名), 并且 router 关联到了 service, 并且 service 中有 upstream</p>
+<p>相关 issue: <a href="https://github.com/apache/apisix/issues/10093">bug: dns resolution did not resume immediately after the dns server resume</a></p>
+<p>这个问题官方暂时没有定位修复，解决方法：自行 patch <a href="https://github.com/apache/apisix/issues/10093#issuecomment-1738381865">parse_domain_for_nodes</a></p>
+<p>并且切换到更为稳定的 DNS 服务</p>
+<h3 id="管理端频繁变更带来的性能抖动">管理端频繁变更带来的性能抖动<a href="#管理端频繁变更带来的性能抖动" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>我们有几万个 route, 变更非常频繁，我们发现在管理端变更时，会导致 apisix 的性能抖动 <a href="https://github.com/apache/apisix/issues/10268">help request: Is the radix tree rebuilt every time any route is updated?</a></p>
+<p>后来通过阅读源码发现，每次 watch 到变更，都会导致 radixtree 重建，并且这个重建是同步的，会导致性能抖动</p>
+<p>官方后来有个 <a href="https://github.com/apache/apisix/pull/9692">feat: increment route update for radixtree host uri, radixtree uri and radi&hellip;</a> 做增量更新优化</p>
+<p>我们暂时的解决办法：如果有变更，定期重建 radixtree(而不是实时), 并且打散到一定范围的时间内，避免整体服务性能抖动，具体参考 <a href="https://github.com/TencentBlueKing/blueking-apigateway-apisix/blob/master/src/build/patches/004_radixtree_uri_with_parameter_rebuild_with_interval.patch">radixtree_uri_with_parameter_rebuild_with_interval</a></p>
+<h3 id="url-路径参数中带中文会导致-404">url 路径参数中带中文会导致 404<a href="#url-路径参数中带中文会导致-404" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>相关 issue <a href="https://github.com/apache/apisix/issues/10555">help request: when use Chinese word as uri parameter got 404</a></p>
+<p>apisix 上下文中使用的路径是<code>decode</code>过的，但是下层 radixtree 使用的是<code>encode</code>过的，会导致这类路径匹配 404</p>
+<p>目前我们暂时用 <a href="https://github.com/apache/apisix/pull/10561">10561</a> 这种方式修复，但是这样做看着比较低效 (我们压测完发现差别不大，线上直接先 patch 了)</p>
+<h3 id="zero-downtime-deployment">zero downtime deployment<a href="#zero-downtime-deployment" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>发布时，正在处理的请求会受到影响 <a href="https://github.com/apache/apisix/issues/10437#issuecomment-1793473840">Is the apisix support preStop hook? for graceful shutdown</a></p>
+<p>除了这个，还遇到 ipvs+linux 内核版本会导致滚动更新时，还会有持续的流量进入到正在 terminate 的 pod 中</p>
+<h3 id="etcd-compacted-导致-apisix-全量拉取">etcd compacted 导致 apisix 全量拉取<a href="#etcd-compacted-导致-apisix-全量拉取" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>生产环境上线后，etcd 会定期出现内存使用量告警，突然飙升，伴随着大量的 read 行为</p>
+<p>查看 etcd 配置以及阅读 apisix 源码发现，etcd 当前配置 5 分钟定时 compacted 一次，存在发布变更的话，apisix watch 到 event 发现 <code>err=compacted</code>, 会导致 apisix 全量拉取数据，此时会导致大量的 read 行为，导致 etcd 内存飙升</p>
+<p>所以建议 apisix 依赖的 etcd 配置 compaction mode 改成 <code>revision</code>,  <a href="https://github.com/etcd-io/etcd/blob/a9cf27b169b1fc89bc0189ffaea7d21c52856b24/CHANGELOG/CHANGELOG-3.3.md#improved-5">相关文档</a></p>
+<p>变更 etcd 配置：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-yaml" data-lang="yaml"><span class="line"><span class="cl"><span class="nt">auto-compaction-mode</span><span class="p">:</span><span class="w"> </span><span class="l">revision</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">auto-compaction-retention</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;1000&#34;</span><span class="w">
+</span></span></span></code></pre></div><h3 id="file-logger-的性能问题">file-logger 的性能问题<a href="#file-logger-的性能问题" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>自定义插件，通过增加 batch-processor 解决 (本质上就是将 json encode 转移到了 nginx timer 里)</p>
+<h3 id="querystring-中使用分号作为分隔符">queryString 中使用分号作为分隔符<a href="#querystring-中使用分号作为分隔符" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>灰度过程中，有用户反馈拼接的参数没有生效，而在原来 Golang 版本网关中是正常的</p>
+<p>排查发现，我们使用的是 Golang 1.6, 这个版本中，支持同时使用<code>&amp;</code>和<code>;</code>作为 QueryString 的分隔符，然后这个特性在 Golang 1.7 中被去除了 <a href="https://go.dev/doc/go1.17">Go 1.17 Release Notes: URL query parsing</a></p>
+<p>所以，存量的请求中，原先有一些请求使用的是<code>;</code>作为分隔符，灰度到 Apisix 后就失效了</p>
+<p>最后我们通过一个自定义插件，向前兼容了这批路由，原理很简单，把 <code>;</code> 换成 <code>&amp;</code> 再放回去解析</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-lua" data-lang="lua"><span class="line"><span class="cl"><span class="kd">local</span> <span class="n">new_args</span> <span class="o">=</span> <span class="n">string_replace</span><span class="p">(</span><span class="n">ctx.var</span><span class="p">.</span><span class="n">args</span><span class="p">,</span> <span class="s2">&#34;;&#34;</span><span class="p">,</span> <span class="s2">&#34;&amp;&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="n">core.request</span><span class="p">.</span><span class="n">set_uri_args</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">new_args</span><span class="p">)</span>
+</span></span></code></pre></div><h3 id="偶发-502">偶发 502<a href="#偶发-502" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>有应用反应原先使用 nginx 作为反向代理的时候正常，接入 apisix 之后偶发 502</p>
+<p>nginx 默认的配置 <a href="https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_http_version">proxy_http_version</a> 是 <code>HTTP/1.0</code>;</p>
+<p>即没有配置的情况下，默认是 <code>HTTP/1.0</code></p>
+<p>但是 apisix 的默认配置</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-nginx" data-lang="nginx"><span class="line"><span class="cl"><span class="k">proxy_http_version</span> <span class="mi">1</span><span class="s">.1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">keepalive_timeout</span> <span class="s">60s</span><span class="p">;</span>
+</span></span></code></pre></div><p>这就意味着，如果后端服务开启了 keepalive, 但是配置的 timeout 小于 60s, 那么就会出现偶发 502</p>
+<p>实际验证中，对于 gunicorn 以 gevent/gthread 方式启动的服务，将默认的<code>2s</code>改成<code>65s</code>也不能规避这个问题，只能通过 <code>--keep-alive 0</code> 关闭 keepalive; <a href="https://docs.gunicorn.org/en/stable/settings.html#keepalive">相关文档</a></p>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p>
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg><span class="tag"><a href="https://wklken.me/tags/apigateway">apigateway</a></span>
+				</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>3008 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2023-12-16 00:00 &#43;0000</p>
+			</footer>
+		</article>
+		<aside id="toc">
+			<div class="toc-title">Table of Contents</div>
+			<nav id="TableOfContents">
+  <ul>
+    <li><a href="#背景">背景</a></li>
+    <li><a href="#架构调整和代码重构">架构调整和代码重构</a></li>
+    <li><a href="#apisix-相关的问题">Apisix 相关的问题</a>
+      <ul>
+        <li><a href="#升级215-升级到-321">升级：2.15 升级到 3.2.1</a></li>
+        <li><a href="#prometheus-的问题">prometheus 的问题</a></li>
+        <li><a href="#radixtree-最长路径匹配问题">radixtree 最长路径匹配问题</a></li>
+        <li><a href="#dns-服务出问题恢复后apisix-无法从解析失败中恢复">DNS 服务出问题，恢复后，apisix 无法从解析失败中恢复</a></li>
+        <li><a href="#管理端频繁变更带来的性能抖动">管理端频繁变更带来的性能抖动</a></li>
+        <li><a href="#url-路径参数中带中文会导致-404">url 路径参数中带中文会导致 404</a></li>
+        <li><a href="#zero-downtime-deployment">zero downtime deployment</a></li>
+        <li><a href="#etcd-compacted-导致-apisix-全量拉取">etcd compacted 导致 apisix 全量拉取</a></li>
+        <li><a href="#file-logger-的性能问题">file-logger 的性能问题</a></li>
+        <li><a href="#querystring-中使用分号作为分隔符">queryString 中使用分号作为分隔符</a></li>
+        <li><a href="#偶发-502">偶发 502</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+		</aside>
+		<div class="post-nav thin">
+			<a class="next-post" href="https://wklken.me/posts/2023/12/17/some-tips-for-zero-downtime-deployment.html">
+				<span class="post-nav-label"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>&nbsp;Newer</span><br><span>关于 k8s 的 zero downtime deployment 一些建议</span>
+			</a>
+			<a class="prev-post" href="https://wklken.me/posts/2023/01/23/about-buy-a-new-washing-machine-before-chinese-new-year.html">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>关于在除夕前一天换了一个洗衣机的故事</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+<div id="gitalk-container"></div>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script src="https://wklken.me/js/md5.min.js"></script>
+<script>
+  const gitalk = new Gitalk({
+    clientID: '549d325e74a413f1b56a',
+    clientSecret: '086a83faacf152cc3f4079f002058716879e9688',
+    repo: 'wklken.github.io',
+    owner: 'wklken',
+    admin: ['wklken'],
+    id: md5(location.pathname), 
+    distractionFreeMode: false 
+  });
+  (function() {
+    if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+      document.getElementById('gitalk-container').innerHTML = 'Gitalk comments not available by default when the website is previewed locally.';
+      return;
+    }
+    gitalk.render('gitalk-container');
+  })();
+</script>
+
+</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2024 <a href="https://wklken.me">wklken</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="https://wklken.me/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+
+	<script src="https://wklken.me/js/bundle.min.580988ed2982bcbb74a1773c7abea97b43e4c43b9324e10cda0813ec6ec4bb67.js" integrity="sha256-WAmI7SmCvLt0oXc8er6pe0PkxDuTJOEM2ggT7G7Eu2c=" crossorigin="anonymous"></script>
+	
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-2GRCMEVXLQ"></script>
+<script>
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.dataLayer = window.dataLayer || [];
+	function gtag(){dataLayer.push(arguments);}
+	gtag('js', new Date());
+	gtag('config', 'G-2GRCMEVXLQ', { 'anonymize_ip': false });
+}
+</script>
+
+
+
+</body>
+
+</html>

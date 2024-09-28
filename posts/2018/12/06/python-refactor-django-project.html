@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<meta name="theme-color" content="#494f5c">
+	<meta name="msapplication-TileColor" content="#494f5c">
+<meta itemprop="name" content="Django项目重构小结">
+<meta itemprop="description" content="由于历史原因, 项目组中存在很多历史悠久的项目. 这类项目, 有着一些共同特征: 历史悠久, 几度经手, 缺乏文档, 维护困难, 模块不合理, 代码坏味道, 版"><meta itemprop="datePublished" content="2018-12-06T08:00:00+08:00" />
+<meta itemprop="dateModified" content="2018-12-06T08:00:00+08:00" />
+<meta itemprop="wordCount" content="2411">
+<meta itemprop="keywords" content="python," /><meta property="og:title" content="Django项目重构小结" />
+<meta property="og:description" content="由于历史原因, 项目组中存在很多历史悠久的项目. 这类项目, 有着一些共同特征: 历史悠久, 几度经手, 缺乏文档, 维护困难, 模块不合理, 代码坏味道, 版" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://wklken.me/posts/2018/12/06/python-refactor-django-project.html" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2018-12-06T08:00:00+08:00" />
+<meta property="article:modified_time" content="2018-12-06T08:00:00+08:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Django项目重构小结"/>
+<meta name="twitter:description" content="由于历史原因, 项目组中存在很多历史悠久的项目. 这类项目, 有着一些共同特征: 历史悠久, 几度经手, 缺乏文档, 维护困难, 模块不合理, 代码坏味道, 版"/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>Django项目重构小结</title>
+	<link rel="stylesheet" href="https://wklken.me/css/style.min.a634759f5e59454c8c91bba6cb21df1387610e17a0916dfc23b1723d2e0623ed.css" integrity="sha256-pjR1n15ZRUyMkbumyyHfE4dhDhegkW38I7FyPS4GI+0=" crossorigin="anonymous">
+	
+	<link rel="stylesheet" href="https://wklken.me/css/custom.css">
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="https://wklken.me">WKLKEN THINKING</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					
+				<a href="https://wklken.me/posts.html">Posts</a>
+				<a href="https://wklken.me/about.html">About</a>
+
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<button id="toc-btn" class="hdr-btn desktop-only-ib" title="Table of Contents"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3" y2="6"></line><line x1="3" y1="12" x2="3" y2="12"></line><line x1="3" y1="18" x2="3" y2="18"></line></svg></button><span class="hdr-social hide-in-mobile"><a href="https://github.com/wklken" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" class="feather" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a><a href="https://twitter.com/wklken" target="_blank" rel="noopener me" title="Twitter"><svg xmlns="http://www.w3.org/2000/svg" class="feather" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="https://wklken.me/posts.html">Posts</a></li>
+			<li><a href="https://wklken.me/about.html">About</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>Dec 6, 2018</span></div>
+				<h1>Django项目重构小结</h1>
+			</header>
+			<div class="content">
+				<p>由于历史原因, 项目组中存在很多<code>历史悠久</code>的项目.</p>
+<p>这类项目, 有着一些共同特征: 历史悠久, 几度经手, 缺乏文档, 维护困难, 模块不合理, 代码坏味道, 版本老旧等等.</p>
+<p>总之, 维护困难.</p>
+<p>如果维护需求不多, 基本不动, 这类项目可以<code>保持现状</code>, 稳定运行不出问题就行.</p>
+<p>但是, 另一方面, 如果项目需求多, 需要频繁修改, 由于项目的原因导致变更困难/进度缓慢/问题频出, 那么就该考虑进行代码重构了.</p>
+<p>梳理了一些django项目重构的事项, 供参考.</p>
+<h4 id="1-code-review">1. code review<a href="#1-code-review" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
+<p>将核心代码做个pr, 组织一次线上的<code>code review</code>.</p>
+<ul>
+<li>不要线下review, 此时代码可能非常庞大, 本身并不适合review</li>
+<li>要有本项目历史维护者参与, 也要有非项目维护者的外部人员参与</li>
+</ul>
+<p>线上reivew一周, 收集大家的comment, 之后做个分类汇总</p>
+<h4 id="2-升级django版本">2. 升级django版本<a href="#2-升级django版本" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
+<p>如果是django1.3及以下, 可以考虑升级到 1.8</p>
+<p>做升级, 并做相应的变更, 使得程序能正常运行</p>
+<p>可以考虑升级到django2.x(python3)</p>
+<h4 id="3-use-cbv-or-drf">3. use CBV or DRF<a href="#3-use-cbv-or-drf" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
+<p>具体区别可以参考 <a href="https://simpleisbetterthancomplex.com/article/2017/03/21/class-based-views-vs-function-based-views.html">Class-Based Views vs. Function-Based Views</a></p>
+<p>老旧项目, 90%以上都是 FBV(<code>Function-Based-View</code>), 如果项目比较小, 使用FBV可以短平快地搞定需求.</p>
+<p>但是如果项目变得比较大了, 可以考虑使用 <a href="https://docs.djangoproject.com/en/2.1/topics/class-based-views/">CBV</a></p>
+<p>对于大型项目, 建议使用 DRF(<a href="https://www.django-rest-framework.org/">Django REST framework</a>), 中小型项目不建议引入DRF的原因是, DRF有一定的学习门槛, 比较重, 可能引入不必要的复杂度.</p>
+<ul>
+<li>微型项目: FBV or CBV</li>
+<li>中小型项目: CBV</li>
+<li>大型项目: DRF</li>
+</ul>
+<p>此时会涉及(以下均是django 1.8文档)</p>
+<ul>
+<li><a href="https://docs.djangoproject.com/en/1.8/ref/class-based-views/">class based views</a></li>
+<li><a href="https://docs.djangoproject.com/en/1.8/topics/class-based-views/intro/#decorating-the-class">Decorating the class</a></li>
+</ul>
+<p>可以:</p>
+<ol>
+<li>权限控制使用mixin, 去掉了原先的权限控制decorator</li>
+<li>定义抽象出自己需要的view, 例如MakoTemplateView / JsonView</li>
+<li>合并相关的view</li>
+</ol>
+<p>流程:　url不动, 将所有FBV改成CBV, 抽象及合并代码, 合并相关view</p>
+<pre tabindex="0"><code>├── common
+│   ├── __init__.py
+│   ├── constants.py
+│   ├── context_processors.py
+│   ├── decorators.py
+│   ├── exceptions.py
+│   ├── http.py
+│   ├── log.py
+│   ├── middlewares
+│   │   ├── __init__.py
+│   │   └── exception.py
+│   ├── mixins
+│   │   ├── __init__.py
+│   │   └── base.py
+│   ├── responses.py
+│   ├── tests.py
+│   ├── utils.py
+│   └── views
+│       ├── __init__.py
+│       └── mako.py
+</code></pre><h4 id="4-分层及模块切分">4. 分层及模块切分<a href="#4-分层及模块切分" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
+<p>严格的分层，使得每一层职责清晰；</p>
+<blockquote>
+<p>thin views, fat models</p>
+</blockquote>
+<ul>
+<li>业务逻辑, 尽量瘦小简短</li>
+<li>将view中, 跟model具体对象相关的逻辑, 挪到model的方法中, 或者<code>@property</code>中, 补充一系列<code>porperty/classmethod/staticmethod</code></li>
+<li>注意, 不包含<code>{application}.objects.xxxx</code>的ORM操作</li>
+</ul>
+<blockquote>
+<p>　fat managers</p>
+</blockquote>
+<ul>
+<li>将view中, 跟ORM相关的复杂逻辑, 挪到manager中</li>
+<li>[拆分出{application}/manager.py]</li>
+<li><a href="https://docs.djangoproject.com/en/1.8/topics/db/managers/#django.db.models.Manager">Django Manager</a></li>
+</ul>
+<blockquote>
+<p>use form</p>
+</blockquote>
+<ul>
+<li>使用django form替换掉所有参数处理及校验相关的代码</li>
+<li>去除/合并原有的逻辑代码</li>
+<li>[拆分出{application}/forms.py]</li>
+</ul>
+<blockquote>
+<p>use enum</p>
+</blockquote>
+<ul>
+<li>replace all the <code>magic number</code> and build the choices for model</li>
+<li>[拆分出common/constants.py 和 {application}/constants.py]</li>
+<li>common/constants.py 放项目全局常量</li>
+<li>{application}/constants.py 放app局部使用常量</li>
+</ul>
+<blockquote>
+<p>add utils helpers</p>
+</blockquote>
+<ul>
+<li>将工具类代码逻辑进行抽离, 减少代码容易</li>
+<li>[拆分出common/utils.py 和 {applications}/utils.py]</li>
+</ul>
+<pre tabindex="0"><code>├── app
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── constants.py
+│   ├── forms.py
+│   ├── manager.py
+│   ├── migrations/
+│   ├── models.py
+│   ├── tests.py
+│   ├── urls.py
+│   ├── utils.py
+│   └── views.py
+</code></pre><blockquote>
+<p>stupid template</p>
+</blockquote>
+<ul>
+<li>将复杂逻辑, 移到后端来</li>
+<li>如果使用django原生的模板, 可以善用 <a href="https://docs.djangoproject.com/en/1.8/ref/templates/builtins/">Built-in template tags and filters</a> 以及 自定义<a href="https://docs.djangoproject.com/en/1.8/howto/custom-template-tags/">Custom template tags and filters</a></li>
+<li>如果使用mako的, 尽量将数据构造/判断等等, 放在后端搞定, 不要在模板中使用大量的判断逻辑, 模板尽量只渲染</li>
+</ul>
+<h4 id="5-抽离第三方依赖api-拆分出componentsxxxpy">5. 抽离第三方依赖api [拆分出components/xxx.py]<a href="#5-抽离第三方依赖api-拆分出componentsxxxpy" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
+<ul>
+<li>重灾区: 可能每个地方都有拼url, 调用, 处理返回值, 可能前期就一两个地方, 但是随着时间推移, 会出现腐烂的趋势, 很多地方直接拷贝, 改改用. 需要全部抽出</li>
+<li>将原先散落在各处的依赖第三方系统的api调用, 全部抽出到同一个文件中</li>
+<li>减少代码冗余</li>
+<li>同时, 可以统一处理输入/输出/异常等</li>
+<li>后续接口协议变更, 可以做统一变更</li>
+</ul>
+<pre tabindex="0"><code>├── components
+│   ├── __init__.py
+│   ├── engine.py
+│   ├── login.py
+│   └── tests.py
+</code></pre><h4 id="6-统一">6. 统一<a href="#6-统一" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
+<p>重灾区, 由于历史及人员的不同习惯, 往往一个项目会引入非常多的不同的<code>做法</code>去完成同一件事.</p>
+<p>在重构的节点, 我们必须将其统一, 否则由于破窗理论, 整体项目会越来越混乱.</p>
+<p>原则:　做同一件事，只存在一种方法; 不要存在重复的代码; 不能妥协.</p>
+<blockquote>
+<p>　常量</p>
+</blockquote>
+<ul>
+<li>有时候, 同一个定义, 可能有几套常量, 每个人自己定义了一套</li>
+</ul>
+<blockquote>
+<p>　utils</p>
+</blockquote>
+<ul>
+<li>重灾区, 不同模块下, 可能每个开发者自己将历史工具类/函数拷贝过来, 而不是使用公共的</li>
+<li>可能需求略有区别, 所以公共的工具模块/类, 需要重构支持</li>
+</ul>
+<blockquote>
+<p>　错误码</p>
+</blockquote>
+<ul>
+<li>统一所有错误码</li>
+</ul>
+<blockquote>
+<p>异常</p>
+</blockquote>
+<ul>
+<li>统一异常类</li>
+<li>统一异常处理方式/风格</li>
+<li>在同一层处理异常:　一种思路, 在middleware中统一处理所有类型异常, 而在view及其之下的调用链中可以减少<code>try-except</code>, 或者发现问题直接raise对应异常</li>
+</ul>
+<blockquote>
+<p>　协议</p>
+</blockquote>
+<ul>
+<li>统一的返回值结构</li>
+<li>统一的http错误码/状态码</li>
+<li>可能涉及前端变更调用, 但是, 该改动必须改</li>
+<li>可以通过自定义view/mixin等方式处理, 也可以对django的Response/JsonResponse做一层封装</li>
+</ul>
+<blockquote>
+<p>　unicode_literals</p>
+</blockquote>
+<ul>
+<li>如果使用python2, 可以<code>from __future__ import unicode_literals</code></li>
+<li>不强求</li>
+</ul>
+<h4 id="7-逐行重构">7. 逐行重构<a href="#7-逐行重构" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
+<ul>
+<li>
+<p><a href="https://wklken.me/posts/2016/11/03/python-code-style.html">Python 代码规范小结</a></p>
+</li>
+<li>
+<p><a href="https://wklken.me/posts/2017/06/17/refactoring-07.html">重构 - 读书笔记(Python示例)</a></p>
+</li>
+<li>
+<p>删除无用的代码/注释/文档等</p>
+</li>
+<li>
+<p>命名:　对所有变量名／常量名／函数名／类名／模块名等等重新思考，改成更合适的名字(此时编辑器或IDE的批量查找替换发挥作用)</p>
+</li>
+<li>
+<p>归属问题:　函数／变量／方法等, 要思考是否属于这里, 不合适直接调整</p>
+</li>
+<li>
+<p>表达式</p>
+</li>
+<li>
+<p>控制流: <code>return early</code> / <code>guard  clauses</code>&hellip;.</p>
+</li>
+<li>
+<p>异常处理</p>
+</li>
+<li>
+<p>函数等</p>
+</li>
+<li>
+<p>&hellip;&hellip;</p>
+</li>
+<li>
+<p>同时, 根据code review结果, 逐一修改</p>
+</li>
+<li>
+<p>该加注释加注释, 该加文档加文档</p>
+</li>
+</ul>
+<h4 id="8-format-the-url">8. format the url<a href="#8-format-the-url" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
+<p>因为要动前端调用, 所以放靠后会更合适</p>
+<ul>
+<li>推荐使用restful风格</li>
+<li>格式化url</li>
+<li>涉及前端调用处一并修改</li>
+<li>如果被其他系统依赖, 可能需要兼容老的url/协议, 可用, 但标明<code>deprecated</code>, 并同时提供新版本的url/协议</li>
+</ul>
+<h4 id="9-fix-all-pep8-issues">9. fix all pep8 issues<a href="#9-fix-all-pep8-issues" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
+<pre tabindex="0"><code>flake8 --config=.flake8 .
+</code></pre><ul>
+<li>开始不忽略任何错误, 完整修一遍</li>
+<li>重构所有过于复杂的函数 <code>C901 XXXX is too complex</code></li>
+<li>能不加<code># noqa</code>就不加</li>
+</ul>
+<h4 id="10-unittest">10. unittest<a href="#10-unittest" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
+<ul>
+<li>加单元测试, 优先核心模块的核心逻辑</li>
+</ul>
+<h4 id="11-然后">11. 然后<a href="#11-然后" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h4>
+<ul>
+<li>code review again</li>
+<li>自测</li>
+<li>测试</li>
+<li>灰度</li>
+<li>发布</li>
+</ul>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p>
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg><span class="tag"><a href="https://wklken.me/tags/python">python</a></span>
+				</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>2411 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2018-12-06 00:00 &#43;0000</p>
+			</footer>
+		</article>
+		<aside id="toc">
+			<div class="toc-title">Table of Contents</div>
+			<nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+		</aside>
+		<div class="post-nav thin">
+			<a class="next-post" href="https://wklken.me/posts/2019/06/23/you-need-more-time-to-think-along.html">
+				<span class="post-nav-label"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>&nbsp;Newer</span><br><span>你需要更多的思考时间</span>
+			</a>
+			<a class="prev-post" href="https://wklken.me/posts/2018/07/01/summary-15-work-7-years.html">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>工作七年小结: 学习,生活及其他</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+<div id="gitalk-container"></div>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script src="https://wklken.me/js/md5.min.js"></script>
+<script>
+  const gitalk = new Gitalk({
+    clientID: '549d325e74a413f1b56a',
+    clientSecret: '086a83faacf152cc3f4079f002058716879e9688',
+    repo: 'wklken.github.io',
+    owner: 'wklken',
+    admin: ['wklken'],
+    id: md5(location.pathname), 
+    distractionFreeMode: false 
+  });
+  (function() {
+    if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+      document.getElementById('gitalk-container').innerHTML = 'Gitalk comments not available by default when the website is previewed locally.';
+      return;
+    }
+    gitalk.render('gitalk-container');
+  })();
+</script>
+
+</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2024 <a href="https://wklken.me">wklken</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="https://wklken.me/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+
+	<script src="https://wklken.me/js/bundle.min.580988ed2982bcbb74a1773c7abea97b43e4c43b9324e10cda0813ec6ec4bb67.js" integrity="sha256-WAmI7SmCvLt0oXc8er6pe0PkxDuTJOEM2ggT7G7Eu2c=" crossorigin="anonymous"></script>
+	
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-2GRCMEVXLQ"></script>
+<script>
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.dataLayer = window.dataLayer || [];
+	function gtag(){dataLayer.push(arguments);}
+	gtag('js', new Date());
+	gtag('config', 'G-2GRCMEVXLQ', { 'anonymize_ip': false });
+}
+</script>
+
+
+
+</body>
+
+</html>

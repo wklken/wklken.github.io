@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<meta name="theme-color" content="#494f5c">
+	<meta name="msapplication-TileColor" content="#494f5c">
+<meta itemprop="name" content="Python-基础-文件处理小结">
+<meta itemprop="description" content="##文件处理 python常用，主要是用于文件操作，配合字符串操作，数值计算等，完成数据处理。 ###文件模式 打开一个文件，返回一个文件对象。可"><meta itemprop="datePublished" content="2013-03-16T08:00:00+08:00" />
+<meta itemprop="dateModified" content="2013-03-16T08:00:00+08:00" />
+<meta itemprop="wordCount" content="1858">
+<meta itemprop="keywords" content="python," /><meta property="og:title" content="Python-基础-文件处理小结" />
+<meta property="og:description" content="##文件处理 python常用，主要是用于文件操作，配合字符串操作，数值计算等，完成数据处理。 ###文件模式 打开一个文件，返回一个文件对象。可" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://wklken.me/posts/2013/03/16/python-base-file.html" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2013-03-16T08:00:00+08:00" />
+<meta property="article:modified_time" content="2013-03-16T08:00:00+08:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Python-基础-文件处理小结"/>
+<meta name="twitter:description" content="##文件处理 python常用，主要是用于文件操作，配合字符串操作，数值计算等，完成数据处理。 ###文件模式 打开一个文件，返回一个文件对象。可"/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>Python-基础-文件处理小结</title>
+	<link rel="stylesheet" href="https://wklken.me/css/style.min.a634759f5e59454c8c91bba6cb21df1387610e17a0916dfc23b1723d2e0623ed.css" integrity="sha256-pjR1n15ZRUyMkbumyyHfE4dhDhegkW38I7FyPS4GI+0=" crossorigin="anonymous">
+	
+	<link rel="stylesheet" href="https://wklken.me/css/custom.css">
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="https://wklken.me">WKLKEN THINKING</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					
+				<a href="https://wklken.me/posts.html">Posts</a>
+				<a href="https://wklken.me/about.html">About</a>
+
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<button id="toc-btn" class="hdr-btn desktop-only-ib" title="Table of Contents"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3" y2="6"></line><line x1="3" y1="12" x2="3" y2="12"></line><line x1="3" y1="18" x2="3" y2="18"></line></svg></button><span class="hdr-social hide-in-mobile"><a href="https://github.com/wklken" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" class="feather" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a><a href="https://twitter.com/wklken" target="_blank" rel="noopener me" title="Twitter"><svg xmlns="http://www.w3.org/2000/svg" class="feather" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="https://wklken.me/posts.html">Posts</a></li>
+			<li><a href="https://wklken.me/about.html">About</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>Mar 16, 2013</span></div>
+				<h1>Python-基础-文件处理小结</h1>
+			</header>
+			<div class="content">
+				<p>##文件处理</p>
+<p>python常用，主要是用于文件操作，配合字符串操作，数值计算等，完成数据处理。</p>
+<p>###文件模式</p>
+<p>打开一个文件，返回一个文件对象。可以用open()或者file()，建议使用前者</p>
+<pre><code>file_object = open(file_name, access_mode = ‘r’, buffering = -1)
+file_name：打开的文件名,若非当前路径，需指出具体路径
+mode:可选参数，文件打开模式
+bufsize:可选参数，是否使用缓存
+</code></pre>
+<p>####mode</p>
+<pre><code>模式	    描述
+r	    以读方式打开文件，可读取文件信息.文件必须已存在
+w	    以写方式打开文件，可向文件写入信息。存在则清空，不存在创建
+a	    以追加方式打开文件，文件指针自动移到文件尾。追加
+r+	    以读写方式打开文件，可对文件进行读和写操作。
+w+	    消除文件内容，然后以读写方式打开文件。
+a+	    以读写方式打开文件，并把文件指针移到文件尾。
+b	    以二进制模式打开文件，而不是以文本模式。该模式只对Windows或Dos有效，类Unix的文件是用二进制模式进行操作的
+
+U      通用换行符支持，任何系统下的文件, 不管换行符是什么, 使用U模式打开时, 换行符都会被替换为NEWLINE(\n)
+</code></pre>
+<p>+ 代表同时作为输入和输出文件，可以对相同文件进行读写</p>
+<p>b代表二进制数据处理</p>
+<p>和 r/w/a组合.
+r+ 使用读写方式打开， rb二进制读</p>
+<p>注意，在mode中使用b，b不能作为第一个字符出现</p>
+<p>####bufsize
+bufsize取值	描述</p>
+<pre><code>0	禁用缓冲
+1	行缓冲，只缓冲一行
+\&gt;1	指定缓冲区的大小，定制
+&lt;1	系统默认的缓冲区大小,m默认
+</code></pre>
+<p>###文件对象属性
+常用几个:</p>
+<p>file.name 文件名</p>
+<p>file.encoding文件使用编码,None 时使用系统默认编码</p>
+<p>file.mode Access文件打开时使用的额访问模式</p>
+<p>file.closed表文件已关闭，否则False</p>
+<p>file.newlines未读取到分隔符时为None，包含行结束符的列表</p>
+<p>file.softspace为0表示在输出一数据后，加上一空格，1表示不加，内部使用</p>
+<pre><code>:::python
+f = open(&quot;a.py&quot;, &quot;r&quot;)
+print f.name
+print f.mode
+print f.encoding
+print f.closed
+</code></pre>
+<p>###文件操作
+获取帮助</p>
+<pre><code>:::python
+dir(f)
+help(f.seek)
+</code></pre>
+<p>操作列表</p>
+<pre><code>#读
+file.read(size=-1) 	     从文件读取size个字节，未给定或为负，读取所有
+file.readline(size=-1) 	读取并返回一行，或返回最大size个字符,包括\n
+file.readlines(sizeint=0) 	读取所有行并返回列表，若给定sizeint&gt;0，返回总和大约为sizeint字节的行, 实际读取值可能比sizhint较大, 因为需要填充缓冲区
+
+#写
+file.write(str) 	向文件中写入字符串(文本或二进制)
+file.writelines(seq) 	写入多行，向文件中写入一个字符串列表，注意，要自己加入每行的换行符
+
+#其他
+file.seek(off,whence=0) 	从文件中给移动指针，从whence(0起始，1当前，2末尾)偏移off个字节，正结束方向移动，负往开始方向移动
+file.tell()	返回当前文件中的位置。获得文件指针位置
+file.truncate(size=file.tell())	截取文件到最大size个字节，默认为当前文件位置
+file.close()    关闭打开的文件,垃圾回收机制也会在文件对象的引用计数降至0的时候自动关闭文件
+file.fileno()    返回文件描述符(file descriptor FD 整型)是一个整数, 可以用在如os模块的read方法等一些底层操作上.
+file.flush()    刷新文件内部缓冲,直接把内部缓冲区的数据立刻写入文件, 而不是被动的等待输出缓冲区写入.
+file.isatty()	判断file是否是类tty设备
+file.next()	    返回文件下一行
+</code></pre>
+<p>###最佳实践</p>
+<p>1.养成手动close</p>
+<pre><code>:::python
+f = open('a.py')
+……
+f.close()
+</code></pre>
+<p>2.读取大文件</p>
+<p>方法一:一次性读入,去左右空白+换行符，文件太大不建议这么做</p>
+<pre><code>:::python
+f = open('bigdata')
+lines = [ line.strip() for line in f.readlines()]
+…..
+f.close()
+</code></pre>
+<p>方法二:迭代</p>
+<pre><code>:::python
+f = open('bigdata')
+for line in f:
+    line = line.strip()
+…..
+f.close()
+</code></pre>
+<p>3.上下文管理器
+用with，等价与上面方法二，注意不用显式close</p>
+<pre><code>&gt;&gt;&gt; with open('a.py') as f:
+...     for line in f:
+...         line = line.strip()
+</code></pre>
+<p>4.去除换行符/跳过空行</p>
+<pre><code>:::python
+line = line.rstrip()
+
+if not line.strip():
+    # if line is empty
+    continue            # skip it
+</code></pre>
+<p>###StringIO
+StringIO“虚拟文件”不是永久的</p>
+<p>如果不保存它（如将它写入一个真正的文件，或者使用 shelve 模块或数据库），则程序结束时，它将消失</p>
+<pre><code>&gt;&gt;&gt; import cStringIO
+&gt;&gt;&gt; fs = cStringIO.StringIO()
+&gt;&gt;&gt; fs.write('hello world')
+&gt;&gt;&gt; fs.getvalue()
+'hello world'
+</code></pre>
+<p>###pickle
+pickle任意python对象和字符串之间的序列化
+类似java序列化存储到文件的过程</p>
+<pre><code>:::python
+# encoding: utf-8
+
+import pickle
+
+d = {'a':1,'b':2}
+
+f = open('datafile.pkl','wb')
+pickle.dump(d,f)
+f.close()
+
+f=open('datafile.pkl','rb')
+e=pickle.load(f)
+print e
+</code></pre>
+<p>###struct</p>
+<p>能够构造并解析打包的二进制数据</p>
+<pre><code>:::python
+#!/usr/bin/env python
+# encoding: utf-8
+
+import struct
+f = open('data.bin','wb')
+data = struct.pack('hhl', 1, 2, 3)
+f.write(data)
+f.close()
+
+f = open('data.bin','rb')
+data = f.read()
+values = struct.unpack('hhl',data)
+print values
+</code></pre>
+<p>###其他相关模块</p>
+<pre><code>base64  二进制字符串和文本字符串之间的编码/解码操作
+binascii  二进制和ascii编码的二进制字符串间的编码/解码操作
+bz2  访问BZ2格式的压缩文件
+csv  访问csv文件(逗号分割文件)
+filecmp   用于比较目录和文件
+fileinput  提供多个文本文件的行迭代器
+getopt/optparse  提供了命令行参数的解析/处理
+glob/fnmatch  提供Unix样式的通配符匹配功能
+gzip/zlib   读写GNU zip(gzip)文件(压缩需要zlib模块)
+shutil  提供高级文件访问能力
+c/StringIO   对字符串对象提供类文件接口
+tarfile  读写TAR归档文件, 支持压缩文件
+tempfile   创建一个临时文件(名)
+uu  格式的编码和解码
+zipfile  用于读取ZIP归档文件的工具
+</code></pre>
+<p>The end!</p>
+<p>To be continue</p>
+<p>wklken</p>
+<p>Email: <a href="mailto:wklken@yeah.net">wklken@yeah.net</a></p>
+<p>Blog:  <a href="http://blog.csdn.net/wklken">http://blog.csdn.net/wklken</a></p>
+<p>2013-03-16</p>
+<p>转载请注明出处，谢谢</p>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p>
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg><span class="tag"><a href="https://wklken.me/tags/python">python</a></span>
+				</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>1858 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2013-03-16 00:00 &#43;0000</p>
+			</footer>
+		</article>
+		<aside id="toc">
+			<div class="toc-title">Table of Contents</div>
+			<nav id="TableOfContents"></nav>
+		</aside>
+		<div class="post-nav thin">
+			<a class="next-post" href="https://wklken.me/posts/2013/03/16/python-base-function.html">
+				<span class="post-nav-label"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>&nbsp;Newer</span><br><span>Python-基础-函数小结</span>
+			</a>
+			<a class="prev-post" href="https://wklken.me/posts/2013/03/16/python-base-introduction.html">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>Python-基础-简介/入门</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+<div id="gitalk-container"></div>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script src="https://wklken.me/js/md5.min.js"></script>
+<script>
+  const gitalk = new Gitalk({
+    clientID: '549d325e74a413f1b56a',
+    clientSecret: '086a83faacf152cc3f4079f002058716879e9688',
+    repo: 'wklken.github.io',
+    owner: 'wklken',
+    admin: ['wklken'],
+    id: md5(location.pathname), 
+    distractionFreeMode: false 
+  });
+  (function() {
+    if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+      document.getElementById('gitalk-container').innerHTML = 'Gitalk comments not available by default when the website is previewed locally.';
+      return;
+    }
+    gitalk.render('gitalk-container');
+  })();
+</script>
+
+</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2024 <a href="https://wklken.me">wklken</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="https://wklken.me/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+
+	<script src="https://wklken.me/js/bundle.min.580988ed2982bcbb74a1773c7abea97b43e4c43b9324e10cda0813ec6ec4bb67.js" integrity="sha256-WAmI7SmCvLt0oXc8er6pe0PkxDuTJOEM2ggT7G7Eu2c=" crossorigin="anonymous"></script>
+	
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-2GRCMEVXLQ"></script>
+<script>
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.dataLayer = window.dataLayer || [];
+	function gtag(){dataLayer.push(arguments);}
+	gtag('js', new Date());
+	gtag('config', 'G-2GRCMEVXLQ', { 'anonymize_ip': false });
+}
+</script>
+
+
+
+</body>
+
+</html>

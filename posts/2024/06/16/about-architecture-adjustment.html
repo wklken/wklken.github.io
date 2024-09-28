@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<meta name="theme-color" content="#494f5c">
+	<meta name="msapplication-TileColor" content="#494f5c">
+<meta itemprop="name" content="聊聊项目架构调整">
+<meta itemprop="description" content="过度设计的反面是务实 去年接手了一套系统，花了近三个月做了一些调整才正式外发。 当时这套系统是为了满足一个时间点快速迭代发布的，接手后觉得其中有"><meta itemprop="datePublished" content="2024-06-16T08:00:00+08:00" />
+<meta itemprop="dateModified" content="2024-06-16T08:00:00+08:00" />
+<meta itemprop="wordCount" content="3040">
+<meta itemprop="keywords" content="summary," /><meta property="og:title" content="聊聊项目架构调整" />
+<meta property="og:description" content="过度设计的反面是务实 去年接手了一套系统，花了近三个月做了一些调整才正式外发。 当时这套系统是为了满足一个时间点快速迭代发布的，接手后觉得其中有" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://wklken.me/posts/2024/06/16/about-architecture-adjustment.html" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2024-06-16T08:00:00+08:00" />
+<meta property="article:modified_time" content="2024-06-16T08:00:00+08:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="聊聊项目架构调整"/>
+<meta name="twitter:description" content="过度设计的反面是务实 去年接手了一套系统，花了近三个月做了一些调整才正式外发。 当时这套系统是为了满足一个时间点快速迭代发布的，接手后觉得其中有"/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>聊聊项目架构调整</title>
+	<link rel="stylesheet" href="https://wklken.me/css/style.min.a634759f5e59454c8c91bba6cb21df1387610e17a0916dfc23b1723d2e0623ed.css" integrity="sha256-pjR1n15ZRUyMkbumyyHfE4dhDhegkW38I7FyPS4GI+0=" crossorigin="anonymous">
+	
+	<link rel="stylesheet" href="https://wklken.me/css/custom.css">
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="https://wklken.me">WKLKEN THINKING</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					
+				<a href="https://wklken.me/posts.html">Posts</a>
+				<a href="https://wklken.me/about.html">About</a>
+
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<button id="toc-btn" class="hdr-btn desktop-only-ib" title="Table of Contents"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3" y2="6"></line><line x1="3" y1="12" x2="3" y2="12"></line><line x1="3" y1="18" x2="3" y2="18"></line></svg></button><span class="hdr-social hide-in-mobile"><a href="https://github.com/wklken" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" class="feather" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a><a href="https://twitter.com/wklken" target="_blank" rel="noopener me" title="Twitter"><svg xmlns="http://www.w3.org/2000/svg" class="feather" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="https://wklken.me/posts.html">Posts</a></li>
+			<li><a href="https://wklken.me/about.html">About</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>Jun 16, 2024</span></div>
+				<h1>聊聊项目架构调整</h1>
+			</header>
+			<div class="content">
+				<blockquote>
+<p>过度设计的反面是<code>务实</code></p>
+</blockquote>
+<p>去年接手了一套系统，花了近三个月做了一些调整才正式外发。</p>
+<p>当时这套系统是为了满足一个时间点快速迭代发布的，接手后觉得其中有一些问题，聊聊其中做的一些决策。</p>
+<h2 id="模块存在的合理性">模块存在的合理性<a href="#模块存在的合理性" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<h3 id="case1">case1<a href="#case1" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>A 项目和 B 项目都是 Django+DRF 提供的服务。</p>
+<p>仔细阅读代码后发现</p>
+<ol>
+<li>B 项目逻辑并不复杂，但是麻雀虽小五脏俱全，DB、缓存、配置、helm-charts，出包流水线等都得来一套</li>
+<li>存在一些共同的逻辑，抽象出一个 SDK 来实现逻辑复用</li>
+<li>A 项目需要调用 B 项目，此时封装一层独立的调用逻辑（B 项目加一个接口，需要同步改这里）</li>
+<li>为同一套前端提供的服务（通过k8s svc将请求转发到不同项目）</li>
+</ol>
+<p><strong>同构的技术栈，强耦合的逻辑，却是两个独立的项目。</strong></p>
+<p>能否合并成一个项目？答案是可以。</p>
+<p>花了几个小时，将 B 项目的差异化代码直接拷贝到 A 项目，去掉 SDK，独立调用层改成直接函数调用，去掉对应的helm-charts，出包流水线等等。</p>
+<p>结果：</p>
+<ul>
+<li>项目 -1</li>
+<li>SDK -1</li>
+<li>流水线 -1</li>
+<li>helm-chart -1</li>
+<li>A 项目中调用逻辑 -1</li>
+</ul>
+<p>整体的维护成本，复杂度等都降低了。</p>
+<p>一个服务是否拆分成多个，以及多个服务是否应该合并成一个，取决于很多因素，不一定说拆分一定不好，但是拆分带来的维护成本往往是大于单体的。</p>
+<h3 id="case2">case2<a href="#case2" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>A 项目启动时，会从一个静态文件服务器 B 拉取一些运行时文件，B 是可以动态更新这些文件的。这样做的好处，是为了方便用户侧动态更新一些文件，直接 rolling update A 就能使得线上接口刷新成新的。</p>
+<p>当然，这样做时候代价的，需要维护服务 B，同时 A 需要嵌入拉取逻辑。</p>
+<p><strong>问，这个机制目前有使用场景吗？没有，但是可能有。</strong></p>
+<p>这个就有点臆测未来用户侧的使用场景了，这种更应该有真实用户反馈过来再去加上，而不是一开始就加上。</p>
+<p>所以，选择了去掉 静态文件服务器 B, 直接在 A 项目打镜像时将运行时依赖文件打进去，相当于强耦合。我们甚至留了口子，如果用户侧需要更新，基于 A 镜像再打一个镜像，问题是上线一年多一次也没遇到。</p>
+<p>结果：</p>
+<ul>
+<li>项目 -1</li>
+<li>A 项目中的拉取更新逻辑 -1</li>
+</ul>
+<h3 id="case3">case3<a href="#case3" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>重构时，A 项目使用了最新的实现方案，去替代 B 项目，二者语言和技术栈完全不一样。</p>
+<p>B 项目中有个频率控制逻辑，使用的漏桶算法，而 A 的生态中频率控制算法只有fixed window，由于觉得漏桶算法效果更好，并且时间很赶并没有多余的精力在 A 中实现漏桶算法。所以将 B 中的漏桶算法直接挪出来独立成一个模块 C，然后 A 项目实现对应逻辑依赖模块 C。</p>
+<p>相当于异构的实现，通过 RPC 协议交互。</p>
+<p>但是这样引入了额外的模块和复杂度。</p>
+<p>那么， fixed window频率控制算法在实际用户使用中真的会有问题吗？是的，会有问题，但是最终的频率控制效果用户能接受吗？</p>
+<p>捞了线上正在运行的 B 项目的频率控制触发的日志，发现实际上用户侧配置的值一般都比较高，并且很少有触发的频率控制的调用方。</p>
+<p>最终，我们决定去掉这个模块 C，直接使用 A 生态中基于fixed window的频率控制。</p>
+<p>上线后只出现了一两例触发极端情况的场景，但是这个也给我们在 A 项目中实现漏桶算法提供了充足的缓冲时间。</p>
+<p><strong>如果效果差不多，或者稍微差一点但是能接受，那么不一定需要引入一个新模块来解决问题。</strong></p>
+<h2 id="模块实现的合理性">模块实现的合理性<a href="#模块实现的合理性" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<h3 id="case1-1">case1<a href="#case1-1" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>A 项目需要用到外部鉴权，依赖于外部的权限数据。此时引入一个模块 B，B 使用 A 生态的多语言框架实现（不同的语言），内部通过 RPC 交互。B 通过 HTTP 调用Web做全量以及增量的权限数据同步。</p>
+<p>相当于： <code>A =&gt; RPC =&gt; B =&gt; HTTP =&gt; Web Server</code></p>
+<p>由于这个全量、增量同步做得很复杂，并且做了一层cache，导致线上出现权限问题时并不好排查。并且 <code>Web Server</code> 是一个产品项目，发布频率高并且稳定性低于 A。</p>
+<p>那么为什么使用多语言框架呢？可能刚好官方支持吧（坑比较多），这时候有点像是拿着锤子满世界都是钉子，往里面放也行。</p>
+<p>感觉掉坑里了，能否去掉 B 模块呢？</p>
+<p>最终经过评审，我们的实现非常简单<code>A =&gt; HTTP =&gt; Core Server =&gt; DB</code>，不存在全量、增量数据同步，直接依赖 DB，加了一层缓存，整体复杂度非常低。</p>
+<p>有时候生态里面一些亮点、强力的 feature，并不一定是好事，平平无奇的机制能实现的话，不一定要用。</p>
+<h3 id="case2-1">case2<a href="#case2-1" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>A 项目生态中有一个白名单， 历史 B 项目中也有个白名单逻辑，然后在从 B 项目升级到 A 项目的过程中， 竟然在 A 项目也实现了 B 项目的白名单逻辑，即同时存在两个白名单逻辑。</p>
+<p>两个白名单逻辑本质上是一致的。</p>
+<p>决策：升级过程中做简单的数据迁移，只留一个白名单逻辑。</p>
+<h2 id="不合理的依赖">不合理的依赖<a href="#不合理的依赖" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<h3 id="case1-反向依赖">case1 反向依赖<a href="#case1-反向依赖" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>上面模块合理性的case， 底层对可用性要求更高的模块，依赖了上层可用性不那么高的<code>Web Server</code>模块，直接拉低了整体的可用性。</p>
+<p>通过新起一个更底层的服务，只依赖于 DB，独立于<code>Web Server</code>，将之前的依赖链路抹掉，变成可靠性更高的链路。</p>
+<h3 id="case2-循环依赖">case2 循环依赖<a href="#case2-循环依赖" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>A 项目是一个业务网关，依赖了一个认证项目 B，实施的时候，发现这个 B 的地址竟然是 A 项目的子路径。</p>
+<p>原来是因为这个认证逻辑本身没有流水日志用于问题排查，所以将 B 项目接入了 A 项目网管。</p>
+<p>此时即循环依赖 A 的认证逻辑依赖了 A 自己的网关地址；</p>
+<p>后来决策，依赖地址直接改成B 服务，流水日志 B 项目自行解决。</p>
+<h2 id="其他相关的">其他相关的<a href="#其他相关的" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<h3 id="过于灵活的配置">过于灵活的配置<a href="#过于灵活的配置" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>项目的配置文件生成：原始helm chart中的template有一个configmap， 并且有一批环境变量，在启动的shell脚本中，读取环境变量，并且用 envset、sed 等命令，将配置文件和镜像中的配置文件合并生成一个新的文件。 相当于，配置有 3 个来源，configmap/镜像中的yaml/环境变量中的配置。</p>
+<p>这样看起来非常灵活，一系列判断逻辑可以根据一些开关、环境变量，生成差异化的配置，然后启动；</p>
+<p>但是带来的问题是，在 shell 脚本中维护这个逻辑可维护性无疑是非常差的，并且认知负担非常重。</p>
+<p>后来做的决策是，去掉启动脚本中的逻辑，在configmap中由 helm 的语法、模板负责生成一个完备的配置，即<code>所见即所得</code>。</p>
+<p>这样所有的差异化在模板阶段就处理掉了，而不是在运行时处理。</p>
+<p>有时候，灵活的配置，强大的脚本，看起来很厉害，但是并不一定是好事，特别是来源多，条件复杂这种场景。这时候，唯一来源，并且看起来有些<code>笨</code>的方式，反而是最好维护的。</p>
+<h3 id="过于冗长的流水线">过于冗长的流水线<a href="#过于冗长的流水线" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<blockquote>
+<p>存在不一定合理</p>
+</blockquote>
+<p>由于之前处于快速迭代期，交付期间出现过各个环节的问题，导致出包的流水线非常长，几乎要二三十分钟才能出一个包，一旦有问题重出又是二三十分钟。</p>
+<p>流水线中很多环节，是为了 cover 掉之前快速迭代容易遗漏的一些点，例如依赖包遗漏不熟检查，例如打包后执行一次helm install部署测试。 这些环节耗时都比较长，并且是同步的。</p>
+<p>但是，当过来快速迭代期之后，依赖变更已经不频繁，并且出现了其他环节能够cover掉出包过程中的早期测试，那么原先有效的环节可能变得非常<code>鸡肋</code>。</p>
+<p>不删只是慢了点，存在即合理，会导致很多时候不敢去改流水线，去掉这些鸡肋。</p>
+<p>后来复盘，统一删除，将时间压缩到 5 分钟以内。</p>
+<h3 id="过多的测试用例测试环境及流程">过多的测试用例、测试环境及流程<a href="#过多的测试用例测试环境及流程" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>使用 A 项目替换掉之前的 B 项目，但是，没有重新去梳理 case，而是在 B 项目的 case 基础上又加了一批 case；并且也没有重新做差异化的梳理，导致出现了 4 套测试环境+300多个case；</p>
+<p>每个环境的 case 都是提前造好的，接手后，正式发布前需要把 4 个环境升级上来，并且执行完所有 case，有失败的需要逐一去排查原因。</p>
+<p>这样带来的问题是，出包后的测试成本也非常高，并且 4 套环境的维护，case 的更新代价也很高。</p>
+<p>你不跑，怕有问题没覆盖到，去跑，又得更新四套环境逐一验证，没过的 case 还得逐一确认修复。</p>
+<p>后来，我们决定进行测试左移，到开发阶段而不是出包后，重新梳理 case，变成原先三分之一，并且能够在任意环境，自动构建环境，执行覆盖所有case。</p>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p>
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg><span class="tag"><a href="https://wklken.me/tags/summary">summary</a></span>
+				</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>3040 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2024-06-16 00:00 &#43;0000</p>
+			</footer>
+		</article>
+		<aside id="toc">
+			<div class="toc-title">Table of Contents</div>
+			<nav id="TableOfContents">
+  <ul>
+    <li><a href="#模块存在的合理性">模块存在的合理性</a>
+      <ul>
+        <li><a href="#case1">case1</a></li>
+        <li><a href="#case2">case2</a></li>
+        <li><a href="#case3">case3</a></li>
+      </ul>
+    </li>
+    <li><a href="#模块实现的合理性">模块实现的合理性</a>
+      <ul>
+        <li><a href="#case1-1">case1</a></li>
+        <li><a href="#case2-1">case2</a></li>
+      </ul>
+    </li>
+    <li><a href="#不合理的依赖">不合理的依赖</a>
+      <ul>
+        <li><a href="#case1-反向依赖">case1 反向依赖</a></li>
+        <li><a href="#case2-循环依赖">case2 循环依赖</a></li>
+      </ul>
+    </li>
+    <li><a href="#其他相关的">其他相关的</a>
+      <ul>
+        <li><a href="#过于灵活的配置">过于灵活的配置</a></li>
+        <li><a href="#过于冗长的流水线">过于冗长的流水线</a></li>
+        <li><a href="#过多的测试用例测试环境及流程">过多的测试用例、测试环境及流程</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+		</aside>
+		<div class="post-nav thin">
+			<a class="next-post" href="https://wklken.me/posts/2024/06/23/glucose-revolution.html">
+				<span class="post-nav-label"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>&nbsp;Newer</span><br><span>控糖革命</span>
+			</a>
+			<a class="prev-post" href="https://wklken.me/posts/2024/06/08/about-framework.html">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>聊聊框架</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+<div id="gitalk-container"></div>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script src="https://wklken.me/js/md5.min.js"></script>
+<script>
+  const gitalk = new Gitalk({
+    clientID: '549d325e74a413f1b56a',
+    clientSecret: '086a83faacf152cc3f4079f002058716879e9688',
+    repo: 'wklken.github.io',
+    owner: 'wklken',
+    admin: ['wklken'],
+    id: md5(location.pathname), 
+    distractionFreeMode: false 
+  });
+  (function() {
+    if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+      document.getElementById('gitalk-container').innerHTML = 'Gitalk comments not available by default when the website is previewed locally.';
+      return;
+    }
+    gitalk.render('gitalk-container');
+  })();
+</script>
+
+</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2024 <a href="https://wklken.me">wklken</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="https://wklken.me/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+
+	<script src="https://wklken.me/js/bundle.min.580988ed2982bcbb74a1773c7abea97b43e4c43b9324e10cda0813ec6ec4bb67.js" integrity="sha256-WAmI7SmCvLt0oXc8er6pe0PkxDuTJOEM2ggT7G7Eu2c=" crossorigin="anonymous"></script>
+	
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-2GRCMEVXLQ"></script>
+<script>
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.dataLayer = window.dataLayer || [];
+	function gtag(){dataLayer.push(arguments);}
+	gtag('js', new Date());
+	gtag('config', 'G-2GRCMEVXLQ', { 'anonymize_ip': false });
+}
+</script>
+
+
+
+</body>
+
+</html>

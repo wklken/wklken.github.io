@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<meta name="theme-color" content="#494f5c">
+	<meta name="msapplication-TileColor" content="#494f5c">
+<meta itemprop="name" content="apisix etcd机制">
+<meta itemprop="description" content="基于 3.10.0 版本 机制 0. 入口 在 apisix 的ngx_tpl.lua中 init_worker_by_lua_block { apisix.http_init_worker() } apisix/init.lua local router = require(&#34;apisix.router&#34;) function _M.http_init_worker() ..... router.http_init_worker() ..... end 1. http_init_worker apisix/router.lua function _M.http_init_worker() local conf = core.config.local_conf() local router_http_name = &#34;radixtree_uri&#34; if conf and conf.apisix and conf.apisix.router then router_http_name = conf.apisix.router.http or router_http_name ...... end local router_http ="><meta itemprop="datePublished" content="2024-09-17T08:00:00+08:00" />
+<meta itemprop="dateModified" content="2024-09-17T08:00:00+08:00" />
+<meta itemprop="wordCount" content="3108">
+<meta itemprop="keywords" content="apigateway," /><meta property="og:title" content="apisix etcd机制" />
+<meta property="og:description" content="基于 3.10.0 版本 机制 0. 入口 在 apisix 的ngx_tpl.lua中 init_worker_by_lua_block { apisix.http_init_worker() } apisix/init.lua local router = require(&#34;apisix.router&#34;) function _M.http_init_worker() ..... router.http_init_worker() ..... end 1. http_init_worker apisix/router.lua function _M.http_init_worker() local conf = core.config.local_conf() local router_http_name = &#34;radixtree_uri&#34; if conf and conf.apisix and conf.apisix.router then router_http_name = conf.apisix.router.http or router_http_name ...... end local router_http =" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://wklken.me/posts/2024/09/17/apisix-etcd.html" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2024-09-17T08:00:00+08:00" />
+<meta property="article:modified_time" content="2024-09-17T08:00:00+08:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="apisix etcd机制"/>
+<meta name="twitter:description" content="基于 3.10.0 版本 机制 0. 入口 在 apisix 的ngx_tpl.lua中 init_worker_by_lua_block { apisix.http_init_worker() } apisix/init.lua local router = require(&#34;apisix.router&#34;) function _M.http_init_worker() ..... router.http_init_worker() ..... end 1. http_init_worker apisix/router.lua function _M.http_init_worker() local conf = core.config.local_conf() local router_http_name = &#34;radixtree_uri&#34; if conf and conf.apisix and conf.apisix.router then router_http_name = conf.apisix.router.http or router_http_name ...... end local router_http ="/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>apisix etcd机制</title>
+	<link rel="stylesheet" href="https://wklken.me/css/style.min.a634759f5e59454c8c91bba6cb21df1387610e17a0916dfc23b1723d2e0623ed.css" integrity="sha256-pjR1n15ZRUyMkbumyyHfE4dhDhegkW38I7FyPS4GI+0=" crossorigin="anonymous">
+	
+	<link rel="stylesheet" href="https://wklken.me/css/custom.css">
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="https://wklken.me">WKLKEN THINKING</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					
+				<a href="https://wklken.me/posts.html">Posts</a>
+				<a href="https://wklken.me/about.html">About</a>
+
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<button id="toc-btn" class="hdr-btn desktop-only-ib" title="Table of Contents"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3" y2="6"></line><line x1="3" y1="12" x2="3" y2="12"></line><line x1="3" y1="18" x2="3" y2="18"></line></svg></button><span class="hdr-social hide-in-mobile"><a href="https://github.com/wklken" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" class="feather" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a><a href="https://twitter.com/wklken" target="_blank" rel="noopener me" title="Twitter"><svg xmlns="http://www.w3.org/2000/svg" class="feather" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="https://wklken.me/posts.html">Posts</a></li>
+			<li><a href="https://wklken.me/about.html">About</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>Sep 17, 2024</span></div>
+				<h1>apisix etcd机制</h1>
+			</header>
+			<div class="content">
+				<blockquote>
+<p>基于 3.10.0 版本</p>
+</blockquote>
+<h2 id="机制">机制<a href="#机制" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<h3 id="0-入口">0. 入口<a href="#0-入口" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p><img src="https://cloud.githubusercontent.com/assets/2137369/15272097/77d1c09e-1a37-11e6-97ef-d9767035fc3e.png" alt=""></p>
+<p>在 apisix 的ngx_tpl.lua中</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-nginx" data-lang="nginx"><span class="line"><span class="cl">    <span class="k">init_worker_by_lua_block</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="kn">apisix.http_init_worker()</span>
+</span></span><span class="line"><span class="cl">    <span class="err">}</span>
+</span></span></code></pre></div><p>apisix/init.lua</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-lua" data-lang="lua"><span class="line"><span class="cl"><span class="kd">local</span> <span class="n">router</span>          <span class="o">=</span> <span class="n">require</span><span class="p">(</span><span class="s2">&#34;apisix.router&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kr">function</span> <span class="nc">_M</span><span class="p">.</span><span class="nf">http_init_worker</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="p">...</span><span class="o">..</span>
+</span></span><span class="line"><span class="cl">    <span class="n">router.http_init_worker</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="p">...</span><span class="o">..</span>
+</span></span><span class="line"><span class="cl"><span class="kr">end</span>
+</span></span></code></pre></div><h3 id="1-http_init_worker">1. http_init_worker<a href="#1-http_init_worker" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p><a href="https://github.com/apache/apisix/blob/5433dce25de6c3aabb14919f899d9e8aa6a16c4b/apisix/router.lua#L71">apisix/router.lua</a></p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-lua" data-lang="lua"><span class="line"><span class="cl"><span class="kr">function</span> <span class="nc">_M</span><span class="p">.</span><span class="nf">http_init_worker</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="kd">local</span> <span class="n">conf</span> <span class="o">=</span> <span class="n">core.config</span><span class="p">.</span><span class="n">local_conf</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="kd">local</span> <span class="n">router_http_name</span> <span class="o">=</span> <span class="s2">&#34;radixtree_uri&#34;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="kr">if</span> <span class="n">conf</span> <span class="ow">and</span> <span class="n">conf.apisix</span> <span class="ow">and</span> <span class="n">conf.apisix</span><span class="p">.</span><span class="n">router</span> <span class="kr">then</span>
+</span></span><span class="line"><span class="cl">        <span class="n">router_http_name</span> <span class="o">=</span> <span class="n">conf.apisix</span><span class="p">.</span><span class="n">router.http</span> <span class="ow">or</span> <span class="n">router_http_name</span>
+</span></span><span class="line"><span class="cl">        <span class="p">......</span>
+</span></span><span class="line"><span class="cl">    <span class="kr">end</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="kd">local</span> <span class="n">router_http</span> <span class="o">=</span> <span class="n">require</span><span class="p">(</span><span class="s2">&#34;apisix.http.router.&#34;</span> <span class="o">..</span> <span class="n">router_http_name</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="n">attach_http_router_common_methods</span><span class="p">(</span><span class="n">router_http</span><span class="p">)</span> <span class="c1">-- 这里 attach 两个方法给到模块</span>
+</span></span><span class="line"><span class="cl">    <span class="n">router_http.init_worker</span><span class="p">(</span><span class="n">filter</span><span class="p">)</span> <span class="c1">-- 这里调用 init_worker 完成初始化</span>
+</span></span><span class="line"><span class="cl">    <span class="n">_M.router_http</span> <span class="o">=</span> <span class="n">router_http</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="p">......</span>
+</span></span><span class="line"><span class="cl"><span class="kr">end</span>
+</span></span></code></pre></div><p>其中 <code>attach_http_router_common_methods</code></p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-lua" data-lang="lua"><span class="line"><span class="cl"><span class="kd">local</span> <span class="kr">function</span> <span class="nf">attach_http_router_common_methods</span><span class="p">(</span><span class="n">http_router</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="kr">if</span> <span class="n">http_router.routes</span> <span class="o">==</span> <span class="kc">nil</span> <span class="kr">then</span>
+</span></span><span class="line"><span class="cl">        <span class="n">http_router.routes</span> <span class="o">=</span> <span class="kr">function</span> <span class="p">()</span>
+</span></span><span class="line"><span class="cl">            <span class="kr">if</span> <span class="ow">not</span> <span class="n">http_router.user_routes</span> <span class="kr">then</span>
+</span></span><span class="line"><span class="cl">                <span class="kr">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="kc">nil</span>
+</span></span><span class="line"><span class="cl">            <span class="kr">end</span>
+</span></span><span class="line"><span class="cl">            <span class="c1">-- 返回模块中的 user_routes 的值值和版本</span>
+</span></span><span class="line"><span class="cl">            <span class="kd">local</span> <span class="n">user_routes</span> <span class="o">=</span> <span class="n">http_router.user_routes</span>
+</span></span><span class="line"><span class="cl">            <span class="kr">return</span> <span class="n">user_routes.values</span><span class="p">,</span> <span class="n">user_routes.conf_version</span>
+</span></span><span class="line"><span class="cl">        <span class="kr">end</span>
+</span></span><span class="line"><span class="cl">    <span class="kr">end</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="kr">if</span> <span class="n">http_router.init_worker</span> <span class="o">==</span> <span class="kc">nil</span> <span class="kr">then</span>
+</span></span><span class="line"><span class="cl">        <span class="n">http_router.init_worker</span> <span class="o">=</span> <span class="kr">function</span> <span class="p">(</span><span class="n">filter</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">            <span class="n">http_router.user_routes</span> <span class="o">=</span> <span class="n">http_route.init_worker</span><span class="p">(</span><span class="n">filter</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">            <span class="c1">-- 这里引用 local http_route = require(&#34;apisix.http.route&#34;) 的 init_worker</span>
+</span></span><span class="line"><span class="cl">            <span class="c1">-- 获取 routes， 赋值给模块中的 user_routes</span>
+</span></span><span class="line"><span class="cl">        <span class="kr">end</span>
+</span></span><span class="line"><span class="cl">    <span class="kr">end</span>
+</span></span><span class="line"><span class="cl"><span class="kr">end</span>
+</span></span></code></pre></div><p><a href="https://github.com/apache/apisix/blob/5433dce25de6c3aabb14919f899d9e8aa6a16c4b/apisix/http/route.lua#L138">apisix/http/route.lua</a></p>
+<p><code>http_route.init_worker</code> 从 <code>core.config.new(&quot;/routes&quot;, {})</code></p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-lua" data-lang="lua"><span class="line"><span class="cl"><span class="kr">function</span> <span class="nc">_M</span><span class="p">.</span><span class="nf">init_worker</span><span class="p">(</span><span class="n">filter</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="kd">local</span> <span class="n">user_routes</span><span class="p">,</span> <span class="n">err</span> <span class="o">=</span> <span class="n">core.config</span><span class="p">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&#34;/routes&#34;</span><span class="p">,</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="n">automatic</span> <span class="o">=</span> <span class="kc">true</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="n">item_schema</span> <span class="o">=</span> <span class="n">core.schema</span><span class="p">.</span><span class="n">route</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="n">checker</span> <span class="o">=</span> <span class="n">check_route</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="n">filter</span> <span class="o">=</span> <span class="n">filter</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="p">})</span>
+</span></span><span class="line"><span class="cl">    <span class="kr">if</span> <span class="ow">not</span> <span class="n">user_routes</span> <span class="kr">then</span>
+</span></span><span class="line"><span class="cl">        <span class="n">error</span><span class="p">(</span><span class="s2">&#34;failed to create etcd instance for fetching /routes : &#34;</span> <span class="o">..</span> <span class="n">err</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="kr">end</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="kr">return</span> <span class="n">user_routes</span>
+</span></span><span class="line"><span class="cl"><span class="kr">end</span>
+</span></span></code></pre></div><h3 id="2-具体某个routerlua">2. 具体某个router.lua<a href="#2-具体某个routerlua" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<pre tabindex="0"><code>apisix/http/router
+├── radixtree_host_uri.lua
+├── radixtree_uri.lua
+└── radixtree_uri_with_parameter.lua
+</code></pre><p>即，如果配置文件中有配置 <code>apisix.router.http</code>， 那么将会使用配置文件中的，否则使用 <code>radixtree_uri</code></p>
+<p>假设我们配置了 <code>apisix.router.http=radixtree_uri_with_parameter</code></p>
+<pre tabindex="0"><code>local router_http = require(&#34;apisix.http.router.radixtree_uri_with_parameter&#34;)
+</code></pre><p>对应代码</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-lua" data-lang="lua"><span class="line"><span class="cl"><span class="kd">local</span> <span class="n">require</span> <span class="o">=</span> <span class="n">require</span>
+</span></span><span class="line"><span class="cl"><span class="kd">local</span> <span class="n">core</span> <span class="o">=</span> <span class="n">require</span><span class="p">(</span><span class="s2">&#34;apisix.core&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="kd">local</span> <span class="n">base_router</span> <span class="o">=</span> <span class="n">require</span><span class="p">(</span><span class="s2">&#34;apisix.http.route&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="kd">local</span> <span class="n">get_services</span> <span class="o">=</span> <span class="n">require</span><span class="p">(</span><span class="s2">&#34;apisix.http.service&#34;</span><span class="p">).</span><span class="n">services</span>
+</span></span><span class="line"><span class="cl"><span class="kd">local</span> <span class="n">cached_router_version</span>
+</span></span><span class="line"><span class="cl"><span class="kd">local</span> <span class="n">cached_service_version</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">local</span> <span class="n">_M</span> <span class="o">=</span> <span class="p">{}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">local</span> <span class="n">uri_routes</span> <span class="o">=</span> <span class="p">{}</span>
+</span></span><span class="line"><span class="cl"><span class="kd">local</span> <span class="n">uri_router</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kr">function</span> <span class="nc">_M</span><span class="p">.</span><span class="nf">match</span><span class="p">(</span><span class="n">api_ctx</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="kd">local</span> <span class="n">user_routes</span> <span class="o">=</span> <span class="n">_M.user_routes</span>
+</span></span><span class="line"><span class="cl">    <span class="kd">local</span> <span class="n">_</span><span class="p">,</span> <span class="n">service_version</span> <span class="o">=</span> <span class="n">get_services</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="kr">if</span> <span class="ow">not</span> <span class="n">cached_router_version</span> <span class="ow">or</span> <span class="n">cached_router_version</span> <span class="o">~=</span> <span class="n">user_routes.conf_version</span>
+</span></span><span class="line"><span class="cl">        <span class="ow">or</span> <span class="ow">not</span> <span class="n">cached_service_version</span> <span class="ow">or</span> <span class="n">cached_service_version</span> <span class="o">~=</span> <span class="n">service_version</span>
+</span></span><span class="line"><span class="cl">    <span class="kr">then</span>
+</span></span><span class="line"><span class="cl">        <span class="n">uri_router</span> <span class="o">=</span> <span class="n">base_router.create_radixtree_uri_router</span><span class="p">(</span><span class="n">user_routes.values</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                                                             <span class="n">uri_routes</span><span class="p">,</span> <span class="kc">true</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="n">cached_router_version</span> <span class="o">=</span> <span class="n">user_routes.conf_version</span>
+</span></span><span class="line"><span class="cl">        <span class="n">cached_service_version</span> <span class="o">=</span> <span class="n">service_version</span>
+</span></span><span class="line"><span class="cl">    <span class="kr">end</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="kr">if</span> <span class="ow">not</span> <span class="n">uri_router</span> <span class="kr">then</span>
+</span></span><span class="line"><span class="cl">        <span class="n">core.log</span><span class="p">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&#34;failed to fetch valid `uri_with_parameter` router: &#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="kr">return</span> <span class="kc">true</span>
+</span></span><span class="line"><span class="cl">    <span class="kr">end</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="kr">return</span> <span class="n">_M.matching</span><span class="p">(</span><span class="n">api_ctx</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="kr">end</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kr">function</span> <span class="nc">_M</span><span class="p">.</span><span class="nf">matching</span><span class="p">(</span><span class="n">api_ctx</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="n">core.log</span><span class="p">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&#34;route match mode: radixtree_uri_with_parameter&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="kr">return</span> <span class="n">base_router.match_uri</span><span class="p">(</span><span class="n">uri_router</span><span class="p">,</span> <span class="n">api_ctx</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="kr">end</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kr">return</span> <span class="n">_M</span>
+</span></span></code></pre></div><p>说明：</p>
+<ol>
+<li>声明了 <code>match(api_ctx)</code> 和 <code>matching(api_ctx)</code>， 并且前者调用后者</li>
+<li>声明了模块变量 <code>user_routes</code>，在启动时，通过 <code>http_route.init_worker(filter)</code> 被初始化</li>
+<li>声明了模块变量 <code>cached_router_version/cached_service_version</code>, 用于判断当前 router 是否最新，如果 etcd watch到变更，那么会导致这里判断版本不一致，进而调用 <code>base_router.create_radixtree_uri_router(user_routes.values, uri_routes, true)</code>重建radixtree</li>
+<li>这个过程是在 <code>match</code>中，意味着，数据面在处理请求的时候，执行<code>match</code>，发现service或route有更新，此时会发生radixtree重建</li>
+</ol>
+<p>这个可能会导致问题，见下面【特性跟踪-实时更新】</p>
+<p>我们回到原点，关注 user_routes 的初始化</p>
+<h3 id="3-user_routes">3. user_routes<a href="#3-user_routes" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p><a href="https://github.com/apache/apisix/blob/5433dce25de6c3aabb14919f899d9e8aa6a16c4b/apisix/http/route.lua#L138">apisix/http/route.lua</a></p>
+<p>引用 <code>local http_route = require(&quot;apisix.http.route&quot;)</code> 的 <code>init_worker</code></p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-lua" data-lang="lua"><span class="line"><span class="cl"><span class="kr">function</span> <span class="nc">_M</span><span class="p">.</span><span class="nf">init_worker</span><span class="p">(</span><span class="n">filter</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="kd">local</span> <span class="n">user_routes</span><span class="p">,</span> <span class="n">err</span> <span class="o">=</span> <span class="n">core.config</span><span class="p">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&#34;/routes&#34;</span><span class="p">,</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="n">automatic</span> <span class="o">=</span> <span class="kc">true</span><span class="p">,</span>  <span class="c1">-- 注意这个标志</span>
+</span></span><span class="line"><span class="cl">            <span class="n">item_schema</span> <span class="o">=</span> <span class="n">core.schema</span><span class="p">.</span><span class="n">route</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="n">checker</span> <span class="o">=</span> <span class="n">check_route</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="n">filter</span> <span class="o">=</span> <span class="n">filter</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="p">})</span>
+</span></span><span class="line"><span class="cl">    <span class="kr">if</span> <span class="ow">not</span> <span class="n">user_routes</span> <span class="kr">then</span>
+</span></span><span class="line"><span class="cl">        <span class="n">error</span><span class="p">(</span><span class="s2">&#34;failed to create etcd instance for fetching /routes : &#34;</span> <span class="o">..</span> <span class="n">err</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="kr">end</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="kr">return</span> <span class="n">user_routes</span>
+</span></span><span class="line"><span class="cl"><span class="kr">end</span>
+</span></span></code></pre></div><p><a href="https://github.com/apache/apisix/blob/5433dce25de6c3aabb14919f899d9e8aa6a16c4b/apisix/core.lua#L27">apisix/core.lua</a></p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-lua" data-lang="lua"><span class="line"><span class="cl"><span class="kd">local</span> <span class="n">config_provider</span> <span class="o">=</span> <span class="n">local_conf.deployment</span> <span class="ow">and</span> <span class="n">local_conf.deployment</span><span class="p">.</span><span class="n">config_provider</span>
+</span></span><span class="line"><span class="cl">                      <span class="ow">or</span> <span class="s2">&#34;etcd&#34;</span>
+</span></span><span class="line"><span class="cl"><span class="n">log.info</span><span class="p">(</span><span class="s2">&#34;use config_provider: &#34;</span><span class="p">,</span> <span class="n">config_provider</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="kd">local</span> <span class="n">config</span> <span class="o">=</span> <span class="n">require</span><span class="p">(</span><span class="s2">&#34;apisix.core.config_&#34;</span> <span class="o">..</span> <span class="n">config_provider</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="n">config.type</span> <span class="o">=</span> <span class="n">config_provider</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kr">return</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">  <span class="n">config</span>      <span class="o">=</span> <span class="n">config</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>配置的<code>config_provider=etcd</code>,  则</p>
+<pre tabindex="0"><code>local config = require(&#34;apisix.core.config_etcd&#34;)
+</code></pre><p>则调用的new方法是 <a href="https://github.com/apache/apisix/blob/5433dce25de6c3aabb14919f899d9e8aa6a16c4b/apisix/core/config_etcd.lua#L932">apisix/core/config_etcd.lua</a></p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-lua" data-lang="lua"><span class="line"><span class="cl"><span class="c1">---</span>
+</span></span><span class="line"><span class="cl"><span class="c1">-- Create a new connection to communicate with the control plane.</span>
+</span></span><span class="line"><span class="cl"><span class="c1">-- This function should be used in the `init_worker_by_lua` phase.</span>
+</span></span><span class="line"><span class="cl"><span class="c1">--</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kr">function</span> <span class="nc">_M</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">opts</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="p">......</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">-- etcd 相关配置</span>
+</span></span><span class="line"><span class="cl">    <span class="kd">local</span> <span class="n">etcd_conf</span> <span class="o">=</span> <span class="n">local_conf.etcd</span>
+</span></span><span class="line"><span class="cl">    <span class="kd">local</span> <span class="n">prefix</span> <span class="o">=</span> <span class="n">etcd_conf.prefix</span>
+</span></span><span class="line"><span class="cl">    <span class="kd">local</span> <span class="n">resync_delay</span> <span class="o">=</span> <span class="n">etcd_conf.resync_delay</span>
+</span></span><span class="line"><span class="cl">    <span class="kr">if</span> <span class="ow">not</span> <span class="n">resync_delay</span> <span class="ow">or</span> <span class="n">resync_delay</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="kr">then</span>
+</span></span><span class="line"><span class="cl">        <span class="n">resync_delay</span> <span class="o">=</span> <span class="mi">5</span>
+</span></span><span class="line"><span class="cl">    <span class="kr">end</span>
+</span></span><span class="line"><span class="cl">    <span class="kd">local</span> <span class="n">health_check_timeout</span> <span class="o">=</span> <span class="n">etcd_conf.health_check_timeout</span>
+</span></span><span class="line"><span class="cl">    <span class="kr">if</span> <span class="ow">not</span> <span class="n">health_check_timeout</span> <span class="ow">or</span> <span class="n">health_check_timeout</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="kr">then</span>
+</span></span><span class="line"><span class="cl">        <span class="n">health_check_timeout</span> <span class="o">=</span> <span class="mi">10</span>
+</span></span><span class="line"><span class="cl">    <span class="kr">end</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="kd">local</span> <span class="n">automatic</span> <span class="o">=</span> <span class="n">opts</span> <span class="ow">and</span> <span class="n">opts.automatic</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">-- 初始化对象</span>
+</span></span><span class="line"><span class="cl">    <span class="kd">local</span> <span class="n">obj</span> <span class="o">=</span> <span class="n">setmetatable</span><span class="p">({</span>
+</span></span><span class="line"><span class="cl">        <span class="n">etcd_cli</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="n">key</span> <span class="o">=</span> <span class="n">key</span> <span class="ow">and</span> <span class="n">prefix</span> <span class="o">..</span> <span class="n">key</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="n">automatic</span> <span class="o">=</span> <span class="n">automatic</span><span class="p">,</span>  <span class="c1">-- true</span>
+</span></span><span class="line"><span class="cl">        <span class="n">item_schema</span> <span class="o">=</span> <span class="n">item_schema</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="n">checker</span> <span class="o">=</span> <span class="n">checker</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="n">sync_times</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>   <span class="c1">-- 同步次数</span>
+</span></span><span class="line"><span class="cl">        <span class="n">running</span> <span class="o">=</span> <span class="kc">true</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="n">conf_version</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1">-- 当前数据版本号，可以通过这个判断是否有更新</span>
+</span></span><span class="line"><span class="cl">        <span class="n">values</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span>      <span class="c1">-- 所有同步过来的数据</span>
+</span></span><span class="line"><span class="cl">        <span class="n">need_reload</span> <span class="o">=</span> <span class="kc">true</span><span class="p">,</span>  <span class="c1">-- 注意这里，首次 new 的时候，need_reload 是 true</span>
+</span></span><span class="line"><span class="cl">        <span class="n">watching_stream</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="n">routes_hash</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="n">prev_index</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>     <span class="c1">-- 上一次执行同步etcd 返回的 modifiedIndex</span>
+</span></span><span class="line"><span class="cl">        <span class="n">last_err</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="n">last_err_time</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="n">resync_delay</span> <span class="o">=</span> <span class="n">resync_delay</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="n">health_check_timeout</span> <span class="o">=</span> <span class="n">health_check_timeout</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="n">timeout</span> <span class="o">=</span> <span class="n">timeout</span><span class="p">,</span>  <span class="c1">-- 注意，这里没有设置timeout, 那么在连接的时候，http_waitdir 将使用代码中的默认值 ` local ok, err = self.watch_sema:wait(timeout or 60)`</span>
+</span></span><span class="line"><span class="cl">        <span class="n">single_item</span> <span class="o">=</span> <span class="n">single_item</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="n">filter</span> <span class="o">=</span> <span class="n">filter_fun</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="p">},</span> <span class="n">mt</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="kr">if</span> <span class="n">automatic</span> <span class="kr">then</span>
+</span></span><span class="line"><span class="cl">        <span class="p">......</span>
+</span></span><span class="line"><span class="cl">        <span class="c1">-- 如果 之前加载过，直接拿上一次数据全量加载</span>
+</span></span><span class="line"><span class="cl">        <span class="kr">if</span> <span class="n">loaded_configuration</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="kr">then</span>
+</span></span><span class="line"><span class="cl">            <span class="kd">local</span> <span class="n">res</span> <span class="o">=</span> <span class="n">loaded_configuration</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl">            <span class="n">loaded_configuration</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="kc">nil</span> <span class="c1">-- tried to load</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">            <span class="n">log.notice</span><span class="p">(</span><span class="s2">&#34;use loaded configuration &#34;</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">            <span class="kd">local</span> <span class="n">dir_res</span><span class="p">,</span> <span class="n">headers</span> <span class="o">=</span> <span class="n">res.body</span><span class="p">,</span> <span class="n">res.headers</span>
+</span></span><span class="line"><span class="cl">            <span class="n">load_full_data</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">dir_res</span><span class="p">,</span> <span class="n">headers</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="kr">end</span>
+</span></span><span class="line"><span class="cl">   
+</span></span><span class="line"><span class="cl">        <span class="c1">-- 启动一个定时器， local ngx_timer_at = ngx.timer.at</span>
+</span></span><span class="line"><span class="cl">        <span class="n">ngx_timer_at</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">_automatic_fetch</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="kr">else</span>
+</span></span><span class="line"><span class="cl">        <span class="c1">-- 初始化 etcd_cli</span>
+</span></span><span class="line"><span class="cl">        <span class="kd">local</span> <span class="n">etcd_cli</span><span class="p">,</span> <span class="n">err</span> <span class="o">=</span> <span class="n">get_etcd</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">        <span class="kr">if</span> <span class="ow">not</span> <span class="n">etcd_cli</span> <span class="kr">then</span>
+</span></span><span class="line"><span class="cl">            <span class="kr">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="s2">&#34;failed to start an etcd instance: &#34;</span> <span class="o">..</span> <span class="n">err</span>
+</span></span><span class="line"><span class="cl">        <span class="kr">end</span>
+</span></span><span class="line"><span class="cl">        <span class="n">obj.etcd_cli</span> <span class="o">=</span> <span class="n">etcd_cli</span>
+</span></span><span class="line"><span class="cl">    <span class="kr">end</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">-- 将 `/routes` 放入 created_obj</span>
+</span></span><span class="line"><span class="cl">    <span class="kr">if</span> <span class="n">key</span> <span class="kr">then</span>
+</span></span><span class="line"><span class="cl">        <span class="n">created_obj</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">obj</span>
+</span></span><span class="line"><span class="cl">    <span class="kr">end</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="kr">return</span> <span class="n">obj</span>
+</span></span><span class="line"><span class="cl"><span class="kr">end</span>
+</span></span><span class="line"><span class="cl">    
+</span></span></code></pre></div><p>在 <code>_automatic_fetch</code> 中, 执行结束前判断如果还在运行时，启动下一个定时器， 从而达到持续同步的目的，<code>ngx.timer.at</code>更多资料可以阅读 <a href="https://moonbingbing.gitbooks.io/openresty-best-practices/content/ngx_lua/timer.html">OpenResty最佳实践： 定时任务</a></p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-lua" data-lang="lua"><span class="line"><span class="cl"><span class="kd">local</span> <span class="kr">function</span> <span class="nf">_automatic_fetch</span><span class="p">(</span><span class="n">premature</span><span class="p">,</span> <span class="n">self</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">            <span class="p">......</span>
+</span></span><span class="line"><span class="cl">            <span class="kd">local</span> <span class="n">ok</span><span class="p">,</span> <span class="n">err</span> <span class="o">=</span> <span class="n">sync_data</span><span class="p">(</span><span class="n">self</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">            <span class="p">......</span>
+</span></span><span class="line"><span class="cl">            
+</span></span><span class="line"><span class="cl">    <span class="kr">if</span> <span class="ow">not</span> <span class="n">exiting</span><span class="p">()</span> <span class="ow">and</span> <span class="n">self.running</span> <span class="kr">then</span>
+</span></span><span class="line"><span class="cl">        <span class="n">ngx_timer_at</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">_automatic_fetch</span><span class="p">,</span> <span class="n">self</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="kr">end</span>
+</span></span><span class="line"><span class="cl"><span class="kr">end</span>
+</span></span></code></pre></div><p>然后 <a href="https://github.com/apache/apisix/blob/5433dce25de6c3aabb14919f899d9e8aa6a16c4b/apisix/core/config_etcd.lua#L594">sync_data</a> 进行数据同步, 注意<code>core.config.new(&quot;/routes, {})&quot;</code>的时候，首次调用 <code>sync_data</code>时， <code>need_reload=true</code></p>
+<p>所以这里会涉及两个关键函数</p>
+<ul>
+<li>如果 <code>need_reload=true</code>， 调用 <code>readdir(self.etcd_cli, self.key)</code>， 全量拉取数据， 最终调用 <code>load_full_data(self, dir_res, headers)</code></li>
+<li>否则， 调用 <code> waitdir(self)</code> watch增量变更数据, 更新 <code>self.values</code> 以及更新版本 <code> self.prev_index = new_ver</code>
+<ul>
+<li>如果<code>self.sync_times&gt;100</code>， 会重建 <code>self.values</code>和<code>self.values_hash</code></li>
+<li><code>self.conf_version = self.conf_version + 1</code> (外部可以通过这个判断是否存在更新）</li>
+</ul>
+</li>
+</ul>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-lua" data-lang="lua"><span class="line"><span class="cl"><span class="kd">local</span> <span class="kr">function</span> <span class="nf">sync_data</span><span class="p">(</span><span class="n">self</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="kr">if</span> <span class="ow">not</span> <span class="n">self.key</span> <span class="kr">then</span>
+</span></span><span class="line"><span class="cl">        <span class="kr">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="s2">&#34;missing &#39;key&#39; arguments&#34;</span>
+</span></span><span class="line"><span class="cl">    <span class="kr">end</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">init_watch_ctx</span><span class="p">(</span><span class="n">self.key</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="kr">if</span> <span class="n">self.need_reload</span> <span class="kr">then</span>
+</span></span><span class="line"><span class="cl">        <span class="kd">local</span> <span class="n">res</span><span class="p">,</span> <span class="n">err</span> <span class="o">=</span> <span class="n">readdir</span><span class="p">(</span><span class="n">self.etcd_cli</span><span class="p">,</span> <span class="n">self.key</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="kr">if</span> <span class="ow">not</span> <span class="n">res</span> <span class="kr">then</span>
+</span></span><span class="line"><span class="cl">            <span class="kr">return</span> <span class="kc">false</span><span class="p">,</span> <span class="n">err</span>
+</span></span><span class="line"><span class="cl">        <span class="kr">end</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="kd">local</span> <span class="n">dir_res</span><span class="p">,</span> <span class="n">headers</span> <span class="o">=</span> <span class="n">res.body</span><span class="p">.</span><span class="n">list</span> <span class="ow">or</span> <span class="n">res.body</span><span class="p">.</span><span class="n">node</span> <span class="ow">or</span> <span class="p">{},</span> <span class="n">res.headers</span>
+</span></span><span class="line"><span class="cl">        <span class="n">log.debug</span><span class="p">(</span><span class="s2">&#34;readdir key: &#34;</span><span class="p">,</span> <span class="n">self.key</span><span class="p">,</span> <span class="s2">&#34; res: &#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                  <span class="n">json.delay_encode</span><span class="p">(</span><span class="n">dir_res</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="kr">if</span> <span class="n">self.values</span> <span class="kr">then</span>
+</span></span><span class="line"><span class="cl">            <span class="kr">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">val</span> <span class="kr">in</span> <span class="n">ipairs</span><span class="p">(</span><span class="n">self.values</span><span class="p">)</span> <span class="kr">do</span>
+</span></span><span class="line"><span class="cl">                <span class="n">config_util.fire_all_clean_handlers</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">            <span class="kr">end</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">            <span class="n">self.values</span> <span class="o">=</span> <span class="kc">nil</span>
+</span></span><span class="line"><span class="cl">            <span class="n">self.values_hash</span> <span class="o">=</span> <span class="kc">nil</span>
+</span></span><span class="line"><span class="cl">        <span class="kr">end</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="n">load_full_data</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">dir_res</span><span class="p">,</span> <span class="n">headers</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="kr">return</span> <span class="kc">true</span>
+</span></span><span class="line"><span class="cl">    <span class="kr">end</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="kd">local</span> <span class="n">dir_res</span><span class="p">,</span> <span class="n">err</span> <span class="o">=</span> <span class="n">waitdir</span><span class="p">(</span><span class="n">self</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="kr">if</span> <span class="ow">not</span> <span class="n">dir_res</span> <span class="kr">then</span>
+</span></span><span class="line"><span class="cl">        <span class="kr">if</span> <span class="n">err</span> <span class="o">==</span> <span class="s2">&#34;compacted&#34;</span> <span class="kr">then</span>
+</span></span><span class="line"><span class="cl">            <span class="n">self.need_reload</span> <span class="o">=</span> <span class="kc">true</span>
+</span></span><span class="line"><span class="cl">            <span class="n">log.error</span><span class="p">(</span><span class="s2">&#34;waitdir [&#34;</span><span class="p">,</span> <span class="n">self.key</span><span class="p">,</span> <span class="s2">&#34;] err: &#34;</span><span class="p">,</span> <span class="n">err</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                     <span class="s2">&#34;, will read the configuration again via readdir&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">            <span class="kr">return</span> <span class="kc">false</span>
+</span></span><span class="line"><span class="cl">        <span class="kr">end</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="kr">return</span> <span class="kc">false</span><span class="p">,</span> <span class="n">err</span>
+</span></span><span class="line"><span class="cl">    <span class="kr">end</span>
+</span></span></code></pre></div><p>另外，如果 <code>waitdir</code>的时候，发现 etcd 发生了 <code>compacted</code>， 将会设置 <code>self.need_reload = true</code>， 触发全量同步, 可能会带来问题，见下面【问题】</p>
+<h2 id="问题">问题<a href="#问题" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<h3 id="etcd-compacted">etcd compacted<a href="#etcd-compacted" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>apisix 同步 etcd, 如果 etcd 发生了 compact, 此时apisix watch 的revision 小于 etcd compact revision, apisix watch 到事件变更会直接触发全量同步, 具体机制参考<a href="https://github.com/apache/apisix/issues/10500#issuecomment-1818315794">文档</a></p>
+<p>带来的问题:</p>
+<ul>
+<li>
+<p>apisix本身的性能抖动(全量同步后, 会重建radixtree)</p>
+<ul>
+<li>会导致请求 <code>499</code>(相当于请求进来，在等待radixtree重建，客户端等不及或配置了timeout， 主动关闭掉了连接)</li>
+</ul>
+</li>
+<li>
+<p>etcd 读 IO 波峰 / 内存波峰(所有连接的 worker 都进行了全量拉取)</p>
+</li>
+</ul>
+<p>解决方案:
+默认etcd的配置 <code>--auto-compaction-mode=periodic --auto-compaction-retention=5m</code>, 如果apisix实例很多, 无论怎么配置, apisix 全量同步的概率还是很大;</p>
+<p>建议将配置改成 <code>--auto-compaction-mode=revision --auto-compaction-retention=1000</code>, 默认会保留 1000 个有效的<code>revision</code></p>
+<h3 id="实时更新的问题">实时更新的问题<a href="#实时更新的问题" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>压测可以看到，如果持续变更，那么所有请求在同一个时间 rebuild radixtree</p>
+<pre tabindex="0"><code>2023/10/09 12:10:26 [info] 38#38: *231868 [lua] radixtree.lua:355: pre_insert_route(): 
+2023/10/09 12:10:26 [info] 40#40: *231883 [lua] radixtree.lua:355: pre_insert_route(): 
+2023/10/09 12:10:26 [info] 37#37: *231820 [lua] radixtree.lua:355: pre_insert_route(): 
+2023/10/09 12:10:26 [info] 39#39: *231882 [lua] radixtree.lua:355: pre_insert_route(): 
+</code></pre><p>如果路由比较多，并且存在路由频繁更新，那么可能带来性能抖动。</p>
+<p>因为 watch 变更后，下一次请求对比版本的时候发现不一致，会重建 radixtree， 而请求需要等到重建之后才继续执行；</p>
+<p>我提过一个issue <a href="https://github.com/apache/apisix/issues/10268">help request: Is the radix tree rebuilt every time any route is updated?</a> 讨论这个事情。</p>
+<p>最终，我们暂时是通过将重建打散到一个时间范围内，确保所有线上实例不会在同一时间rebuild radixtree， 有需要可以参考 <a href="https://github.com/TencentBlueKing/blueking-apigateway-apisix/blob/master/src/build/patches/004_radixtree_uri_with_parameter_rebuild_with_interval.patch">patch</a></p>
+<h2 id="特性追踪">特性追踪<a href="#特性追踪" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<h3 id="etcd-http">etcd http<a href="#etcd-http" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>在 <a href="https://github.com/apache/apisix/issues/6473">APISIX&rsquo;s V3 (2022) Roadmap</a> 中提到 <code>Connect to etcd via gRPC and reduce the number of etcd connection</code></p>
+<p>最早使用 http api 连接 etcd， 意味着每个worker中的每一种资源类型都会存在连接（实例数 * worker 数 * 资源类型数）。</p>
+<p>在apisix 3.2.2 合入了一个 PR<a href="https://github.com/apache/apisix/pull/9456">feat(config_etcd): use a single long http connection to watch all resources</a>, 使用一个 http connection 来watch 所有资源类型，这样能有效降低连接数（实例数*worker 数， 当然还是可能很大）。但是，这个 PR 引入了一个bug <a href="https://github.com/apache/apisix/issues/9951">bug: route 404 after upgrade to 3.2.2</a>, 当 etcd prefix 中带了<code>-</code>会 watch 不到，这个在 <strong>3.5.0</strong>及以上的版本中被修复 <a href="https://github.com/apache/apisix/pull/9967">fix: can&rsquo;t sync etcd data if key has special character </a></p>
+<p><img src="https://private-user-images.githubusercontent.com/4401042/238114137-d3642daf-898d-4f4e-8ad0-446cf46e5694.svg?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3MjY1MjY2MTMsIm5iZiI6MTcyNjUyNjMxMywicGF0aCI6Ii80NDAxMDQyLzIzODExNDEzNy1kMzY0MmRhZi04OThkLTRmNGUtOGFkMC00NDZjZjQ2ZTU2OTQuc3ZnP1gtQW16LUFsZ29yaXRobT1BV1M0LUhNQUMtU0hBMjU2JlgtQW16LUNyZWRlbnRpYWw9QUtJQVZDT0RZTFNBNTNQUUs0WkElMkYyMDI0MDkxNiUyRnVzLWVhc3QtMSUyRnMzJTJGYXdzNF9yZXF1ZXN0JlgtQW16LURhdGU9MjAyNDA5MTZUMjIzODMzWiZYLUFtei1FeHBpcmVzPTMwMCZYLUFtei1TaWduYXR1cmU9NjIzZGFiNmRlMGQxYjExZTY2OGJhYzA3ZTE3N2Y3MTg2ODhkYmZiM2E1NmU3Y2ZiODAzZjY5ZTQ1NzIzMzlmMCZYLUFtei1TaWduZWRIZWFkZXJzPWhvc3QmYWN0b3JfaWQ9MCZrZXlfaWQ9MCZyZXBvX2lkPTAifQ.v3ppz7HwUUDyU_ed4gBDXjoBSnR9tOFLZu3CTq6sKJk" alt=""></p>
+<h3 id="etcd-grpc">etcd grpc<a href="#etcd-grpc" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>原先在配置 etcd 连接的时候是支持配置 <code>use_grpc: true</code> 通过 grpc 连接 etcd 的</p>
+<p>后来 <a href="https://lists.apache.org/thread/b69vjkbdszdtk9y30k45c2tvg4f3hqwt">[DISCUSS] Proposal: APISIX: remove etcd grpc and conf server</a> 的讨论中， <strong>this module has too many bugs</strong> ， 最终在 <a href="https://github.com/apache/apisix/pull/10015">PR:fix: remove etcd.use_grpc</a>中移除了。</p>
+<h3 id="增量更新">增量更新<a href="#增量更新" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>社区曾经有个 pr <a href="https://github.com/apache/apisix/pull/9692">feat: increment route update for radixtree host uri, radixtree uri and radi…</a> ，但是最终被close 了（个人认为这个 PR 还是很重要的）。</p>
+<p>PS：近期 apisix和 apisix-ingress-controller github 仓库的 issue 陆续被无差别close(机器人根据时间、活跃自动化执行的)， 但是其中有一些是比较重要的 issue。并且比较影响用户的积极性和活跃度，再持续下去可能后续就没多少 issue 了。</p>
+<h2 id="依赖库">依赖库<a href="#依赖库" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<blockquote>
+<p><a href="https://github.com/api7/lua-resty-etcd">lua-resty-etcd</a>  Nonblocking Lua etcd driver library for OpenResty, this module supports etcd API v3.</p>
+</blockquote>
+<p>涉及函数</p>
+<h3 id="readdirhttpsgithubcomapi7lua-resty-etcdblobmasterapi_v3mdreaddir"><a href="https://github.com/api7/lua-resty-etcd/blob/master/api_v3.md#readdir">readdir</a>:<a href="#readdirhttpsgithubcomapi7lua-resty-etcdblobmasterapi_v3mdreaddir" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<ul>
+<li>syntax: <code>res, err = cli:readdir(dir:string [, opts:table])</code></li>
+<li>opts
+<ul>
+<li>timeout: (int) request timeout seconds. Set to 0 would use <code>lua_socket_connect_timeout</code> as timeout. (5 seconds)</li>
+<li>revision: (int) revision is the point-in-time of the key-value store to use for the range. If revision is less than or equal to zero, the range is over the newest key-value store. <strong>If the revision has been compacted, ErrCompacted is returned as a response.</strong></li>
+<li>limit: (int) limit is a limit on the number of keys returned for the request. When limit is set to 0, it is treated as no limit.</li>
+<li>sort_order: (int [SortNone:0, SortAscend:1, SortDescend:2]) sort_order is the order for returned sorted results.</li>
+<li>sort_target: (int [SortByKey:0, SortByVersion:1, SortByCreateRevision:2, SortByModRevision:3, SortByValue:4]) sort_target is the key-value field to use for sorting.</li>
+<li>keys_only: (bool) keys_only when set returns only the keys and not the values.</li>
+<li>count_only: (bool) count_only when set returns only the count of the keys in the range.</li>
+</ul>
+</li>
+</ul>
+<p>特别注意，当revision被<code>compacted</code>，将会返回异常 <code>ErrCompacted</code></p>
+<h3 id="watchdirhttpsgithubcomapi7lua-resty-etcdblobmasterapi_v3mdwatchdir"><a href="https://github.com/api7/lua-resty-etcd/blob/master/api_v3.md#watchdir">watchdir</a><a href="#watchdirhttpsgithubcomapi7lua-resty-etcdblobmasterapi_v3mdwatchdir" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<ul>
+<li>syntax: <code>res, err = cli:watchdir(dir:string [, opts:table])</code></li>
+<li>opts: optional options.
+<ul>
+<li>timeout: (int) request timeout seconds. Set to 0 would use <code>lua_socket_connect_timeout</code> as timeout. (5 seconds)</li>
+<li>start_revision: (int) start_revision is an optional revision to watch from (inclusive). No start_revision is &ldquo;now&rdquo;.</li>
+<li>progress_notify: (bool) progress_notify is set so that the etcd server will periodically send a WatchResponse with no events to the new watcher if there are no recent events.</li>
+<li>filters: (slice of [enum FilterType {NOPUT = 0;NODELETE = 1;}]) filters filter the events at server side before it sends back to the watcher.</li>
+<li>prev_kv: (bool) If prev_kv is set, created watcher gets the previous KV before the event happens. If the previous KV is already compacted, nothing will be returned.</li>
+<li>watch_id: (int) If watch_id is provided and non-zero, it will be assigned to this watcher. Since creating a watcher in etcd is not a synchronous operation, this can be used to ensure that ordering is correct when creating multiple watchers on the same stream. Creating a watcher with an ID already in use on the stream will cause an error to be returned.</li>
+<li>fragment: (bool) fragment enables splitting large revisions into multiple watch responses.</li>
+</ul>
+</li>
+</ul>
+<p>注意， watchdir 默认如果超过 <code>5s</code>没有结束，会直接timeout异常</p>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p>
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg><span class="tag"><a href="https://wklken.me/tags/apigateway">apigateway</a></span>
+				</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>3108 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2024-09-17 00:00 &#43;0000</p>
+			</footer>
+		</article>
+		<aside id="toc">
+			<div class="toc-title">Table of Contents</div>
+			<nav id="TableOfContents">
+  <ul>
+    <li><a href="#机制">机制</a>
+      <ul>
+        <li><a href="#0-入口">0. 入口</a></li>
+        <li><a href="#1-http_init_worker">1. http_init_worker</a></li>
+        <li><a href="#2-具体某个routerlua">2. 具体某个router.lua</a></li>
+        <li><a href="#3-user_routes">3. user_routes</a></li>
+      </ul>
+    </li>
+    <li><a href="#问题">问题</a>
+      <ul>
+        <li><a href="#etcd-compacted">etcd compacted</a></li>
+        <li><a href="#实时更新的问题">实时更新的问题</a></li>
+      </ul>
+    </li>
+    <li><a href="#特性追踪">特性追踪</a>
+      <ul>
+        <li><a href="#etcd-http">etcd http</a></li>
+        <li><a href="#etcd-grpc">etcd grpc</a></li>
+        <li><a href="#增量更新">增量更新</a></li>
+      </ul>
+    </li>
+    <li><a href="#依赖库">依赖库</a>
+      <ul>
+        <li><a href="#readdirhttpsgithubcomapi7lua-resty-etcdblobmasterapi_v3mdreaddir"><a href="https://github.com/api7/lua-resty-etcd/blob/master/api_v3.md#readdir">readdir</a>:</a></li>
+        <li><a href="#watchdirhttpsgithubcomapi7lua-resty-etcdblobmasterapi_v3mdwatchdir"><a href="https://github.com/api7/lua-resty-etcd/blob/master/api_v3.md#watchdir">watchdir</a></a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+		</aside>
+		<div class="post-nav thin">
+			<a class="next-post" href="https://wklken.me/posts/2024/09/21/apisix-load-balance.html">
+				<span class="post-nav-label"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>&nbsp;Newer</span><br><span>apisix 中的负载均衡</span>
+			</a>
+			<a class="prev-post" href="https://wklken.me/posts/2024/09/16/apisix-dns-resolve.html">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>apisix 中的 DNS 解析</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+<div id="gitalk-container"></div>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script src="https://wklken.me/js/md5.min.js"></script>
+<script>
+  const gitalk = new Gitalk({
+    clientID: '549d325e74a413f1b56a',
+    clientSecret: '086a83faacf152cc3f4079f002058716879e9688',
+    repo: 'wklken.github.io',
+    owner: 'wklken',
+    admin: ['wklken'],
+    id: md5(location.pathname), 
+    distractionFreeMode: false 
+  });
+  (function() {
+    if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+      document.getElementById('gitalk-container').innerHTML = 'Gitalk comments not available by default when the website is previewed locally.';
+      return;
+    }
+    gitalk.render('gitalk-container');
+  })();
+</script>
+
+</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2024 <a href="https://wklken.me">wklken</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="https://wklken.me/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+
+	<script src="https://wklken.me/js/bundle.min.580988ed2982bcbb74a1773c7abea97b43e4c43b9324e10cda0813ec6ec4bb67.js" integrity="sha256-WAmI7SmCvLt0oXc8er6pe0PkxDuTJOEM2ggT7G7Eu2c=" crossorigin="anonymous"></script>
+	
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-2GRCMEVXLQ"></script>
+<script>
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.dataLayer = window.dataLayer || [];
+	function gtag(){dataLayer.push(arguments);}
+	gtag('js', new Date());
+	gtag('config', 'G-2GRCMEVXLQ', { 'anonymize_ip': false });
+}
+</script>
+
+
+
+</body>
+
+</html>

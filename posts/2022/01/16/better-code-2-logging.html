@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<meta name="theme-color" content="#494f5c">
+	<meta name="msapplication-TileColor" content="#494f5c">
+<meta itemprop="name" content="Better Code: 更好的异常日志打印">
+<meta itemprop="description" content="维护一个 N 年前的Python项目, 协助排查问题时发现, 原先的日志打印真真一言难尽 导致了一个问题, 同负责的运维 A 沟通, A 与其对接的甲方沟通&h"><meta itemprop="datePublished" content="2022-01-16T00:04:00+08:00" />
+<meta itemprop="dateModified" content="2022-01-16T00:04:00+08:00" />
+<meta itemprop="wordCount" content="1270">
+<meta itemprop="keywords" content="python,refactor,better-code," /><meta property="og:title" content="Better Code: 更好的异常日志打印" />
+<meta property="og:description" content="维护一个 N 年前的Python项目, 协助排查问题时发现, 原先的日志打印真真一言难尽 导致了一个问题, 同负责的运维 A 沟通, A 与其对接的甲方沟通&h" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://wklken.me/posts/2022/01/16/better-code-2-logging.html" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2022-01-16T00:04:00+08:00" />
+<meta property="article:modified_time" content="2022-01-16T00:04:00+08:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Better Code: 更好的异常日志打印"/>
+<meta name="twitter:description" content="维护一个 N 年前的Python项目, 协助排查问题时发现, 原先的日志打印真真一言难尽 导致了一个问题, 同负责的运维 A 沟通, A 与其对接的甲方沟通&h"/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>Better Code: 更好的异常日志打印</title>
+	<link rel="stylesheet" href="https://wklken.me/css/style.min.a634759f5e59454c8c91bba6cb21df1387610e17a0916dfc23b1723d2e0623ed.css" integrity="sha256-pjR1n15ZRUyMkbumyyHfE4dhDhegkW38I7FyPS4GI+0=" crossorigin="anonymous">
+	
+	<link rel="stylesheet" href="https://wklken.me/css/custom.css">
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="https://wklken.me">WKLKEN THINKING</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					
+				<a href="https://wklken.me/posts.html">Posts</a>
+				<a href="https://wklken.me/about.html">About</a>
+
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<button id="toc-btn" class="hdr-btn desktop-only-ib" title="Table of Contents"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3" y2="6"></line><line x1="3" y1="12" x2="3" y2="12"></line><line x1="3" y1="18" x2="3" y2="18"></line></svg></button><span class="hdr-social hide-in-mobile"><a href="https://github.com/wklken" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" class="feather" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a><a href="https://twitter.com/wklken" target="_blank" rel="noopener me" title="Twitter"><svg xmlns="http://www.w3.org/2000/svg" class="feather" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="https://wklken.me/posts.html">Posts</a></li>
+			<li><a href="https://wklken.me/about.html">About</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>Jan 16, 2022</span></div>
+				<h1>Better Code: 更好的异常日志打印</h1>
+			</header>
+			<div class="content">
+				<p>维护一个 N 年前的Python项目, 协助排查问题时发现, 原先的日志打印真真一言难尽</p>
+<p>导致了一个问题, 同负责的运维 A 沟通, A 与其对接的甲方沟通&hellip;&hellip;日志的缺失导致本来简单的问题变得复杂</p>
+<p>如果日志打得更完备一点, 排查问题的难度不是一个的级别的</p>
+<h2 id="bad-case">bad case<a href="#bad-case" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">try</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="c1"># got a data here</span>
+</span></span><span class="line"><span class="cl">    <span class="c1"># a lot of codes here</span>
+</span></span><span class="line"><span class="cl">    <span class="c1"># x = data[&#34;key&#34;]</span>
+</span></span><span class="line"><span class="cl">    <span class="c1"># call_another_func(id, type)</span>
+</span></span><span class="line"><span class="cl">    <span class="c1"># call_another_func2(id, type, name)</span>
+</span></span><span class="line"><span class="cl"><span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&#34;error while do something&#34;</span><span class="p">)</span>
+</span></span></code></pre></div><p>这时候, 异常触发的时候, 日志只有</p>
+<pre tabindex="0"><code>error while do something
+</code></pre><p>相对于没打日志,只好了一点点, 知道有异常出现了, 问题是, 具体错误是什么?</p>
+<h2 id="第一次改进">第一次改进<a href="#第一次改进" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">try</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="c1"># got a data here</span>
+</span></span><span class="line"><span class="cl">    <span class="c1"># a lot of codes here</span>
+</span></span><span class="line"><span class="cl">    <span class="c1"># x = data[&#34;key&#34;]</span>
+</span></span><span class="line"><span class="cl">    <span class="c1"># call_another_func(id, type)</span>
+</span></span><span class="line"><span class="cl">    <span class="c1"># call_another_func2(id, type, name)</span>
+</span></span><span class="line"><span class="cl"><span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&#34;error while do something, error=</span><span class="si">%s</span><span class="s2">&#34;</span><span class="p">,</span> <span class="n">error</span><span class="p">)</span>
+</span></span></code></pre></div><p>此时报错时, 会打印</p>
+<pre tabindex="0"><code>error while do something, error=App matching query does not exist
+</code></pre><p>但是, 这里相对原始版本只好了一点点, 多了error message, 但是这行message并没有包含多少<code>有利于问题排查</code>的信息, 甚至连类型都没有, 看到了一脸懵</p>
+<h2 id="再次改进1">再次改进1<a href="#再次改进1" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">try</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="c1"># got a data here</span>
+</span></span><span class="line"><span class="cl">    <span class="c1"># a lot of codes here</span>
+</span></span><span class="line"><span class="cl">    <span class="c1"># x = data[&#34;key&#34;]</span>
+</span></span><span class="line"><span class="cl">    <span class="c1"># call_another_func(id, type)</span>
+</span></span><span class="line"><span class="cl">    <span class="c1"># call_another_func2(id, type, name)</span>
+</span></span><span class="line"><span class="cl"><span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&#34;error while do something&#34;</span><span class="p">)</span>
+</span></span></code></pre></div><p>将<code>logger.error</code>改成<code>logger.exception</code>, 此时错误日志</p>
+<pre tabindex="0"><code>error while do something
+Traceback (most recent call last) :
+  File &#34;a.py&#34;, line 674 in call_another_func
+    app = get_app(id)
+  File &#34;b.py&#34;, line 18 in get_app
+    app = App.objects.get(id)
+DoesNotExist: App matching query does not exist.
+</code></pre><p>这时候, 有详细的错误堆栈, 可以用于追溯错误原因.</p>
+<p>但是, 某些场景下, 看到错误堆栈并不一定能确定问题, 根据堆栈信息回去看代码, <code>这代码不可能有问题</code>&hellip;&hellip;</p>
+<p>此时, 可能是数据问题(各种原因的脏数据), 或者数据被人工改动(例如直接改表数据).</p>
+<p>如果只有以上信息, 排查问题依旧要花很多时间.</p>
+<h2 id="再次改进2">再次改进2<a href="#再次改进2" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>增加<code>数据</code>/<code>业务</code>信息等上下文, 注意不好打敏感信息</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">try</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="c1"># got a data here</span>
+</span></span><span class="line"><span class="cl">    <span class="c1"># a lot of codes here</span>
+</span></span><span class="line"><span class="cl">    <span class="c1"># x = data[&#34;key&#34;]</span>
+</span></span><span class="line"><span class="cl">    <span class="c1"># call_another_func(id, type)</span>
+</span></span><span class="line"><span class="cl">    <span class="c1"># call_another_func2(id, type, name)</span>
+</span></span><span class="line"><span class="cl"><span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&#34;error while do something [id=</span><span class="si">%s</span><span class="s2">, type=</span><span class="si">%s</span><span class="s2">, name=</span><span class="si">%s</span><span class="s2">]&#34;</span><span class="p">,</span> <span class="nb">id</span><span class="p">,</span> <span class="nb">type</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+</span></span></code></pre></div><p>错误信息</p>
+<pre tabindex="0"><code>error while do something[id=1, type=test, name=abc]
+Traceback (most recent call last) :
+  File &#34;a.py&#34;, line 674 in call_another_func
+    app = get_app(id)
+  File &#34;b.py&#34;, line 18 in get_app
+    app = App.objects.get(id)
+DoesNotExist: App matching query does not exist.
+</code></pre><h2 id="更好的做法">更好的做法<a href="#更好的做法" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>使用自定义异常, 带<code>code/message</code></p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">class</span> <span class="nc">BaseException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">        <span class="bp">self</span><span class="o">.</span><span class="n">code</span> <span class="o">=</span> <span class="n">code</span>
+</span></span><span class="line"><span class="cl">        <span class="bp">self</span><span class="o">.</span><span class="n">message</span> <span class="o">=</span> <span class="n">message</span>
+</span></span><span class="line"><span class="cl">        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="sa">f</span><span class="s2">&#34;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">code</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">message</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="sa">f</span><span class="s2">&#34;&lt;ErrorCode </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">code</span><span class="si">}</span><span class="s2">:(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">message</span><span class="si">}</span><span class="s2">)&gt;&#34;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">class</span> <span class="nc">XXException</span><span class="p">(</span><span class="ne">BaseException</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">    <span class="o">.....</span>
+</span></span></code></pre></div><ul>
+<li>使用<code>raise Error/CustomException</code>替代<code>try-except</code></li>
+<li>在统一的地方处理错误, 例如<code>middleware</code>或统一调用入口, <code>try-except</code>依次捕获所有已知的<code>Error</code>和<code>CustomException</code>, 最后捕获通用的<code>Exception</code>(未知异常)</li>
+</ul>
+<p>好处:</p>
+<ol>
+<li>底层代码逻辑更简单, 少一层嵌套, 可读性更好</li>
+<li>统一的错误声明及处理, 对于开发者及使用者都更为友好, 例如可以将错误码作为协议的一部分, 使用者根据错误码可以快速定位问题</li>
+</ol>
+<h2 id="golang的error-wrap">Golang的error wrap<a href="#golang的error-wrap" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>Go 的error wrap更为优雅, <a href="https://go.dev/blog/go1.13-errors">Working with Errors in Go 1.13</a></p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="nx">_</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nf">dosomething</span><span class="p">(</span><span class="kd">type</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="k">return</span> <span class="nx">fmt</span><span class="p">.</span><span class="nf">Errorf</span><span class="p">(</span><span class="s">&#34;dosomething fail, type=`%s`, err=%w&#34;</span><span class="p">,</span> <span class="kd">type</span><span class="p">,</span> <span class="nx">err</span><span class="p">)</span>
+</span></span></code></pre></div><p>也可以看下之前 go 项目的实践: <a href="https://wklken.me/posts/2021/01/26/golang-error-wrap.html">Go: 一种error wrap调用链处理方式</a></p>
+<h2 id="其他">其他<a href="#其他" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<ul>
+<li>不要用<code>print</code>替代logging</li>
+<li>打很多日志等于没打</li>
+<li>谨慎确定当前要打日志的<code>level</code></li>
+<li>尽量只在必要的地方打日志, 信息是<code>有用的</code>, 也是<code>完备的</code>, 有利于<code>定位问题的</code></li>
+<li>一定不要<code>吞</code>掉异常</li>
+<li>如果使用<code>try-except</code>, Exception尽量精确, 打印日志尽量完备</li>
+<li>如果使用<code>try-except</code>, 捕获的代码块尽量小, 不会出现异常的语句不要放进去. <strong>反例</strong>: 整个函数的所有代码都在一个<code>try-except</code>中</li>
+<li><code>logger</code> 本身尽量按功能/模块/业务等切分多个, <strong>反例</strong>: 全打标准输出</li>
+</ul>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p>
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg><span class="tag"><a href="https://wklken.me/tags/python">python</a></span><span class="tag"><a href="https://wklken.me/tags/refactor">refactor</a></span><span class="tag"><a href="https://wklken.me/tags/better-code">better-code</a></span>
+				</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>1270 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2022-01-15 16:04 &#43;0000</p>
+			</footer>
+		</article>
+		<aside id="toc">
+			<div class="toc-title">Table of Contents</div>
+			<nav id="TableOfContents">
+  <ul>
+    <li><a href="#bad-case">bad case</a></li>
+    <li><a href="#第一次改进">第一次改进</a></li>
+    <li><a href="#再次改进1">再次改进1</a></li>
+    <li><a href="#再次改进2">再次改进2</a></li>
+    <li><a href="#更好的做法">更好的做法</a></li>
+    <li><a href="#golang的error-wrap">Golang的error wrap</a></li>
+    <li><a href="#其他">其他</a></li>
+  </ul>
+</nav>
+		</aside>
+		<div class="post-nav thin">
+			<a class="next-post" href="https://wklken.me/posts/2022/05/24/better-code-3-better-error-message.html">
+				<span class="post-nav-label"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>&nbsp;Newer</span><br><span>Better Code: 异常时, 该提示用户哪些信息?</span>
+			</a>
+			<a class="prev-post" href="https://wklken.me/posts/2021/08/04/golang-some-libs.html">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>Go: some libs</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+<div id="gitalk-container"></div>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script src="https://wklken.me/js/md5.min.js"></script>
+<script>
+  const gitalk = new Gitalk({
+    clientID: '549d325e74a413f1b56a',
+    clientSecret: '086a83faacf152cc3f4079f002058716879e9688',
+    repo: 'wklken.github.io',
+    owner: 'wklken',
+    admin: ['wklken'],
+    id: md5(location.pathname), 
+    distractionFreeMode: false 
+  });
+  (function() {
+    if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+      document.getElementById('gitalk-container').innerHTML = 'Gitalk comments not available by default when the website is previewed locally.';
+      return;
+    }
+    gitalk.render('gitalk-container');
+  })();
+</script>
+
+</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2024 <a href="https://wklken.me">wklken</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="https://wklken.me/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+
+	<script src="https://wklken.me/js/bundle.min.580988ed2982bcbb74a1773c7abea97b43e4c43b9324e10cda0813ec6ec4bb67.js" integrity="sha256-WAmI7SmCvLt0oXc8er6pe0PkxDuTJOEM2ggT7G7Eu2c=" crossorigin="anonymous"></script>
+	
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-2GRCMEVXLQ"></script>
+<script>
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.dataLayer = window.dataLayer || [];
+	function gtag(){dataLayer.push(arguments);}
+	gtag('js', new Date());
+	gtag('config', 'G-2GRCMEVXLQ', { 'anonymize_ip': false });
+}
+</script>
+
+
+
+</body>
+
+</html>

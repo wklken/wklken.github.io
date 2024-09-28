@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<meta name="theme-color" content="#494f5c">
+	<meta name="msapplication-TileColor" content="#494f5c">
+<meta itemprop="name" content="Logstash&#43;ElasticSearch处理mysql慢查询日志">
+<meta itemprop="description" content="遇到一个需求, 需要查询某些业务的慢查询日志. 结果DBA平台那边提供的慢查询日志不能解决实际的业务场景(上报的字段补全), 无奈, 自己挽起袖子上"><meta itemprop="datePublished" content="2016-05-24T08:00:00+08:00" />
+<meta itemprop="dateModified" content="2016-05-24T08:00:00+08:00" />
+<meta itemprop="wordCount" content="1344">
+<meta itemprop="keywords" content="system," /><meta property="og:title" content="Logstash&#43;ElasticSearch处理mysql慢查询日志" />
+<meta property="og:description" content="遇到一个需求, 需要查询某些业务的慢查询日志. 结果DBA平台那边提供的慢查询日志不能解决实际的业务场景(上报的字段补全), 无奈, 自己挽起袖子上" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://wklken.me/posts/2016/05/24/elk-mysql-slolog.html" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2016-05-24T08:00:00+08:00" />
+<meta property="article:modified_time" content="2016-05-24T08:00:00+08:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Logstash&#43;ElasticSearch处理mysql慢查询日志"/>
+<meta name="twitter:description" content="遇到一个需求, 需要查询某些业务的慢查询日志. 结果DBA平台那边提供的慢查询日志不能解决实际的业务场景(上报的字段补全), 无奈, 自己挽起袖子上"/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>Logstash&#43;ElasticSearch处理mysql慢查询日志</title>
+	<link rel="stylesheet" href="https://wklken.me/css/style.min.a634759f5e59454c8c91bba6cb21df1387610e17a0916dfc23b1723d2e0623ed.css" integrity="sha256-pjR1n15ZRUyMkbumyyHfE4dhDhegkW38I7FyPS4GI+0=" crossorigin="anonymous">
+	
+	<link rel="stylesheet" href="https://wklken.me/css/custom.css">
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="https://wklken.me">WKLKEN THINKING</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					
+				<a href="https://wklken.me/posts.html">Posts</a>
+				<a href="https://wklken.me/about.html">About</a>
+
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<button id="toc-btn" class="hdr-btn desktop-only-ib" title="Table of Contents"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3" y2="6"></line><line x1="3" y1="12" x2="3" y2="12"></line><line x1="3" y1="18" x2="3" y2="18"></line></svg></button><span class="hdr-social hide-in-mobile"><a href="https://github.com/wklken" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" class="feather" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a><a href="https://twitter.com/wklken" target="_blank" rel="noopener me" title="Twitter"><svg xmlns="http://www.w3.org/2000/svg" class="feather" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="https://wklken.me/posts.html">Posts</a></li>
+			<li><a href="https://wklken.me/about.html">About</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>May 24, 2016</span></div>
+				<h1>Logstash&#43;ElasticSearch处理mysql慢查询日志</h1>
+			</header>
+			<div class="content">
+				<p>遇到一个需求, 需要查询某些业务的慢查询日志. 结果DBA平台那边提供的慢查询日志不能解决实际的业务场景(上报的字段补全), 无奈, 自己挽起袖子上</p>
+<p>参考了 <a href="https://www.phase2technology.com/blog/adding-mysql-slow-query-logs-to-logstash/">这篇文章</a>, 不过自己根据需求做了较多的变更</p>
+<p>开始吧</p>
+<h2 id="1-找到日志的位置">1. 找到日志的位置<a href="#1-找到日志的位置" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>先确认是否开启了, 然后找到日志文件的位置</p>
+<pre tabindex="0"><code>&gt; show variables like &#39;%slow%&#39;;
++---------------------+-------------------------------------+
+| Variable_name       | Value                               |
++---------------------+-------------------------------------+
+| log_slow_queries    | ON                                  |
+| slow_launch_time    | 2                                   |
+| slow_query_log      | ON                                  |
+| slow_query_log_file | /data/mysqllog/20000/slow-query.log |
++---------------------+-------------------------------------+
+</code></pre><h2 id="2-慢查询日志">2. 慢查询日志<a href="#2-慢查询日志" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>格式基本是如下, 当然, 格式如果有差异, 需要根据具体格式进行小的修改</p>
+<pre tabindex="0"><code># Time: 160524  5:12:29
+# User@Host: user_a[xxxx] @  [10.166.140.109]
+# Query_time: 1.711086  Lock_time: 0.000040 Rows_sent: 385489  Rows_examined: 385489
+use dbname;
+SET timestamp=1464037949;
+SELECT 1 from dbname;
+</code></pre><h2 id="3-使用-logstash-采集">3. 使用 logstash 采集<a href="#3-使用-logstash-采集" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>采集, 无非是用<code>multiline</code>进行多行解析</p>
+<p>但是, 需要处理的几个问题</p>
+<p>第一个是, 去除掉没用的信息</p>
+<p>第二个, 慢查询sql, 是会反复出现的, 所以, 执行次数成了一个很重要的指标. 我们要做的, 就是<code>降噪</code>(将参数去掉, 涉及带引号的内容+数字), 将参数类信息过滤掉, 留下核心的sql, 然后计算出一个hash, 这样就可以在查询, 根据这个字段进行聚合. 这里用到了 <a href="https://www.elastic.co/guide/en/logstash/current/plugins-filters-mutate.html#plugins-filters-mutate-add_field">mutate</a> 以及 <a href="https://www.elastic.co/guide/en/logstash/current/plugins-filters-checksum.html">checksum</a></p>
+<pre tabindex="0"><code>  # calculate unique hash
+  mutate {
+    add_field =&gt; {&#34;sql_for_hash&#34; =&gt; &#34;%{sql}&#34;}
+  }
+  mutate {
+    gsub =&gt; [
+        &#34;sql_for_hash&#34;, &#34;&#39;.+?&#39;&#34;, &#34;&#34;,
+        &#34;sql_for_hash&#34;, &#34;-?\d*\.{0,1}\d+&#34;, &#34;&#34;
+    ]
+  }
+  checksum {
+    algorithm =&gt; &#34;md5&#34;
+    keys =&gt; [&#34;sql_for_hash&#34;]
+  }
+</code></pre><p>最后算出来的md5, 放入了<code>logstash_checksum</code></p>
+<p>第三个, 某些sql会非常大, 例如某些不规范的sql可能到几百M或是上G&hellip;.会直接导致采集进程OOM, 所以, 处理时, 设定超过100k丢弃掉</p>
+<p>第四个, 默认多行处理, 一条sql可能停留在采集端没有上报, 需要等到下一条sql进来, 这样是有问题的, 如果一直没有后续, 最后一条将不会进入引擎. 所以, 在配置中设定了超过5s自动上报</p>
+<p>完整的logstash配置文件(具体使用可能需要根据自身日志格式做些小调整)
+注意, 里面的pattern <code>ALLWORD [\s\S]*</code></p>
+<pre tabindex="0"><code>input {
+  file {
+    path =&gt; [&#34;/data/mysqllog/20000/slow-query.log&#34;]
+    sincedb_path =&gt; &#34;/data/LogNew/logstash/sincedb/mysql.sincedb&#34;
+    type =&gt; &#34;mysql-slow-log&#34;
+    add_field =&gt; [&#34;env&#34;, &#34;PRODUCT&#34;]
+    codec =&gt; multiline {
+      pattern =&gt; &#34;^# User@Host:&#34;
+      negate =&gt; true
+      what =&gt; previous
+      max_bytes =&gt; &#34;100kib&#34;
+      auto_flush_interval =&gt; 5
+    }
+  }
+}
+filter {
+  if (&#34;multiline_codec_max_bytes_reached&#34; in [tags]) {
+      drop {}
+  }
+  grok {
+    # User@Host: logstash[logstash] @ localhost [127.0.0.1]
+    # User@Host: logstash[logstash] @  [127.0.0.1]
+    match =&gt; [ &#34;message&#34;, &#34;^# User@Host: %{ALLWORD:user}\[%{ALLWAORD}\] @ %{ALLWORD:dbhost}? \[%{IP:ip}\]&#34; ]
+  }
+  grok {
+    # Query_time: 102.413328  Lock_time: 0.000167 Rows_sent: 0  Rows_examined: 1970
+    match =&gt; [ &#34;message&#34;, &#34;^# Query_time: %{NUMBER:duration:float}%{SPACE}Lock_time: %{NUMBER:lock_wait:float}%{SPACE}Rows_sent: %{NUMBER:results:int}%{SPACE}Rows_examined:%{SPACE}%{NUMBER:scanned:int}%{ALLWORD:sql}&#34;]
+  }
+
+  # Capture the time the query happened
+  grok {
+    match =&gt; [ &#34;message&#34;, &#34;^SET timestamp=%{NUMBER:timestamp};&#34; ]
+  }
+  # if codec multiline parse failure
+  if (&#34;_grokparsefailure&#34; in [tags]) {
+      drop {}
+  }
+  date {
+    match =&gt; [ &#34;timestamp&#34;, &#34;UNIX&#34; ]
+  }
+
+  mutate {
+    gsub =&gt; [
+        &#34;sql&#34;, &#34;\nSET timestamp=\d+?;\n&#34;, &#34;&#34;,
+        &#34;sql&#34;, &#34;\nuse [a-zA-Z0-9\-\_]+?;&#34;, &#34;&#34;,
+        &#34;sql&#34;, &#34;\n# Time: \d+\s+\d+:\d+:\d+&#34;, &#34;&#34;,
+        &#34;sql&#34;, &#34;\n/usr/local/mysql/bin/mysqld.+$&#34;, &#34;&#34;,
+        &#34;sql&#34;, &#34;\nTcp port:.+$&#34;, &#34;&#34;,
+        &#34;sql&#34;, &#34;\nTime .+$&#34;, &#34;&#34;
+    ]
+  }
+
+
+
+  # calculate unique hash
+  mutate {
+    add_field =&gt; {&#34;sql_for_hash&#34; =&gt; &#34;%{sql}&#34;}
+  }
+  mutate {
+    gsub =&gt; [
+        &#34;sql_for_hash&#34;, &#34;&#39;.+?&#39;&#34;, &#34;&#34;,
+        &#34;sql_for_hash&#34;, &#34;-?\d*\.{0,1}\d+&#34;, &#34;&#34;
+    ]
+  }
+  checksum {
+    algorithm =&gt; &#34;md5&#34;
+    keys =&gt; [&#34;sql_for_hash&#34;]
+  }
+
+  # Drop the captured timestamp field since it has been moved to the time of the event
+  mutate {
+    # TODO: remove the message field
+    remove_field =&gt; [&#34;timestamp&#34;, &#34;message&#34;, &#34;sql_for_hash&#34;]
+  }
+}
+output {
+    #stdout{
+    #    codec =&gt; rubydebug
+    #}
+    #if (&#34;_grokparsefailure&#34; not in [tags]) {
+    #    stdout{
+    #        codec =&gt; rubydebug
+    #    }
+    #}
+    if (&#34;_grokparsefailure&#34; not in [tags]) {
+        elasticsearch {
+          hosts =&gt; [&#34;192.168.1.1:9200&#34;]
+          index =&gt; &#34;logstash-slowlog&#34;
+        }
+    }
+}
+</code></pre><p>采集进去的内容</p>
+<pre tabindex="0"><code>{
+           &#34;@timestamp&#34; =&gt; &#34;2016-05-23T21:12:59.000Z&#34;,
+             &#34;@version&#34; =&gt; &#34;1&#34;,
+                 &#34;tags&#34; =&gt; [
+        [0] &#34;multiline&#34;
+    ],
+                 &#34;path&#34; =&gt; &#34;/Users/ken/tx/elk/logstash/data/slow_sql.log&#34;,
+                 &#34;host&#34; =&gt; &#34;Luna-mac-2.local&#34;,
+                 &#34;type&#34; =&gt; &#34;mysql-slow&#34;,
+                  &#34;env&#34; =&gt; &#34;PRODUCT&#34;,
+                 &#34;user&#34; =&gt; &#34;dba_bak_all_sel&#34;,
+                   &#34;ip&#34; =&gt; &#34;10.166.140.109&#34;,
+             &#34;duration&#34; =&gt; 28.812601,
+            &#34;lock_wait&#34; =&gt; 0.000132,
+              &#34;results&#34; =&gt; 749414,
+              &#34;scanned&#34; =&gt; 749414,
+                  &#34;sql&#34; =&gt; &#34;SELECT /*!40001 SQL_NO_CACHE */ * FROM `xxxxx`;&#34;,
+    &#34;logstash_checksum&#34; =&gt; &#34;3e3ccb89ee792de882a57e2bef6c5371&#34;
+}
+</code></pre><h2 id="4-写查询">4. 写查询<a href="#4-写查询" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>查询, 我们需要按<code>logstash_checksum</code>进行聚合, 然后按照次数由多到少降序展示, 同时, 每个<code>logstash_checksum</code>需要有一条具体的sql进行展示</p>
+<p>通过 es 的 <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-metrics-top-hits-aggregation.html">Top hits Aggregation</a> 可以完美地解决这个查询需求</p>
+<p>查询的query</p>
+<pre tabindex="0"><code>body = {
+    &#34;from&#34;: 0,
+    &#34;size&#34;: 0,
+    &#34;query&#34;: {
+        &#34;filtered&#34;: {
+            &#34;query&#34;: {
+                &#34;match&#34;: {
+                    &#34;user&#34;: &#34;test&#34;
+                }
+            },
+            &#34;filter&#34;: {
+                &#34;range&#34;: {
+                    &#34;@timestamp&#34;: {
+                        &#34;gte&#34;: &#34;now-1d&#34;,
+                        &#34;lte&#34;: &#34;now&#34;
+                    }
+                }
+            }
+        }
+    },
+    &#34;aggs&#34;: {
+        &#34;top_errors&#34;: {
+            &#34;terms&#34;: {
+                &#34;field&#34;: &#34;logstash_checksum&#34;,
+                &#34;size&#34;: 20
+            },
+            &#34;aggs&#34;: {
+                &#34;top_error_hits&#34;: {
+                    &#34;top_hits&#34;: {
+                        &#34;sort&#34;: [
+                            {
+                                &#34;@timestamp&#34;:{
+                                    &#34;order&#34;: &#34;desc&#34;
+                                }
+                            }
+                        ],
+                        &#34;_source&#34;: {
+                            &#34;include&#34;: [
+                               &#34;user&#34; , &#34;sql&#34;, &#34;logstash_checksum&#34;, &#34;@timestamp&#34;, &#34;duration&#34;, &#34;lock_wait&#34;, &#34;results&#34;, &#34;scanned&#34;
+                            ]
+                        },
+                        &#34;size&#34; : 1
+                    }
+                }
+            }
+        }
+    }
+}
+</code></pre><p>跟这个写法相关的几个参考链接: <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-bucket-terms-aggregation.html#search-aggregations-bucket-terms-aggregation">Terms Aggregation</a> /  <a href="http://stackoverflow.com/questions/25986538/elasticsearch-filter-document-group-by-field">Elasticsearch filter document group by field</a></p>
+<h2 id="5-渲染页面">5. 渲染页面<a href="#5-渲染页面" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>python的后台, 使用<code>sqlparse</code>包, 将sql进行格式化(换行/缩进/大小写), 再往前端传. <a href="https://pypi.python.org/pypi/sqlparse">sqlparse</a></p>
+<pre tabindex="0"><code>&gt;&gt;&gt; sql = &#39;select * from foo where id in (select id from bar);&#39;
+&gt;&gt;&gt; print sqlparse.format(sql, reindent=True, keyword_case=&#39;upper&#39;)
+SELECT *
+FROM foo
+WHERE id IN
+  (SELECT id
+   FROM bar);
+</code></pre><p>然后在页面上, 使用js进行语法高亮  <a href="https://github.com/google/code-prettify">code-prettify</a></p>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p>
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg><span class="tag"><a href="https://wklken.me/tags/system">system</a></span>
+				</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>1344 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2016-05-24 00:00 &#43;0000</p>
+			</footer>
+		</article>
+		<aside id="toc">
+			<div class="toc-title">Table of Contents</div>
+			<nav id="TableOfContents">
+  <ul>
+    <li><a href="#1-找到日志的位置">1. 找到日志的位置</a></li>
+    <li><a href="#2-慢查询日志">2. 慢查询日志</a></li>
+    <li><a href="#3-使用-logstash-采集">3. 使用 logstash 采集</a></li>
+    <li><a href="#4-写查询">4. 写查询</a></li>
+    <li><a href="#5-渲染页面">5. 渲染页面</a></li>
+  </ul>
+</nav>
+		</aside>
+		<div class="post-nav thin">
+			<a class="next-post" href="https://wklken.me/posts/2016/06/29/deploy-es.html">
+				<span class="post-nav-label"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>&nbsp;Newer</span><br><span>ElasticSearch集群部署文档</span>
+			</a>
+			<a class="prev-post" href="https://wklken.me/posts/2016/05/12/how-to-debug.html">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>[分享]关于代码调试DE那些事</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+<div id="gitalk-container"></div>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script src="https://wklken.me/js/md5.min.js"></script>
+<script>
+  const gitalk = new Gitalk({
+    clientID: '549d325e74a413f1b56a',
+    clientSecret: '086a83faacf152cc3f4079f002058716879e9688',
+    repo: 'wklken.github.io',
+    owner: 'wklken',
+    admin: ['wklken'],
+    id: md5(location.pathname), 
+    distractionFreeMode: false 
+  });
+  (function() {
+    if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+      document.getElementById('gitalk-container').innerHTML = 'Gitalk comments not available by default when the website is previewed locally.';
+      return;
+    }
+    gitalk.render('gitalk-container');
+  })();
+</script>
+
+</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2024 <a href="https://wklken.me">wklken</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="https://wklken.me/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+
+	<script src="https://wklken.me/js/bundle.min.580988ed2982bcbb74a1773c7abea97b43e4c43b9324e10cda0813ec6ec4bb67.js" integrity="sha256-WAmI7SmCvLt0oXc8er6pe0PkxDuTJOEM2ggT7G7Eu2c=" crossorigin="anonymous"></script>
+	
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-2GRCMEVXLQ"></script>
+<script>
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.dataLayer = window.dataLayer || [];
+	function gtag(){dataLayer.push(arguments);}
+	gtag('js', new Date());
+	gtag('config', 'G-2GRCMEVXLQ', { 'anonymize_ip': false });
+}
+</script>
+
+
+
+</body>
+
+</html>

@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<meta name="theme-color" content="#494f5c">
+	<meta name="msapplication-TileColor" content="#494f5c">
+<meta itemprop="name" content="数据结构&amp;算法实践—【排序|交换排序】地精排序及改进">
+<meta itemprop="description" content="排序&raquo;交换排序&raquo;地精排序 List: 0.概念&#43;伪代码&#43;示例分析 1.地精排序实现 2.改进 3.Question start 基本概念: 维基百科:http://e"><meta itemprop="datePublished" content="2012-05-27T08:00:00+08:00" />
+<meta itemprop="dateModified" content="2012-05-27T08:00:00+08:00" />
+<meta itemprop="wordCount" content="1144">
+<meta itemprop="keywords" content="python-ds-algorithm," /><meta property="og:title" content="数据结构&amp;算法实践—【排序|交换排序】地精排序及改进" />
+<meta property="og:description" content="排序&raquo;交换排序&raquo;地精排序 List: 0.概念&#43;伪代码&#43;示例分析 1.地精排序实现 2.改进 3.Question start 基本概念: 维基百科:http://e" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://wklken.me/posts/2012/05/27/python-ds-06-sort-gnome.html" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2012-05-27T08:00:00+08:00" />
+<meta property="article:modified_time" content="2012-05-27T08:00:00+08:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="数据结构&amp;算法实践—【排序|交换排序】地精排序及改进"/>
+<meta name="twitter:description" content="排序&raquo;交换排序&raquo;地精排序 List: 0.概念&#43;伪代码&#43;示例分析 1.地精排序实现 2.改进 3.Question start 基本概念: 维基百科:http://e"/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>数据结构&amp;算法实践—【排序|交换排序】地精排序及改进</title>
+	<link rel="stylesheet" href="https://wklken.me/css/style.min.a634759f5e59454c8c91bba6cb21df1387610e17a0916dfc23b1723d2e0623ed.css" integrity="sha256-pjR1n15ZRUyMkbumyyHfE4dhDhegkW38I7FyPS4GI+0=" crossorigin="anonymous">
+	
+	<link rel="stylesheet" href="https://wklken.me/css/custom.css">
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="https://wklken.me">WKLKEN THINKING</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					
+				<a href="https://wklken.me/posts.html">Posts</a>
+				<a href="https://wklken.me/about.html">About</a>
+
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<button id="toc-btn" class="hdr-btn desktop-only-ib" title="Table of Contents"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3" y2="6"></line><line x1="3" y1="12" x2="3" y2="12"></line><line x1="3" y1="18" x2="3" y2="18"></line></svg></button><span class="hdr-social hide-in-mobile"><a href="https://github.com/wklken" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" class="feather" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a><a href="https://twitter.com/wklken" target="_blank" rel="noopener me" title="Twitter"><svg xmlns="http://www.w3.org/2000/svg" class="feather" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="https://wklken.me/posts.html">Posts</a></li>
+			<li><a href="https://wklken.me/about.html">About</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>May 27, 2012</span></div>
+				<h1>数据结构&amp;算法实践—【排序|交换排序】地精排序及改进</h1>
+			</header>
+			<div class="content">
+				<blockquote>
+<p>排序&raquo;交换排序&raquo;地精排序</p>
+</blockquote>
+<p>List:</p>
+<pre><code>0.概念+伪代码+示例分析
+1.地精排序实现
+2.改进
+3.Question
+</code></pre>
+<ol start="0">
+<li>start</li>
+</ol>
+<p>基本概念:</p>
+<p>维基百科:http://en.wikipedia.org/wiki/Gnome_sort(目前只有英文版的)</p>
+<p>地精排序又称侏儒排序，类似于插入排序，但是将一个数放入其正确位置的交换同冒泡排序（一系列交换）</p>
+<p>简单，只有一层循环，</p>
+<p>时间复杂度O(n^2)，最优复杂度O(n),平均时间复杂度O(n^2)</p>
+<p>其实思想很简单,往前冒泡，一旦发生数据交换，就往回冒泡，直到把被交换数字放入正确位置，之后，继续前进</p>
+<p>伪代码(来自于维基百科)</p>
+<pre><code>procedure gnomeSort(a[])
+    pos := 1
+    while pos &lt; length(a)
+        if (a[pos] &gt;= a[pos-1])
+            pos := pos + 1
+        else
+            swap a[pos] and a[pos-1]
+            if (pos &gt; 1)
+                pos := pos - 1
+            else
+                pos := pos + 1
+            end if
+        end if
+    end while
+end procedure
+</code></pre>
+<p>例子：</p>
+<pre><code>[5, 3, 2, 4]               #输入数组
+
+i=0, i=i+1=1    #初始，i=0 ，直接i+=1
+
+cmp l[0]= 5  l[1]= 3
+change -&gt; [3, 5, 2, 4]
+swap, i=i-1=0   #发生交换，i=i-1
+
+i=0, i=i+1=1   #i=0,i+=1
+
+cmp l[0]= 3  l[1]= 5
+no swap, i=i+1=1   #无交换，i+=1
+
+cmp l[1]= 5  l[2]= 2
+change -&gt; [3, 2, 5, 4]  #交换
+swap, i=i-1=1    #i=i-1，反向冒泡开始
+
+cmp l[0]= 3  l[1]= 2
+change -&gt; [2, 3, 5, 4]
+swap, i=i-1=0  # 交换
+
+i=0, i=i+1=1
+cmp l[0]= 2  l[1]= 3
+no swap, i=i+1=1 #无交换，i+=1
+
+cmp l[1]= 3  l[2]= 5
+no swap, i=i+1=2 #无交换，i+=1
+
+cmp l[2]= 5  l[3]= 4
+change -&gt; [2, 3, 4, 5]
+swap, i=i-1=2  #交换,i-=1
+
+cmp l[1]= 3  l[2]= 4
+no swap, i=i+1=2
+
+cmp l[2]= 4  l[3]= 5
+no swap, i=i+1=3 #结束排序
+</code></pre>
+<p>1 start</p>
+<pre><code>#!/usr/bin/python
+# -*- coding:utf-8 -*-
+# 地精排序
+#@author: wklken@yeah.net
+
+def gnome_sort(l):
+    i = 0
+    while i &lt; len(l):
+        if i == 0 or l[i - 1] &lt; l[i]: #i=0或者正序不需交换，i+1
+            i += 1
+        else:  #否则，交换两数，i回退
+            l[i - 1], l[i] = l[i], l[i - 1]
+            i -= 1
+</code></pre>
+<ol start="2">
+<li>start</li>
+</ol>
+<p>观察上面例子，是不是发现有些别扭&hellip;&hellip;.</p>
+<pre><code>[3, 5, 2, 4]  #比较 5,2
+[3, 2, 5, 4]  #交换
+[3, 2,5, 4]  #比较 3,2
+[2, 3, 5, 4]  #交换
+[2, 3, 5, 4]    #比较2,3
+[2, 3, 5, 4]    #比较3,5
+</code></pre>
+<p>没错，若是到了b存在交换，反向冒泡，直至把被交换数冒泡放到其有序位置a,然后再从a-&gt;b进行比较冒泡</p>
+<p>其实，a-&gt;b这一段序列已经是有序的，不需要浪费比较次数在这上面</p>
+<p>所以我们进行jump</p>
+<p>即，记录b的位置，当发现反序冒泡没有交换时（冒泡结束），jump到b位置，继续正序冒泡</p>
+<p>代码:</p>
+<pre><code>:::python
+def gnome_sort2(l):
+    i = 0
+    current_index = 0  #保存反向冒泡前位置
+    back_noswap = True  #标识反向冒泡是否完成
+    while i &lt; len(l):
+        if i == 0 or l[i - 1] &lt; l[i]: #i=0或者正序不需交换，i+1
+            i += 1
+            back_noswap = True
+        else:  #否则，交换两数，i回退
+            l[i - 1], l[i] = l[i], l[i - 1]
+            current_index = i + 1  #开始反序，记录位置,跳转回来后比较就是 i i+1两个数的比较，之前数已有序
+            back_noswap = False
+            i -= 1
+            print &quot;change -&gt;&quot;, l
+        if current_index and back_noswap:  #满足 当前是反序冒泡，且未发数据交换，代表已结束，可以跳回
+            i = current_index
+            current_index = 0
+            print &quot;jump&quot;,i    
+</code></pre>
+<p>实际过程：</p>
+<pre><code>[5, 3, 2, 4]
+</code></pre>
+<p>cmp  5 3</p>
+<pre><code>change -&gt; [3, 5, 2, 4]
+jump 2   #这里jump的位置是i+1
+</code></pre>
+<p>cmp  5 2</p>
+<pre><code>change -&gt; [3, 2, 5, 4]
+</code></pre>
+<p>cmp  3 2</p>
+<pre><code>change -&gt; [2, 3, 5, 4]
+</code></pre>
+<p>jump 2
+cmp  3 5
+cmp  5 4</p>
+<pre><code>change -&gt; [2, 3, 4, 5]
+</code></pre>
+<p>cmp  3 4
+jump 4</p>
+<p>相同例子的序列，改进前比较次数12，改进后只需要9次</p>
+<ol start="3">
+<li>start</li>
+</ol>
+<p>A.地精排序概念，过程描述？</p>
+<p>B.时间复杂度？空间复杂度？是否是稳定排序？</p>
+<p>C.适用场景，何种情况下表现最优</p>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p>
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg><span class="tag"><a href="https://wklken.me/tags/python-ds-algorithm">python-ds-algorithm</a></span>
+				</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>1144 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2012-05-27 00:00 &#43;0000</p>
+			</footer>
+		</article>
+		<aside id="toc">
+			<div class="toc-title">Table of Contents</div>
+			<nav id="TableOfContents"></nav>
+		</aside>
+		<div class="post-nav thin">
+			<a class="next-post" href="https://wklken.me/posts/2012/05/27/python-ds-07-sort-bogo.html">
+				<span class="post-nav-label"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>&nbsp;Newer</span><br><span>数据结构&amp;算法实践—【排序|交换排序】Bogo排序</span>
+			</a>
+			<a class="prev-post" href="https://wklken.me/posts/2012/05/27/python-ds-07-sort-select.html">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>数据结构&amp;算法实践—【排序|选择排序】选择排序</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+<div id="gitalk-container"></div>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script src="https://wklken.me/js/md5.min.js"></script>
+<script>
+  const gitalk = new Gitalk({
+    clientID: '549d325e74a413f1b56a',
+    clientSecret: '086a83faacf152cc3f4079f002058716879e9688',
+    repo: 'wklken.github.io',
+    owner: 'wklken',
+    admin: ['wklken'],
+    id: md5(location.pathname), 
+    distractionFreeMode: false 
+  });
+  (function() {
+    if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+      document.getElementById('gitalk-container').innerHTML = 'Gitalk comments not available by default when the website is previewed locally.';
+      return;
+    }
+    gitalk.render('gitalk-container');
+  })();
+</script>
+
+</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2024 <a href="https://wklken.me">wklken</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="https://wklken.me/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+
+	<script src="https://wklken.me/js/bundle.min.580988ed2982bcbb74a1773c7abea97b43e4c43b9324e10cda0813ec6ec4bb67.js" integrity="sha256-WAmI7SmCvLt0oXc8er6pe0PkxDuTJOEM2ggT7G7Eu2c=" crossorigin="anonymous"></script>
+	
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-2GRCMEVXLQ"></script>
+<script>
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.dataLayer = window.dataLayer || [];
+	function gtag(){dataLayer.push(arguments);}
+	gtag('js', new Date());
+	gtag('config', 'G-2GRCMEVXLQ', { 'anonymize_ip': false });
+}
+</script>
+
+
+
+</body>
+
+</html>

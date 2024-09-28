@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<meta name="theme-color" content="#494f5c">
+	<meta name="msapplication-TileColor" content="#494f5c">
+<meta itemprop="name" content="关于代码调试de那些事">
+<meta itemprop="description" content="写代码最完美的就是, 想清楚, 码, 运行, perfect, DONE, 下班. 当然, 那是完美的状态. 大多数时候只存在于理想中. 现实是, 我们会被各种坑, 被环境坑, 被语言坑,"><meta itemprop="datePublished" content="2014-11-23T08:00:00+08:00" />
+<meta itemprop="dateModified" content="2014-11-23T08:00:00+08:00" />
+<meta itemprop="wordCount" content="3025">
+<meta itemprop="keywords" content="blabla," /><meta property="og:title" content="关于代码调试de那些事" />
+<meta property="og:description" content="写代码最完美的就是, 想清楚, 码, 运行, perfect, DONE, 下班. 当然, 那是完美的状态. 大多数时候只存在于理想中. 现实是, 我们会被各种坑, 被环境坑, 被语言坑," />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://wklken.me/posts/2014/11/23/how-to-debug.html" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2014-11-23T08:00:00+08:00" />
+<meta property="article:modified_time" content="2014-11-23T08:00:00+08:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="关于代码调试de那些事"/>
+<meta name="twitter:description" content="写代码最完美的就是, 想清楚, 码, 运行, perfect, DONE, 下班. 当然, 那是完美的状态. 大多数时候只存在于理想中. 现实是, 我们会被各种坑, 被环境坑, 被语言坑,"/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>关于代码调试de那些事</title>
+	<link rel="stylesheet" href="https://wklken.me/css/style.min.a634759f5e59454c8c91bba6cb21df1387610e17a0916dfc23b1723d2e0623ed.css" integrity="sha256-pjR1n15ZRUyMkbumyyHfE4dhDhegkW38I7FyPS4GI+0=" crossorigin="anonymous">
+	
+	<link rel="stylesheet" href="https://wklken.me/css/custom.css">
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="https://wklken.me">WKLKEN THINKING</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					
+				<a href="https://wklken.me/posts.html">Posts</a>
+				<a href="https://wklken.me/about.html">About</a>
+
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<button id="toc-btn" class="hdr-btn desktop-only-ib" title="Table of Contents"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3" y2="6"></line><line x1="3" y1="12" x2="3" y2="12"></line><line x1="3" y1="18" x2="3" y2="18"></line></svg></button><span class="hdr-social hide-in-mobile"><a href="https://github.com/wklken" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" class="feather" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a><a href="https://twitter.com/wklken" target="_blank" rel="noopener me" title="Twitter"><svg xmlns="http://www.w3.org/2000/svg" class="feather" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="https://wklken.me/posts.html">Posts</a></li>
+			<li><a href="https://wklken.me/about.html">About</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>Nov 23, 2014</span></div>
+				<h1>关于代码调试de那些事</h1>
+			</header>
+			<div class="content">
+				<p>写代码最完美的就是, 想清楚, 码, 运行, perfect, DONE, 下班.</p>
+<p>当然, 那是完美的状态. 大多数时候只存在于理想中.</p>
+<p>现实是, 我们会被各种坑, 被环境坑, 被语言坑, 被依赖坑, 被第三方库坑, 被编辑器坑, 被自己坑(三个月前的自己/昨天的自己/几分钟前的自己), 被数据库坑, 被缓存坑, 被队友坑(这个比较惨), 被需求变更坑(这个也是)&hellip;&hellip;</p>
+<p>所以, 总是避免不了代码调试.</p>
+<p>今天顺带过了下&laquo;想计算机科学家一样思考Python&gt;&gt;, 里面每一章最后都有关于调试的一些观点, 例如<code>阅读 - 深思 - 修改/运行/回退</code>, 所以决定来写写关于代码调试的一些东西.</p>
+<p>其实, 代码调试是<code>论如何排查问题</code>的一个过程, 根据一切蛛丝马迹, 推断出问题所在, 并消灭之.(破案的即视感)</p>
+<p><img src="/imgs/blabla/debug.png" alt="sherlock"></p>
+<p>下面是一些关于一些自己在写代码和调试的总结</p>
+<hr>
+<h3 id="1你得明白你在做什么-保持清醒">1.你得明白你在做什么, 保持清醒<a href="#1你得明白你在做什么-保持清醒" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>代码调试有时候会让你陷入无尽的自我怀疑/迷茫/愤怒/沮丧/窘迫/挫败(无限负能量), 很容易被这些情绪左右, 不清醒, 陷入怀疑自我(一定是我调用的方式不对), 或者怀疑一切(一定是数据库问题, 不对, 缓存问题, 不对, 接口问题, 好像不对, 数据问题), 或者胡乱改代码(改-跑-错了-再改-跑-又错-再改, 传说中的随机行走编程), 或者&hellip;&hellip;(挣扎吧&hellip;&hellip;)</p>
+<p>此刻, 保持清醒的自我是非常重要的, 要明确: <code>我在做什么</code>, <code>问题是什么症状</code>, <code>原来逻辑是什么</code>, <code>最有可能出问题的是哪里</code>?</p>
+<h3 id="2想清楚了再写代码">2.想清楚了再写代码<a href="#2想清楚了再写代码" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>如果连需求是什么, 想要做什么都没整明白, 就吭哧吭哧开写, 意图在实践中摸索通向胜利的道路, 是很愚蠢的行为.</p>
+<p>需要去理解需求, 自己要做什么, 然后, 在大脑中构造, 现在有什么, 为了完成需求需要做什么, 完成大体的组成结构/步骤流程的思考后, 再着手去做.</p>
+<p>大到整体设计, 小到一个函数, 都可以这么处理</p>
+<p>例如, 遇到复杂问题, 可以先写注释, 完整所有函数整体设计, 然后再填充细节</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">dosomething</span><span class="p">():</span>
+</span></span><span class="line"><span class="cl">		<span class="err">“””</span>
+</span></span><span class="line"><span class="cl">		<span class="err">“””</span>
+</span></span><span class="line"><span class="cl">		<span class="c1"># step1: call func test()</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">		<span class="c1"># step2: parse url to </span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">		<span class="c1"># step3: judge</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">		<span class="c1"># step4: convert and return</span>
+</span></span></code></pre></div><h3 id="3关于脚手架代码">3.关于<code>脚手架</code>代码<a href="#3关于脚手架代码" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>在逻辑的关键位置, print/assert关键信息, 用于在调试中迅速确认问题. (一些中间值/状态/条件判断结果)</p>
+<p>当然, 信息除了<code>关键</code>这个特性, 还需要足够<code>丰富</code>和<code>显眼</code>, 一遍一次性定位问题. (既要好看又要有用)</p>
+<p>你需要确定下如何用顺手的编辑器快速输入这些代码, 可以用各类语言的snippets</p>
+<p>例如, 在写python时候, 我很喜欢prt<tab>(k-vim自动补全), 快速插入一些需要的信息</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="nb">print</span> <span class="s2">&#34;TRACK ================= result&#34;</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">result</span><span class="p">),</span> <span class="n">result</span><span class="p">,</span> <span class="n">result</span> <span class="o">==</span> <span class="s2">&#34;test&#34;</span>
+</span></span></code></pre></div><h3 id="4写完一段代码第一时间自己review一下">4.写完一段代码第一时间自己review一下<a href="#4写完一段代码第一时间自己review一下" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>事实证明, review的效果比写完直接跑再来调, 效率高多了.</p>
+<p>刚写完一段代码, 思路还很清晰, 跳到开始, review过程中注意各类变量, 条件判断, 函数调用, 上下文, 一致性, 错误处理等, 花不了多少时间, 却能发现一些<code>显而易见</code>的问题, 省下很多无谓的调试时间(没问题不需要调试!).</p>
+<h3 id="5review中注意-代码是抠过来的么">5.review中注意, 代码是<code>抠</code>过来的么?<a href="#5review中注意-代码是抠过来的么" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>很多时候从其他地方copy代码过来(一行或几行, 有时候只是一个函数调用或一个判断), 但是很容易忘了根据当前情况修改一些必要的值, 导致问题</p>
+<p>例如函数调用, 这个地方调用参数可能跟你copy这行代码需要参数不一样, 但是放在这里并不会报错(一切运作正常), 最终结果并不对&hellip;..</p>
+<p>好了, 开始调试</p>
+<h3 id="6搞明白问题的表现是什么症状">6.搞明白问题的表现是什么(症状)<a href="#6搞明白问题的表现是什么症状" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>运行代码, 报错了, 有些人会瞬切回编辑器, 开始改代码(作高效状)&hellip;&hellip;&gt;_&lt;#</p>
+<p>问题是: <code>报错提示你看了么, 看明白了么?</code></p>
+<p>现在大部分语言, 其报错提示已经很明显了, 精确到行/变量, 虽然整个异常栈信息可能很长(非常长), 但是都有其特征(在最前或在最后,或在中间靠后, 有关键字), 仔细看下报错信息, 精确制导才是王道.</p>
+<p>所以, 你需要从错误信息中先确认</p>
+<pre tabindex="0"><code>错误类型
+发生错误的地方
+</code></pre><p>很多语法问题可以根据这个信息直接定位</p>
+<h3 id="7调试过程中-需要时刻注意">7.调试过程中, 需要时刻注意<a href="#7调试过程中-需要时刻注意" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>改的是不是正确的目录下正确的文件?(大坑)</p>
+<p>保存了么(编译了么)?(又一个坑)</p>
+<p>服务重启了么?</p>
+<p>跟数据库有没有关系/跟缓存有没有关系, 要不要清?</p>
+<p>……</p>
+<p>以上问题, 随便碰上一个你都可能发现, 自己书写的代码和当前运行来调试的代码不一样.(会浪费你巨量的时间)</p>
+<p>自己调试半天怎么还是一样的结果</p>
+<p>我一直在修改, 但是没有什么区别(出现这种情况要自问一下了)</p>
+<p>可以显示在代码头部打印或者故意出错, 确认是同一套代码</p>
+<h3 id="8环境数据一致性">8.环境/数据一致性<a href="#8环境数据一致性" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>当你发现在本地无法复现别人报过来的问题(在我电脑上是正常的), 这时候, 需要考虑是否是环境和数据的问题.</p>
+<h3 id="9先不要动代码-假设代码是正确的">9.先不要动代码, 假设代码是正确的<a href="#9先不要动代码-假设代码是正确的" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>遇到问题, 不要急着修改代码, 需要假设, 代码是正确的, 然后去复现, 复现之后定位.</p>
+<h3 id="10首先要怀疑自己">10.首先要怀疑自己<a href="#10首先要怀疑自己" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>你不能一旦代码跑不动就怀疑是别人的问题, 然后抛给别人, 这样做同样是很不负责任而且很愚蠢的.</p>
+<p>首先, 你需要怀疑自己, 排查问题, 当确定不是自己的问题之后, 将问题定位, 输入, 预期结果, 现在的异常结果都处理好, 生成一个问题, 抛给对应负责人.
+(一切没有价值的怀疑都是无意义的)</p>
+<p>程序员都是好人, 每次都在想: <code>一定是我的问题</code></p>
+<h3 id="11对于莫名其妙的问题-多试几种情况">11.对于莫名其妙的问题, 多试几种情况<a href="#11对于莫名其妙的问题-多试几种情况" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>有时候碰上一些诡异的问题, 例如有一种情况的输入会报错, 这时候, 再跳过去修改代码前, 可以多尝试几种输入, 涉及边界/异常/正常等情况, 排除法, 精确制导.</p>
+<p>例如, 可以变换输入值的范围(扩大或缩小, 可能用二分法), 变换输入类型和格式</p>
+<h3 id="12先回到正确的代码">12.先回到<code>正确的代码</code><a href="#12先回到正确的代码" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>如果这段代码是由于修改导致的, 可以注掉此次变更代码, 同样的输入再次验证定位</p>
+<h3 id="13如果一段代码是没动过的代码">13.如果一段代码是<code>没动过</code>的代码<a href="#13如果一段代码是没动过的代码" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>如果你确保<code>确实没动过</code>, 此时, 先不要怀疑自己, 更大的可能是<code>别人的问题</code>.</p>
+<p>可能情况: 依赖出了问题(调用函数返回数据不对/异常? 依赖请求挂了? ……), 数据出了问题(表结构变更/服务返回数据变更), 环境问题(数据库/缓存)</p>
+<h3 id="14bug总是倾向于集中出现在一起">14.bug总是倾向于集中出现在一起<a href="#14bug总是倾向于集中出现在一起" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>很多时候, bug是扎堆的, 可以回忆下之前修改的地方, 确认问题.</p>
+<h3 id="15对于很长很长-上二分法">15.对于很长很长, 上<code>二分法</code><a href="#15对于很长很长-上二分法" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>可能函数很长, 或者调用链很长, 不易调试.(光打调试信息就得打得手疼)</p>
+<p>找到关键变量, 上<code>二分法</code>, 无上利器.</p>
+<h3 id="16print-or-debug">16.print or debug?<a href="#16print-or-debug" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>个人偏好简单粗暴的<code>print</code>, 主要是用的vim+sinppet, 快速高效.</p>
+<p>当然, 如果用IDE, 用	<code>debug	</code>吧</p>
+<h3 id="17十分十分诡异的问题">17.十分十分诡异的问题<a href="#17十分十分诡异的问题" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>上<code>debug</code>, 打断点, 一点点调试吧, 只能这样了.</p>
+<h3 id="18当一个问题超过半小时">18.当一个问题超过半小时<a href="#18当一个问题超过半小时" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>歇一歇, 走动走动, 打个水, 呼吸下新鲜空气.</p>
+<p>这时候有利于脱出情境, 去掉挫败感/愤怒/迷信等</p>
+<p>很多时候突然灵感一到, 瞬间明了(这种感觉很奇妙)</p>
+<h3 id="19关于google">19.关于google<a href="#19关于google" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>有些错误信息, 如果觉得比较独特诡异, 可以google下, 你会找到更多的一些信息的.</p>
+<h3 id="20关于求助">20.关于求助<a href="#20关于求助" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>实在搞不定, google大神也搞不定, 此时可能需要求助了.</p>
+<p>前提, 你自己能把问题想清楚, 并且逻辑清晰地描述出来.(什么业务什么位置的什么逻辑, 报错类型和报错信息, 输入输出, 迄今做了哪些尝试等等) 要学会聪明地问问题, 高效, 尊重自己也尊重别人.</p>
+<p>如果你自己都没整明白怎么问, 别人也无能为力.</p>
+<p>遇到很多人, 直接上来就一句<code>xxx出问题了</code>, 没有前置条件后置结果中间症状&hellip;&hellip;</p>
+<p>不过, 如果你会聪明地问, 那就放心大胆地问吧, 不用磨磨唧唧的, 程序员大都是善良的孩子.</p>
+<h3 id="21吃一堑长一智">21.吃一堑长一智<a href="#21吃一堑长一智" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>被坑了就要总结总结, 有个记录, 不被同一个问题坑两次.</p>
+<p>如果被坑了就忘, 还需要去反复求助, 那这属于坑队友的行为(鄙视下)</p>
+<hr>
+<p>好了, 就这些:)</p>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p>
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg><span class="tag"><a href="https://wklken.me/tags/blabla">blabla</a></span>
+				</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>3025 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2014-11-23 00:00 &#43;0000</p>
+			</footer>
+		</article>
+		<aside id="toc">
+			<div class="toc-title">Table of Contents</div>
+			<nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#1你得明白你在做什么-保持清醒">1.你得明白你在做什么, 保持清醒</a></li>
+        <li><a href="#2想清楚了再写代码">2.想清楚了再写代码</a></li>
+        <li><a href="#3关于脚手架代码">3.关于<code>脚手架</code>代码</a></li>
+        <li><a href="#4写完一段代码第一时间自己review一下">4.写完一段代码第一时间自己review一下</a></li>
+        <li><a href="#5review中注意-代码是抠过来的么">5.review中注意, 代码是<code>抠</code>过来的么?</a></li>
+        <li><a href="#6搞明白问题的表现是什么症状">6.搞明白问题的表现是什么(症状)</a></li>
+        <li><a href="#7调试过程中-需要时刻注意">7.调试过程中, 需要时刻注意</a></li>
+        <li><a href="#8环境数据一致性">8.环境/数据一致性</a></li>
+        <li><a href="#9先不要动代码-假设代码是正确的">9.先不要动代码, 假设代码是正确的</a></li>
+        <li><a href="#10首先要怀疑自己">10.首先要怀疑自己</a></li>
+        <li><a href="#11对于莫名其妙的问题-多试几种情况">11.对于莫名其妙的问题, 多试几种情况</a></li>
+        <li><a href="#12先回到正确的代码">12.先回到<code>正确的代码</code></a></li>
+        <li><a href="#13如果一段代码是没动过的代码">13.如果一段代码是<code>没动过</code>的代码</a></li>
+        <li><a href="#14bug总是倾向于集中出现在一起">14.bug总是倾向于集中出现在一起</a></li>
+        <li><a href="#15对于很长很长-上二分法">15.对于很长很长, 上<code>二分法</code></a></li>
+        <li><a href="#16print-or-debug">16.print or debug?</a></li>
+        <li><a href="#17十分十分诡异的问题">17.十分十分诡异的问题</a></li>
+        <li><a href="#18当一个问题超过半小时">18.当一个问题超过半小时</a></li>
+        <li><a href="#19关于google">19.关于google</a></li>
+        <li><a href="#20关于求助">20.关于求助</a></li>
+        <li><a href="#21吃一堑长一智">21.吃一堑长一智</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+		</aside>
+		<div class="post-nav thin">
+			<a class="next-post" href="https://wklken.me/posts/2014/11/30/pomodoro-technique-illustrated.html">
+				<span class="post-nav-label"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>&nbsp;Newer</span><br><span>重读&lt;&lt;番茄时间工作法&gt;&gt;</span>
+			</a>
+			<a class="prev-post" href="https://wklken.me/posts/2014/11/16/unit-statistics-system.html">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>基于 PostgreSQL 的数据统计系统</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+<div id="gitalk-container"></div>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script src="https://wklken.me/js/md5.min.js"></script>
+<script>
+  const gitalk = new Gitalk({
+    clientID: '549d325e74a413f1b56a',
+    clientSecret: '086a83faacf152cc3f4079f002058716879e9688',
+    repo: 'wklken.github.io',
+    owner: 'wklken',
+    admin: ['wklken'],
+    id: md5(location.pathname), 
+    distractionFreeMode: false 
+  });
+  (function() {
+    if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+      document.getElementById('gitalk-container').innerHTML = 'Gitalk comments not available by default when the website is previewed locally.';
+      return;
+    }
+    gitalk.render('gitalk-container');
+  })();
+</script>
+
+</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2024 <a href="https://wklken.me">wklken</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="https://wklken.me/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+
+	<script src="https://wklken.me/js/bundle.min.580988ed2982bcbb74a1773c7abea97b43e4c43b9324e10cda0813ec6ec4bb67.js" integrity="sha256-WAmI7SmCvLt0oXc8er6pe0PkxDuTJOEM2ggT7G7Eu2c=" crossorigin="anonymous"></script>
+	
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-2GRCMEVXLQ"></script>
+<script>
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.dataLayer = window.dataLayer || [];
+	function gtag(){dataLayer.push(arguments);}
+	gtag('js', new Date());
+	gtag('config', 'G-2GRCMEVXLQ', { 'anonymize_ip': false });
+}
+</script>
+
+
+
+</body>
+
+</html>
