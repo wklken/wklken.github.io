@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<meta name="theme-color" content="#494f5c">
+	<meta name="msapplication-TileColor" content="#494f5c">
+<meta itemprop="name" content="AI 重构的那些 bad case">
+<meta itemprop="description" content="以下 case 使用模型均为 gpt5.5 xhigh TLDR 当前最厉害的模型之一 做事靠谱吗？ 大部分靠谱 会有幻觉吗？ 会 会偷懒取巧吗？ 会 会为了做而做吗？会 会生成屎山代码吗？ 会 会使得"><meta itemprop="datePublished" content="2026-05-27T23:00:00+08:00" />
+<meta itemprop="dateModified" content="2026-05-27T23:00:00+08:00" />
+<meta itemprop="wordCount" content="927">
+<meta itemprop="keywords" content="ai,agents," /><meta property="og:title" content="AI 重构的那些 bad case" />
+<meta property="og:description" content="以下 case 使用模型均为 gpt5.5 xhigh TLDR 当前最厉害的模型之一 做事靠谱吗？ 大部分靠谱 会有幻觉吗？ 会 会偷懒取巧吗？ 会 会为了做而做吗？会 会生成屎山代码吗？ 会 会使得" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://wklken.me/posts/2026/05/27/bad-cases-of-ai-refactor.html" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2026-05-27T23:00:00+08:00" />
+<meta property="article:modified_time" content="2026-05-27T23:00:00+08:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="AI 重构的那些 bad case"/>
+<meta name="twitter:description" content="以下 case 使用模型均为 gpt5.5 xhigh TLDR 当前最厉害的模型之一 做事靠谱吗？ 大部分靠谱 会有幻觉吗？ 会 会偷懒取巧吗？ 会 会为了做而做吗？会 会生成屎山代码吗？ 会 会使得"/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>AI 重构的那些 bad case</title>
+	<link rel="stylesheet" href="https://wklken.me/css/style.min.a634759f5e59454c8c91bba6cb21df1387610e17a0916dfc23b1723d2e0623ed.css" integrity="sha256-pjR1n15ZRUyMkbumyyHfE4dhDhegkW38I7FyPS4GI+0=" crossorigin="anonymous">
+	
+	<link rel="stylesheet" href="https://wklken.me/css/custom.css">
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="https://wklken.me">WKLKEN THINKING</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					
+				<a href="https://wklken.me/posts.html">Posts</a>
+				<a href="https://wklken.me/about.html">About</a>
+
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<button id="toc-btn" class="hdr-btn desktop-only-ib" title="Table of Contents"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3" y2="6"></line><line x1="3" y1="12" x2="3" y2="12"></line><line x1="3" y1="18" x2="3" y2="18"></line></svg></button><span class="hdr-social hide-in-mobile"><a href="https://github.com/wklken" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" class="feather" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a><a href="https://twitter.com/wklken" target="_blank" rel="noopener me" title="Twitter"><svg xmlns="http://www.w3.org/2000/svg" class="feather" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="https://wklken.me/posts.html">Posts</a></li>
+			<li><a href="https://wklken.me/about.html">About</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>May 27, 2026</span></div>
+				<h1>AI 重构的那些 bad case</h1>
+			</header>
+			<div class="content">
+				<p>以下 case 使用模型均为 gpt5.5 xhigh</p>
+<h2 id="tldr">TLDR<a href="#tldr" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>当前最厉害的模型之一</p>
+<ul>
+<li>做事靠谱吗？ 大部分靠谱</li>
+<li>会有幻觉吗？ 会</li>
+<li>会偷懒取巧吗？ 会</li>
+<li>会为了做而做吗？会</li>
+<li>会生成屎山代码吗？ 会</li>
+<li>会使得整体项目更复杂还是更简单？ 看你怎么用</li>
+</ul>
+<p>所以</p>
+<ul>
+<li>我们要 review 生成的代码吗？ 要</li>
+<li>当前能做到交给 Agent 一个任务，之后看都不用看直接合并吗？ 暂时不能，大概率翻车</li>
+<li>要为代码负责吗？ 废话，你的 PR，你的代码，你的锅</li>
+</ul>
+<p>建议：</p>
+<ul>
+<li>复杂任务尽量用最好的模型</li>
+<li>Agent 说 job done 之后，用另一个 模型 交叉 review 【重点：交叉验证，不同模型能力、关注点不一样】</li>
+<li>提交 PR 前后，人工 review 【重点：为自己的产出负责】</li>
+<li>对于 review comment（不管是来自于 Agent，还是人）， 先阅读，反向读代码，理解后做判断 【重点：不要让 Agent 直接去修 comments，修多了或修少了都有可能，没有自己的理解和判断，永远积累不到经验】</li>
+</ul>
+<h2 id="过度防御">过度防御<a href="#过度防御" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>某些模型（gpt) 或者某些场景下， Agent 总是过度防御</p>
+<p>例子： 命名 view 层有限制大于零，调用链上每一层都防御 【大概率是没读到，没理解上下文】</p>
+<p>代码能用是能用，可读性非常差</p>
+<h2 id="无意义到包装或转发">无意义到包装或转发<a href="#无意义到包装或转发" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p><code>Proxy</code> function or methods</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="nd">@staticmethod</span>
+</span></span><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">wait_release_done</span><span class="p">(</span><span class="n">release_history_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_WAIT_RELEASE_TIMEOUT</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="n">wait_release_done</span><span class="p">(</span><span class="n">release_history_id</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">)</span>
+</span></span></code></pre></div><p>这个更过分， 先封装成对象 - 在 proxy method 中再转成id</p>
+<p><img src="/imgs/ai/bad-cases-of-ai-refactor-1.png" alt="image-20260602232443128"></p>
+<p><img src="/imgs/ai/bad-cases-of-ai-refactor-2.png" alt="image-20260602232336527"></p>
+<p><code>Proxy</code> constants</p>
+<p><img src="/imgs/ai/bad-cases-of-ai-refactor-3.png" alt="image-20260527232050538"></p>
+<p>甚至，模块 export 代理</p>
+<p><img src="/imgs/ai/bad-cases-of-ai-refactor-4.png" alt="image-20260602234716305"></p>
+<h2 id="不会删掉没有调用的dead-code">不会删掉没有调用的dead code<a href="#不会删掉没有调用的dead-code" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p><img src="/imgs/ai/bad-cases-of-ai-refactor-5.png" alt="image-20260602234055431"></p>
+<h2 id="只要能解决问题什么方法都行">只要能解决问题，什么方法都行<a href="#只要能解决问题什么方法都行" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>lazy import to avoid cycle import</p>
+<p><img src="/imgs/ai/bad-cases-of-ai-refactor-6.png" alt="image-20260528234918701"></p>
+<p>其实应该 break the cycle</p>
+<h2 id="丢失掉所有有用的注释">丢失掉所有有用的注释<a href="#丢失掉所有有用的注释" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<blockquote>
+<p>怎么写着写着，注释越来越少，干净又整洁</p>
+</blockquote>
+<p><img src="/imgs/ai/bad-cases-of-ai-refactor-7.png" alt="image-20260602232155194"></p>
+<p><img src="/imgs/ai/bad-cases-of-ai-refactor-8.png" alt="image-20260602225050389"></p>
+<h2 id="超级复杂的实现-vs-看似取巧的变通">超级复杂的实现 vs 看似取巧的变通<a href="#超级复杂的实现-vs-看似取巧的变通" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>你告诉它这个字段会导致一个注入，然后，它就去解决这个注入</p>
+<blockquote>
+<p>增加一个非常复杂的 escape 方法 vs 舍弃掉这个字段</p>
+</blockquote>
+<p><img src="/imgs/ai/bad-cases-of-ai-refactor-9.png" alt="image-20260602225333542"></p>
+<p>你告诉它这个 version 有个注入， 它专心去解决注入，但是实际上这只是一个版本号，合法就不会出现注入问题</p>
+<blockquote>
+<p>解决注入 vs 校验合法性</p>
+</blockquote>
+<p><img src="/imgs/ai/bad-cases-of-ai-refactor-10.png" alt="image-20260602225833153"></p>
+<h2 id="相对保守不改变函数的协议带来的复杂度">相对保守不改变函数的<code>协议</code>带来的复杂度<a href="#相对保守不改变函数的协议带来的复杂度" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p><img src="/imgs/ai/bad-cases-of-ai-refactor-11.png" alt="image-20260602233101283"></p>
+<h2 id="半吊子的封装">半吊子的封装<a href="#半吊子的封装" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>嗯，复杂的逻辑封装成函数了， 但是，这两个 <code>except</code> 是怎么回事？</p>
+<p><img src="/imgs/ai/bad-cases-of-ai-refactor-12.png" alt="image-20260602231108403"></p>
+<p><code>LockTimeout 和 ReleaseError</code> 实际上也属于 release_to_stages 的上下文</p>
+<p><img src="/imgs/ai/bad-cases-of-ai-refactor-13.png" alt="image-20260602231312144"></p>
+<p>看一个更典型的， 你或许不会犯第二次错误，但是 Agent 会</p>
+<p><img src="/imgs/ai/bad-cases-of-ai-refactor-14.png" alt="image-20260602231455870"></p>
+<h2 id="小心-noqa">小心 noqa<a href="#小心-noqa" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>如果我的变更命中的你的规则，那么一定是你的规则有问题，改一下绕过去好了</p>
+<p>规则存在的目的并不是为了被破坏</p>
+<blockquote>
+<p>注：这是个proxy method， 最终删掉了</p>
+</blockquote>
+<p><img src="/imgs/ai/bad-cases-of-ai-refactor-15.png" alt="image-20260602233315414"></p>
+<p><img src="/imgs/ai/bad-cases-of-ai-refactor-16.png" alt="image-20260602234351439"></p>
+<p><img src="/imgs/ai/bad-cases-of-ai-refactor-17.png" alt="image-20260602235238977"></p>
+<p>下面这个就厉害了，为了解 import 顺序导致的循环引用， 偷偷塞了一个 （其实我第一轮都没注意到，review 其他 noqa 的时候搜到的）</p>
+<blockquote>
+<p>应该去解决循环引用，而不是通过 import 顺序绕过循环引用， 然后通过 noqa 绕过import order 检查</p>
+</blockquote>
+<p><img src="/imgs/ai/bad-cases-of-ai-refactor-18.png" alt="image-20260602234453500"></p>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p>
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg><span class="tag"><a href="https://wklken.me/tags/ai">ai</a></span><span class="tag"><a href="https://wklken.me/tags/agents">agents</a></span>
+				</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>927 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2026-05-27 15:00 &#43;0000</p>
+			</footer>
+		</article>
+		<aside id="toc">
+			<div class="toc-title">Table of Contents</div>
+			<nav id="TableOfContents">
+  <ul>
+    <li><a href="#tldr">TLDR</a></li>
+    <li><a href="#过度防御">过度防御</a></li>
+    <li><a href="#无意义到包装或转发">无意义到包装或转发</a></li>
+    <li><a href="#不会删掉没有调用的dead-code">不会删掉没有调用的dead code</a></li>
+    <li><a href="#只要能解决问题什么方法都行">只要能解决问题，什么方法都行</a></li>
+    <li><a href="#丢失掉所有有用的注释">丢失掉所有有用的注释</a></li>
+    <li><a href="#超级复杂的实现-vs-看似取巧的变通">超级复杂的实现 vs 看似取巧的变通</a></li>
+    <li><a href="#相对保守不改变函数的协议带来的复杂度">相对保守不改变函数的<code>协议</code>带来的复杂度</a></li>
+    <li><a href="#半吊子的封装">半吊子的封装</a></li>
+    <li><a href="#小心-noqa">小心 noqa</a></li>
+  </ul>
+</nav>
+		</aside>
+		<div class="post-nav thin">
+			<a class="next-post" href="https://wklken.me/posts/2026/06/10/focus-on-the-job.html">
+				<span class="post-nav-label"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>&nbsp;Newer</span><br><span>工作中最稀缺的是什么？</span>
+			</a>
+			<a class="prev-post" href="https://wklken.me/posts/2026/05/11/ai-programming-practice.html">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>ai 编程实践</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+<div id="gitalk-container"></div>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script src="https://wklken.me/js/md5.min.js"></script>
+<script>
+  const gitalk = new Gitalk({
+    clientID: '549d325e74a413f1b56a',
+    clientSecret: '086a83faacf152cc3f4079f002058716879e9688',
+    repo: 'wklken.github.io',
+    owner: 'wklken',
+    admin: ['wklken'],
+    id: md5(location.pathname), 
+    distractionFreeMode: false 
+  });
+  (function() {
+    if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+      document.getElementById('gitalk-container').innerHTML = 'Gitalk comments not available by default when the website is previewed locally.';
+      return;
+    }
+    gitalk.render('gitalk-container');
+  })();
+</script>
+
+</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2026 <a href="https://wklken.me">wklken</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="https://wklken.me/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+
+	<script src="https://wklken.me/js/bundle.min.580988ed2982bcbb74a1773c7abea97b43e4c43b9324e10cda0813ec6ec4bb67.js" integrity="sha256-WAmI7SmCvLt0oXc8er6pe0PkxDuTJOEM2ggT7G7Eu2c=" crossorigin="anonymous"></script>
+	
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-2GRCMEVXLQ"></script>
+<script>
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.dataLayer = window.dataLayer || [];
+	function gtag(){dataLayer.push(arguments);}
+	gtag('js', new Date());
+	gtag('config', 'G-2GRCMEVXLQ', { 'anonymize_ip': false });
+}
+</script>
+
+
+
+</body>
+
+</html>
